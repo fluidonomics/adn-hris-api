@@ -18,6 +18,7 @@ let mongoose                = require('mongoose'),
       },
       {
         timestamps: true,
+        versionKey: false,
         _id:false
       });
 

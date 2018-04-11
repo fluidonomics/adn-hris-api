@@ -22,6 +22,7 @@ let mongoose                = require('mongoose'),
       },
       {
         timestamps: true,
+        versionKey: false,
         _id:false
       });
       //UserRolesSchema.plugin(autoIncrement, {inc_field: '_id'});

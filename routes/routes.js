@@ -46,8 +46,8 @@ module.exports = (app) => {
 
   apiRoutes.use('/user', userRoutes);
 
-  // Get User Info endpoint: http://localhost:3000/api/user/:id
-  userRoutes.get('/:id', requireAuth, user.getUserInfo);
+  // // Get User Info endpoint: http://localhost:3000/api/user/:id
+  // userRoutes.get('/:id', requireAuth, user.getUserInfo);
 
   // Change user password from front end (not via email, via form)
   userRoutes.post('/password', requireAuth, user.changePassword);
@@ -57,6 +57,10 @@ module.exports = (app) => {
 
   // Delete Image endpoint: http://localhost:3000/api/user/image/:id
   userRoutes.delete('/image/:id', requireAuth, user.deleteImage);
+
+  userRoutes.get('/getEmployeeDetails', user.getEmployeeDetails);
+  
+
 
 
   //= ========================
