@@ -26,12 +26,7 @@ module.exports = (app) => {
   //= ========================
 
   // User Auth Routes endpoint: http://localhost:3000/api/auth
-  apiRoutes.use('/auth', authRoutes);
-
-  // Register endpoint: http://localhost:3000/api/auth/register
-   authRoutes.post('/register', auth.registerUser);
-
-  
+  apiRoutes.use('/auth', authRoutes);  
 
   // Login endpoint: http://localhost:3000/api/auth/login
   authRoutes.post('/login', auth.loginUser);
