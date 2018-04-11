@@ -1,0 +1,847 @@
+let express           = require('express'),
+    Role              = require('../models/role.model'),
+    Company           = require('../models/company.model'),
+    Division          = require('../models/division.model'),
+    Department        = require('../models/department.model'),
+    Vertical          = require('../models/vertical.model'),
+    SubVertical       = require('../models/subVertical.model'),
+    MaritalStatus     = require('../models/maritalStatus.model'),
+    Currency          = require('../models/currency.model'),
+    Grade             = require('../models/grade.model'),
+    Designation       = require('../models/designation.model'),
+    GradeDesignation  = require('../models/gradeDesignation.model'),
+    AddressLocation          = require('../models/location.model'),
+    ManagementType    = require('../models/managementType.model'),
+    EmploymentType    = require('../models/employmentType.model'),
+    EmploymentStatus  = require('../models/employmentStatus.model'),
+    SupervisorDetails = require('../models/supervisorDetails.model'),
+    PersonalEmpDetails= require('../models/personalEmpDetails.model'),
+    OfficeEmpDetails  = require('../models/officeEmpDetails.model'),
+    Employee          =  require('../models/user.model'),
+    EmpRole           =  require('../models/empRole.model'),
+    jwt               = require('jsonwebtoken'),
+    config            = require('../config/config'),
+    fs                = require('fs'),
+    multer            = require('multer'),
+    mime              = require('mime'),
+    path              = require('path'),
+    crypto            = require('crypto'),
+    gm                = require('gm').subClass({imageMagick: true}),
+    nodemailer        = require('nodemailer'),
+    hbs               = require('nodemailer-express-handlebars'),
+    sgTransport       = require('nodemailer-sendgrid-transport'),
+    uuidV1            = require('uuid/v1'),
+    async             = require('async')
+    awaitEach         = require('await-each');
+
+function getDesignationByGrade(req, res) {
+
+    var gradeDesignationProjection = {
+        createdAt: false,
+        updatedAt: false,
+        isActive: false,
+        updatedBy: false,
+        createdBy: false
+    };
+    var grade_id = req.body.grade_id || req.params.grade_id || req.query.grade_id;
+    var query = {
+        grade_id: grade_id,
+        isActive: true
+    }
+    GradeDesignation.find(query, gradeDesignationProjection, function(err, gradeHirearchyData) {
+        if (gradeHirearchyData) {
+            var hirarchyArray = [];
+            if (gradeHirearchyData) {
+                gradeHirearchyData.forEach(element => {
+                    hirarchyArray.push(element.designation_id);
+                });
+            }
+
+            var querys = {
+                isActive: true
+            }
+            var designationProjection = {
+                createdAt: false,
+                updatedAt: false,
+                isActive: false,
+                updatedBy: false,
+                createdBy: false
+            };
+            Designation.find(querys, designationProjection, {
+                    sort: {
+                        _id: 1
+                    }
+                })
+                .where('_id')
+                .in(hirarchyArray)
+                .exec(function(err, designationData) {
+                    if (designationData) {
+                        return res.status(200).json(designationData);
+                    } else {
+                        return res.status(403).json({
+                            title: 'Error',
+                            error: {
+                                message: err
+                            },
+                            result: {
+                                message: result
+                            }
+                        });
+                    }
+
+                });
+        } else {
+            return res.status(403).json({
+                title: 'Error',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: result
+                }
+            });
+        }
+
+    })
+}
+
+
+let functions = {
+    getRole: (req, res) => {
+        var query = {
+            isActive: true
+        }
+        var roleProjection = {
+            createdAt: false,
+            updatedAt: false,
+            isActive: false,
+            updatedBy: false,
+            createdBy: false
+        };
+        Role.find(query, roleProjection, {
+          sort: {
+              _id: 1
+          }
+      }, function(err, roleData) {
+            if (roleData) {
+                return res.status(200).json(roleData);
+            }
+
+            return res.status(403).json({
+                title: 'Error',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: result
+                }
+            });
+
+        })
+    },
+    getCompany: (req, res) => {
+        var query = {
+            isDeleted: false
+        }
+        var companyProjection = {
+            createdAt: false,
+            updatedAt: false,
+            isDeleted: false,
+            updatedBy: false,
+            createdBy: false
+        };
+        Company.find({}, companyProjection, {
+          sort: {
+              _id: 1
+          }
+      }, function(err, companyData) {
+            if (companyData) {
+                return res.status(200).json(companyData);
+            }
+
+            return res.status(403).json({
+                title: 'Error',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: result
+                }
+            });
+
+        })
+    },
+    getDivision: (req, res) => {
+        var query = {
+            isDeleted: false
+        }
+        var divisionProjection = {
+            createdAt: false,
+            updatedAt: false,
+            isDeleted: false,
+            updatedBy: false,
+            createdBy: false
+        };
+        Division.find(query, divisionProjection, {
+          sort: {
+              _id: 1
+          }
+      }, function(err, divisionData) {
+            if (divisionData) {
+                return res.status(200).json(divisionData);
+            }
+
+            return res.status(403).json({
+                title: 'Error',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: result
+                }
+            });
+        })
+    },
+    getDepartment: (req, res) => {
+        var query = {
+            isDeleted: false
+        }
+        var division_id = req.body.division_id || req.params.division_id || req.query.division_id;
+        if (division_id) {
+            query = {
+                division_id: division_id,
+                isDeleted: false
+            }
+        }
+        var departmentProjection = {
+            createdAt: false,
+            updatedAt: false,
+            isDeleted: false,
+            updatedBy: false,
+            createdBy: false
+        };
+        Department.find(query, departmentProjection, {
+          sort: {
+              _id: 1
+          }
+      }, function(err, departmentData) {
+            if (departmentData) {
+                return res.status(200).json(departmentData);
+            }
+
+            return res.status(403).json({
+                title: 'Error',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: result
+                }
+            });
+
+        })
+    },
+    getVertical: (req, res) => {
+        var query = {
+            isDeleted: false
+        }
+        var department_id = req.body.department_id || req.params.department_id || req.query.department_id;
+        if (department_id) {
+            query = {
+                department_id: department_id,
+                isDeleted: false
+            }
+        }
+        var verticalProjection = {
+            createdAt: false,
+            updatedAt: false,
+            isDeleted: false,
+            updatedBy: false,
+            createdBy: false,
+            department_id: false
+        };
+        Vertical.find(query, verticalProjection, {
+          sort: {
+              _id: 1
+          }
+      }, function(err, verticalData) {
+            if (verticalData) {
+                return res.status(200).json(verticalData);
+            }
+
+            return res.status(403).json({
+                title: 'Add new Grade failed!',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: result
+                }
+            });
+        })
+    },
+    getSubVertical: (req, res) => {
+        var vertical_id = req.body.vertical_id || req.params.vertical_id || req.query.vertical_id;
+        var query = {
+            isDeleted: false
+        }
+        if (vertical_id) {
+            query = {
+                vertical_id: vertical_id,
+                isDeleted: false
+            }
+        }
+        var subVerticalProjection = {
+            createdAt: false,
+            updatedAt: false,
+            isDeleted: false,
+            updatedBy: false,
+            createdBy: false
+        };
+
+        SubVertical.find(query, subVerticalProjection, {
+          sort: {
+              _id: 1
+          }
+      }, function(err, subVerticalData) {
+            if (subVerticalData) {
+                return res.status(200).json(subVerticalData);
+            }
+
+            return res.status(403).json({
+                title: 'Add new Grade failed!',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: result
+                }
+            });
+        })
+    },
+    getMaritalStatus: (req, res) => {
+        var query = {
+            isDeleted: false
+        }
+        var maritalStatusProjection = {
+            createdAt: false,
+            updatedAt: false,
+            isDeleted: false,
+            updatedBy: false,
+            createdBy: false
+        };
+        MaritalStatus.find(query, maritalStatusProjection, {
+          sort: {
+              _id: 1
+          }
+      }, function(err, maritalStatusData) {
+            if (maritalStatusData) {
+                return res.status(200).json(maritalStatusData);
+            }
+
+            return res.status(403).json({
+                title: 'Error',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: result
+                }
+            });
+        })
+    },
+    getCurrency: (req, res) => {
+        var query = {
+            isDeleted: false
+        }
+        var currencyProjection = {
+            createdAt: false,
+            updatedAt: false,
+            isDeleted: false,
+            updatedBy: false,
+            createdBy: false
+        };
+        Currency.find(query, currencyProjection, {
+          sort: {
+              _id: 1
+          }
+      }, function(err, currencyData) {
+            if (currencyData) {
+                return res.status(200).json(currencyData);
+            }
+
+            return res.status(403).json({
+                title: 'Add new Grade failed!',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: result
+                }
+            });
+        })
+    },
+    getGrade: (req, res) => {
+        var managementType_id = req.body.managementType_id || req.params.managementType_id || req.query.managementType_id;
+        var employmentType_id = req.body.employmentType_id || req.params.employmentType_id || req.query.employmentType_id;
+        var query = {
+            isDeleted: false
+        }
+        if( managementType_id && employmentType_id)
+        {
+          if(managementType_id==1 && (employmentType_id==1||employmentType_id==2))
+          {
+            query = {isDeleted: false, _id: { $lte: 13 } }
+          }
+          else if((managementType_id==1 && employmentType_id==3)||(managementType_id==2 && employmentType_id==5))
+          {
+            query = {isDeleted: false,_id:1001}
+          }
+          else if(managementType_id==2 && employmentType_id==4)
+          {
+              query = {isDeleted: false,_id:{$in:[14,15,16]}}
+          }
+        }
+
+        var gradeProjection = {
+            createdAt: false,
+            updatedAt: false,
+            isDeleted: false,
+            updatedBy: false,
+            createdBy: false
+        };
+        Grade.find(query, gradeProjection, {
+          sort: {
+              _id: 1
+          }
+      }, function(err, gradeData) {
+            if (gradeData) {
+                return res.status(200).json(gradeData);
+            }
+
+            return res.status(403).json({
+                title: 'Add new Grade failed!',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: result
+                }
+            });
+
+        })
+    },
+    getDesignation: (req, res) => {
+        var grade_id = req.body.grade_id || req.params.grade_id || req.query.grade_id;
+        var query = {
+            isActive: true,
+        }
+        if (grade_id) {
+            getDesignationByGrade(req, res);
+        } else {
+            var gradeProjection = {
+                createdAt: false,
+                updatedAt: false,
+                isActive: false,
+                updatedBy: false,
+                createdBy: false
+            };
+            Designation.find(query, gradeProjection, {
+                sort: {
+                    _id: 1
+                }
+            }, function(err, designationData) {
+                if (designationData) {
+                    return res.status(200).json(designationData);
+                }
+
+                return res.status(403).json({
+                    title: 'Error',
+                    error: {
+                        message: err
+                    },
+                    result: {
+                        message: result
+                    }
+                });
+
+            })
+        }
+    },
+    getLocation: (req, res) => {
+      var query = {}
+      var parent_id = req.body.parent_id || req.params.parent_id || req.query.parent_id;
+      if (parent_id) 
+      {
+        query = {parent_id: parent_id}
+      }
+      var locationProjection = {
+          createdAt: false,
+          updatedAt: false,
+          updatedBy: false,
+          createdBy: false
+      };
+      AddressLocation.find(query,locationProjection, {sort: {_id: 1}},function(err, locationData)
+      {
+          if (locationData) {
+              return res.status(200).json(locationData);
+          }
+
+          return res.status(403).json({
+              title: 'Error',
+              error: {
+                  message: err
+              },
+              result: {
+                  message: result
+              }
+          });
+      })
+    },
+    getGradeDesignation: (req, res) => {
+        var query = {
+            isActive: true
+        }
+        var gradeDesignationProjection = {
+            createdAt: false,
+            updatedAt: false,
+            isActive: false,
+            updatedBy: false,
+            createdBy: false
+        };
+        GradeDesignation.find(query, gradeDesignationProjection, {
+          sort: {
+              _id: 1
+          }
+      }, function(err, gradeDesignationData) {
+            if (gradeDesignationData) {
+                return res.status(200).json(gradeDesignationData);
+            }
+
+            return res.status(403).json({
+                title: 'Error',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: result
+                }
+            });
+        })
+    },
+    getManagementType: (req, res) => {
+      
+        var query = {
+            isDeleted: false
+        }
+        var managementTypeProjection = {
+            createdAt: false,
+            updatedAt: false,
+            isDeleted: false,
+            updatedBy: false,
+            createdBy: false
+        };
+        ManagementType.find({}, managementTypeProjection, {
+          sort: {
+              _id: 1
+          }
+      }, function(err, managementTypeData) {
+            if (managementTypeData) {
+                return res.status(200).json(managementTypeData);
+            }
+
+            return res.status(403).json({
+                title: 'Error',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: result
+                }
+            });
+
+        })
+    },
+    getEmploymentType: (req, res) => {
+       var managementType_id = req.body.managementType_id || req.params.managementType_id || req.query.managementType_id;
+        var query = {
+            isDeleted: false
+        }
+        if(managementType_id)
+        {
+          query = {
+                isDeleted: false,
+                managementType_id:managementType_id
+           }
+        }
+        var employmentTypeProjection = {
+            createdAt: false,
+            updatedAt: false,
+            isDeleted: false,
+            updatedBy: false,
+            createdBy: false
+        };
+        EmploymentType.find(query, employmentTypeProjection, {
+          sort: {
+              _id: 1
+          }
+      }, function(err, employmentTypeData) {
+            if (employmentTypeData) {
+                return res.status(200).json(employmentTypeData);
+            }
+
+            return res.status(403).json({
+                title: 'Error',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: result
+                }
+            });
+
+        })
+    },
+    getEmploymentStatus: (req, res) => {
+        var query = {
+            isDeleted: false
+        }
+        var employmentStatusProjection = {
+            createdAt: false,
+            updatedAt: false,
+            isDeleted: false,
+            updatedBy: false,
+            createdBy: false
+        };
+        EmploymentStatus.find({}, employmentStatusProjection, {
+          sort: {
+              _id: 1
+          }
+      }, function(err, employmentStatusData) {
+            if (employmentStatusData) {
+                return res.status(200).json(employmentStatusData);
+            }
+
+            return res.status(403).json({
+                title: 'Error',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: result
+                }
+            });
+        })
+    },
+    getEmployee: (req, res) => {
+        var query = {
+            isDeleted: false
+        }
+        var employeeProjection = {
+            createdAt: false,
+            updatedAt: false,
+            isDeleted: false,
+            updatedBy: false,
+            createdBy: false
+        };
+        Employee.find({}, employeeProjection, {
+          sort: {
+              _id: 1
+          }
+      }, function(err, employeeData) {
+            if (employeeData) {
+                return res.status(200).json(employeeData);
+            }
+
+            return res.status(403).json({
+                title: 'Error',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: result
+                }
+            });
+        })
+    },
+    getHr: (req, res) => {
+        var query = {
+            isDeleted: false,
+            role_id: 2
+        }
+        var empRoleProjection = {
+            emp_id: true,
+        };
+        EmpRole.find(query, empRoleProjection, {
+          sort: {
+              _id: 1
+          }
+      }, function(err, empRoleData) {
+            var empArray = [];
+            if (empRoleData) {
+                empRoleData.forEach(element => {
+                    empArray.push(element.emp_id);
+                });
+            }
+            let subQuery = {
+                isDeleted: false
+            };
+            var company_id = req.body.company_id || req.params.company_id || req.query.company_id;
+            var emp_id = req.body.emp_id || req.params.emp_id || req.query.emp_id;
+            if (company_id && emp_id) {
+                let supervisorQuery = {
+                    isActive: true,
+                    emp_id: emp_id
+                }
+                SupervisorDetails.find(supervisorQuery).select('primarySupervisorEmp_id').exec(function(err, supervisorDetailsData) {
+                    if (supervisorDetailsData) {
+                        var supervisorEmpArray = [];
+                        if (supervisorDetailsData) {
+                            supervisorDetailsData.forEach(element => {
+                                supervisorEmpArray.push(element.primarySupervisorEmp_id);
+                            });
+                            subQuery = {
+                                isDeleted: false,
+                                company_id: company_id
+                            }
+                            Employee.find(subQuery).where('_id').in(supervisorEmpArray).select('fullName').exec(function(err, empSupervisorData) {
+                                if (empSupervisorData) {
+                                    return res.status(200).json(empSupervisorData);
+                                }
+
+                                return res.status(403).json({
+                                    title: 'Error',
+                                    error: {
+                                        message: err
+                                    },
+                                    result: {
+                                        message: result
+                                    }
+                                });
+                            })
+                        }
+                    }
+                });
+            } else {
+                if (company_id) {
+                    subQuery = {
+                        isDeleted: false,
+                        company_id: company_id
+                    }
+                }
+                Employee.find(subQuery).where('_id').in(empArray).select('fullName').exec(function(err, empData) {
+                    if (empData) {
+                        return res.status(200).json(empData);
+                    }
+
+                    return res.status(403).json({
+                        title: 'Error',
+                        error: {
+                            message: err
+                        },
+                        result: {
+                            message: result
+                        }
+                    });
+                })
+            }
+
+        })
+    },
+    getSupervisor: (req, res) => {
+        var query = {
+            isDeleted: false,
+            role_id: 4
+        }
+        var empRoleProjection = {
+            emp_id: true,
+        };
+        EmpRole.find(query, empRoleProjection, {
+          sort: {
+              _id: 1
+          }
+      }, function(err, empRoleData) {
+            let subQuery = {
+                isDeleted: false
+            };
+            var grade_id = req.body.grade_id || req.params.grade_id || req.query.grade_id;
+            if (grade_id) {
+                subQuery = {
+                    isDeleted: false,
+                    grade_id: grade_id
+                }
+            }
+            Employee.find(subQuery).where('_id').in(empRoleData).select('_id, fullName').exec(function(err, empData) {
+                if (empData) {
+                    return res.status(200).json(empData);
+                }
+
+                return res.status(403).json({
+                    title: 'Error',
+                    error: {
+                        message: err
+                    },
+                    result: {
+                        message: result
+                    }
+                });
+            })
+        })
+    },
+    checkEmailUnique: (req, res) => {
+      var personalEmail = req.body.personalEmail || req.params.personalEmail || req.query.personalEmail;
+      var officeEmail = req.body.officeEmail || req.params.officeEmail || req.query.officeEmail;
+      var query = {
+          isDeleted: false,
+          personalEmail:personalEmail
+      }
+      var personalEmpDetailsProjection = {
+        _id: true,
+      };
+      if(personalEmail)
+      {
+        PersonalEmpDetails.find(query, personalEmpDetailsProjection, function(err, PersonalEmpDetailsData) {
+          if(PersonalEmpDetailsData)
+          {
+            if(PersonalEmpDetailsData.length > 0)
+            {
+              return res.status(200).json(false);
+            }
+            return res.status(200).json(true);
+          }
+          return res.status(403).json({
+            title: 'Error',
+            error: {
+                message: err
+            }
+        });
+        })
+      }
+      if(officeEmail)
+      {
+        query = {isDeleted: false,officeEmail:officeEmail}
+        var officeEmpDetailsProjection = {
+          _id: true,
+        };
+        OfficeEmpDetails.find(query, officeEmpDetailsProjection, function(err, PersonalEmpDetailsData) {
+          if(PersonalEmpDetailsData)
+          {
+            if(PersonalEmpDetailsData.length >0)
+            {
+              return res.status(200).json(false);
+            }
+            return res.status(200).json(true);
+          }
+          return res.status(403).json({
+            title: 'Error',
+            error: {
+                message: err
+            }
+           
+        });
+        })
+      }
+  },
+};
+
+module.exports = functions;
