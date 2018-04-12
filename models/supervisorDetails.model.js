@@ -14,7 +14,7 @@ let mongoose                = require('mongoose'),
         leaveSupervisorEmp_id: {type: String, default:null},
         isActive:{type:Boolean,default:true},
         updatedBy: {type: Number, default:null},
-        createdBy: {type: Number, required: true}
+        createdBy: {type: Number}
       },
       {
         timestamps: true,
