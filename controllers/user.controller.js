@@ -305,9 +305,8 @@ function getPersonalInfo (req,res,done)
     isDeleted: false,
     updatedBy: false,
     createdBy: false,
-    __v:false
   };
-    PersonalEmpDetails.findOne(query, function (err, personalEmpDetails) {
+    PersonalEmpDetails.findOne(query,personalInfoProjection,function (err, personalEmpDetails) {
       if (err) {
         return res.status(403).json({
           title: 'There was an error, please try again later',
@@ -320,7 +319,14 @@ function getPersonalInfo (req,res,done)
 
 function getAddressDetails(req,res,personalInfo,done) {
    let query={_id:1};
-    OfficeEmpDetails.findOne(query, function (err, addressData) {
+   var addressProjection = {
+    createdAt: false,
+    updatedAt: false,
+    isDeleted: false,
+    updatedBy: false,
+    createdBy: false,
+  };
+    OfficeEmpDetails.findOne(query,addressProjection, function (err, addressData) {
       if (err) {
         return res.status(403).json({
           title: 'There was an error, please try again later',
@@ -334,7 +340,14 @@ function getAddressDetails(req,res,personalInfo,done) {
 function getDocuments(req,res)
 {
   //  let query={_id:1};
-  //   Documents.find(query, function (err, documentsData) {
+  // var documentProjection = {
+  //   createdAt: false,
+  //   updatedAt: false,
+  //   isDeleted: false,
+  //   updatedBy: false,
+  //   createdBy: false,
+  // };
+  //   Documents.find(query,documentProjection, function (err, documentsData) {
   //     if (documentsData) {
   //       return res.status(200).json(documentsData);
   //     }
@@ -350,7 +363,14 @@ function getDocuments(req,res)
 function getAcademicInfo(req,res,done)
 {
   // let query={_id:1};
-  //   AcademicInfo.findOne(query, function (err, academicInfoData) {
+  // var academicProjection = {
+  //   createdAt: false,
+  //   updatedAt: false,
+  //   isDeleted: false,
+  //   updatedBy: false,
+  //   createdBy: false,
+  // };
+  //   AcademicInfo.find(query,academicProjection, function (err, academicInfoData) {
   //     if (err) {
   //       return res.status(403).json({
   //         title: 'There was an error, please try again later',
@@ -364,7 +384,14 @@ function getAcademicInfo(req,res,done)
 function getCertificationsDetails(req,res,academicInfoData,done)
 {
   // let query={_id:1};
-  //   CertificateDetails.find(query, function (err, certificateDetailsData) {
+  // var certificateProjection = {
+  //   createdAt: false,
+  //   updatedAt: false,
+  //   isDeleted: false,
+  //   updatedBy: false,
+  //   createdBy: false,
+  // };
+  //   CertificateDetails.find(query,certificateProjection, function (err, certificateDetailsData) {
   //     if (err) {
   //       return res.status(403).json({
   //         title: 'There was an error, please try again later',
@@ -378,7 +405,14 @@ function getCertificationsDetails(req,res,academicInfoData,done)
 function getTraniningInfo(req,res,academicInfoData,certificateDetailsData,done)
 {
   // let query={_id:1};
-  //   TraningInfo.find(query, function (err, traningInfoData) {
+   // var traningInfoProjection = {
+  //   createdAt: false,
+  //   updatedAt: false,
+  //   isDeleted: false,
+  //   updatedBy: false,
+  //   createdBy: false,
+  // };
+  //   TraningInfo.find(query,traningInfoProjection, function (err, traningInfoData) {
   //     if (err) {
   //       return res.status(403).json({
   //         title: 'There was an error, please try again later',
@@ -514,7 +548,6 @@ function getPerformanceDairy(req,res,officeInfo,joiningDetails,postionDetails,do
   //     return done(err,officeInfo,joiningDetails,postionDetails,performanceDairyData)
   //   });
 }
-
 
 function getBankDetailsAndSalaryDetailsAndOtherBanefitDetailsAndCompanyCarAndPersonalCarDetails(req,res)
 {

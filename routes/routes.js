@@ -58,9 +58,10 @@ module.exports = (app) => {
   // Delete Image endpoint: http://localhost:3000/api/user/image/:id
   userRoutes.delete('/image/:id', requireAuth, user.deleteImage);
 
-    // Add Employee endpoint: http://localhost:3000/api/user/addEmployee
-    userRoutes.post('/addEmployee', user.addEmployee);
+  // Add Employee endpoint: http://localhost:3000/api/user/addEmployee
+  userRoutes.post('/addEmployee', user.addEmployee);
 
+  // Get All Employee
   userRoutes.get('/getEmployeeDetails', user.getEmployeeDetails);
   
 
