@@ -8,7 +8,7 @@ let mongoose                = require('mongoose'),
       {
         _id:{type:Number},
         emp_id: {type: String,required:true,unique: true},
-        primarySupervisorEmp_id: {type: String,required:true},
+        primarySupervisorEmp_id: {type: String},
         secondarySupervisorEmp_id: {type: String, default:null},
         reason: {type: String, default:null},
         leaveSupervisorEmp_id: {type: String, default:null},
