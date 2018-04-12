@@ -7,6 +7,6 @@ module.exports = {
     tmpImagePath    : 'server/uploads/tmp/',
     dist            : '../dist',
     expressUploads  : '/uploads',
-    emailPath       : 'server/views/email_templates/',
+    emailPath       : 'views/email_templates/',
   }
 };
