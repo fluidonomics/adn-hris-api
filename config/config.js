@@ -8,5 +8,11 @@ module.exports = {
     dist            : '../dist',
     expressUploads  : '/uploads',
     emailPath       : 'views/email_templates/',
+  },
+  'email':{
+    'welcome':{
+      from:'"Team HRIS" <hris@adnsl.net>',
+      subject:'Welcome to ADN'
+    }
   }
 };
