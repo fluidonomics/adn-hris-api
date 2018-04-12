@@ -732,6 +732,7 @@ function addEmpRoles(i, req, res, emp, flag)  {
                             let supervisorDetails = new SupervisorDetails();
                             supervisorDetails.emp_id = emp._id;
                             supervisorDetails.primarySupervisorEmp_id = req.body.primarySupervisorEmp_id;
+                            supervisorDetails.createdBy = 1;
                             supervisorDetails.save(function (err, result) {
                               if(result)
                               {
