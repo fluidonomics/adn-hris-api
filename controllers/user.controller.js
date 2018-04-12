@@ -4,6 +4,7 @@ let express = require('express'),
     PersonalEmpDetails  = require('../models/personalEmpDetails.model'),
     OfficeEmpDetails = require('../models/officeEmpDetails.model'),
     SupervisorDetails = require('../models/supervisorDetails.model'),
+    AuditTrail = require('../models/auditTrail.model'),
     Notification = require('../models/notification.model'),
     UserRoles   = require('../models/empRole.model'),
     config  = require('../config/config'),
@@ -278,7 +279,16 @@ function sendNotifications(emp, title, message, senderEmp_id, recipientEmp_id, t
     });
 }
 
-function auditTrailEntry(){
+function auditTrailEntry(emp_id,collectionName,collectionDocument,controllerName,action,comments){
+  let auditTrail = new AuditTrail();
+  auditTrail.emp_id = emp_id;
+  auditTrail.collectionName = collectionName;
+  auditTrail.document_id = collectionDocument._id;
+  auditTrail.document_values = JSON.stringify(collectionDocument);
+  auditTrail.controllerName = controllerName;
+  auditTrail.action = action;
+  auditTrail.comments = comments;
+  auditTrail.save();
 }
 
 function getPersonalInfoAndAddress(req,res)
@@ -651,128 +661,137 @@ function addEmpRoles(i, req, res, emp, flag)  {
   empRole.role_id = req.body.roles[i];
   empRole.save(function(err,roleDaata)
   {
-    if((i+1) < req.body.roles.length){
-      addEmpRoles(i+1,req,res,emp,flag);
-    }
-    else {
-      if(flag=="addEmp"){
-          //sending the notification email to the user with the link and the token created above
-            let options = {
-              viewPath: config.paths.emailPath,
-              extName : '.hbs'
-            };
-            let transporter = nodemailer.createTransport({
-              host: 'mail.adnsl.net',
-              secure: false,
-              auth: {
-                  user: 'hris@adnsl.net',
-                  pass: '@dn$L3456'
-              },
-              tls:{
-                rejectUnauthorized: false
-              }
-            });
-            transporter.use('compile', hbs(options));
-            let mailOptions = {
-              from: 'hris@adnsl.net', // sender address
-              to: req.body.personalEmail, 
-              //to: "sumit.mahajan@dahlia-tech.com", // list of receivers
-              subject: "welcome-password", // Subject line
-              template: 'email-welcome',
-                context : {
-                   token: emp.resetPasswordToken,
-                   uid  : uuidV1()
-                }
-              };
-              // send mail with defined transport object
-              transporter.sendMail(mailOptions, (error2, info) => {
-                  if (error2) {
-                    return res.status(403).json({
-                      message: 'Error !',
-                      error:error2
-                    });
-                   }
-
-                   //Add Employee Office Details
-                   let officeEmpDetails = new OfficeEmpDetails();
-                   officeEmpDetails.emp_id = emp._id;
-                   officeEmpDetails.employmentStatus_id = req.body.employmentStatus_id;
-                   officeEmpDetails.managementType_id = req.body.managementType_id;
-                   officeEmpDetails.jobTitle = req.body.jobTitle;
-                   //officeEmpDetails.designation = req.body.designation;
-                   officeEmpDetails.division_id = req.body.division_id;
-                   officeEmpDetails.department_id = req.body.department_id;
-                   officeEmpDetails.vertical_id = req.body.vertical_id;
-                   officeEmpDetails.subVertical_id = req.body.subVertical_id;
-                   officeEmpDetails.hrspoc_id = req.body.hrspoc_id;
-                   officeEmpDetails.businessHrHead_id = req.body.businessHrHead_id;
-                   officeEmpDetails.groupHrHead_id = req.body.groupHrHead_id;
-                   
-                   officeEmpDetails.save(function (err, result) {
-                     if(result)
-                     {
-
-                       //Add Employee Supervisor Details
-                        let supervisorDetails = new SupervisorDetails();
-                        supervisorDetails.emp_id = emp._id;
-                        supervisorDetails.primarySupervisorEmp_id = req.body.primarySupervisorEmp_id;
-                        supervisorDetails.save(function (err, result) {
-                          if(result)
-                          {
-                            //Add Employee Personal Details
-                            let personalDetails = new PersonalEmpDetails();
-                            personalDetails.emp_id = emp._id;
-                            personalDetails.personalMobileNumber = req.body.personalMobileNumber;
-                            personalDetails.personalEmail = req.body.personalEmail;
-                            personalDetails.createdBy = 1;
-                            personalDetails.save(function (err, result) {
-                            if(result)
-                            {
-                              //Send Notification to Supervisor Employee
-                              //var message = "You are been assigned as Supervisor";
-                            
-                              //sendNotifications(emp, title, message, senderEmp_id, type_id, linkUrl);
-
-                                let dataToSend = [{"userName" : emp.userName}];
-                                return res.status(200).json(
-                                  dataToSend
-                                );
-                               }
-                               else{
-                                return res.status(403).json({
-                                  title: 'There was a problem',
-                                  error: {message: err},
-                                  result: {message: result}
-                                });
-                               }
-                              });
-                             }
-                             else{
-                              return res.status(403).json({
-                                title: 'There was a problem',
-                                error: {message: err},
-                                result: {message: result}
-                              });
-                            }
+    async.waterfall([
+      function (done) {
+        auditTrailEntry(emp._id,"empRole","user",empRole,"addEmpRole","Role added for the Employee");
+        done(null);
+      },
+      function (done) {
+        if((i+1) < req.body.roles.length){
+          addEmpRoles(i+1,req,res,emp,flag);
+        }
+        else {
+          if(flag=="addEmp"){
+              //sending the notification email to the user with the link and the token created above
+                let options = {
+                  viewPath: config.paths.emailPath,
+                  extName : '.hbs'
+                };
+                let transporter = nodemailer.createTransport({
+                  host: 'mail.adnsl.net',
+                  secure: false,
+                  auth: {
+                      user: 'hris@adnsl.net',
+                      pass: '@dn$L3456'
+                  },
+                  tls:{
+                    rejectUnauthorized: false
+                  }
+                });
+                transporter.use('compile', hbs(options));
+                let mailOptions = {
+                  from: 'hris@adnsl.net', // sender address
+                  to: req.body.personalEmail, 
+                  //to: "sumit.mahajan@dahlia-tech.com", // list of receivers
+                  subject: "welcome-password", // Subject line
+                  template: 'email-welcome',
+                    context : {
+                       token: emp.resetPasswordToken,
+                       uid  : uuidV1()
+                    }
+                  };
+                  // send mail with defined transport object
+                  transporter.sendMail(mailOptions, (error2, info) => {
+                      if (error2) {
+                        return res.status(403).json({
+                          message: 'Error !',
+                          error:error2
                         });
-                     }
-                     else{
-                      return res.status(403).json({
-                        title: 'There was a problem',
-                        error: {message: err},
-                        result: {message: result}
-                      });
-                     }
-                   });
-         });
+                       }
+    
+                       //Add Employee Office Details
+                       let officeEmpDetails = new OfficeEmpDetails();
+                       officeEmpDetails.emp_id = emp._id;
+                       officeEmpDetails.employmentStatus_id = req.body.employmentStatus_id;
+                       officeEmpDetails.managementType_id = req.body.managementType_id;
+                       officeEmpDetails.jobTitle = req.body.jobTitle;
+                       //officeEmpDetails.designation = req.body.designation;
+                       officeEmpDetails.division_id = req.body.division_id;
+                       officeEmpDetails.department_id = req.body.department_id;
+                       officeEmpDetails.vertical_id = req.body.vertical_id;
+                       officeEmpDetails.subVertical_id = req.body.subVertical_id;
+                       officeEmpDetails.hrspoc_id = req.body.hrspoc_id;
+                       officeEmpDetails.businessHrHead_id = req.body.businessHrHead_id;
+                       officeEmpDetails.groupHrHead_id = req.body.groupHrHead_id;
+                       
+                       officeEmpDetails.save(function (err, result) {
+                         if(result)
+                         {
+    
+                           //Add Employee Supervisor Details
+                            let supervisorDetails = new SupervisorDetails();
+                            supervisorDetails.emp_id = emp._id;
+                            supervisorDetails.primarySupervisorEmp_id = req.body.primarySupervisorEmp_id;
+                            supervisorDetails.save(function (err, result) {
+                              if(result)
+                              {
+                                //Add Employee Personal Details
+                                let personalDetails = new PersonalEmpDetails();
+                                personalDetails.emp_id = emp._id;
+                                personalDetails.personalMobileNumber = req.body.personalMobileNumber;
+                                personalDetails.personalEmail = req.body.personalEmail;
+                                personalDetails.createdBy = 1;
+                                personalDetails.save(function (err, result) {
+                                if(result)
+                                {
+                                  //Send Notification to Supervisor Employee
+                                  //var message = "You are been assigned as Supervisor";
+                                
+                                  //sendNotifications(emp, title, message, senderEmp_id, type_id, linkUrl);
+    
+                                    let dataToSend = [{"userName" : emp.userName}];
+                                    return res.status(200).json(
+                                      dataToSend
+                                    );
+                                   }
+                                   else{
+                                    return res.status(403).json({
+                                      title: 'There was a problem',
+                                      error: {message: err},
+                                      result: {message: result}
+                                    });
+                                   }
+                                  });
+                                 }
+                                 else{
+                                  return res.status(403).json({
+                                    title: 'There was a problem',
+                                    error: {message: err},
+                                    result: {message: result}
+                                  });
+                                }
+                            });
+                         }
+                         else{
+                          return res.status(403).json({
+                            title: 'There was a problem',
+                            error: {message: err},
+                            result: {message: result}
+                          });
+                         }
+                       });
+             });
+          }
+          else{
+            return res.status(200).json({ 
+              status : '200',
+              message: 'Registration Successfull'
+            });
+         }
+        }
       }
-      else{
-        return res.status(200).json({ 
-          status : '200',
-          message: 'Registration Successfull'
-        });
-     }
-    }
+    ]);
+    
   });
 }
 
