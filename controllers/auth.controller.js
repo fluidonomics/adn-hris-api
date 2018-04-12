@@ -17,9 +17,14 @@ let express     = require('express'),
     uuidV1      = require('uuid/v1'),
     async       = require('async'),
     awaitEach   =require('await-each');
+    require('dotenv').load()
+
+// function generateToken(user) {
+//   return jwt.sign(user, config.secret, {expiresIn: config.jwtExpire});
+// }
 
 function generateToken(user) {
-  return jwt.sign(user, config.secret, {expiresIn: config.jwtExpire});
+  return jwt.sign(user, process.env.Secret, {expiresIn: process.env.JwtExpire});
 }
 
 function setUserInfo(req) {

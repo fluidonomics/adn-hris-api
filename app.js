@@ -5,8 +5,10 @@ let express      = require('express'),
     bodyParser   = require('body-parser'),
     mongoose     = require('mongoose'),
     config       = require('./config/config');
-
+    require('dotenv').load()
+   
 let app = express();
+
 
 process.on('uncaughtException', function (err) {
   console.log(err);
@@ -14,7 +16,7 @@ process.on('uncaughtException', function (err) {
 
 
 mongoose.Promise = global.Promise;  // gets rid of the mongoose promise deprecated warning
-mongoose.connect(config.database,{useMongoClient:true});
+mongoose.connect(process.env.DB,{useMongoClient:true});
 mongoose.connection.on('open', (err) => {
   if (err) {
     console.log(err);
