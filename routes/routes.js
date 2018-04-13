@@ -63,6 +63,8 @@ module.exports = (app) => {
 
   // Get All Employee
   userRoutes.get('/getEmployeeDetails', user.getEmployeeDetails);
+
+  userRoutes.post('/employeeDetails',user.employeeDetails);
   
 
 

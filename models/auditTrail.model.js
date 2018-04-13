@@ -6,7 +6,7 @@ let mongoose                = require('mongoose'),
 
       let AuditTrailSchema = new Schema(
       {
-         _id:{type:Number},
+         //_id:{type:Number},
          emp_id:{type: Number,ref: 'employees'},
          collectionName:{type: String,default:null},
          document_id: {type: String,default:null},
@@ -17,20 +17,21 @@ let mongoose                = require('mongoose'),
       },
       {
         timestamps: true,
-        _id:false
+        versionKey: false,
+        //_id:false
       });
-      //UserRolesSchema.plugin(autoIncrement, {inc_field: '_id'});
-
-   // Update the Emp_Id Hash user password when registering or when changing password
-    AuditTrailSchema.pre('save', function (next) {
-    var _this=this;
-    //Check the Count of Collection and add 1 to the Count and Assign it to Emp_Id 
-    mongoose.model('auditTrail', AuditTrailSchema).count(function(err, c) {
-      _this._id = c + 1;
-      next();
-    });
-});
 
 AuditTrailSchema.plugin(mongooseUniqueValidator);
 
-     module.exports = mongoose.model('auditTrail',AuditTrailSchema);
+  //Perform actions before saving the role
+  // AuditTrailSchema.pre('save', function (next) {
+  //   var _this=this;
+  //   if (_this.isNew) {
+  //       mongoose.model('auditTrail', AuditTrailSchema).count(function(err, c) {
+  //             _this._id = c + 1;
+  //             next();
+  //       });
+  //   }
+  // });
+
+module.exports = mongoose.model('auditTrail',AuditTrailSchema);

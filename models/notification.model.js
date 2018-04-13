@@ -25,18 +25,20 @@ let mongoose                = require('mongoose'),
         versionKey: false,
         _id:false
       });
-      //UserRolesSchema.plugin(autoIncrement, {inc_field: '_id'});
 
+   NotificationSchema.plugin(mongooseUniqueValidator);
+   
    // Update the Emp_Id Hash user password when registering or when changing password
-    NotificationSchema.pre('save', function (next) {
-    var _this=this;
-    //Check the Count of Collection and add 1 to the Count and Assign it to Emp_Id 
-    mongoose.model('notification', NotificationSchema).count(function(err, c) {
-      _this._id = c + 1;
-      next();
-    });
-});
+//     NotificationSchema.pre('save', function (next) {
+//     var _this=this;
+//     if (_this.isNew) {
+//       mongoose.model('notification', NotificationSchema).count(function(err, c) {
+//             _this._id = c + 1;
+//             next();
+//       });
+//   }
+// });
 
-NotificationSchema.plugin(mongooseUniqueValidator);
+
 
      module.exports = mongoose.model('notification',NotificationSchema);
