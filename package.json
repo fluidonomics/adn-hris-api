@@ -48,7 +48,7 @@
     "fs-extra": "^3.0.1",
     "gm": "latest",
     "hbs": "^4.0.1",
-    "jsonwebtoken": "^7.4.1",
+    "jsonwebtoken-refresh": "^5.7.0",
     "mime": "latest",
     "mkdirp": "^0.5.1",
     "mongodb": "2.2.28",

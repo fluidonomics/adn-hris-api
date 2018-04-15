@@ -4,14 +4,66 @@ let express  = require('express'),
     admin    = require('../controllers/admin.controller'),
     master   = require('../controllers/master.controller'),
     common   = require('../controllers/common.controller'),
-    passport = require('passport');
+    employee = require('../models/user.model'),
+    // passport = require('passport');
+    jwt = require('jsonwebtoken-refresh');
 
-let requireAuth = passport.authenticate('jwt', {session: false});
+    //let requireAuth = passport.authenticate('jwt', {session: false});
 
-module.exports = (app) => {
+    function ensureAuthenticated(req, res, next) {
+      if(req.headers && req.headers['access-token'])
+      {
+         let token=req.headers['access-token'];
+        // let token=req.headers.authorization.split(' ');
+        jwt.verify(token, process.env.Secret, function(err, decoded) {
+          if (err) {
+            return res.status(401).json({
+              error: err
+            });
+          }
+          else{
+            employee.find({_id:parseInt(decoded._id),isDeleted:false},function(err,users)
+            {
+              if(users)
+              {
+                  // var originalDecoded = jwt.decode(token[1], {complete: true});
+                  // var refreshedToken = jwt.refresh(originalDecoded, 3600, process.env.Secret);
+                  // let refreshToken="Bearer "+ refreshedToken;
+                  // res.setHeader("authorization",refreshToken)
 
-  app.use(passport.initialize());
-  require('../config/passport')(passport);
+                  var originalDecoded = jwt.decode(token, {complete: true});
+                  var refreshedToken = jwt.refresh(originalDecoded, 3600, process.env.Secret);
+                  res.setHeader('access-token', refreshedToken);
+                  res.setHeader('client', "application_id");
+                  res.setHeader('expiry', '');
+                  res.setHeader('token-type', 'Bearer');
+                  res.setHeader('uid', "");
+
+                  return next();
+              }
+
+              return res.status(403).json({
+                    title: 'Error!',
+                    error: {
+                        message: err
+                    },
+                    result: {
+                        message: users
+                    }
+              });
+            })
+          }
+        });
+      }
+      else{
+        return res.status(403).end("Forbidden");
+      }
+    }
+
+   module.exports = (app) => {
+
+  // app.use(passport.initialize());
+  // require('../config/passport')(passport);
 
   // Initializing route groups
   let apiRoutes   = express.Router(),
@@ -27,6 +79,8 @@ module.exports = (app) => {
 
   // User Auth Routes endpoint: http://localhost:3000/api/auth
   apiRoutes.use('/auth', authRoutes);  
+
+  authRoutes.get('/validateToken',auth.validateToken);
 
   // Login endpoint: http://localhost:3000/api/auth/login
   authRoutes.post('/login', auth.loginUser);
@@ -49,24 +103,65 @@ module.exports = (app) => {
   // // Get User Info endpoint: http://localhost:3000/api/user/:id
   // userRoutes.get('/:id', requireAuth, user.getUserInfo);
 
-  // Change user password from front end (not via email, via form)
-  userRoutes.post('/password', requireAuth, user.changePassword);
+  // // Change user password from front end (not via email, via form)
+  // userRoutes.post('/password', requireAuth, user.changePassword);
 
-  // Upload image endpoint: http://localhost:3000/api/user/image
-  userRoutes.post('/image', requireAuth, user.uploadImage);
+  // // Upload image endpoint: http://localhost:3000/api/user/image
+  // userRoutes.post('/image', requireAuth, user.uploadImage);
 
-  // Delete Image endpoint: http://localhost:3000/api/user/image/:id
-  userRoutes.delete('/image/:id', requireAuth, user.deleteImage);
+  // // Delete Image endpoint: http://localhost:3000/api/user/image/:id
+  // userRoutes.delete('/image/:id', requireAuth, user.deleteImage);
 
   // Add Employee endpoint: http://localhost:3000/api/user/addEmployee
   userRoutes.post('/addEmployee', user.addEmployee);
 
-  // Get All Employee
-  userRoutes.get('/getEmployeeDetails', user.getEmployeeDetails);
 
-  userRoutes.post('/employeeDetails',user.employeeDetails);
+  // Add Employee endpoint: http://localhost:3000/api/user/addEmployee
+  userRoutes.post('/addPersonalInfo', user.addPersonalInfo);
   
+  // Add Employee endpoint: http://localhost:3000/api/user/addEmployee
+  userRoutes.post('/updatePersonalInfo', user.updatePersonalInfo);
 
+  // Get All Employee
+  //userRoutes.get('/getEmployeeDetails', user.getEmployeeDetails);
+
+  //userRoutes.post('/employeeDetails',user.employeeDetails);
+
+
+
+  userRoutes.get('/getPersonalInfo',ensureAuthenticated,user.getPersonalInfo);
+
+  // userRoutes.get('/getAddressDetails',user.getAddressDetails);
+
+  // userRoutes.get('/getDocuments',user.getDocuments);
+
+  // userRoutes.get('/getAcademicInfo',user.getAcademicInfo);
+
+  // userRoutes.get('/getCertifications',user.getCertifications);
+
+  // userRoutes.get('/getTraniningInfo',user.getTraniningInfo);
+
+  // userRoutes.get('/getPreviousEmployementHistory',user.getPreviousEmployementHistory);
+  
+  // userRoutes.get('/getFamilyInfo',user.getFamilyInfo);
+
+  // userRoutes.get('/getOfficeInfo',user.getOfficeInfo);
+
+  // userRoutes.get('/getJoiningDetails',user.getJoiningDetails);
+
+  // userRoutes.get('/getPositionDetails',user.getPositionDetails);
+
+  // userRoutes.get('/getPerformanceDairy',user.getPerformanceDairy);
+
+  // userRoutes.get('/getBankDetails',user.getBankDetails);
+
+  // userRoutes.get('/getSalaryDetails',user.getSalaryDetails);
+  
+  // userRoutes.get('/getOtherBanefitDetails',user.getOtherBanefitDetails);
+
+  // userRoutes.get('/getCompanyCarDetails',user.getCompanyCarDetails);
+
+  // userRoutes.get('/getPersonalCarDetails',user.getPersonalCarDetails);
 
 
   //= ========================
@@ -163,7 +258,7 @@ module.exports = (app) => {
 
     commonRoutes.get('/getRole', common.getRole);
 
-    commonRoutes.get('/getCompany', common.getCompany);
+    commonRoutes.get('/getCompany',ensureAuthenticated, common.getCompany);
 
     commonRoutes.get('/getDivision', common.getDivision);
 

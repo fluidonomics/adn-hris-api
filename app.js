@@ -43,7 +43,9 @@ app.use('/uploads', express.static(__dirname + config.paths.expressUploads));
 app.use(function (req, res, next) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, Authorization,access-token,client,expiry,token-type,uid');
+  res.setHeader('Access-Control-Expose-Headers', 'X-Requested-With, Content-Type, access-token,client,expiry,token-type,uid');
+  
   next();
 });
 
