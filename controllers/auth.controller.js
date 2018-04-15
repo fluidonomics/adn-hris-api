@@ -322,7 +322,7 @@ let functions = {
                 
                 delete originalDecoded.payload.iat;
                 delete originalDecoded.payload.exp;
-                return res.status(200).json({"data":originalDecoded.payload});
+                return res.status(200).json(originalDecoded.payload);
               })
             }
           });
