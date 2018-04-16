@@ -9,7 +9,7 @@ let express = require('express'),
     AuditTrail = require('../models/auditTrail.model'),
     Notification = require('../models/notification.model'),
     UserRoles   = require('../models/empRole.model'),
-    AcademicInfo   = require('../models/empAcademicInfo.model'),
+    AcademicInfo   = require('../models/academicInfo.model'),
     config  = require('../config/config'),
     fs      = require('fs'),
     fse     = require('fs-extra'),
@@ -1056,9 +1056,9 @@ let functions = {
        {
         addAcademicInfoDetails(req,res,done);
        },
-       function(academicDetailsData,done)
+       function(academicInfoData,done)
        {
-         return res.status(200).json(academicDetailsData);
+         return res.status(200).json(academicInfoData);
        }
     ]);
   },
@@ -1069,9 +1069,9 @@ let functions = {
        {
         updateAcademicInfoDetails(req,res,done);
        },
-       function(academicDetailsData,done)
+       function(academicInfoData,done)
        {
-         return res.status(200).json(academicDetailsData);
+         return res.status(200).json(academicInfoData);
        }
     ]);
   },
