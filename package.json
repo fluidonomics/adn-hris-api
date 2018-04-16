@@ -32,7 +32,7 @@
     "ng2-file-upload",
     "MEAN Stack 2"
   ],
-  "author": "Efstathios Ntonas",
+  "author": "Sumit Mahajan",
   "private": false,
   "dependencies": {
     "async": "^2.4.1",
