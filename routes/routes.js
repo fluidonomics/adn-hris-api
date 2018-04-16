@@ -115,7 +115,6 @@ let express  = require('express'),
   // Add Employee endpoint: http://localhost:3000/api/user/addEmployee
   userRoutes.post('/addEmployee', user.addEmployee);
 
-
   // Add Employee endpoint: http://localhost:3000/api/user/addPersonalInfo
   userRoutes.post('/addPersonalInfo', user.addPersonalInfo);
   
@@ -128,6 +127,14 @@ let express  = require('express'),
   // Add Employee endpoint: http://localhost:3000/api/user/updateAcademicInfo
   userRoutes.post('/updateAcademicInfo', user.updateAcademicInfo);
 
+  // Get Employee Address endpoint: http://localhost:3000/api/user/getAddressDetails
+  userRoutes.get('/getAddressDetails',user.getAddressDetails);
+
+  // Add Employee Address endpoint: http://localhost:3000/api/user/addAddress
+  userRoutes.post('/addAddress', user.addAddress);
+
+   // Update Employee Address endpoint: http://localhost:3000/api/user/updateAddress
+   userRoutes.post('/updateAddress', user.updateAddress);
 
   // Get All Employee
   //userRoutes.get('/getEmployeeDetails', user.getEmployeeDetails);

@@ -5,6 +5,7 @@ let express = require('express'),
     PersonalEmpDetails  = require('../models/personalEmpDetails.model'),
     OfficeEmpDetails = require('../models/officeEmpDetails.model'),
     SupervisorDetails = require('../models/supervisorDetails.model'),
+    Address = require('../models/address.model'),
     AuditTrail = require('../models/auditTrail.model'),
     Notification = require('../models/notification.model'),
     UserRoles   = require('../models/empRole.model'),
@@ -133,20 +134,9 @@ function addPersonalInfoDetails(req,res,done)
   personalDetails.homePhone = req.body.homePhone;
   personalDetails.motherName = req.body.motherName;
   personalDetails.fatherName = req.body.fatherName;
-  personalDetails.presentAddressLine1 = req.body.presentAddressLine1;
-  personalDetails.permanentAddressLine1 = req.body.permanentAddressLine1;
   personalDetails.maritialStatus = req.body.maritialStatus;
   personalDetails.emergencyContactPerson = req.body.emergencyContactPerson;
   personalDetails.emergencyContactNumber = req.body.emergencyContactNumber;
-  personalDetails.permanentAddressThana_id= req.body.permanentAddressThana_id;
-  personalDetails.permanentAddressDistrict_id = req.body.permanentAddressDistrict_id;
-  personalDetails.permanentAddressDivision_id = req.body.permanentAddressDivision_id;
-  personalDetails.permanentAddressPostCode = req.body.permanentAddressPostCode;
-  personalDetails.presentAddressLine2 = req.body.presentAddressLine2;
-  personalDetails.presentAddressThana_id = req.body.presentAddressThana_id;
-  personalDetails.presentAddressDistrict_id = req.body.presentAddressDistrict_id;
-  personalDetails.presentAddressDivision_id = req.body.presentAddressDivision_id;
-  personalDetails.presentAddressPostCode = req.body.presentAddressPostCode;
   personalDetails.profileStatus = req.body.profileStatus;
   personalDetails.createdBy = 1;
   //personalDetails.createdBy =req.headers[emp_id];
@@ -169,7 +159,6 @@ function addPersonalInfoDetails(req,res,done)
 
 function updatePersonalInfoDetails(req,res,done)
 {
-
      let personalDetails = new PersonalEmpDetails();
      personalDetails.gender = (req.body.gender == undefined) ? ((req.query.gender == undefined ? null: req.query.gender)):req.body.gender;
      personalDetails.personalMobileNumber = (req.body.personalMobileNumber == undefined) ? ((req.query.personalMobileNumber == undefined ? null: req.query.personalMobileNumber)):req.body.personalMobileNumber;
@@ -181,20 +170,9 @@ function updatePersonalInfoDetails(req,res,done)
      personalDetails.homePhone = req.body.homePhone;
      personalDetails.motherName = req.body.motherName;
      personalDetails.fatherName = req.body.fatherName;
-     personalDetails.presentAddressLine1 = req.body.presentAddressLine1;
-     personalDetails.permanentAddressLine1 = req.body.permanentAddressLine1;
      personalDetails.maritialStatus = req.body.maritialStatus;
      personalDetails.emergencyContactPerson = req.body.emergencyContactPerson;
      personalDetails.emergencyContactNumber = req.body.emergencyContactNumber;
-     personalDetails.permanentAddressThana_id= req.body.permanentAddressThana_id;
-     personalDetails.permanentAddressDistrict_id = req.body.permanentAddressDistrict_id;
-     personalDetails.permanentAddressDivision_id = req.body.permanentAddressDivision_id;
-     personalDetails.permanentAddressPostCode = req.body.permanentAddressPostCode;
-     personalDetails.presentAddressLine2 = req.body.presentAddressLine2;
-     personalDetails.presentAddressThana_id = req.body.presentAddressThana_id;
-     personalDetails.presentAddressDistrict_id = req.body.presentAddressDistrict_id;
-     personalDetails.presentAddressDivision_id = req.body.presentAddressDivision_id;
-     personalDetails.presentAddressPostCode = req.body.presentAddressPostCode;
      personalDetails.profileStatus = req.body.profileStatus;
      personalDetails.updatedBy = 1;
     //personalDetails.updatedBy =req.headers[emp_id];
@@ -306,6 +284,82 @@ function updateAcademicInfoDetails(req,res,done)
  });
 }
 
+function addAddressInfoDetails(req,res,done){
+  let address = new Address();
+  address.emp_id = req.body.emp_id || req.query.emp_id;
+  address.currentAddressLine1 = req.body.currentAddressLine1;
+  address.permanentAddressLine1 = req.body.permanentAddressLine1;
+  address.permanentAddressThana_id= req.body.permanentAddressThana_id;
+  address.permanentAddressDistrict_id = req.body.permanentAddressDistrict_id;
+  address.permanentAddressDivision_id = req.body.permanentAddressDivision_id;
+  address.permanentAddressPostCode = req.body.permanentAddressPostCode;
+  address.currentAddressLine2 = req.body.currentAddressLine2;
+  address.currentAddressThana_id = req.body.currentAddressThana_id;
+  address.currentAddressDistrict_id = req.body.currentAddressDistrict_id;
+  address.currentAddressDivision_id = req.body.currentAddressDivision_id;
+  address.currentAddressPostCode = req.body.currentAddressPostCode;
+  address.isSameAsCurrent = req.body.isSameAsCurrent;
+  address.createdBy = 1;
+
+  address.save(function (err, addressData) {
+    if(addressData)
+    {
+      auditTrailEntry(address.emp_id,"address",address,"user","address","ADDED");
+      return done(err, addressData);
+    }
+    else{
+      return res.status(403).json({
+        title: 'There was a problem',
+        error: {message: err},
+        result: {message: addressData}
+      });
+    }
+  });
+}
+
+function updateAddressInfoDetails(req,res,done)
+{
+  let address = new Address();
+  address.emp_id = req.body.emp_id || req.query.emp_id;
+  address.currentAddressLine1 = req.body.currentAddressLine1;
+  address.permanentAddressLine1 = req.body.permanentAddressLine1;
+  address.permanentAddressThana_id= req.body.permanentAddressThana_id;
+  address.permanentAddressDistrict_id = req.body.permanentAddressDistrict_id;
+  address.permanentAddressDivision_id = req.body.permanentAddressDivision_id;
+  address.permanentAddressPostCode = req.body.permanentAddressPostCode;
+  address.currentAddressLine2 = req.body.currentAddressLine2;
+  address.currentAddressThana_id = req.body.currentAddressThana_id;
+  address.currentAddressDistrict_id = req.body.currentAddressDistrict_id;
+  address.currentAddressDivision_id = req.body.currentAddressDivision_id;
+  address.currentAddressPostCode = req.body.currentAddressPostCode;
+  address.isSameAsCurrent = req.body.isSameAsCurrent;
+  address.updatedBy = 1;
+
+    let _id=req.body._id;
+    var query={_id:_id,isActive:true}
+
+     var addressInfoProjection = {
+      createdAt: false,
+      updatedAt: false,
+      isDeleted: false,
+      updatedBy: false,
+      createdBy: false,
+    };
+
+    Address.findOneAndUpdate(query, address, {new: true,projection:addressInfoProjection}, function(err, addressData){
+    if(addressData)
+    {
+      return done(err,addressData);
+    }
+    else{
+      return res.status(403).json({
+        title: 'There was a problem',
+        error: {message: err},
+        result: {message: addressData}
+      });
+    }
+  });
+}
 
 let notificationFlag = 0;
 function sendNotifications(emp, title, message, senderEmp_id, recipientEmp_id, type_id, linkUrl) {
@@ -482,8 +536,6 @@ function addofficeDetailsDetails(req,res,done)
           result: {message: officeDetailsData}
         });
      });
-
-
 }
 
 function  addsupervisorDetails(req,res,done)
@@ -537,26 +589,26 @@ function getPersonalInfoDetails(req,res)
 
 function getAddressInfoDetails(req,res) {
   let emp_id=req.query.emp_id;
-  let query={isDeleted:false};
+  let query={isActive:true};
   if(emp_id)
   {
-    query={emp_id:emp_id,isDeleted:false};
+    query={emp_id:emp_id,isActive:true};
   }
-  var personalInfoProjection = {
+  var addressInfoProjection = {
     createdAt: false,
     updatedAt: false,
     isDeleted: false,
     updatedBy: false,
     createdBy: false,
   };
-  PersonalEmpDetails.findOne(query,personalInfoProjection,function (err, personalEmpDetails) {
+  Address.findOne(query,addressInfoProjection,function (err, addressDetails) {
       if (err) {
         return res.status(403).json({
           title: 'There was an error, please try again later',
           error: err
         });
       }
-       return res.status(200).json(personalEmpDetails);
+       return res.status(200).json(addressDetails);
   });
 }
 
@@ -1002,11 +1054,11 @@ let functions = {
     async.waterfall([
       function(done)
        {
-          addAcademicInfoDetails(req,res,done);
+        addAcademicInfoDetails(req,res,done);
        },
-       function(academicInfoData,done)
+       function(academicDetailsData,done)
        {
-         return res.status(200).json(academicInfoData);
+         return res.status(200).json(academicDetailsData);
        }
     ]);
   },
@@ -1015,14 +1067,42 @@ let functions = {
     async.waterfall([
       function(done)
        {
-          updateAcademicInfoDetails(req,res,done);
+        updateAcademicInfoDetails(req,res,done);
        },
-       function(academicInfoData,done)
+       function(academicDetailsData,done)
        {
-         return res.status(200).json(academicInfoData);
+         return res.status(200).json(academicDetailsData);
        }
     ]);
   },
+
+  addAddress:(req, res)=>
+  {
+    async.waterfall([
+      function(done)
+       {
+        addAddressInfoDetails(req,res,done);
+       },
+       function(addressDetailsData,done)
+       {
+         return res.status(200).json(addressDetailsData);
+       }
+    ]);
+  },
+  updateAddress:(req, res)=>
+  {
+    async.waterfall([
+      function(done)
+       {
+        updateAddressInfoDetails(req,res,done);
+       },
+       function(addressDetailsData,done)
+       {
+         return res.status(200).json(addressDetailsData);
+       }
+    ]);
+  },
+
   // addofficeDetailsDetails:(req, res)=>
   // {
   //   async.waterfall([
