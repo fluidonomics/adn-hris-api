@@ -4,7 +4,7 @@ let mongoose                = require('mongoose'),
     bcrypt                  = require('bcrypt');
     autoIncrement           = require('mongoose-sequence')(mongoose);
 
-      let EmpEducationInfoSchema = new Schema(
+      let EmpAcademicInfoSchema = new Schema(
       {
          _id:{type:Number},
          emp_id:{type: Number,ref: 'employees'},
@@ -30,17 +30,17 @@ let mongoose                = require('mongoose'),
         _id:false
       });
 
-EmpEducationInfoSchema.plugin(mongooseUniqueValidator);
+EmpAcademicInfoSchema.plugin(mongooseUniqueValidator);
 
   //Perform actions before saving the bank details
-  EmpEducationInfoSchema.pre('save', function (next) {
+  EmpAcademicInfoSchema.pre('save', function (next) {
     var _this=this;
     if (_this.isNew) {
-        mongoose.model('empEducationInfo', EmpEducationInfoSchema).count(function(err, c) {
+        mongoose.model('empAcademicInfo', EmpAcademicInfoSchema).count(function(err, c) {
               _this._id = c + 1;
               next();
         });
     }
   });
 
-module.exports = mongoose.model('empEducationInfo',EmpEducationInfoSchema);
+module.exports = mongoose.model('empAcademicInfo',EmpAcademicInfoSchema);

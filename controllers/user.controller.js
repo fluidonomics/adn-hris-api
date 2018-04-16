@@ -8,6 +8,7 @@ let express = require('express'),
     AuditTrail = require('../models/auditTrail.model'),
     Notification = require('../models/notification.model'),
     UserRoles   = require('../models/empRole.model'),
+    AcademicInfo   = require('../models/empAcademicInfo.model'),
     config  = require('../config/config'),
     fs      = require('fs'),
     fse     = require('fs-extra'),
@@ -198,10 +199,18 @@ function updatePersonalInfoDetails(req,res,done)
      personalDetails.updatedBy = 1;
     //personalDetails.updatedBy =req.headers[emp_id];
 
-    let _id=res.body._id;
-     var query={_id:_id}
+    let _id=req.body._id;
+     var query={_id:_id,isDeleted:false}
 
-    PersonalEmpDetails.findOneAndUpdate(query, personalDetails, {new: true}, function(err, personalDetailsData){
+     var personalInfoProjection = {
+      createdAt: false,
+      updatedAt: false,
+      isDeleted: false,
+      updatedBy: false,
+      createdBy: false,
+    };
+
+    PersonalEmpDetails.findOneAndUpdate(query, personalDetails, {new: true, projection:personalInfoProjection}, function(err, personalDetailsData){
     if(personalDetailsData)
     {
       return done(err,personalDetailsData);
@@ -210,12 +219,92 @@ function updatePersonalInfoDetails(req,res,done)
       return res.status(403).json({
         title: 'There was a problem',
         error: {message: err},
-        result: {message: result}
+        result: {message: personalDetailsData}
       });
     }
   });
 }
 
+function addAcademicInfoDetails(req,res,done)
+{
+  let academicInfo = new AcademicInfo();
+  academicInfo.emp_id = req.body.emp_id;
+  academicInfo.levelOfEducation = req.body.levelOfEducation;
+  academicInfo.examDegreeTitle =  req.body.examDegreeTitle;
+  academicInfo.concentration = req.body.concentration;
+  academicInfo.instituteName =  req.body.instituteName;
+  academicInfo.marks = req.body.marks;
+  academicInfo.result = req.body.result;
+  academicInfo.cgpa = req.body.cgpa;
+  academicInfo.scale = req.body.scale;
+  academicInfo.yearOfPassing = req.body.yearOfPassing;
+  academicInfo.duration = req.body.duration;
+  academicInfo.achievements = req.body.achievements;
+  academicInfo.isCompleted = true;
+  academicInfo.createdBy = 1;
+
+  //academicInfo.createdBy =req.headers[emp_id];
+
+  academicInfo.save(function (err, academicInfoData) {
+    if(academicInfoData)
+    {
+      auditTrailEntry(academicInfo.emp_id,"academicInfo",academicInfo,"user","academicInfo","ADDED");
+      return done(err, academicInfoData);
+    }
+    else{
+      return res.status(403).json({
+        title: 'There was a problem',
+        error: {message: err},
+        result: {message: academicInfoData}
+      });
+    }
+  });
+}
+
+function updateAcademicInfoDetails(req,res,done)
+{
+  let academicInfo = new AcademicInfo();
+  academicInfo.emp_id = req.body.emp_id;
+  academicInfo.levelOfEducation = req.body.levelOfEducation;
+  academicInfo.examDegreeTitle =  req.body.examDegreeTitle;
+  academicInfo.concentration = req.body.concentration;
+  academicInfo.instituteName =  req.body.instituteName;
+  academicInfo.marks = req.body.marks;
+  academicInfo.result = req.body.result;
+  academicInfo.cgpa = req.body.cgpa;
+  academicInfo.scale = req.body.scale;
+  academicInfo.yearOfPassing = req.body.yearOfPassing;
+  academicInfo.duration = req.body.duration;
+  academicInfo.achievements = req.body.achievements;
+  academicInfo.isCompleted = true;
+  academicInfo.updatedBy = 1;
+
+  //academicInfo.updatedBy =req.headers[emp_id];
+    let _id=req.body._id;
+    var query={_id:_id,isDeleted:false}
+
+    var academicInfoProjection = {
+      createdAt: false,
+      updatedAt: false,
+      isDeleted: false,
+      updatedBy: false,
+      createdBy: false,
+    };
+
+    AcademicInfo.findOneAndUpdate(query, academicInfo, {new: true, projection:academicInfoProjection}, function(err, academicInfoData){
+   if(academicInfoData)
+   {
+     return done(err,academicInfoData);
+   }
+   else{
+     return res.status(403).json({
+       title: 'There was a problem',
+       error: {message: err},
+       result: {message: academicInfoData}
+     });
+   }
+ });
+}
 
 
 let notificationFlag = 0;
@@ -498,30 +587,30 @@ function getDocumentsDetails(req,res)
   //     });
   //   });
 }
-function getAcademicInfoDetails(req,res)
+function getAcademicInfo(req,res)
 {
-  //let emp_id=req.query.emp_id;
-  //let query={isDeleted:false};
-  //if(emp_id)
-  //{
-  //  query={emp_id:emp_id,isDeleted:false};
-  //}
-  // var academicProjection = {
-  //   createdAt: false,
-  //   updatedAt: false,
-  //   isDeleted: false,
-  //   updatedBy: false,
-  //   createdBy: false,
-  // };
-  //   AcademicInfo.find(query,academicProjection, function (err, academicInfoData) {
-  //     if (err) {
-  //       return res.status(403).json({
-  //         title: 'There was an error, please try again later',
-  //         error: err
-  //       });
-  //     }
-  //     return done(err,academicInfoData)
-  //   });
+  let emp_id=req.query.emp_id;
+  let query={isDeleted:false};
+  if(emp_id)
+  {
+   query={emp_id:emp_id,isDeleted:false};
+  }
+  var academicProjection = {
+    createdAt: false,
+    updatedAt: false,
+    isDeleted: false,
+    updatedBy: false,
+    createdBy: false,
+  };
+    AcademicInfo.find(query,academicProjection, function (err, academicInfoData) {
+      if (err) {
+        return res.status(403).json({
+          title: 'There was an error, please try again later',
+          error: err
+        });
+      }
+        return res.status(200).json(academicInfoData);
+    });
 }
 function getCertificationsDetails(req,res)
 {
@@ -823,7 +912,7 @@ let functions = {
   },
   getAcademicInfo:(req, res)=>
   {
-    getAcademicInfoDetails(req, res);
+    getAcademicInfo(req, res);
   },
   getCertifications:(req, res)=>
   {
@@ -905,6 +994,32 @@ let functions = {
        function(personalDetailsData,done)
        {
          return res.status(200).json(personalDetailsData);
+       }
+    ]);
+  },
+  addAcademicInfo:(req, res)=>
+  {
+    async.waterfall([
+      function(done)
+       {
+          addAcademicInfoDetails(req,res,done);
+       },
+       function(academicInfoData,done)
+       {
+         return res.status(200).json(academicInfoData);
+       }
+    ]);
+  },
+  updateAcademicInfo:(req, res)=>
+  {
+    async.waterfall([
+      function(done)
+       {
+          updateAcademicInfoDetails(req,res,done);
+       },
+       function(academicInfoData,done)
+       {
+         return res.status(200).json(academicInfoData);
        }
     ]);
   },
