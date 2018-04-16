@@ -157,31 +157,32 @@ let express  = require('express'),
 
   userRoutes.get('/getAcademicInfo',user.getAcademicInfo);
 
-  // userRoutes.get('/getCertifications',user.getCertifications);
+  userRoutes.get('/getCertificationsAndTraniningInfo',user.getCertificationsAndTraniningInfo);
 
-  // userRoutes.get('/getTraniningInfo',user.getTraniningInfo);
-
-  // userRoutes.get('/getPreviousEmployementHistory',user.getPreviousEmployementHistory);
+  userRoutes.get('/getPreviousEmployementHistory',user.getPreviousEmployementHistory);
   
   userRoutes.get('/getFamilyInfo',user.getFamilyInfo);
 
-  // userRoutes.get('/getOfficeInfo',user.getOfficeInfo);
+  userRoutes.get('/getOfficeInfo',user.getOfficeInfo);
 
-  // userRoutes.get('/getJoiningDetails',user.getJoiningDetails);
+  //userRoutes.get('/getJoiningDetails',user.getJoiningDetails);
 
   // userRoutes.get('/getPositionDetails',user.getPositionDetails);
 
-  // userRoutes.get('/getPerformanceDairy',user.getPerformanceDairy);
+   userRoutes.get('/getPerformanceDairy',user.getPerformanceDairy);
 
-  // userRoutes.get('/getBankDetails',user.getBankDetails);
+   userRoutes.get('/getBankDetails',user.getBankDetails);
 
-  // userRoutes.get('/getSalaryDetails',user.getSalaryDetails);
-  
+   userRoutes.get('/getSalaryDetails',user.getSalaryDetails);
+
   // userRoutes.get('/getOtherBanefitDetails',user.getOtherBanefitDetails);
+
+   userRoutes.get('/getCarDetails',user.getCarDetails);
 
   // userRoutes.get('/getCompanyCarDetails',user.getCompanyCarDetails);
 
   // userRoutes.get('/getPersonalCarDetails',user.getPersonalCarDetails);
+
 
 
   //= ========================

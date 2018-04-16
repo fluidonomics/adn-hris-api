@@ -10,6 +10,12 @@ let express           = require('express'),
     EmployeeRoles     = require('../models/employee/employeeRoleDetails.model'),
     AcademicInfo      = require('../models/employee/employeeAcademicDetails.model'),
     FamilyInfo        = require('../models/employee/employeeFamilyDetails.model'),
+    PreviousEmployementHistory = require('../models/employee/employeePreviousEmploymentDetails.model'),
+    CertificateDetails= require('../models/employee/employeeCertificationDetails.model'),
+    BankDetails       = require('../models/employee/employeeBankDetails.model'),
+    SalaryDetails     = require('../models/employee/employeeSalaryDetails.model'),
+    CarDetails        = require('../models/employee/employeeCarDetails.model'),
+    DocumentsDetails  = require('../models/employee/employeeDocumentDetails.model'),
     config            = require('../config/config'),
     fs                = require('fs'),
     fse               = require('fs-extra'),
@@ -105,10 +111,6 @@ let copyImage = (req, source) => {
       .catch((error) => console.log(error));
   });
 };
-
-
-
-
 // delete the temp image from front-end
 let deleteImage = (image) => {
   fse.remove(config.paths.tmpImagePath + image)
@@ -119,7 +121,6 @@ let deleteImage = (image) => {
       console.error(err);
     });
 };
-
 function addPersonalInfoDetails(req,res,done)
 {
   let personalDetails = new PersonalDetails();
@@ -156,7 +157,6 @@ function addPersonalInfoDetails(req,res,done)
     }
   });
 }
-
 function updatePersonalInfoDetails(req,res,done)
 {
      let personalDetails = new PersonalDetails();
@@ -202,7 +202,6 @@ function updatePersonalInfoDetails(req,res,done)
     }
   });
 }
-
 function addAcademicInfoDetails(req,res,done)
 {
   let academicInfo = new AcademicInfo();
@@ -238,7 +237,6 @@ function addAcademicInfoDetails(req,res,done)
     }
   });
 }
-
 function updateAcademicInfoDetails(req,res,done)
 {
   let academicInfo = new AcademicInfo();
@@ -283,8 +281,6 @@ function updateAcademicInfoDetails(req,res,done)
    }
  });
 }
-
-
 function addFamilyInfoDetails(req,res,done)
 {
   let familyInfo = new FamilyInfo();
@@ -313,7 +309,6 @@ function addFamilyInfoDetails(req,res,done)
     }
   });
 }
-
 function updateFamilyInfoDetails(req,res,done)
 {
   let familyInfo = new FamilyInfo();
@@ -351,7 +346,6 @@ function updateFamilyInfoDetails(req,res,done)
    }
  });
 }
-
 function addAddressInfoDetails(req,res,done){
   let address = new Address();
   address.emp_id = req.body.emp_id || req.query.emp_id;
@@ -384,7 +378,6 @@ function addAddressInfoDetails(req,res,done){
     }
   });
 }
-
 function updateAddressInfoDetails(req,res,done)
 {
   let address = new Address();
@@ -428,7 +421,6 @@ function updateAddressInfoDetails(req,res,done)
     }
   });
 }
-
 let notificationFlag = 0;
 function sendNotifications(emp, title, message, senderEmp_id, recipientEmp_id, type_id, linkUrl) {
   //emp.hrspoc -> super (bussHrHead) -> revi(GroupHrHEad)
@@ -476,7 +468,6 @@ function sendNotifications(emp, title, message, senderEmp_id, recipientEmp_id, t
       }
     });
 }
-
 function auditTrailEntry(emp_id,collectionName,collectionDocument,controllerName,action,comments){
   let auditTrail = new AuditTrail();
   auditTrail.emp_id = emp_id;
@@ -488,8 +479,6 @@ function auditTrailEntry(emp_id,collectionName,collectionDocument,controllerName
   auditTrail.comments = comments;
   auditTrail.save();
 }
-
-
 //Save Embeded array of Employee Roles
 function addEmpRoles(i, req, res, emp)  {
   let empRole=new EmployeeRoles();
@@ -501,45 +490,8 @@ function addEmpRoles(i, req, res, emp)  {
     if((i+1) < req.body.roles.length){
       addEmpRoles(i+1,req,res,emp);
     }
-    // async.waterfall([
-    //   function (done) {
-    //      auditTrailEntry(emp._id,"user",empRole,"addEmpRole","Role added for the Employee");
-    //      done(null);
-    //   },
-    //   function (done) {
-    //     if((i+1) < req.body.roles.length){
-    //       addEmpRoles(i+1,req,res,emp,flag);
-    //     }
-    //     else {
-    //       if(flag=="addEmp"){
-    //             sendWelComeEmail(emp,req.body.personalEmail);
-    //             async.waterfall([
-    //               function (done) {
-    //                 addofficeDetailsDetails(req,res,emp._id,done)
-    //               },
-    //               function (officeDetails, done) {
-    //                 addsupervisorDetails(req,res,emp._id,done)
-    //               },
-    //               function (supervisorDetails,done) {
-    //                 let dataToSend = [{"userName" : emp.userName}];
-    //                 return res.status(200).json(
-    //                   dataToSend
-    //                 );
-    //               }
-    //             ]);
-    //       }
-    //       else{
-    //         return res.status(200).json({
-    //           status : '200',
-    //           message: 'Registration Successfull'
-    //         });
-    //      }
-    //     }
-    //   }
-    // ]);
   });
 }
-
 function sendWelComeEmail(emp,toemail)
 {
   let options = {
@@ -574,8 +526,7 @@ function sendWelComeEmail(emp,toemail)
     // send mail with defined transport object
     transporter.sendMail(mailOptions);
 }
-
-function addofficeDetailsDetails(req,res,done)
+function addofficeInfoDetails(req,res,done)
 {
 
      let officeEmpDetails = new OfficeDetails();
@@ -605,8 +556,49 @@ function addofficeDetailsDetails(req,res,done)
         });
      });
 }
+function updateofficeInfoDetails(req,res,done)
+{
+     let officeEmpDetails = new OfficeDetails();
+     officeEmpDetails.emp_id = req.body.emp_id;
+     officeEmpDetails.employmentStatus_id = req.body.employmentStatus_id;
+     officeEmpDetails.managementType_id = req.body.managementType_id;
+     officeEmpDetails.jobTitle = req.body.jobTitle;
+     //officeEmpDetails.designation = req.body.designation;
+     officeEmpDetails.division_id = req.body.division_id;
+     officeEmpDetails.department_id = req.body.department_id;
+     officeEmpDetails.vertical_id = req.body.vertical_id;
+     officeEmpDetails.subVertical_id = req.body.subVertical_id;
+     officeEmpDetails.hrspoc_id = req.body.hrspoc_id;
+     officeEmpDetails.businessHrHead_id = req.body.businessHrHead_id;
+     officeEmpDetails.groupHrHead_id = req.body.groupHrHead_id;
+     officeEmpDetails.createdBy=1;
 
-function  addsupervisorDetails(req,res,done)
+     let _id=req.body._id;
+    var query={_id:_id,isDeleted:false}
+
+    var officeDetailsProjection = {
+      createdAt: false,
+      updatedAt: false,
+      isDeleted: false,
+      updatedBy: false,
+      createdBy: false,
+    };
+
+    OfficeDetails.findOneAndUpdate(query, academicInfo, {new: true, projection:officeDetailsProjection}, function(err, officeDetailsData){
+   if(officeDetailsData)
+   {
+     return done(err,officeDetailsData);
+   }
+   else{
+     return res.status(403).json({
+       title: 'There was a problem',
+       error: {message: err},
+       result: {message: officeDetailsData}
+     });
+   }
+ });
+}
+function  addSupervisorDetails(req,res,done)
 {
   let supervisorDetails = new SupervisorDetails();
   supervisorDetails.emp_id = req.body.emp_id;
@@ -626,9 +618,26 @@ function  addsupervisorDetails(req,res,done)
 
   })
 }
+function  updateSupervisorDetails(req,res,done)
+{
+  let supervisorDetails = new SupervisorDetails();
+  supervisorDetails.emp_id = req.body.emp_id;
+  supervisorDetails.primarySupervisorEmp_id = req.body.primarySupervisorEmp_id;
+  supervisorDetails.createdBy = 1;
+  supervisorDetails.save(function (err, supervisorDetailsData) {
+    if(supervisorDetailsData)
+    {
+      auditTrailEntry(supervisorDetails.emp_id,"supervisorDetails",supervisorDetails,"user","addsupervisorDetails","ADDED");
+      return done(err,supervisorDetailsData);
+    }
+    return res.status(403).json({
+      title: 'There was a problem',
+      error: {message: err},
+      result: {message: supervisorDetailsData}
+    });
 
-
-
+  })
+}
 function getPersonalInfoDetails(req,res)
 {
   let emp_id=req.query.emp_id;
@@ -654,7 +663,6 @@ function getPersonalInfoDetails(req,res)
        return res.status(200).json(personalEmpDetails);
   });
 }
-
 function getAddressInfoDetails(req,res) {
   let emp_id=req.query.emp_id;
   let query={isActive:true};
@@ -679,33 +687,31 @@ function getAddressInfoDetails(req,res) {
        return res.status(200).json(addressDetails);
   });
 }
-
 function getDocumentsDetails(req,res)
 {
-  //let emp_id=req.query.emp_id;
-  //let query={isDeleted:false};
-  //if(emp_id)
-  //{
-  //  query={emp_id:emp_id,isDeleted:false};
-  //}
-  // var documentProjection = {
-  //   createdAt: false,
-  //   updatedAt: false,
-  //   isDeleted: false,
-  //   updatedBy: false,
-  //   createdBy: false,
-  // };
-  //   Documents.find(query,documentProjection, function (err, documentsData) {
-  //     if (documentsData) {
-  //       return res.status(200).json(documentsData);
-  //     }
-
-  //     return res.status(403).json({
-  //       title: 'There was an error, please try again later',
-  //       error: err,
-  //       result: {message: documentsData}
-  //     });
-  //   });
+  let emp_id=req.query.emp_id;
+  let query={isDeleted:false};
+  if(emp_id)
+  {
+    query={emp_id:emp_id,isDeleted:false};
+  }
+  var documentProjection = {
+    createdAt: false,
+    updatedAt: false,
+    isDeleted: false,
+    updatedBy: false,
+    createdBy: false,
+  };
+    DocumentsDetails.find(query,documentProjection, function (err, documentsData) {
+      if (documentsData) {
+        return res.status(200).json(documentsData);
+      }
+      return res.status(403).json({
+        title: 'There was an error, please try again later',
+        error: err,
+        result: {message: documentsData}
+      });
+    });
 }
 function getAcademicInfo(req,res)
 {
@@ -732,64 +738,57 @@ function getAcademicInfo(req,res)
         return res.status(200).json(academicInfoData);
     });
 }
-function getCertificationsDetails(req,res)
+function getCertificationsAndTraniningInfoDetails(req,res)
 {
-  //let emp_id=req.query.emp_id;
-  //let query={isDeleted:false};
-  //if(emp_id)
-  //{
-  //  query={emp_id:emp_id,isDeleted:false};
-  //}
-  // var certificateProjection = {
-  //   createdAt: false,
-  //   updatedAt: false,
-  //   isDeleted: false,
-  //   updatedBy: false,
-  //   createdBy: false,
-  // };
-  //   CertificateDetails.find(query,certificateProjection, function (err, certificateDetailsData) {
-  //     if (err) {
-  //       return res.status(403).json({
-  //         title: 'There was an error, please try again later',
-  //         error: err
-  //       });
-  //     }
-  //     return done(err,certificateDetailsData)
-  //   });
-}
-function getTraniningInfoDetails(req,res)
-{
-  // let query={_id:1};
-   // var traningInfoProjection = {
-  //   createdAt: false,
-  //   updatedAt: false,
-  //   isDeleted: false,
-  //   updatedBy: false,
-  //   createdBy: false,
-  // };
-  //   TraningInfo.find(query,traningInfoProjection, function (err, traningInfoData) {
-  //     if (err) {
-  //       return res.status(403).json({
-  //         title: 'There was an error, please try again later',
-  //         error: err
-  //       });
-  //     }
-  //     return done(err,traningInfoData)
-  //   });
+  let emp_id=req.query.emp_id;
+  let query={isDeleted:false};
+  if(emp_id)
+  {
+   query={emp_id:emp_id,isDeleted:false};
+  }
+  var certificateAndTraniningProjection = {
+    createdAt: false,
+    updatedAt: false,
+    isDeleted: false,
+    updatedBy: false,
+    createdBy: false,
+  };
+    CertificateDetails.find(query,certificateAndTraniningProjection, function (err, certificateDetailsData) {
+      if (certificateDetailsData) {
+        return res.status(200).json(certificateDetailsData);
+      }
+      return res.status(403).json({
+        title: 'There was an error, please try again later',
+        error: err,
+        result: {message: certificateDetailsData}
+      });
+    });
 }
 function getPreviousEmployementHistoryDetails(req,res)
 {
-  //  let query={_id:1};
-  //   PreviousEmployementHistory.find(query, function (err, previousEmployementHistoryData) {
-  //     if (previousEmployementHistoryData) {
-  //       return res.status(200).json(previousEmployementHistoryData);
-  //     }
-  //     return res.status(403).json({
-  //       title: 'There was an error, please try again later',
-  //       error: err,
-  //       result: {message: documentsData}
-  //     });
-  //   });
+  let emp_id=req.query.emp_id;
+  let query={isDeleted:false};
+  if(emp_id)
+  {
+    query={emp_id:emp_id,isDeleted:true};
+  }
+  var previousEmployementHistoryInfoProjection = {
+    createdAt: false,
+    updatedAt: false,
+    isDeleted: false,
+    updatedBy: false,
+    createdBy: false,
+  };
+    PreviousEmployementHistory.find(query,previousEmployementHistoryInfoProjection, function (err, previousEmployementHistoryData) {
+      if (previousEmployementHistoryData) {
+        return res.status(200).json(previousEmployementHistoryData);
+      }
+      return res.status(403).json({
+        title: 'There was an error, please try again later',
+        error: err,
+        result: {message: previousEmployementHistoryData}
+      });
+    });
 }
 function getFamilyInfoDetails(req,res)
 {
@@ -820,28 +819,54 @@ function getFamilyInfoDetails(req,res)
 }
 function getOfficeInfoDetails(req,res)
 {
-  // let query={_id:1};
-  //   OfficeInfo.find(query, function (err, officeInfoData) {
-  //     if (err) {
-  //       return res.status(403).json({
-  //         title: 'There was an error, please try again later',
-  //         error: err
-  //       });
-  //     }
-  //     return done(err,officeData)
-  //   });
+  let emp_id=req.query.emp_id;
+  let query={isDeleted:false};
+  if(emp_id)
+  {
+   query={emp_id:emp_id,isDeleted:false};
+  }
+  var officeInfoProjection = {
+    createdAt: false,
+    updatedAt: false,
+    isDeleted: false,
+    updatedBy: false,
+    createdBy: false,
+  };
+    OfficeDetails.find(query,officeInfoProjection, function (err, officeInfoData) {
+      if (officeInfoData) {
+        return res.status(200).json(officeInfoData);
+      }
+      return res.status(403).json({
+        title: 'There was an error, please try again later',
+        error: err,
+        result: {message: officeInfoData}
+      });
+    });
 }
 function getJoiningInfoDetails(req,res)
 {
-  // let query={_id:1};
-  //   JoiningDetails.find(query, function (err, joiningDetailsData) {
-  //     if (err) {
-  //       return res.status(403).json({
-  //         title: 'There was an error, please try again later',
-  //         error: err
-  //       });
-  //     }
-  //     return done(err,joiningDetailsData)
+  // let emp_id=req.query.emp_id;
+  // let query={isDeleted:false};
+  // if(emp_id)
+  // {
+  //  query={emp_id:emp_id,isDeleted:false};
+  // }
+  // var joiningInfoProjection = {
+  //   createdAt: false,
+  //   updatedAt: false,
+  //   isDeleted: false,
+  //   updatedBy: false,
+  //   createdBy: false,
+  // };
+  //   JoiningDetails.find(query,joiningInfoProjection, function (err, joiningDetailsData) {
+  // if (joiningDetailsData) {
+  //   return res.status(200).json(joiningDetailsData);
+  // }
+  // return res.status(403).json({
+  //   title: 'There was an error, please try again later',
+  //   error: err,
+  //   result: {message: joiningDetailsData}
+  // });
   //   });
 }
 function getPositionInfoDetails(req,res)
@@ -860,81 +885,107 @@ function getPositionInfoDetails(req,res)
 }
 function getPerformanceDairyInfoDetails(req,res)
 {
-    // let query={_id:1};
-  //   PerformanceDairy.find(query, function (err, performanceDairyData) {
-  //     if (err) {
-  //       return res.status(403).json({
-  //         title: 'There was an error, please try again later',
-  //         error: err
-  //       });
-  //     }
-  //     return done(err,performanceDairyData)
-  //   });
+  let emp_id=req.query.emp_id;
+  let query={isDeleted:false};
+  if(emp_id)
+  {
+   query={emp_id:emp_id,isDeleted:false};
+  }
+  var performanceDairyProjection = {
+    createdAt: false,
+    updatedAt: false,
+    isDeleted: false,
+    updatedBy: false,
+    createdBy: false,
+  };
+  PerformanceDairy.find(query, function (err, performanceDairyProjection) {
+      if (performanceDairyProjection) {
+        return res.status(200).json(performanceDairyProjection);
+      }
+      return res.status(403).json({
+        title: 'There was an error, please try again later',
+        error: err,
+        result: {message: performanceDairyProjection}
+      });
+   });
 }
 function getBankInfoDetails(req,res)
 {
-  // let query={_id:1};
-  //   BankDetails.find(query, function (err, bankDetailsData) {
-  //     if (err) {
-  //       return res.status(403).json({
-  //         title: 'There was an error, please try again later',
-  //         error: err
-  //       });
-  //     }
-  //     return done(err,bankDetailsData)
-  //   });
+  let emp_id=req.query.emp_id;
+  let query={isDeleted:false};
+  if(emp_id)
+  {
+   query={emp_id:emp_id,isDeleted:false};
+  }
+  var bankDetailsProjection = {
+    createdAt: false,
+    updatedAt: false,
+    isDeleted: false,
+    updatedBy: false,
+    createdBy: false,
+  };
+  BankDetails.find(query,bankDetailsProjection, function (err, bankDetailsData) {
+      if (bankDetailsData) {
+        return res.status(200).json(bankDetailsData);
+      }
+      return res.status(403).json({
+        title: 'There was an error, please try again later',
+        error: err,
+        result: {message: bankDetailsData}
+      });
+  });
 }
 function getSalaryInfoDetails(req,res)
 {
-   // let query={_id:1};
-  //   SalaryDetails.find(query, function (err, salaryDetailsData) {
-  //     if (err) {
-  //       return res.status(403).json({
-  //         title: 'There was an error, please try again later',
-  //         error: err
-  //       });
-  //     }
-  //     return done(err,salaryDetailsData)
-  //   });
+  let emp_id=req.query.emp_id;
+  let query={isDeleted:false};
+  if(emp_id)
+  {
+   query={emp_id:emp_id,isDeleted:false};
+  }
+  var salaryDetailsProjection = {
+    createdAt: false,
+    updatedAt: false,
+    isDeleted: false,
+    updatedBy: false,
+    createdBy: false,
+  };
+  SalaryDetails.find(query,salaryDetailsProjection, function (err, salaryDetailsData) {
+    if (salaryDetailsData) {
+      return res.status(200).json(bankDetailsData);
+    }
+    return res.status(403).json({
+      title: 'There was an error, please try again later',
+      error: err,
+      result: {message: salaryDetailsData}
+    });
+  });
 }
-function getOtherBanefitInfoDetails(req,res)
+function getCarInfoDetails(req,res)
 {
-     // let query={_id:1};
-  //   OtherBenefitDetails.find(query, function (err, otherBenefitDetailsData) {
-  //     if (err) {
-  //       return res.status(403).json({
-  //         title: 'There was an error, please try again later',
-  //         error: err
-  //       });
-  //     }
-  //     return done(err,otherBenefitDetailsData)
-  //   });
-}
-function getCompanyCarInfoDetails(req,res)
-{
-  // let query={_id:1};
-  //   CompanyCarDetails.find(query, function (err, companyCarDetailsData) {
-  //     if (err) {
-  //       return res.status(403).json({
-  //         title: 'There was an error, please try again later',
-  //         error: err
-  //       });
-  //     }
-  //     return done(err,companyCarDetailsData)
-  //   });
-}
-function getPersonalCarInfoDetails(req,res)
-{
-   // let query={_id:1};
-  //   PersonalCarDetails.find(query, function (err, personalCarDetailsData) {
-  //     if (err) {
-  //       return res.status(403).json({
-  //         title: 'There was an error, please try again later',
-  //         error: err
-  //       });
-  //     }
-  //     return done(err,personalCarDetailsData)
-  //   });
+  let emp_id=req.query.emp_id;
+  let query={isDeleted:false};
+  if(emp_id)
+  {
+   query={emp_id:emp_id,isDeleted:false};
+  }
+  var carInfoProjection = {
+    createdAt: false,
+    updatedAt: false,
+    isDeleted: false,
+    updatedBy: false,
+    createdBy: false,
+  };
+    PersonalCarDetails.find(query,carInfoProjection, function (err, carDetailsData) {
+       if (carDetailsData) {
+        return res.status(200).json(carDetailsData);
+      }
+      return res.status(403).json({
+        title: 'There was an error, please try again later',
+        error: err,
+        result: {message: carDetailsData}
+      });
+    });
 }
 
 let functions = {
@@ -971,10 +1022,10 @@ let functions = {
               sendWelComeEmail(emp,req.body.personalEmail);
               async.parallel([
                 function (done) {
-                  addofficeDetailsDetails(req,res,done)
+                  addofficeInfoDetails(req,res,done)
                 },
                 function (done) {
-                  addsupervisorDetails(req,res,done)
+                  addSupervisorDetails(req,res,done)
                 },
                 function(done)
                 {
@@ -1047,13 +1098,9 @@ let functions = {
   {
     getAcademicInfo(req, res);
   },
-  getCertifications:(req, res)=>
+  getCertificationsAndTraniningInfo:(req, res)=>
   {
-    getCertificationsDetails(req, res);
-  },
-  getTraniningInfo:(req, res)=>
-  {
-    getTraniningInfoDetails(req, res);
+    getCertificationsAndTraniningInfoDetails(req, res)
   },
   getPreviousEmployementHistory:(req, res)=>
   {
@@ -1087,21 +1134,9 @@ let functions = {
   {
     getSalaryInfoDetails(req, res);
   },
-  getOtherBanefitDetails:(req, res)=>
+  getCarDetails:(req, res)=>
   {
-    getOtherBanefitInfoDetails(req, res);
-  },
-  getCompanyCarDetails:(req, res)=>
-  {
-    getCompanyCarInfoDetails(req, res);
-  },
-  getPersonalCarDetails:(req, res)=>
-  {
-    getPersonalCarInfoDetails(req, res);
-  },
-  getPersonalCarDetails:(req, res)=>
-  {
-    getPersonalCarInfoDetails(req, res);
+    getCarInfoDetails(req, res);
   },
 
   addPersonalInfo:(req, res)=>
@@ -1130,6 +1165,7 @@ let functions = {
        }
     ]);
   },
+
   addAcademicInfo:(req, res)=>
   {
     async.waterfall([
@@ -1210,21 +1246,20 @@ let functions = {
        }
     ]);
   },
-
-  // addofficeDetailsDetails:(req, res)=>
-  // {
-  //   async.waterfall([
-  //     function(done)
-  //      {
-  //       addPersonalInfoDetails(req,res,done);
-  //      },
-  //      function(personalDetailsData,done)
-  //      {
-  //        return res.status(200).json(personalDetailsData);
-  //      }
-  //   ]);
-  // },
-  // updateofficeDetailsDetails:(req, res)=>
+  addofficeDetails:(req, res)=>
+  {
+    async.waterfall([
+      function(done)
+       {
+        addofficeInfoDetails(req,res,done);
+       },
+       function(officeInfoDetailsData,done)
+       {
+         return res.status(200).json(officeInfoDetailsData);
+       }
+    ]);
+  },
+  // updateofficeDetails:(req, res)=>
   // {
   //   async.waterfall([
   //     function(done)
@@ -1237,6 +1272,7 @@ let functions = {
   //      }
   //   ]);
   // },
+
   // Get User Info
   getUserInfo: (req, res) => {
     User.findOne({_id: req.user._id}, function (err, user) {
