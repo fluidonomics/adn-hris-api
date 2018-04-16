@@ -7,7 +7,7 @@ let express = require('express'),
     crypto  = require('crypto'),
     mkdirP  = require('mkdirp'),
     config  = require('../config/config'),
-    User    = require('../models/user.model'),
+    User    = require('../models/employee/employeeDetails.model'),
     gm      = require('gm').subClass({imageMagick: true});
 
 

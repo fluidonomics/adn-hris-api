@@ -1,29 +1,29 @@
 
-let express = require('express'),
-    //User    = require('../models/user.model'),
-    Employee    = require('../models/user.model'),
-    PersonalEmpDetails  = require('../models/personalEmpDetails.model'),
-    OfficeEmpDetails = require('../models/officeEmpDetails.model'),
-    SupervisorDetails = require('../models/supervisorDetails.model'),
-    Address = require('../models/address.model'),
-    AuditTrail = require('../models/auditTrail.model'),
-    Notification = require('../models/notification.model'),
-    UserRoles   = require('../models/empRole.model'),
-    AcademicInfo   = require('../models/academicInfo.model'),
-    config  = require('../config/config'),
-    fs      = require('fs'),
-    fse     = require('fs-extra'),
-    mkdirP  = require('mkdirp'),
-    multer  = require('multer'),
-    mime    = require('mime'),
-    path    = require('path'),
-    crypto  = require('crypto'),
-    async       = require('async'),
-    nodemailer  = require('nodemailer'),
-    hbs         = require('nodemailer-express-handlebars'),
-    sgTransport = require('nodemailer-sendgrid-transport'),
-    uuidV1      = require('uuid/v1'),
-    gm      = require('gm').subClass({imageMagick: true});
+let express           = require('express'),
+    Employee          = require('../models/employee/employeeDetails.model'),
+    PersonalDetails   = require('../models/employee/employeePersonalDetails.model'),
+    OfficeDetails     = require('../models/employee/employeeOfficeDetails.model'),
+    SupervisorDetails = require('../models/employee/employeeSupervisorDetails.model'),
+    Address           = require('../models/employee/employeeAddressDetails.model'),
+    AuditTrail        = require('../models/common/auditTrail.model'),
+    Notification      = require('../models/common/notification.model'),
+    EmployeeRoles     = require('../models/employee/employeeRoleDetails.model'),
+    AcademicInfo      = require('../models/employee/employeeAcademicDetails.model'),
+    FamilyInfo        = require('../models/employee/employeeFamilyDetails.model'),
+    config            = require('../config/config'),
+    fs                = require('fs'),
+    fse               = require('fs-extra'),
+    mkdirP            = require('mkdirp'),
+    multer            = require('multer'),
+    mime              = require('mime'),
+    path              = require('path'),
+    crypto            = require('crypto'),
+    async             = require('async'),
+    nodemailer        = require('nodemailer'),
+    hbs               = require('nodemailer-express-handlebars'),
+    sgTransport       = require('nodemailer-sendgrid-transport'),
+    uuidV1            = require('uuid/v1'),
+    gm                = require('gm').subClass({imageMagick: true});
     require('dotenv').load()
 
 
@@ -122,7 +122,7 @@ let deleteImage = (image) => {
 
 function addPersonalInfoDetails(req,res,done)
 {
-  let personalDetails = new PersonalEmpDetails();
+  let personalDetails = new PersonalDetails();
   personalDetails.emp_id = req.body.emp_id || req.query.emp_id;
   personalDetails.gender = (req.body.gender == undefined) ? ((req.query.gender == undefined ? null: req.query.gender)):req.body.gender;
   personalDetails.personalMobileNumber = (req.body.personalMobileNumber == undefined) ? ((req.query.personalMobileNumber == undefined ? null: req.query.personalMobileNumber)):req.body.personalMobileNumber;
@@ -159,7 +159,7 @@ function addPersonalInfoDetails(req,res,done)
 
 function updatePersonalInfoDetails(req,res,done)
 {
-     let personalDetails = new PersonalEmpDetails();
+     let personalDetails = new PersonalDetails();
      personalDetails.gender = (req.body.gender == undefined) ? ((req.query.gender == undefined ? null: req.query.gender)):req.body.gender;
      personalDetails.personalMobileNumber = (req.body.personalMobileNumber == undefined) ? ((req.query.personalMobileNumber == undefined ? null: req.query.personalMobileNumber)):req.body.personalMobileNumber;
      personalDetails.personalEmail = (req.body.personalEmail == undefined) ? ((req.query.personalEmail == undefined ? null: req.query.personalEmail)):req.body.personalEmail;
@@ -188,7 +188,7 @@ function updatePersonalInfoDetails(req,res,done)
       createdBy: false,
     };
 
-    PersonalEmpDetails.findOneAndUpdate(query, personalDetails, {new: true, projection:personalInfoProjection}, function(err, personalDetailsData){
+    PersonalDetails.findOneAndUpdate(query, personalDetails, {new: true, projection:personalInfoProjection}, function(err, personalDetailsData){
     if(personalDetailsData)
     {
       return done(err,personalDetailsData);
@@ -279,6 +279,74 @@ function updateAcademicInfoDetails(req,res,done)
        title: 'There was a problem',
        error: {message: err},
        result: {message: academicInfoData}
+     });
+   }
+ });
+}
+
+
+function addFamilyInfoDetails(req,res,done)
+{
+  let familyInfo = new FamilyInfo();
+  familyInfo.emp_id = req.body.emp_id;
+  familyInfo.name = req.body.name;
+  familyInfo.relation_id =  req.body.relation_id;
+  familyInfo.dateOfBirth = req.body.dateOfBirth;
+  familyInfo.contact =  req.body.contact;
+  familyInfo.isCompleted = true;
+  familyInfo.createdBy = 1;
+
+  //familyInfo.createdBy =req.headers[emp_id];
+
+  familyInfo.save(function (err, familyInfoData) {
+    if(familyInfoData)
+    {
+      auditTrailEntry(familyInfo.emp_id,"familyInfo",familyInfo,"user","familyInfo","ADDED");
+      return done(err, familyInfoData);
+    }
+    else{
+      return res.status(403).json({
+        title: 'There was a problem',
+        error: {message: err},
+        result: {message: familyInfoData}
+      });
+    }
+  });
+}
+
+function updateFamilyInfoDetails(req,res,done)
+{
+  let familyInfo = new FamilyInfo();
+  familyInfo.emp_id = req.body.emp_id;
+  familyInfo.name = req.body.name;
+  familyInfo.relation_id =  req.body.relation_id;
+  familyInfo.dateOfBirth = req.body.dateOfBirth;
+  familyInfo.contact =  req.body.contact;
+  familyInfo.isCompleted = true;
+  familyInfo.updatedBy = 1;
+
+  //familyInfo.updatedBy =req.headers[emp_id];
+    let _id=req.body._id;
+    var query={_id:_id,isDeleted:false}
+
+    var familyInfoProjection = {
+      createdAt: false,
+      updatedAt: false,
+      isDeleted: false,
+      updatedBy: false,
+      createdBy: false,
+    };
+
+    FamilyInfo.findOneAndUpdate(query, familyInfo, {new: true, projection:familyInfoProjection}, function(err, familyInfoData){
+   if(familyInfoData)
+   {
+     return done(err,familyInfoData);
+   }
+   else{
+     return res.status(403).json({
+       title: 'There was a problem',
+       error: {message: err},
+       result: {message: familyInfoData}
      });
    }
  });
@@ -424,7 +492,7 @@ function auditTrailEntry(emp_id,collectionName,collectionDocument,controllerName
 
 //Save Embeded array of Employee Roles
 function addEmpRoles(i, req, res, emp)  {
-  let empRole=new UserRoles();
+  let empRole=new EmployeeRoles();
   empRole.emp_id = emp._id;
   empRole.role_id = req.body.roles[i];
   empRole.save(function(err,roleDaata)
@@ -510,7 +578,7 @@ function sendWelComeEmail(emp,toemail)
 function addofficeDetailsDetails(req,res,done)
 {
 
-     let officeEmpDetails = new OfficeEmpDetails();
+     let officeEmpDetails = new OfficeDetails();
      officeEmpDetails.emp_id = req.body.emp_id;
      officeEmpDetails.employmentStatus_id = req.body.employmentStatus_id;
      officeEmpDetails.managementType_id = req.body.managementType_id;
@@ -576,7 +644,7 @@ function getPersonalInfoDetails(req,res)
     updatedBy: false,
     createdBy: false,
   };
-  PersonalEmpDetails.findOne(query,personalInfoProjection,function (err, personalEmpDetails) {
+  PersonalDetails.findOne(query,personalInfoProjection,function (err, personalEmpDetails) {
       if (err) {
         return res.status(403).json({
           title: 'There was an error, please try again later',
@@ -725,17 +793,30 @@ function getPreviousEmployementHistoryDetails(req,res)
 }
 function getFamilyInfoDetails(req,res)
 {
-  //  let query={_id:1};
-  //   FamilyInfo.find(query, function (err, familyInfoData) {
-  //     if (familyInfoData) {
-  //       return res.status(200).json(familyInfoData);
-  //     }
-  //     return res.status(403).json({
-  //       title: 'There was an error, please try again later',
-  //       error: err,
-  //       result: {message: documentsData}
-  //     });
-  //   });
+  let emp_id=req.query.emp_id;
+  let query={isDeleted:false};
+  
+  if(emp_id)
+  {
+   query={emp_id:emp_id,isDeleted:false};
+  }
+  var familyInfoProjection = {
+    createdAt: false,
+    updatedAt: false,
+    isDeleted: false,
+    updatedBy: false,
+    createdBy: false,
+  };
+    FamilyInfo.find(query, familyInfoProjection, function (err, familyInfoData) {
+      if (familyInfoData) {
+        return res.status(200).json(familyInfoData);
+      }
+      return res.status(403).json({
+        title: 'There was an error, please try again later',
+        error: err,
+        result: {message: documentsData}
+      });
+    });
 }
 function getOfficeInfoDetails(req,res)
 {
@@ -1072,6 +1153,33 @@ let functions = {
        function(academicInfoData,done)
        {
          return res.status(200).json(academicInfoData);
+       }
+    ]);
+  },
+
+  addFamilyInfo:(req, res)=>
+  {
+    async.waterfall([
+      function(done)
+       {
+        addFamilyInfoDetails(req,res,done);
+       },
+       function(familyInfoData,done)
+       {
+         return res.status(200).json(familyInfoData);
+       }
+    ]);
+  },
+  updateFamilyInfo:(req, res)=>
+  {
+    async.waterfall([
+      function(done)
+       {
+        updateFamilyInfoDetails(req,res,done);
+       },
+       function(familyInfoData,done)
+       {
+         return res.status(200).json(familyInfoData);
        }
     ]);
   },

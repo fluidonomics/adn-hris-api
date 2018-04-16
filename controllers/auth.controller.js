@@ -1,27 +1,23 @@
-let express     = require('express'),
-    Employee    = require('../models/user.model'),
-    PersonalEmpDetails  = require('../models/personalEmpDetails.model'),
-    UserRoles   = require('../models/empRole.model'),
-    Roles       = require('../models/role.model'),
-    jwt         = require('jsonwebtoken-refresh');
-    config      = require('../config/config'),
-    fs          = require('fs'),
-    multer      = require('multer'),
-    mime        = require('mime'),
-    path        = require('path'),
-    crypto      = require('crypto'),
-    gm          = require('gm').subClass({imageMagick: true}),
-    nodemailer  = require('nodemailer'),
-    hbs         = require('nodemailer-express-handlebars'),
-    sgTransport = require('nodemailer-sendgrid-transport'),
-    uuidV1      = require('uuid/v1'),
-    async       = require('async'),
-    awaitEach   =require('await-each');
+let express          = require('express'),
+    Employee         = require('../models/employee/employeeDetails.model'),
+    PersonalDetails  = require('../models/employee/employeePersonalDetails.model'),
+    EmployeeRoles    = require('../models/employee/employeeRoleDetails.model'),
+    Roles            = require('../models/master/role.model'),
+    jwt              = require('jsonwebtoken-refresh');
+    config           = require('../config/config'),
+    path             = require('path'),
+    crypto           = require('crypto'),
+    nodemailer       = require('nodemailer'),
+    hbs              = require('nodemailer-express-handlebars'),
+    uuidV1           = require('uuid/v1'),
+    async            = require('async'),
+    awaitEach        =require('await-each');
     require('dotenv').load()
-
-// function generateToken(user) {
-//   return jwt.sign(user, config.secret, {expiresIn: config.jwtExpire});
-// }
+    //fs          = require('fs'),
+    //multer      = require('multer'),
+    //mime        = require('mime'),    
+    //gm          = require('gm').subClass({imageMagick: true}),    
+    //sgTransport = require('nodemailer-sendgrid-transport'),    
 
 function generateToken(user) {
   return jwt.sign(user, process.env.Secret, {expiresIn: process.env.JwtExpire});
@@ -54,7 +50,7 @@ let functions = {
           user.comparePassword(req.body.password, (err, isMatch) => {
             if (isMatch && !err) {
             let userInfo = setUserInfo(user);
-            UserRoles.aggregate([
+            EmployeeRoles.aggregate([
               {
                     "$lookup": {
                         "from": "roles",
@@ -77,7 +73,7 @@ let functions = {
               var i = 0;
                 //console.log(results[0].employees[0]);
                 if(results.length > 0){
-                  PersonalEmpDetails.find({ "emp_id": user._id}).exec(function(pdErr, personalDetailsResults){
+                  PersonalDetails.find({ "emp_id": user._id}).exec(function(pdErr, personalDetailsResults){
                         results.forEach(element => {
                           roles.push(element.roles[0].roleName);
                           i++;

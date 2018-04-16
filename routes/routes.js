@@ -4,7 +4,7 @@ let express  = require('express'),
     admin    = require('../controllers/admin.controller'),
     master   = require('../controllers/master.controller'),
     common   = require('../controllers/common.controller'),
-    employee = require('../models/user.model'),
+    Employee = require('../models/employee/employeeDetails.model'),
     // passport = require('passport');
     jwt = require('jsonwebtoken-refresh');
 
@@ -22,7 +22,7 @@ let express  = require('express'),
             });
           }
           else{
-            employee.find({_id:parseInt(decoded._id),isDeleted:false},function(err,users)
+           Employee.find({_id:parseInt(decoded._id),isDeleted:false},function(err,users)
             {
               if(users)
               {
@@ -136,6 +136,12 @@ let express  = require('express'),
    // Update Employee Address endpoint: http://localhost:3000/api/user/updateAddress
    userRoutes.post('/updateAddress', user.updateAddress);
 
+   // Add Employee endpoint: http://localhost:3000/api/user/addFamilyInfo
+ userRoutes.post('/addFamilyInfo', user.addFamilyInfo);
+
+ // Add Employee endpoint: http://localhost:3000/api/user/updateFamilyInfo
+ userRoutes.post('/updateFamilyInfo', user.updateFamilyInfo);
+
   // Get All Employee
   //userRoutes.get('/getEmployeeDetails', user.getEmployeeDetails);
 
@@ -157,7 +163,7 @@ let express  = require('express'),
 
   // userRoutes.get('/getPreviousEmployementHistory',user.getPreviousEmployementHistory);
   
-  // userRoutes.get('/getFamilyInfo',user.getFamilyInfo);
+  userRoutes.get('/getFamilyInfo',user.getFamilyInfo);
 
   // userRoutes.get('/getOfficeInfo',user.getOfficeInfo);
 

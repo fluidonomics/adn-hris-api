@@ -1,35 +1,24 @@
 let express           = require('express'),
-    Role              = require('../models/role.model'),
-    Company           = require('../models/company.model'),
-    Division          = require('../models/division.model'),
-    Department        = require('../models/department.model'),
-    Vertical          = require('../models/vertical.model'),
-    SubVertical       = require('../models/subVertical.model'),
-    MaritalStatus     = require('../models/maritalStatus.model'),
-    Currency          = require('../models/currency.model'),
-    Grade             = require('../models/grade.model'),
-    Designation       = require('../models/designation.model'),
-    GradeDesignation  = require('../models/gradeDesignation.model'),
-    AddressLocation    = require('../models/location.model'),
-    ManagementType    = require('../models/managementType.model'),
-    EmploymentType    = require('../models/employmentType.model'),
-    EmploymentStatus  = require('../models/employmentStatus.model'),
-    SupervisorDetails = require('../models/supervisorDetails.model'),
-    PersonalEmpDetails= require('../models/personalEmpDetails.model'),
-    OfficeEmpDetails  = require('../models/officeEmpDetails.model'),
-    Employee          =  require('../models/user.model'),
-    EmpRole           =  require('../models/empRole.model'),
-    jwt               = require('jsonwebtoken'),
-    config            = require('../config/config'),
-    fs                = require('fs'),
-    multer            = require('multer'),
-    mime              = require('mime'),
-    path              = require('path'),
-    crypto            = require('crypto'),
-    gm                = require('gm').subClass({imageMagick: true}),
-    nodemailer        = require('nodemailer'),
-    hbs               = require('nodemailer-express-handlebars'),
-    sgTransport       = require('nodemailer-sendgrid-transport'),
+    Role              = require('../models/master/role.model'),
+    Company           = require('../models/master/company.model'),
+    Division          = require('../models/master/division.model'),
+    Department        = require('../models/master/department.model'),
+    Vertical          = require('../models/master/vertical.model'),
+    SubVertical       = require('../models/master/subVertical.model'),
+    MaritalStatus     = require('../models/master/maritalStatus.model'),
+    Currency          = require('../models/master/currency.model'),
+    Grade             = require('../models/master/grade.model'),
+    Designation       = require('../models/master/designation.model'),
+    GradeDesignation  = require('../models/master/gradeDesignation.model'),
+    AddressLocation   = require('../models/master/location.model'),
+    ManagementType    = require('../models/master/managementType.model'),
+    EmploymentType    = require('../models/master/employmentType.model'),
+    EmploymentStatus  = require('../models/master/employmentStatus.model'),
+    SupervisorDetails = require('../models/employee/employeeSupervisorDetails.model'),
+    PersonalDetails   = require('../models/employee/employeePersonalDetails.model'),
+    OfficeDetails     = require('../models/employee/employeeOfficeDetails.model'),
+    Employee          = require('../models/employee/employeeDetails.model'),
+    EmployeeRole      = require('../models/employee/employeeRoleDetails.model'),
     uuidV1            = require('uuid/v1'),
     async             = require('async')
     awaitEach         = require('await-each');
@@ -672,7 +661,7 @@ let functions = {
         var empRoleProjection = {
             emp_id: true,
         };
-        EmpRole.find(query, empRoleProjection, {
+        EmployeeRole.find(query, empRoleProjection, {
           sort: {
               _id: 1
           }
@@ -756,7 +745,7 @@ let functions = {
         var empRoleProjection = {
             emp_id: true,
         };
-        EmpRole.find(query, empRoleProjection, {
+        EmployeeRole.find(query, empRoleProjection, {
           sort: {
               _id: 1
           }
@@ -800,10 +789,10 @@ let functions = {
       };
       if(personalEmail)
       {
-        PersonalEmpDetails.find(query, personalEmpDetailsProjection, function(err, PersonalEmpDetailsData) {
-          if(PersonalEmpDetailsData)
+        PersonalDetails.find(query, personalEmpDetailsProjection, function(err, PersonalDetailsData) {
+          if(PersonalDetailsData)
           {
-            if(PersonalEmpDetailsData.length > 0)
+            if(PersonalDetailsData.length > 0)
             {
               return res.status(200).json(false);
             }
@@ -823,10 +812,10 @@ let functions = {
         var officeEmpDetailsProjection = {
           _id: true,
         };
-        OfficeEmpDetails.find(query, officeEmpDetailsProjection, function(err, PersonalEmpDetailsData) {
-          if(PersonalEmpDetailsData)
+        OfficeDetails.find(query, officeEmpDetailsProjection, function(err, PersonalDetailsData) {
+          if(PersonalDetailsData)
           {
-            if(PersonalEmpDetailsData.length >0)
+            if(PersonalDetailsData.length >0)
             {
               return res.status(200).json(false);
             }
