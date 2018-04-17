@@ -510,7 +510,7 @@ function addBankDetails(req,res,done)
   bank.bankName = req.body.bankName;
   bank.accountName = req.body.accountName;
   bank.accountNumber = req.body.accountNumber;
-  bank.currency_id = req.body.currency_id;
+  bank.currency = req.body.currency;
   bank.modeOfPaymentType = req.body.modeOfPaymentType;
   bank.emp_id = req.body.emp_id;  
   bank.isCompleted = true;
@@ -540,7 +540,7 @@ function updateBankDetails(req,res,done)
   bank.bankName = req.body.bankName;
   bank.accountName = req.body.accountName;
   bank.accountNumber = req.body.accountNumber;
-  bank.currency_id = req.body.currency_id;
+  bank.currency = req.body.currency;
   bank.modeOfPaymentType = req.body.modeOfPaymentType;
   bank.emp_id = req.body.emp_id;  
   bank.isCompleted = true;
