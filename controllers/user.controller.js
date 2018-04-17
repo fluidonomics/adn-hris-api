@@ -15,7 +15,7 @@ let express           = require('express'),
     BankDetails       = require('../models/employee/employeeBankDetails.model'),
     SalaryDetails     = require('../models/employee/employeeSalaryDetails.model'),
     CarDetails        = require('../models/employee/employeeCarDetails.model'),
-    DocumentsDetails  = require('../models/employee/employeeDocumentDetails.model'),
+    Documents  = require('../models/employee/employeeDocumentDetails.model'),
     config            = require('../config/config'),
     fs                = require('fs'),
     fse               = require('fs-extra'),
@@ -277,6 +277,80 @@ function updateAcademicInfoDetails(req,res,done)
        title: 'There was a problem',
        error: {message: err},
        result: {message: academicInfoData}
+     });
+   }
+ });
+}
+
+function addDocumentsDetails(req,res,done)
+{
+  let Documents = new Documents();
+  documents.emp_id = req.body.emp_id;
+  documents.nationalIdSmartCard = req.body.nationalIdSmartCard;
+  documents.nationalIdSmartCardDocURL =  req.body.nationalIdSmartCardDocURL;
+  documents.passportNumber = req.body.passportNumber;
+  documents.passportNumberDocURL =  req.body.passportNumberDocURL;
+  documents.birthRegistrationNumber = req.body.birthRegistrationNumber;
+  documents.birthRegistrationNumberDocURL = req.body.birthRegistrationNumberDocURL;
+  documents.nationalIDOldFormat = req.body.nationalIDOldFormat;
+  documents.nationalIDOldFormatDocURL = req.body.nationalIDOldFormatDocURL;
+  documents.isCompleted = true;
+  documents.createdBy = 1;
+
+  //documents.createdBy =req.headers[emp_id];
+
+  documents.save(function (err, documentsData) {
+    if(documentsData)
+    {
+      auditTrailEntry(documents.emp_id,"documents",documents,"user","documents","ADDED");
+      return done(err, documentsData);
+    }
+    else{
+      return res.status(403).json({
+        title: 'There was a problem',
+        error: {message: err},
+        result: {message: documentsData}
+      });
+    }
+  });
+}
+function updateDocumentsDetails(req,res,done)
+{
+  let documents = new Documents();
+  documents.emp_id = req.body.emp_id;
+  documents.nationalIdSmartCard = req.body.nationalIdSmartCard;
+  documents.nationalIdSmartCardDocURL =  req.body.nationalIdSmartCardDocURL;
+  documents.passportNumber = req.body.passportNumber;
+  documents.passportNumberDocURL =  req.body.passportNumberDocURL;
+  documents.birthRegistrationNumber = req.body.birthRegistrationNumber;
+  documents.birthRegistrationNumberDocURL = req.body.birthRegistrationNumberDocURL;
+  documents.nationalIDOldFormat = req.body.nationalIDOldFormat;
+  documents.nationalIDOldFormatDocURL = req.body.nationalIDOldFormatDocURL;
+  documents.isCompleted = true;
+  documents.updatedBy = 1;
+
+  //documents.updatedBy =req.headers[emp_id];
+    let _id=req.body._id;
+    var query={_id:_id,isDeleted:false}
+
+    var documentsProjection = {
+      createdAt: false,
+      updatedAt: false,
+      isDeleted: false,
+      updatedBy: false,
+      createdBy: false,
+    };
+
+    Documents.findOneAndUpdate(query, documents, {new: true, projection:documentsProjection}, function(err, documentsData){
+   if(documentsData)
+   {
+     return done(err,documentsData);
+   }
+   else{
+     return res.status(403).json({
+       title: 'There was a problem',
+       error: {message: err},
+       result: {message: documentsData}
      });
    }
  });
@@ -1198,6 +1272,19 @@ let functions = {
        {
          return res.status(200).json(academicInfoData);
        }
+    ]);
+  },
+  addDocuments:(req, res)=>
+  {
+    async.waterfall([
+      function(done)
+      {
+        addDocumentsDetails(req,res,done);
+      },
+      function(documentsData,done)
+      {
+        return res.status(200).json(documentsData);
+      }
     ]);
   },
 
