@@ -346,6 +346,7 @@ function updateFamilyInfoDetails(req,res,done)
    }
  });
 }
+
 function addAddressInfoDetails(req,res,done){
   let address = new Address();
   address.emp_id = req.body.emp_id || req.query.emp_id;
@@ -386,12 +387,15 @@ function updateAddressInfoDetails(req,res,done)
 {
   let address = new Address();
   address.emp_id = req.body.emp_id || req.query.emp_id;
-  address.currentAddressLine1 = req.body.currentAddressLine1;
+  
   address.permanentAddressLine1 = req.body.permanentAddressLine1;
+  address.permanentAddressLine2 = req.body.permanentAddressLine2;
   address.permanentAddressThana_id= req.body.permanentAddressThana_id;
   address.permanentAddressDistrict_id = req.body.permanentAddressDistrict_id;
   address.permanentAddressDivision_id = req.body.permanentAddressDivision_id;
   address.permanentAddressPostCode = req.body.permanentAddressPostCode;
+
+  address.currentAddressLine1 = req.body.currentAddressLine1;
   address.currentAddressLine2 = req.body.currentAddressLine2;
   address.currentAddressThana_id = req.body.currentAddressThana_id;
   address.currentAddressDistrict_id = req.body.currentAddressDistrict_id;
