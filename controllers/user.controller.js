@@ -853,7 +853,7 @@ function getDocumentsDetails(req,res)
     updatedBy: false,
     createdBy: false,
   };
-    Documents.find(query,documentProjection, function (err, documentsData) {
+    Documents.findOne(query,documentProjection, function (err, documentsData) {
       if (documentsData) {
         return res.status(200).json(documentsData);
       }
