@@ -12,8 +12,8 @@ let express           = require('express'),
     FamilyInfo        = require('../models/employee/employeeFamilyDetails.model'),
     PreviousEmployementHistory = require('../models/employee/employeePreviousEmploymentDetails.model'),
     CertificateDetails= require('../models/employee/employeeCertificationDetails.model'),
-    Bank       = require('../models/employee/employeeBankDetails.model'),
-    SalaryDetails     = require('../models/employee/employeeSalaryDetails.model'),
+    Bank              = require('../models/employee/employeeBankDetails.model'),
+    SalaryInfo     = require('../models/employee/employeeSalaryDetails.model'),
     CarDetails        = require('../models/employee/employeeCarDetails.model'),
     Documents         = require('../models/employee/employeeDocumentDetails.model'),
     config            = require('../config/config'),
@@ -572,6 +572,93 @@ function updateBankDetails(req,res,done)
    }
  });
 }
+function addSalaryInfoDetails(req,res,done)
+{
+  let salaryInfo = new SalaryInfo();
+  salaryInfo.emp_id = req.body.emp_id;
+  salaryInfo.basic = req.body.basic;
+  salaryInfo.hra =  req.body.hra;
+  salaryInfo.conveyanceAllowance = req.body.conveyanceAllowance;
+  salaryInfo.lfa =  req.body.lfa;
+  salaryInfo.medicalAllowance = req.body.medicalAllowance;
+  salaryInfo.specialAllowance = req.body.specialAllowance;
+  salaryInfo.grossSalary = req.body.grossSalary;
+  salaryInfo.lunchAllowance = req.body.lunchAllowance;
+  salaryInfo.mobileAllowance = req.body.mobileAllowance;
+  salaryInfo.otherAllowance = req.body.otherAllowance;
+  salaryInfo.totalEarnings = req.body.totalEarnings;
+  salaryInfo.festivalAllowance = req.body.festivalAllowance;
+  salaryInfo.providentFundMembership = req.body.providentFundMembership;
+  salaryInfo.groupLifeInsurance = req.body.groupLifeInsurance;
+  salaryInfo.hospitalizationScheme = req.body.hospitalizationScheme;
+  salaryInfo.isHike = req.body.isHike;
+  salaryInfo.isCompleted = true;
+  salaryInfo.createdBy = 1;
+
+  //salaryInfo.createdBy =req.headers[emp_id];
+
+  salaryInfo.save(function (err, salaryInfoData) {
+    if(salaryInfoData)
+    {
+      auditTrailEntry(salaryInfo.emp_id,"salaryInfo",salaryInfo,"user","salaryInfo","ADDED");
+      return done(err, salaryInfoData);
+    }
+    else{
+      return res.status(403).json({
+        title: 'There was a problem',
+        error: {message: err},
+        result: {message: salaryInfoData}
+      });
+    }
+  });
+}
+function updateSalaryInfoDetails(req,res,done)
+{
+  let salaryInfo = new SalaryInfo();
+  salaryInfo.emp_id = req.body.emp_id;
+  salaryInfo.basic = req.body.basic;
+  salaryInfo.hra =  req.body.hra;
+  salaryInfo.conveyanceAllowance = req.body.conveyanceAllowance;
+  salaryInfo.lfa =  req.body.lfa;
+  salaryInfo.medicalAllowance = req.body.medicalAllowance;
+  salaryInfo.specialAllowance = req.body.specialAllowance;
+  salaryInfo.grossSalary = req.body.grossSalary;
+  salaryInfo.lunchAllowance = req.body.lunchAllowance;
+  salaryInfo.mobileAllowance = req.body.mobileAllowance;
+  salaryInfo.otherAllowance = req.body.otherAllowance;
+  salaryInfo.totalEarnings = req.body.totalEarnings;
+  salaryInfo.festivalAllowance = req.body.festivalAllowance;
+  salaryInfo.providentFundMembership = req.body.providentFundMembership;
+  salaryInfo.groupLifeInsurance = req.body.groupLifeInsurance;
+  salaryInfo.hospitalizationScheme = req.body.hospitalizationScheme;
+  salaryInfo.isHike = req.body.isHike;
+  salaryInfo.isCompleted = true;
+  salaryInfo.updatedBy = 1;
+
+  //salaryInfo.updatedBy =req.headers[emp_id];
+    let _id=req.body._id;
+    var query={_id:_id,isActive:true}
+
+    var salaryInfoProjection = {
+      createdAt: false,
+      updatedAt: false,
+      isDeleted: false,
+      updatedBy: false,
+      createdBy: false,
+    };
+
+    SalaryInfo.findOneAndUpdate(query, salaryInfo, {new: true, projection:salaryInfoProjection}, function(err, salaryInfoData){
+   if(salaryInfoData)
+   {
+     return done(err,salaryInfoData);
+   }
+     return res.status(403).json({
+       title: 'There was a problem',
+       error: {message: err},
+       result: {message: salaryInfoData}
+     });
+ });
+}
 let notificationFlag = 0;
 function sendNotifications(emp, title, message, senderEmp_id, recipientEmp_id, type_id, linkUrl) {
   //emp.hrspoc -> super (bussHrHead) -> revi(GroupHrHEad)
@@ -1089,21 +1176,21 @@ function getBankInfoDetails(req,res)
 function getSalaryInfoDetails(req,res)
 {
   let emp_id=req.query.emp_id;
-  let query={isDeleted:false};
+  let query={isActive:true};
   if(emp_id)
   {
-   query={emp_id:emp_id,isDeleted:false};
+   query={emp_id:emp_id,isActive:true};
   }
   var salaryDetailsProjection = {
     createdAt: false,
     updatedAt: false,
-    isDeleted: false,
+    isActive: false,
     updatedBy: false,
     createdBy: false,
   };
-  SalaryDetails.find(query,salaryDetailsProjection, function (err, salaryDetailsData) {
+  SalaryInfo.findOne(query,salaryDetailsProjection, function (err, salaryDetailsData) {
     if (salaryDetailsData) {
-      return res.status(200).json(bankDetailsData);
+      return res.status(200).json(salaryDetailsData);
     }
     return res.status(403).json({
       title: 'There was an error, please try again later',
@@ -1464,6 +1551,34 @@ let functions = {
       {
         return res.status(200).json(bankData);
       }
+    ]);
+  },
+
+  addSalaryInfo:(req, res)=>
+  {
+    async.waterfall([
+      function(done)
+       {
+        addSalaryInfoDetails(req,res,done);
+       },
+       function(salaryInfoData,done)
+       {
+         return res.status(200).json(salaryInfoData);
+       }
+    ]);
+  },
+
+  updateSalaryInfo:(req, res)=>
+  {
+    async.waterfall([
+      function(done)
+       {
+        updateSalaryInfoDetails(req,res,done);
+       },
+       function(salaryInfoData,done)
+       {
+         return res.status(200).json(salaryInfoData);
+       }
     ]);
   },
 

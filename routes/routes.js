@@ -154,6 +154,12 @@ let express  = require('express'),
  // Add Employee endpoint: http://localhost:3000/api/user/updateBank
  userRoutes.post('/updateBank', user.updateBank);
 
+ // Add Employee endpoint: http://localhost:3000/api/user/addSalaryInfo
+ userRoutes.post('/addSalaryInfo', user.addSalaryInfo);
+
+ // Add Employee endpoint: http://localhost:3000/api/user/updateSalaryInfo
+ userRoutes.post('/updateSalaryInfo', user.updateSalaryInfo);
+
   // Get All Employee
   //userRoutes.get('/getEmployeeDetails', user.getEmployeeDetails);
 
