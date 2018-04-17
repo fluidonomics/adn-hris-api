@@ -1075,7 +1075,7 @@ function getBankInfoDetails(req,res)
     updatedBy: false,
     createdBy: false,
   };
-  Bank.find(query,bankDetailsProjection, function (err, bankDetailsData) {
+  Bank.findOne(query,bankDetailsProjection, function (err, bankDetailsData) {
       if (bankDetailsData) {
         return res.status(200).json(bankDetailsData);
       }
