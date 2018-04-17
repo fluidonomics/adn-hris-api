@@ -148,7 +148,7 @@ let express  = require('express'),
   //userRoutes.post('/employeeDetails',user.employeeDetails);
 
 
-  userRoutes.get('/getPersonalInfo',ensureAuthenticated,user.getPersonalInfo);
+  userRoutes.get('/getPersonalInfo',user.getPersonalInfo);
 
   userRoutes.get('/getAddressDetails',user.getAddressDetails);
 
