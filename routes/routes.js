@@ -142,6 +142,18 @@ let express  = require('express'),
  // Add Employee endpoint: http://localhost:3000/api/user/updateFamilyInfo
  userRoutes.post('/updateFamilyInfo', user.updateFamilyInfo);
 
+ // Add Employee endpoint: http://localhost:3000/api/user/addDocuments
+ userRoutes.post('/addDocuments', user.addDocuments);
+
+ // Add Employee endpoint: http://localhost:3000/api/user/updateDocuments
+ userRoutes.post('/updateDocuments', user.updateDocuments);
+
+ // Add Employee endpoint: http://localhost:3000/api/user/addBank
+ userRoutes.post('/addBank', user.addBank);
+
+ // Add Employee endpoint: http://localhost:3000/api/user/updateBank
+ userRoutes.post('/updateBank', user.updateBank);
+
   // Get All Employee
   //userRoutes.get('/getEmployeeDetails', user.getEmployeeDetails);
 

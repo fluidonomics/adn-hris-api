@@ -12,10 +12,10 @@ let express           = require('express'),
     FamilyInfo        = require('../models/employee/employeeFamilyDetails.model'),
     PreviousEmployementHistory = require('../models/employee/employeePreviousEmploymentDetails.model'),
     CertificateDetails= require('../models/employee/employeeCertificationDetails.model'),
-    BankDetails       = require('../models/employee/employeeBankDetails.model'),
+    Bank       = require('../models/employee/employeeBankDetails.model'),
     SalaryDetails     = require('../models/employee/employeeSalaryDetails.model'),
     CarDetails        = require('../models/employee/employeeCarDetails.model'),
-    Documents  = require('../models/employee/employeeDocumentDetails.model'),
+    Documents         = require('../models/employee/employeeDocumentDetails.model'),
     config            = require('../config/config'),
     fs                = require('fs'),
     fse               = require('fs-extra'),
@@ -284,7 +284,7 @@ function updateAcademicInfoDetails(req,res,done)
 
 function addDocumentsDetails(req,res,done)
 {
-  let Documents = new Documents();
+  let documents = new Documents();
   documents.emp_id = req.body.emp_id;
   documents.nationalIdSmartCard = req.body.nationalIdSmartCard;
   documents.nationalIdSmartCardDocURL =  req.body.nationalIdSmartCardDocURL;
@@ -502,6 +502,75 @@ function updateAddressInfoDetails(req,res,done)
       });
     }
   });
+}
+function addBankDetails(req,res,done)
+{
+  let bank = new Bank();
+  bank.emp_id = req.body.emp_id;
+  bank.bankName = req.body.bankName;
+  bank.accountName = req.body.accountName;
+  bank.accountNumber = req.body.accountNumber;
+  bank.currency_id = req.body.currency_id;
+  bank.modeOfPaymentType = req.body.modeOfPaymentType;
+  bank.emp_id = req.body.emp_id;  
+  bank.isCompleted = true;
+  bank.createdBy = 1;
+
+  //bank.createdBy =req.headers[emp_id];
+
+  bank.save(function (err, bankData) {
+    if(bankData)
+    {
+      auditTrailEntry(bank.emp_id,"bank",bank,"user","bank","ADDED");
+      return done(err, bankData);
+    }
+    else{
+      return res.status(403).json({
+        title: 'There was a problem',
+        error: {message: err},
+        result: {message: bankData}
+      });
+    }
+  });
+}
+function updateBankDetails(req,res,done)
+{
+  let bank = new Bank();
+  bank.emp_id = req.body.emp_id;
+  bank.bankName = req.body.bankName;
+  bank.accountName = req.body.accountName;
+  bank.accountNumber = req.body.accountNumber;
+  bank.currency_id = req.body.currency_id;
+  bank.modeOfPaymentType = req.body.modeOfPaymentType;
+  bank.emp_id = req.body.emp_id;  
+  bank.isCompleted = true;
+  bank.updatedBy = 1;
+
+  //bank.updatedBy =req.headers[emp_id];
+    let _id=req.body._id;
+    var query={_id:_id,isDeleted:false}
+
+    var bankProjection = {
+      createdAt: false,
+      updatedAt: false,
+      isDeleted: false,
+      updatedBy: false,
+      createdBy: false,
+    };
+
+    Bank.findOneAndUpdate(query, bank, {new: true, projection:bankProjection}, function(err, bankData){
+   if(bankData)
+   {
+     return done(err,bankData);
+   }
+   else{
+     return res.status(403).json({
+       title: 'There was a problem',
+       error: {message: err},
+       result: {message: bankData}
+     });
+   }
+ });
 }
 let notificationFlag = 0;
 function sendNotifications(emp, title, message, senderEmp_id, recipientEmp_id, type_id, linkUrl) {
@@ -784,7 +853,7 @@ function getDocumentsDetails(req,res)
     updatedBy: false,
     createdBy: false,
   };
-    DocumentsDetails.find(query,documentProjection, function (err, documentsData) {
+    Documents.find(query,documentProjection, function (err, documentsData) {
       if (documentsData) {
         return res.status(200).json(documentsData);
       }
@@ -1006,7 +1075,7 @@ function getBankInfoDetails(req,res)
     updatedBy: false,
     createdBy: false,
   };
-  BankDetails.find(query,bankDetailsProjection, function (err, bankDetailsData) {
+  Bank.find(query,bankDetailsProjection, function (err, bankDetailsData) {
       if (bankDetailsData) {
         return res.status(200).json(bankDetailsData);
       }
@@ -1261,6 +1330,7 @@ let functions = {
        }
     ]);
   },
+
   updateAcademicInfo:(req, res)=>
   {
     async.waterfall([
@@ -1274,12 +1344,27 @@ let functions = {
        }
     ]);
   },
+
   addDocuments:(req, res)=>
   {
     async.waterfall([
       function(done)
       {
         addDocumentsDetails(req,res,done);
+      },
+      function(documentsData,done)
+      {
+        return res.status(200).json(documentsData);
+      }
+    ]);
+  },
+
+  updateDocuments:(req, res)=>
+  {
+    async.waterfall([
+      function(done)
+      {
+        updateDocumentsDetails(req,res,done);
       },
       function(documentsData,done)
       {
@@ -1354,6 +1439,34 @@ let functions = {
        }
     ]);
   },
+  addBank:(req, res)=>
+  {
+    async.waterfall([
+      function(done)
+      {
+        addBankDetails(req,res,done);
+      },
+      function(bankData,done)
+      {
+        return res.status(200).json(bankData);
+      }
+    ]);
+  },
+
+  updateBank:(req, res)=>
+  {
+    async.waterfall([
+      function(done)
+      {
+        updateBankDetails(req,res,done);
+      },
+      function(bankData,done)
+      {
+        return res.status(200).json(bankData);
+      }
+    ]);
+  },
+
   // updateofficeDetails:(req, res)=>
   // {
   //   async.waterfall([
