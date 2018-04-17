@@ -148,12 +148,11 @@ let express  = require('express'),
   //userRoutes.post('/employeeDetails',user.employeeDetails);
 
 
-
   userRoutes.get('/getPersonalInfo',ensureAuthenticated,user.getPersonalInfo);
 
-  // userRoutes.get('/getAddressDetails',user.getAddressDetails);
+  userRoutes.get('/getAddressDetails',user.getAddressDetails);
 
-  // userRoutes.get('/getDocuments',user.getDocuments);
+  userRoutes.get('/getDocuments',user.getDocuments);
 
   userRoutes.get('/getAcademicInfo',user.getAcademicInfo);
 
@@ -182,8 +181,6 @@ let express  = require('express'),
   // userRoutes.get('/getCompanyCarDetails',user.getCompanyCarDetails);
 
   // userRoutes.get('/getPersonalCarDetails',user.getPersonalCarDetails);
-
-
 
   //= ========================
   // User Forms Routes
