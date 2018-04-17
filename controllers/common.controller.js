@@ -458,7 +458,7 @@ let functions = {
         }
     },
     getLocation: (req, res) => {
-      var query = {}
+      var query = {parent_id:null};
       var parent_id = req.body.parent_id || req.params.parent_id || req.query.parent_id;
       if (parent_id) 
       {
