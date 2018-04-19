@@ -1248,6 +1248,7 @@ let functions = {
           emp.employmentType_id = req.body.employmentType_id;
           emp.designation_id = req.body.designation_id;
           emp.company_id = req.body.company_id;
+          emp.grade_id = req.body.grade_id;
           emp.userName = req.body.userName;
           emp.createdBy = 1;
 

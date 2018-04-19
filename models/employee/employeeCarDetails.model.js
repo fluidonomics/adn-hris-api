@@ -1,20 +1,45 @@
-// let mongoose                = require('mongoose'),
-//     Schema                  = mongoose.Schema,
-//     mongooseUniqueValidator = require('mongoose-unique-validator'),
-//     bcrypt                  = require('bcrypt');
-//     autoIncrement           = require('mongoose-sequence')(mongoose);
+let mongoose                = require('mongoose'),
+    Schema                  = mongoose.Schema,
+    mongooseUniqueValidator = require('mongoose-unique-validator'),
+    bcrypt                  = require('bcrypt');
+    autoIncrement           = require('mongoose-sequence')(mongoose);
 
-//       let UserCarDetails = new Schema(
-//       {
-//          emp_Id:{type: Number,ref: 'employee'},
-//          role_Id:{type: Number, ref: 'role'},
-//          isActive: {type: Boolean,default:true},
-//       },
-//       {
-//         timestamps: true,
-//         _id:false
-//       });
-//       UserCarDetails.plugin(autoIncrement, {inc_field: '_id'});
-//       UserCarDetails.plugin(mongooseUniqueValidator);
+      let CarDetailsSchema = new Schema(
+      {
+        _id:{type:Number},
+        emp_id:{type: Number,ref: 'employees', required: true, unique: true,},    
+        companyRegistrationNumber:{type: String,default:null},
+        companyEffectiveDate:{type: Date,default:null},
+        companyExpiryDate:{type: Date,default:null},
+        companyFuelAllowance:{type: String,default:null},
+        companyMaintenanceAllowance:{type: String,default:null},
+        companyDriverAllowance:{type: String,default:null},
+        companyGrossPay:{type: String,default:null},
+        privateRegistrationNumber:{type: String,default:null},
+        privateEffectiveDate:{type: Date,default:null},
+        privateExpiryDate:{type: Date,default:null},
+        privateCarUsageAllowance:{type: String,default:null},
+        isCompleted: {type: Boolean,default:false},
+        createdBy: {type: Number,default:null},
+        updatedBy: {type: Number,default:null},
+        isDeleted: {type: Boolean,default:false}, 
+      },
+      {
+        timestamps: true,
+        versionKey: false,
+        _id:false
+      });
 
-//      module.exports = mongoose.model('empCarDetail',UserCarDetails);
+   // Update the Emp_id Hash user password when registering or when changing password
+   CarDetailsSchema.pre('save', function (next) {
+    var _this=this;
+    //Check the Count of Collection and add 1 to the Count and Assign it to Emp_id 
+    mongoose.model('carDetails', CarDetailsSchema).count(function(err, c) {
+      _this._id = c + 1;
+      next();
+    });
+});
+
+CarDetailsSchema.plugin(mongooseUniqueValidator);
+
+     module.exports = mongoose.model('carDetails',CarDetailsSchema);
