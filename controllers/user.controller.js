@@ -11,10 +11,10 @@ let express           = require('express'),
     AcademicInfo      = require('../models/employee/employeeAcademicDetails.model'),
     FamilyInfo        = require('../models/employee/employeeFamilyDetails.model'),
     PreviousEmployementHistory = require('../models/employee/employeePreviousEmploymentDetails.model'),
-    CertificateDetails= require('../models/employee/employeeCertificationDetails.model'),
+    CertificationInfo = require('../models/employee/employeeCertificationDetails.model'),
     Bank              = require('../models/employee/employeeBankDetails.model'),
-    SalaryInfo     = require('../models/employee/employeeSalaryDetails.model'),
-    CarInfo        = require('../models/employee/employeeCarDetails.model'),
+    SalaryInfo        = require('../models/employee/employeeSalaryDetails.model'),
+    CarInfo           = require('../models/employee/employeeCarDetails.model'),
     Documents         = require('../models/employee/employeeDocumentDetails.model'),
     config            = require('../config/config'),
     fs                = require('fs'),
@@ -738,6 +738,73 @@ function updateCarInfoDetails(req,res,done)
  });
 }
 
+
+function addCertificationInfoDetails(req,res,done)
+{
+  let certificationInfo = new CertificationInfo();
+  certificationInfo.emp_id = req.body.emp_id  || req.query.emp_id;
+  certificationInfo.certificationTitle = req.body.certificationTitle;
+  certificationInfo.location =  req.body.location;
+  certificationInfo.institution = req.body.institution;
+  certificationInfo.duration =  req.body.duration;
+  certificationInfo.topicsCovered = req.body.topicsCovered;
+  certificationInfo.isCompleted = true;
+  certificationInfo.createdBy = 1;
+
+  //certificationInfo.createdBy =req.headers[emp_id];
+
+  certificationInfo.save(function (err, certificationInfoData) {
+    if(certificationInfoData)
+    {
+      auditTrailEntry(certificationInfo.emp_id,"certificationInfo",certificationInfo,"user","certificationInfo","ADDED");
+      return done(err, certificationInfoData);
+    }
+    else{
+      return res.status(403).json({
+        title: 'There was a problem',
+        error: {message: err},
+        result: {message: certificationInfoData}
+      });
+    }
+  });
+}
+function updateCertificationInfoDetails(req,res,done)
+{
+  let certificationInfo = new CertificationInfo();
+  certificationInfo.emp_id = req.body.emp_id  || req.query.emp_id;
+  certificationInfo.certificationTitle = req.body.certificationTitle;
+  certificationInfo.location =  req.body.location;
+  certificationInfo.institution = req.body.institution;
+  certificationInfo.duration =  req.body.duration;
+  certificationInfo.topicsCovered = req.body.topicsCovered;
+  certificationInfo.isCompleted = true;
+  certificationInfo.updatedBy = 1;
+
+  //certificationInfo.updatedBy =req.headers[emp_id];
+    let _id=req.body._id;
+    var query={_id:_id,isDeleted:false}
+
+    var certificationInfoProjection = {
+      createdAt: false,
+      updatedAt: false,
+      isDeleted: false,
+      updatedBy: false,
+      createdBy: false,
+    };
+
+    CertificationInfo.findOneAndUpdate(query, certificationInfo, {new: true, projection:certificationInfoProjection}, function(err, certificationInfoData){
+   if(certificationInfoData)
+   {
+     return done(err,certificationInfoData);
+   }
+     return res.status(403).json({
+       title: 'There was a problem',
+       error: {message: err},
+       result: {message: certificationInfoData}
+     });
+ });
+}
+
 let notificationFlag = 0;
 function sendNotifications(emp, title, message, senderEmp_id, recipientEmp_id, type_id, linkUrl) {
   //emp.hrspoc -> super (bussHrHead) -> revi(GroupHrHEad)
@@ -1058,7 +1125,7 @@ function getAcademicInfo(req,res)
         return res.status(200).json(academicInfoData);
     });
 }
-function getCertificationsAndTraniningInfoDetails(req,res)
+function getCertificationDetails(req,res)
 {
   let emp_id=req.query.emp_id;
   let query={isDeleted:false};
@@ -1073,7 +1140,7 @@ function getCertificationsAndTraniningInfoDetails(req,res)
     updatedBy: false,
     createdBy: false,
   };
-    CertificateDetails.find(query,certificateAndTraniningProjection, function (err, certificateDetailsData) {
+  CertificationInfo.find(query,certificateAndTraniningProjection, function (err, certificateDetailsData) {
       if (certificateDetailsData) {
         return res.status(200).json(certificateDetailsData);
       }
@@ -1419,9 +1486,9 @@ let functions = {
   {
     getAcademicInfo(req, res);
   },
-  getCertificationsAndTraniningInfo:(req, res)=>
+  getCertification:(req, res)=>
   {
-    getCertificationsAndTraniningInfoDetails(req, res)
+    getCertificationDetails(req, res)
   },
   getPreviousEmployementHistory:(req, res)=>
   {
@@ -1689,6 +1756,35 @@ let functions = {
        function(carInfoData,done)
        {
          return res.status(200).json(carInfoData);
+       }
+    ]);
+  },
+
+  
+  addCertificationInfo:(req, res)=>
+  {
+    async.waterfall([
+      function(done)
+       {
+        addCertificationInfoDetails(req,res,done);
+       },
+       function(certificationInfoData,done)
+       {
+         return res.status(200).json(certificationInfoData);
+       }
+    ]);
+  },
+
+  updateCertificationInfo:(req, res)=>
+  {
+    async.waterfall([
+      function(done)
+       {
+        updateCertificationInfoDetails(req,res,done);
+       },
+       function(certificationInfoData,done)
+       {
+         return res.status(200).json(certificationInfoData);
        }
     ]);
   },

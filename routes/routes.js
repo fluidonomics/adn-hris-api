@@ -166,6 +166,12 @@ let express  = require('express'),
   // Add Employee endpoint: http://localhost:3000/api/user/updateCarInfo
   userRoutes.post('/updateCarInfo', user.updateCarInfo);
 
+  // Add Employee endpoint: http://localhost:3000/api/user/addCertificationInfo
+  userRoutes.post('/addCertificationInfo', user.addCertificationInfo);
+
+  // Add Employee endpoint: http://localhost:3000/api/user/updateCertificationInfo
+  userRoutes.post('/updateCertificationInfo', user.updateCertificationInfo);
+
   // Get All Employee
   //userRoutes.get('/getEmployeeDetails', user.getEmployeeDetails);
 
@@ -180,7 +186,7 @@ let express  = require('express'),
 
   userRoutes.get('/getAcademicInfo',user.getAcademicInfo);
 
-  userRoutes.get('/getCertificationsAndTraniningInfo',user.getCertificationsAndTraniningInfo);
+  userRoutes.get('/getCertification',user.getCertification);
 
   userRoutes.get('/getPreviousEmployementHistory',user.getPreviousEmployementHistory);
   
