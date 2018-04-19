@@ -14,7 +14,7 @@ let express           = require('express'),
     CertificateDetails= require('../models/employee/employeeCertificationDetails.model'),
     Bank              = require('../models/employee/employeeBankDetails.model'),
     SalaryInfo     = require('../models/employee/employeeSalaryDetails.model'),
-    CarDetails        = require('../models/employee/employeeCarDetails.model'),
+    CarInfo        = require('../models/employee/employeeCarDetails.model'),
     Documents         = require('../models/employee/employeeDocumentDetails.model'),
     config            = require('../config/config'),
     fs                = require('fs'),
@@ -205,7 +205,7 @@ function updatePersonalInfoDetails(req,res,done)
 function addAcademicInfoDetails(req,res,done)
 {
   let academicInfo = new AcademicInfo();
-  academicInfo.emp_id = req.body.emp_id;
+  academicInfo.emp_id = req.body.emp_id  || req.query.emp_id;
   academicInfo.levelOfEducation = req.body.levelOfEducation;
   academicInfo.examDegreeTitle =  req.body.examDegreeTitle;
   academicInfo.concentration = req.body.concentration;
@@ -240,7 +240,7 @@ function addAcademicInfoDetails(req,res,done)
 function updateAcademicInfoDetails(req,res,done)
 {
   let academicInfo = new AcademicInfo();
-  academicInfo.emp_id = req.body.emp_id;
+  academicInfo.emp_id = req.body.emp_id  || req.query.emp_id;
   academicInfo.levelOfEducation = req.body.levelOfEducation;
   academicInfo.examDegreeTitle =  req.body.examDegreeTitle;
   academicInfo.concentration = req.body.concentration;
@@ -285,7 +285,7 @@ function updateAcademicInfoDetails(req,res,done)
 function addDocumentsDetails(req,res,done)
 {
   let documents = new Documents();
-  documents.emp_id = req.body.emp_id;
+  documents.emp_id = req.body.emp_id  || req.query.emp_id;
   documents.nationalIdSmartCard = req.body.nationalIdSmartCard;
   documents.nationalIdSmartCardDocURL =  req.body.nationalIdSmartCardDocURL;
   documents.passportNumber = req.body.passportNumber;
@@ -317,7 +317,7 @@ function addDocumentsDetails(req,res,done)
 function updateDocumentsDetails(req,res,done)
 {
   let documents = new Documents();
-  documents.emp_id = req.body.emp_id;
+  documents.emp_id = req.body.emp_id  || req.query.emp_id;
   documents.nationalIdSmartCard = req.body.nationalIdSmartCard;
   documents.nationalIdSmartCardDocURL =  req.body.nationalIdSmartCardDocURL;
   documents.passportNumber = req.body.passportNumber;
@@ -358,7 +358,7 @@ function updateDocumentsDetails(req,res,done)
 function addFamilyInfoDetails(req,res,done)
 {
   let familyInfo = new FamilyInfo();
-  familyInfo.emp_id = req.body.emp_id;
+  familyInfo.emp_id = req.body.emp_id  || req.query.emp_id;
   familyInfo.name = req.body.name;
   familyInfo.relation_id =  req.body.relation_id;
   familyInfo.dateOfBirth = req.body.dateOfBirth;
@@ -386,7 +386,7 @@ function addFamilyInfoDetails(req,res,done)
 function updateFamilyInfoDetails(req,res,done)
 {
   let familyInfo = new FamilyInfo();
-  familyInfo.emp_id = req.body.emp_id;
+  familyInfo.emp_id = req.body.emp_id  || req.query.emp_id;
   familyInfo.name = req.body.name;
   familyInfo.relation_id =  req.body.relation_id;
   familyInfo.dateOfBirth = req.body.dateOfBirth;
@@ -506,7 +506,7 @@ function updateAddressInfoDetails(req,res,done)
 function addBankDetails(req,res,done)
 {
   let bank = new Bank();
-  bank.emp_id = req.body.emp_id;
+  bank.emp_id = req.body.emp_id  || req.query.emp_id;
   bank.bankName = req.body.bankName;
   bank.accountName = req.body.accountName;
   bank.accountNumber = req.body.accountNumber;
@@ -535,7 +535,7 @@ function addBankDetails(req,res,done)
 function updateBankDetails(req,res,done)
 {
   let bank = new Bank();
-  bank.emp_id = req.body.emp_id;
+  bank.emp_id = req.body.emp_id  || req.query.emp_id;
   bank.bankName = req.body.bankName;
   bank.accountName = req.body.accountName;
   bank.accountNumber = req.body.accountNumber;
@@ -574,7 +574,7 @@ function updateBankDetails(req,res,done)
 function addSalaryInfoDetails(req,res,done)
 {
   let salaryInfo = new SalaryInfo();
-  salaryInfo.emp_id = req.body.emp_id;
+  salaryInfo.emp_id = req.body.emp_id  || req.query.emp_id;
   salaryInfo.basic = req.body.basic;
   salaryInfo.hra =  req.body.hra;
   salaryInfo.conveyanceAllowance = req.body.conveyanceAllowance;
@@ -614,7 +614,7 @@ function addSalaryInfoDetails(req,res,done)
 function updateSalaryInfoDetails(req,res,done)
 {
   let salaryInfo = new SalaryInfo();
-  salaryInfo.emp_id = req.body.emp_id;
+  salaryInfo.emp_id = req.body.emp_id  || req.query.emp_id;
   salaryInfo.basic = req.body.basic;
   salaryInfo.hra =  req.body.hra;
   salaryInfo.conveyanceAllowance = req.body.conveyanceAllowance;
@@ -658,6 +658,86 @@ function updateSalaryInfoDetails(req,res,done)
      });
  });
 }
+
+
+function addCarInfoDetails(req,res,done)
+{
+  let carInfo = new CarInfo();
+  carInfo.emp_id = req.body.emp_id  || req.query.emp_id;
+  carInfo.companyRegistrationNumber = req.body.companyRegistrationNumber;
+  carInfo.companyEffectiveDate =  req.body.companyEffectiveDate;
+  carInfo.companyExpiryDate = req.body.companyExpiryDate;
+  carInfo.companyFuelAllowance =  req.body.companyFuelAllowance;
+  carInfo.companyMaintenanceAllowance = req.body.companyMaintenanceAllowance;
+  carInfo.companyDriverAllowance = req.body.companyDriverAllowance;
+  carInfo.companyGrossPay = req.body.companyGrossPay;
+  carInfo.privateRegistrationNumber = req.body.privateRegistrationNumber;
+  carInfo.privateEffectiveDate = req.body.privateEffectiveDate;
+  carInfo.privateExpiryDate = req.body.privateExpiryDate;
+  carInfo.privateCarUsageAllowance = req.body.privateCarUsageAllowance;
+  carInfo.isCompleted = true;
+  carInfo.createdBy = 1;
+
+  //carInfo.createdBy =req.headers[emp_id];
+
+  carInfo.save(function (err, carInfoData) {
+    if(carInfoData)
+    {
+      auditTrailEntry(carInfo.emp_id,"carInfo",carInfo,"user","carInfo","ADDED");
+      return done(err, carInfoData);
+    }
+    else{
+      return res.status(403).json({
+        title: 'There was a problem',
+        error: {message: err},
+        result: {message: carInfoData}
+      });
+    }
+  });
+}
+function updateCarInfoDetails(req,res,done)
+{
+  let carInfo = new CarInfo();
+  carInfo.emp_id = req.body.emp_id  || req.query.emp_id;
+  carInfo.companyRegistrationNumber = req.body.companyRegistrationNumber;
+  carInfo.companyEffectiveDate =  req.body.companyEffectiveDate;
+  carInfo.companyExpiryDate = req.body.companyExpiryDate;
+  carInfo.companyFuelAllowance =  req.body.companyFuelAllowance;
+  carInfo.companyMaintenanceAllowance = req.body.companyMaintenanceAllowance;
+  carInfo.companyDriverAllowance = req.body.companyDriverAllowance;
+  carInfo.companyGrossPay = req.body.companyGrossPay;
+  carInfo.privateRegistrationNumber = req.body.privateRegistrationNumber;
+  carInfo.privateEffectiveDate = req.body.privateEffectiveDate;
+  carInfo.privateExpiryDate = req.body.privateExpiryDate;
+  carInfo.privateCarUsageAllowance = req.body.privateCarUsageAllowance;
+  carInfo.isCompleted = true;
+  carInfo.updatedBy = 1;
+
+  //carInfo.updatedBy =req.headers[emp_id];
+    let _id=req.body._id;
+    var query={_id:_id,isDeleted:false}
+
+    var carInfoProjection = {
+      createdAt: false,
+      updatedAt: false,
+      isDeleted: false,
+      updatedBy: false,
+      createdBy: false,
+    };
+
+    CarInfo.findOneAndUpdate(query, carInfo, {new: true, projection:carInfoProjection}, function(err, carInfoData){
+   if(carInfoData)
+   {
+     return done(err,carInfoData);
+   }
+     return res.status(403).json({
+       title: 'There was a problem',
+       error: {message: err},
+       result: {message: carInfoData}
+     });
+ });
+}
+
 let notificationFlag = 0;
 function sendNotifications(emp, title, message, senderEmp_id, recipientEmp_id, type_id, linkUrl) {
   //emp.hrspoc -> super (bussHrHead) -> revi(GroupHrHEad)
@@ -1216,7 +1296,7 @@ function getCarInfoDetails(req,res)
     updatedBy: false,
     createdBy: false,
   };
-    PersonalCarDetails.find(query,carInfoProjection, function (err, carDetailsData) {
+  CarInfo.findOne(query,carInfoProjection, function (err, carDetailsData) {
        if (carDetailsData) {
         return res.status(200).json(carDetailsData);
       }
@@ -1581,6 +1661,34 @@ let functions = {
        function(salaryInfoData,done)
        {
          return res.status(200).json(salaryInfoData);
+       }
+    ]);
+  },
+
+  addCarInfo:(req, res)=>
+  {
+    async.waterfall([
+      function(done)
+       {
+        addCarInfoDetails(req,res,done);
+       },
+       function(carInfoData,done)
+       {
+         return res.status(200).json(carInfoData);
+       }
+    ]);
+  },
+
+  updateCarInfo:(req, res)=>
+  {
+    async.waterfall([
+      function(done)
+       {
+        updateCarInfoDetails(req,res,done);
+       },
+       function(carInfoData,done)
+       {
+         return res.status(200).json(carInfoData);
        }
     ]);
   },

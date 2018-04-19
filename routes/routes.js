@@ -160,6 +160,12 @@ let express  = require('express'),
  // Add Employee endpoint: http://localhost:3000/api/user/updateSalaryInfo
  userRoutes.post('/updateSalaryInfo', user.updateSalaryInfo);
 
+  // Add Employee endpoint: http://localhost:3000/api/user/addCarInfo
+  userRoutes.post('/addCarInfo', user.addCarInfo);
+
+  // Add Employee endpoint: http://localhost:3000/api/user/updateCarInfo
+  userRoutes.post('/updateCarInfo', user.updateCarInfo);
+
   // Get All Employee
   //userRoutes.get('/getEmployeeDetails', user.getEmployeeDetails);
 
