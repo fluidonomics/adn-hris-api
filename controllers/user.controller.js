@@ -772,6 +772,8 @@ function addofficeInfoDetails(req,res,done)
      officeEmpDetails.employmentStatus_id = req.body.employmentStatus_id;
      officeEmpDetails.managementType_id = req.body.managementType_id;
      officeEmpDetails.jobTitle = req.body.jobTitle;
+     officeEmpDetails.idCardNumber = req.body.idCardNumber;
+     
      //officeEmpDetails.designation = req.body.designation;
      officeEmpDetails.division_id = req.body.division_id;
      officeEmpDetails.department_id = req.body.department_id;
@@ -801,6 +803,7 @@ function updateofficeInfoDetails(req,res,done)
      officeEmpDetails.employmentStatus_id = req.body.employmentStatus_id;
      officeEmpDetails.managementType_id = req.body.managementType_id;
      officeEmpDetails.jobTitle = req.body.jobTitle;
+     officeEmpDetails.idCardNumber = req.body.idCardNumber;
      //officeEmpDetails.designation = req.body.designation;
      officeEmpDetails.division_id = req.body.division_id;
      officeEmpDetails.department_id = req.body.department_id;
