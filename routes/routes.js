@@ -86,7 +86,7 @@ let express  = require('express'),
   authRoutes.post('/login', auth.loginUser);
 
   // Forget Password endpoint: http://localhost:3000/api/auth/password
-  authRoutes.post('/password', auth.forgetPassword);
+  authRoutes.post('/forget-password', auth.forgetPassword);
 
   // Check if password reset token is not expired. endpoint: http://localhost:3000/api/auth/reset/:token
   authRoutes.get('/reset/:token', auth.verifyPasswordResetToken);
