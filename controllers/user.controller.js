@@ -512,7 +512,6 @@ function addBankDetails(req,res,done)
   bank.accountNumber = req.body.accountNumber;
   bank.currency = req.body.currency;
   bank.modeOfPaymentType = req.body.modeOfPaymentType;
-  bank.emp_id = req.body.emp_id;  
   bank.isCompleted = true;
   bank.createdBy = 1;
 
