@@ -1124,7 +1124,7 @@ function getAcademicInfo(req,res)
           error: err
         });
       }
-        return res.status(200).json(academicInfoData);
+        return res.status(200).json({'data':academicInfoData});
     });
 }
 function getCertificationDetails(req,res, done)
