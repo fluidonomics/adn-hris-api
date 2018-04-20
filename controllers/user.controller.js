@@ -757,7 +757,9 @@ function addCertificationInfoDetails(req,res,done)
     if(certificationInfoData)
     {
       auditTrailEntry(certificationInfo.emp_id,"certificationInfo",certificationInfo,"user","certificationInfo","ADDED");
-      return done(err, certificationInfoData);
+      //return done(err, certificationInfoData);
+      req.query.emp_id = certificationInfo.emp_id;
+      getCertificationDetails(req,res,done)
     }
     else{
       return res.status(403).json({
@@ -1125,7 +1127,7 @@ function getAcademicInfo(req,res)
         return res.status(200).json(academicInfoData);
     });
 }
-function getCertificationDetails(req,res)
+function getCertificationDetails(req,res, done)
 {
   let emp_id=req.query.emp_id;
   let query={isDeleted:false};
@@ -1141,8 +1143,8 @@ function getCertificationDetails(req,res)
     createdBy: false,
   };
   CertificationInfo.find(query,certificateAndTraniningProjection, function (err, certificateDetailsData) {
-      if (certificateDetailsData) {
-        return res.status(200).json(certificateDetailsData);
+      if (certificateDetailsData) {        
+        return done (err,certificateDetailsData);
       }
       return res.status(403).json({
         title: 'There was an error, please try again later',
@@ -1488,7 +1490,15 @@ let functions = {
   },
   getCertification:(req, res)=>
   {
-    getCertificationDetails(req, res)
+    async.parallel([
+      function(done){
+        getCertificationDetails(req, res, done)
+      },
+      function(certificateDetailsData)
+      {
+        return res.json(200).json(certificateDetailsData);
+      }
+    ])
   },
   getPreviousEmployementHistory:(req, res)=>
   {
