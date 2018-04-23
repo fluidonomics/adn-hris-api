@@ -119,7 +119,7 @@ let deleteImage = (image) => {
 };
 
 function addPersonalInfoDetails(req, res, done) {
-    let personalDetails = new PersonalInfo(emp.body);
+    let personalDetails = new PersonalInfo(req.body);
     personalDetails.emp_id = req.body.emp_id || req.query.emp_id;
     // personalDetails.gender = (req.body.gender == undefined) ? ((req.query.gender == undefined ? null : req.query.gender)) : req.body.gender;
     // personalDetails.personalMobileNumber = (req.body.personalMobileNumber == undefined) ? ((req.query.personalMobileNumber == undefined ? null : req.query.personalMobileNumber)) : req.body.personalMobileNumber;
@@ -157,7 +157,7 @@ function addPersonalInfoDetails(req, res, done) {
 }
 
 function updatePersonalInfoDetails(req, res, done) {
-    let personalDetails = new PersonalInfo(emp.body);
+    let personalDetails = new PersonalInfo(req.body);
     // personalDetails.gender = (req.body.gender == undefined) ? ((req.query.gender == undefined ? null : req.query.gender)) : req.body.gender;
     // personalDetails.personalMobileNumber = (req.body.personalMobileNumber == undefined) ? ((req.query.personalMobileNumber == undefined ? null : req.query.personalMobileNumber)) : req.body.personalMobileNumber;
     // personalDetails.personalEmail = (req.body.personalEmail == undefined) ? ((req.query.personalEmail == undefined ? null : req.query.personalEmail)) : req.body.personalEmail;
@@ -210,7 +210,7 @@ function updatePersonalInfoDetails(req, res, done) {
 }
 
 function addAcademicInfoDetails(req, res, done) {
-    let academicInfo = new AcademicInfo(emp.body);
+    let academicInfo = new AcademicInfo(req.body);
     academicInfo.emp_id = req.body.emp_id || req.query.emp_id;
     // academicInfo.levelOfEducation = req.body.levelOfEducation;
     // academicInfo.examDegreeTitle = req.body.examDegreeTitle;
@@ -247,7 +247,7 @@ function addAcademicInfoDetails(req, res, done) {
 }
 
 function updateAcademicInfoDetails(req, res, done) {
-    let academicInfo = new AcademicInfo(emp.body);
+    let academicInfo = new AcademicInfo(req.body);
     academicInfo.emp_id = req.body.emp_id || req.query.emp_id;
     // academicInfo.levelOfEducation = req.body.levelOfEducation;
     // academicInfo.examDegreeTitle = req.body.examDegreeTitle;
@@ -323,7 +323,7 @@ function deleteAcademicInfoDetails(req, res, done) {
 }
 
 function addDocumentsInfoDetails(req, res, done) {
-    let documents = new DocumentsInfo(emp.body);
+    let documents = new DocumentsInfo(req.body);
     documents.emp_id = req.body.emp_id || req.query.emp_id;
     // documents.nationalIdSmartCard = req.body.nationalIdSmartCard;
     // documents.nationalIdSmartCardDocURL = req.body.nationalIdSmartCardDocURL;
@@ -357,7 +357,7 @@ function addDocumentsInfoDetails(req, res, done) {
 }
 
 function updateDocumentsInfoDetails(req, res, done) {
-    let documents = new DocumentsInfo(emp.body);
+    let documents = new DocumentsInfo(req.body);
     documents.emp_id = req.body.emp_id || req.query.emp_id;
     // documents.nationalIdSmartCard = req.body.nationalIdSmartCard;
     // documents.nationalIdSmartCardDocURL = req.body.nationalIdSmartCardDocURL;
@@ -406,7 +406,7 @@ function updateDocumentsInfoDetails(req, res, done) {
 }
 
 function addFamilyInfoDetails(req, res, done) {
-    let familyInfo = new FamilyInfo(emp.body);
+    let familyInfo = new FamilyInfo(req.body);
     familyInfo.emp_id = req.body.emp_id || req.query.emp_id;
     // familyInfo.name = req.body.name;
     // familyInfo.relation_id = req.body.relation_id;
@@ -436,7 +436,7 @@ function addFamilyInfoDetails(req, res, done) {
 }
 
 function updateFamilyInfoDetails(req, res, done) {
-    let familyInfo = new FamilyInfo(emp.body);
+    let familyInfo = new FamilyInfo(req.body);
     familyInfo.emp_id = req.body.emp_id || req.query.emp_id;
     // familyInfo.name = req.body.name;
     // familyInfo.relation_id = req.body.relation_id;
@@ -481,7 +481,7 @@ function updateFamilyInfoDetails(req, res, done) {
 }
 
 function addAddressInfoDetails(req, res, done) {
-    let address = new AddressInfo(emp.body);
+    let address = new AddressInfo(req.body);
     address.emp_id = req.body.emp_id || req.query.emp_id;
 
     // address.permanentAddressLine1 = req.body.permanentAddressLine1;
@@ -520,7 +520,7 @@ function addAddressInfoDetails(req, res, done) {
 }
 
 function updateAddressInfoDetails(req, res, done) {
-    let address = new AddressInfo(emp.body);
+    let address = new AddressInfo(req.body);
     address.emp_id = req.body.emp_id || req.query.emp_id;
 
     // address.permanentAddressLine1 = req.body.permanentAddressLine1;
@@ -574,7 +574,7 @@ function updateAddressInfoDetails(req, res, done) {
 }
 
 function addBankInfoDetails(req, res, done) {
-    let bank = new BankInfo(emp.body);
+    let bank = new BankInfo(req.body);
     bank.emp_id = req.body.emp_id || req.query.emp_id;
     // bank.bankName = req.body.bankName;
     // bank.accountName = req.body.accountName;
@@ -605,7 +605,7 @@ function addBankInfoDetails(req, res, done) {
 }
 
 function updateBankInfoDetails(req, res, done) {
-    let bank = new BankInfo(emp.body);
+    let bank = new BankInfo(req.body);
     bank.emp_id = req.body.emp_id || req.query.emp_id;
     // bank.bankName = req.body.bankName;
     // bank.accountName = req.body.accountName;
@@ -652,7 +652,7 @@ function updateBankInfoDetails(req, res, done) {
 }
 
 function addSalaryInfoDetails(req, res, done) {
-    let salaryInfo = new SalaryInfo(emp.body);
+    let salaryInfo = new SalaryInfo(req.body);
     salaryInfo.emp_id = req.body.emp_id || req.query.emp_id;
     // salaryInfo.basic = req.body.basic;
     // salaryInfo.hra = req.body.hra;
@@ -694,7 +694,7 @@ function addSalaryInfoDetails(req, res, done) {
 }
 
 function updateSalaryInfoDetails(req, res, done) {
-    let salaryInfo = new SalaryInfo(emp.body);
+    let salaryInfo = new SalaryInfo(req.body);
     salaryInfo.emp_id = req.body.emp_id || req.query.emp_id;
     // salaryInfo.basic = req.body.basic;
     // salaryInfo.hra = req.body.hra;
@@ -751,7 +751,7 @@ function updateSalaryInfoDetails(req, res, done) {
 
 
 function addCarInfoDetails(req, res, done) {
-    let carInfo = new CarInfo(emp.body);
+    let carInfo = new CarInfo(req.body);
     carInfo.emp_id = req.body.emp_id || req.query.emp_id;
     // carInfo.companyRegistrationNumber = req.body.companyRegistrationNumber;
     // carInfo.companyEffectiveDate = req.body.companyEffectiveDate;
@@ -788,7 +788,7 @@ function addCarInfoDetails(req, res, done) {
 }
 
 function updateCarInfoDetails(req, res, done) {
-    let carInfo = new CarInfo(emp.body);
+    let carInfo = new CarInfo(req.body);
     carInfo.emp_id = req.body.emp_id || req.query.emp_id;
     // carInfo.companyRegistrationNumber = req.body.companyRegistrationNumber;
     // carInfo.companyEffectiveDate = req.body.companyEffectiveDate;
@@ -840,7 +840,7 @@ function updateCarInfoDetails(req, res, done) {
 
 
 function addCertificationInfoDetails(req, res, done) {
-    let certificationInfo = new CertificationInfo(emp.body);
+    let certificationInfo = new CertificationInfo(req.body);
     certificationInfo.emp_id = req.body.emp_id || req.query.emp_id;
     // certificationInfo.certificationTitle = req.body.certificationTitle;
     // certificationInfo.location = req.body.location;
@@ -873,7 +873,7 @@ function addCertificationInfoDetails(req, res, done) {
 }
 
 function updateCertificationInfoDetails(req, res, done) {
-    let certificationInfo = new CertificationInfo(emp.body);
+    let certificationInfo = new CertificationInfo(req.body);
     certificationInfo.emp_id = req.body.emp_id || req.query.emp_id;
     // certificationInfo.certificationTitle = req.body.certificationTitle;
     // certificationInfo.location = req.body.location;
@@ -1023,7 +1023,7 @@ function sendWelComeEmail(emp, toemail) {
 
 function addOfficeInfoDetails(req, res, done) {
 
-    let officeEmpDetails = new OfficeInfo(emp.body);
+    let officeEmpDetails = new OfficeInfo(req.body);
     officeEmpDetails.emp_id = req.body.emp_id;
     // officeEmpDetails.employmentStatus_id = req.body.employmentStatus_id;
     // officeEmpDetails.managementType_id = req.body.managementType_id;
@@ -1058,7 +1058,7 @@ function addOfficeInfoDetails(req, res, done) {
 }
 
 function updateofficeInfoDetails(req, res, done) {
-    let officeEmpDetails = new OfficeInfo(emp.body);
+    let officeEmpDetails = new OfficeInfo(req.body);
     officeEmpDetails.emp_id = req.body.emp_id;
     // officeEmpDetails.employmentStatus_id = req.body.employmentStatus_id;
     // officeEmpDetails.managementType_id = req.body.managementType_id;
