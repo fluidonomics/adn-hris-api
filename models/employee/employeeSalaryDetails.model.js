@@ -39,7 +39,7 @@ let mongoose                = require('mongoose'),
    EmployeeSalaryDetailsSchema.pre('save', function (next) {
     var _this=this;
     //Check the Count of Collection and add 1 to the Count and Assign it to Emp_id 
-    mongoose.model('employeeSalary', EmployeeSalaryDetailsSchema).count(function(err, c) {
+    mongoose.model('employeeSalaryDetails', EmployeeSalaryDetailsSchema).count(function(err, c) {
       _this._id = c + 1;
       next();
     });
@@ -47,4 +47,4 @@ let mongoose                = require('mongoose'),
 
 EmployeeSalaryDetailsSchema.plugin(mongooseUniqueValidator);
 
-  module.exports = mongoose.model('employeeSalary',EmployeeSalaryDetailsSchema );
+  module.exports = mongoose.model('employeeSalaryDetails',EmployeeSalaryDetailsSchema );

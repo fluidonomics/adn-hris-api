@@ -130,14 +130,12 @@ let express  = require('express'),
     // Academic Info Endpoint: http://localhost:3000/api/user/deleteAcademicInfo
     userRoutes.post('/deleteAcademicInfo', user.deleteAcademicInfo);
 
-  // Get Employee Address endpoint: http://localhost:3000/api/user/getAddressDetails
-  userRoutes.get('/getAddressDetails',user.getAddressDetails);
 
-  // Add Employee Address endpoint: http://localhost:3000/api/user/addAddress
-  userRoutes.post('/addAddress', user.addAddress);
+  // Add Employee Address endpoint: http://localhost:3000/api/user/addAddressInfo
+  userRoutes.post('/addAddressInfo', user.addAddressInfo);
 
-   // Update Employee Address endpoint: http://localhost:3000/api/user/updateAddress
-   userRoutes.post('/updateAddress', user.updateAddress);
+   // Update Employee Address endpoint: http://localhost:3000/api/user/updateAddressInfo
+   userRoutes.post('/updateAddressInfo', user.updateAddressInfo);
 
    // Add Employee endpoint: http://localhost:3000/api/user/addFamilyInfo
  userRoutes.post('/addFamilyInfo', user.addFamilyInfo);
@@ -145,17 +143,17 @@ let express  = require('express'),
  // Add Employee endpoint: http://localhost:3000/api/user/updateFamilyInfo
  userRoutes.post('/updateFamilyInfo', user.updateFamilyInfo);
 
- // Add Employee endpoint: http://localhost:3000/api/user/addDocuments
- userRoutes.post('/addDocuments', user.addDocuments);
+ // Add Employee endpoint: http://localhost:3000/api/user/addDocumentsInfo
+ userRoutes.post('/addDocumentsInfo', user.addDocumentsInfo);
 
- // Add Employee endpoint: http://localhost:3000/api/user/updateDocuments
- userRoutes.post('/updateDocuments', user.updateDocuments);
+ // Add Employee endpoint: http://localhost:3000/api/user/updateDocumentsInfo
+ userRoutes.post('/updateDocumentsInfo', user.updateDocumentsInfo);
 
- // Add Employee endpoint: http://localhost:3000/api/user/addBank
- userRoutes.post('/addBank', user.addBank);
+ // Add Employee endpoint: http://localhost:3000/api/user/addBankInfo
+ userRoutes.post('/addBankInfo', user.addBankInfo);
 
- // Add Employee endpoint: http://localhost:3000/api/user/updateBank
- userRoutes.post('/updateBank', user.updateBank);
+ // Add Employee endpoint: http://localhost:3000/api/user/updateBankInfo
+ userRoutes.post('/updateBankInfo', user.updateBankInfo);
 
  // Add Employee endpoint: http://localhost:3000/api/user/addSalaryInfo
  userRoutes.post('/addSalaryInfo', user.addSalaryInfo);
@@ -176,22 +174,22 @@ let express  = require('express'),
   userRoutes.post('/updateCertificationInfo', user.updateCertificationInfo);
 
   // Get All Employee
-  //userRoutes.get('/getEmployeeDetails', user.getEmployeeDetails);
+  //userRoutes.get('/getEmployeeInfo', user.getEmployeeInfo);
 
   //userRoutes.post('/employeeDetails',user.employeeDetails);
 
 
   userRoutes.get('/getPersonalInfo',user.getPersonalInfo);
 
-  userRoutes.get('/getAddressDetails',user.getAddressDetails);
+  userRoutes.get('/getAddressInfo',user.getAddressInfo);
 
-  userRoutes.get('/getDocuments',user.getDocuments);
+  userRoutes.get('/getDocumentsInfo',user.getDocumentsInfo);
 
   userRoutes.get('/getAcademicInfo',user.getAcademicInfo);
 
-  userRoutes.get('/getCertification',user.getCertification);
+  userRoutes.get('/getCertificationInfo',user.getCertificationInfo);
 
-  userRoutes.get('/getPreviousEmployementHistory',user.getPreviousEmployementHistory);
+  userRoutes.get('/getPreviousEmployementInfo',user.getPreviousEmployementInfo);
   
   userRoutes.get('/getFamilyInfo',user.getFamilyInfo);
 
@@ -199,17 +197,15 @@ let express  = require('express'),
 
   //userRoutes.get('/getJoiningDetails',user.getJoiningDetails);
 
-  // userRoutes.get('/getPositionDetails',user.getPositionDetails);
 
-   userRoutes.get('/getPerformanceDairy',user.getPerformanceDairy);
+   userRoutes.get('/getPerformanceDairyInfo',user.getPerformanceDairyInfo);
 
-   userRoutes.get('/getBankDetails',user.getBankDetails);
+   userRoutes.get('/getBankInfo',user.getBankInfo);
 
-   userRoutes.get('/getSalaryDetails',user.getSalaryDetails);
+   userRoutes.get('/getSalaryInfo',user.getSalaryInfo);
 
-  // userRoutes.get('/getOtherBanefitDetails',user.getOtherBanefitDetails);
 
-   userRoutes.get('/getCarDetails',user.getCarDetails);
+   userRoutes.get('/getCarInfo',user.getCarInfo);
 
   // userRoutes.get('/getCompanyCarDetails',user.getCompanyCarDetails);
 

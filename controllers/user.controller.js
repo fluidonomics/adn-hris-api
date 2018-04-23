@@ -1,21 +1,21 @@
 
 let express           = require('express'),
-    Employee          = require('../models/employee/employeeDetails.model'),
-    PersonalDetails   = require('../models/employee/employeePersonalDetails.model'),
-    OfficeDetails     = require('../models/employee/employeeOfficeDetails.model'),
-    SupervisorDetails = require('../models/employee/employeeSupervisorDetails.model'),
-    Address           = require('../models/employee/employeeAddressDetails.model'),
+    EmployeeInfo      = require('../models/employee/employeeDetails.model'),
+    PersonalInfo      = require('../models/employee/employeePersonalDetails.model'),
+    OfficeInfo        = require('../models/employee/employeeOfficeDetails.model'),
+    SupervisorInfo    = require('../models/employee/employeeSupervisorDetails.model'),
+    AddressInfo       = require('../models/employee/employeeAddressDetails.model'),
     AuditTrail        = require('../models/common/auditTrail.model'),
     Notification      = require('../models/common/notification.model'),
     EmployeeRoles     = require('../models/employee/employeeRoleDetails.model'),
     AcademicInfo      = require('../models/employee/employeeAcademicDetails.model'),
     FamilyInfo        = require('../models/employee/employeeFamilyDetails.model'),
-    PreviousEmployementHistory = require('../models/employee/employeePreviousEmploymentDetails.model'),
+    PreviousEmployementInfo = require('../models/employee/employeePreviousEmploymentDetails.model'),
     CertificationInfo = require('../models/employee/employeeCertificationDetails.model'),
-    Bank              = require('../models/employee/employeeBankDetails.model'),
+    BankInfo          = require('../models/employee/employeeBankDetails.model'),
     SalaryInfo        = require('../models/employee/employeeSalaryDetails.model'),
     CarInfo           = require('../models/employee/employeeCarDetails.model'),
-    Documents         = require('../models/employee/employeeDocumentDetails.model'),
+    DocumentsInfo     = require('../models/employee/employeeDocumentDetails.model'),
     config            = require('../config/config'),
     fs                = require('fs'),
     fse               = require('fs-extra'),
@@ -123,7 +123,7 @@ let deleteImage = (image) => {
 };
 function addPersonalInfoDetails(req,res,done)
 {
-  let personalDetails = new PersonalDetails();
+  let personalDetails = new PersonalInfo();
   personalDetails.emp_id = req.body.emp_id || req.query.emp_id;
   personalDetails.gender = (req.body.gender == undefined) ? ((req.query.gender == undefined ? null: req.query.gender)):req.body.gender;
   personalDetails.personalMobileNumber = (req.body.personalMobileNumber == undefined) ? ((req.query.personalMobileNumber == undefined ? null: req.query.personalMobileNumber)):req.body.personalMobileNumber;
@@ -159,7 +159,7 @@ function addPersonalInfoDetails(req,res,done)
 }
 function updatePersonalInfoDetails(req,res,done)
 {
-     let personalDetails = new PersonalDetails();
+     let personalDetails = new PersonalInfo();
      personalDetails.gender = (req.body.gender == undefined) ? ((req.query.gender == undefined ? null: req.query.gender)):req.body.gender;
      personalDetails.personalMobileNumber = (req.body.personalMobileNumber == undefined) ? ((req.query.personalMobileNumber == undefined ? null: req.query.personalMobileNumber)):req.body.personalMobileNumber;
      personalDetails.personalEmail = (req.body.personalEmail == undefined) ? ((req.query.personalEmail == undefined ? null: req.query.personalEmail)):req.body.personalEmail;
@@ -188,7 +188,7 @@ function updatePersonalInfoDetails(req,res,done)
       createdBy: false,
     };
 
-    PersonalDetails.findOneAndUpdate(query, personalDetails, {new: true, projection:personalInfoProjection}, function(err, personalDetailsData){
+    PersonalInfo.findOneAndUpdate(query, personalDetails, {new: true, projection:personalInfoProjection}, function(err, personalDetailsData){
     if(personalDetailsData)
     {
       return done(err,personalDetailsData);
@@ -302,9 +302,9 @@ function deleteAcademicInfoDetails(req,res,done)
     }
   });
 }
-function addDocumentsDetails(req,res,done)
+function addDocumentsInfoDetails(req,res,done)
 {
-  let documents = new Documents();
+  let documents = new DocumentsInfo();
   documents.emp_id = req.body.emp_id  || req.query.emp_id;
   documents.nationalIdSmartCard = req.body.nationalIdSmartCard;
   documents.nationalIdSmartCardDocURL =  req.body.nationalIdSmartCardDocURL;
@@ -334,9 +334,9 @@ function addDocumentsDetails(req,res,done)
     }
   });
 }
-function updateDocumentsDetails(req,res,done)
+function updateDocumentsInfoDetails(req,res,done)
 {
-  let documents = new Documents();
+  let documents = new DocumentsInfo();
   documents.emp_id = req.body.emp_id  || req.query.emp_id;
   documents.nationalIdSmartCard = req.body.nationalIdSmartCard;
   documents.nationalIdSmartCardDocURL =  req.body.nationalIdSmartCardDocURL;
@@ -361,7 +361,7 @@ function updateDocumentsDetails(req,res,done)
       createdBy: false,
     };
 
-    Documents.findOneAndUpdate(query, documents, {new: true, projection:documentsProjection}, function(err, documentsData){
+    DocumentsInfo.findOneAndUpdate(query, documents, {new: true, projection:documentsProjection}, function(err, documentsData){
    if(documentsData)
    {
      return done(err,documentsData);
@@ -442,7 +442,7 @@ function updateFamilyInfoDetails(req,res,done)
 }
 
 function addAddressInfoDetails(req,res,done){
-  let address = new Address();
+  let address = new AddressInfo();
   address.emp_id = req.body.emp_id || req.query.emp_id;
   
   address.permanentAddressLine1 = req.body.permanentAddressLine1;
@@ -479,7 +479,7 @@ function addAddressInfoDetails(req,res,done){
 }
 function updateAddressInfoDetails(req,res,done)
 {
-  let address = new Address();
+  let address = new AddressInfo();
   address.emp_id = req.body.emp_id || req.query.emp_id;
   
   address.permanentAddressLine1 = req.body.permanentAddressLine1;
@@ -509,7 +509,7 @@ function updateAddressInfoDetails(req,res,done)
       createdBy: false,
     };
 
-    Address.findOneAndUpdate(query, address, {new: true,projection:addressInfoProjection}, function(err, addressData){
+    AddressInfo.findOneAndUpdate(query, address, {new: true,projection:addressInfoProjection}, function(err, addressData){
     if(addressData)
     {
       return done(err,addressData);
@@ -523,9 +523,9 @@ function updateAddressInfoDetails(req,res,done)
     }
   });
 }
-function addBankDetails(req,res,done)
+function addBankInfoDetails(req,res,done)
 {
-  let bank = new Bank();
+  let bank = new BankInfo();
   bank.emp_id = req.body.emp_id  || req.query.emp_id;
   bank.bankName = req.body.bankName;
   bank.accountName = req.body.accountName;
@@ -552,9 +552,9 @@ function addBankDetails(req,res,done)
     }
   });
 }
-function updateBankDetails(req,res,done)
+function updateBankInfoDetails(req,res,done)
 {
-  let bank = new Bank();
+  let bank = new BankInfo();
   bank.emp_id = req.body.emp_id  || req.query.emp_id;
   bank.bankName = req.body.bankName;
   bank.accountName = req.body.accountName;
@@ -577,7 +577,7 @@ function updateBankDetails(req,res,done)
       createdBy: false,
     };
 
-    Bank.findOneAndUpdate(query, bank, {new: true, projection:bankProjection}, function(err, bankData){
+    BankInfo.findOneAndUpdate(query, bank, {new: true, projection:bankProjection}, function(err, bankData){
    if(bankData)
    {
      return done(err,bankData);
@@ -779,7 +779,7 @@ function addCertificationInfoDetails(req,res,done)
       auditTrailEntry(certificationInfo.emp_id,"certificationInfo",certificationInfo,"user","certificationInfo","ADDED");
       //return done(err, certificationInfoData);
       req.query.emp_id = certificationInfo.emp_id;
-      getCertificationDetails(req,res,done)
+      getCertificationInfoDetails(req,res,done)
     }
     else{
       return res.status(403).json({
@@ -932,10 +932,10 @@ function sendWelComeEmail(emp,toemail)
     // send mail with defined transport object
     transporter.sendMail(mailOptions);
 }
-function addofficeInfoDetails(req,res,done)
+function addOfficeInfoDetails(req,res,done)
 {
 
-     let officeEmpDetails = new OfficeDetails();
+     let officeEmpDetails = new OfficeInfo();
      officeEmpDetails.emp_id = req.body.emp_id;
      officeEmpDetails.employmentStatus_id = req.body.employmentStatus_id;
      officeEmpDetails.managementType_id = req.body.managementType_id;
@@ -950,6 +950,7 @@ function addofficeInfoDetails(req,res,done)
      officeEmpDetails.hrspoc_id = req.body.hrspoc_id;
      officeEmpDetails.businessHrHead_id = req.body.businessHrHead_id;
      officeEmpDetails.groupHrHead_id = req.body.groupHrHead_id;
+
      officeEmpDetails.save(function (err, officeDetailsData)
      {
        if(officeDetailsData)
@@ -966,7 +967,7 @@ function addofficeInfoDetails(req,res,done)
 }
 function updateofficeInfoDetails(req,res,done)
 {
-     let officeEmpDetails = new OfficeDetails();
+     let officeEmpDetails = new OfficeInfo();
      officeEmpDetails.emp_id = req.body.emp_id;
      officeEmpDetails.employmentStatus_id = req.body.employmentStatus_id;
      officeEmpDetails.managementType_id = req.body.managementType_id;
@@ -993,7 +994,7 @@ function updateofficeInfoDetails(req,res,done)
       createdBy: false,
     };
 
-    OfficeDetails.findOneAndUpdate(query, academicInfo, {new: true, projection:officeDetailsProjection}, function(err, officeDetailsData){
+    OfficeInfo.findOneAndUpdate(query, academicInfo, {new: true, projection:officeDetailsProjection}, function(err, officeDetailsData){
    if(officeDetailsData)
    {
      return done(err,officeDetailsData);
@@ -1009,10 +1010,11 @@ function updateofficeInfoDetails(req,res,done)
 }
 function  addSupervisorDetails(req,res,done)
 {
-  let supervisorDetails = new SupervisorDetails();
+  let supervisorDetails = new SupervisorInfo();
   supervisorDetails.emp_id = req.body.emp_id;
   supervisorDetails.primarySupervisorEmp_id = req.body.primarySupervisorEmp_id;
   supervisorDetails.createdBy = 1;
+
   supervisorDetails.save(function (err, supervisorDetailsData) {
     if(supervisorDetailsData)
     {
@@ -1027,25 +1029,26 @@ function  addSupervisorDetails(req,res,done)
 
   })
 }
-function  updateSupervisorDetails(req,res,done)
+function updateSupervisorDetails(req,res,done)
 {
-  let supervisorDetails = new SupervisorDetails();
+  let supervisorDetails = new SupervisorInfo();
   supervisorDetails.emp_id = req.body.emp_id;
   supervisorDetails.primarySupervisorEmp_id = req.body.primarySupervisorEmp_id;
   supervisorDetails.createdBy = 1;
-  supervisorDetails.save(function (err, supervisorDetailsData) {
-    if(supervisorDetailsData)
-    {
-      auditTrailEntry(supervisorDetails.emp_id,"supervisorDetails",supervisorDetails,"user","addsupervisorDetails","ADDED");
-      return done(err,supervisorDetailsData);
-    }
-    return res.status(403).json({
-      title: 'There was a problem',
-      error: {message: err},
-      result: {message: supervisorDetailsData}
-    });
 
-  })
+  // SupervisorInfo.save(function (err, supervisorDetailsData) {
+  //   if(supervisorDetailsData)
+  //   {
+  //     auditTrailEntry(supervisorDetails.emp_id,"supervisorDetails",supervisorDetails,"user","addsupervisorDetails","ADDED");
+  //     return done(err,supervisorDetailsData);
+  //   }
+  //   return res.status(403).json({
+  //     title: 'There was a problem',
+  //     error: {message: err},
+  //     result: {message: supervisorDetailsData}
+  //   });
+
+  // })
 }
 function getPersonalInfoDetails(req,res)
 {
@@ -1062,7 +1065,7 @@ function getPersonalInfoDetails(req,res)
     updatedBy: false,
     createdBy: false,
   };
-  PersonalDetails.findOne(query,personalInfoProjection,function (err, personalEmpDetails) {
+  PersonalInfo.findOne(query,personalInfoProjection,function (err, personalEmpDetails) {
       if (err) {
         return res.status(403).json({
           title: 'There was an error, please try again later',
@@ -1086,7 +1089,7 @@ function getAddressInfoDetails(req,res) {
     updatedBy: false,
     createdBy: false,
   };
-  Address.findOne(query,addressInfoProjection,function (err, addressDetails) {
+  AddressInfo.findOne(query,addressInfoProjection,function (err, addressDetails) {
       if (err) {
         return res.status(403).json({
           title: 'There was an error, please try again later',
@@ -1096,7 +1099,7 @@ function getAddressInfoDetails(req,res) {
        return res.status(200).json(addressDetails);
   });
 }
-function getDocumentsDetails(req,res)
+function getDocumentsInfoDetails(req,res)
 {
   let emp_id=req.query.emp_id;
   let query={isDeleted:false};
@@ -1111,7 +1114,7 @@ function getDocumentsDetails(req,res)
     updatedBy: false,
     createdBy: false,
   };
-    Documents.findOne(query,documentProjection, function (err, documentsData) {
+    DocumentsInfo.findOne(query,documentProjection, function (err, documentsData) {
       if (documentsData) {
         return res.status(200).json(documentsData);
       }
@@ -1122,7 +1125,7 @@ function getDocumentsDetails(req,res)
       });
     });
 }
-function getAcademicInfo(req,res)
+function getAcademicnfoDetails(req,res)
 {
   let emp_id=req.query.emp_id;
   let query={isDeleted:false};
@@ -1147,7 +1150,7 @@ function getAcademicInfo(req,res)
         return res.status(200).json({'data':academicInfoData});
     });
 }
-function getCertificationDetails(req,res, done)
+function getCertificationInfoDetails(req,res,done)
 {
   let emp_id=req.query.emp_id;
   let query={isDeleted:false};
@@ -1155,25 +1158,25 @@ function getCertificationDetails(req,res, done)
   {
    query={emp_id:emp_id,isDeleted:false};
   }
-  var certificateAndTraniningProjection = {
+  var certificationAndTraniningProjection = {
     createdAt: false,
     updatedAt: false,
     isDeleted: false,
     updatedBy: false,
     createdBy: false,
   };
-  CertificationInfo.find(query,certificateAndTraniningProjection, function (err, certificateDetailsData) {
-      if (certificateDetailsData) {        
-        return done (err,certificateDetailsData);
+  CertificationInfo.find(query,certificationAndTraniningProjection, function (err, certificationDetailsData) {
+      if (certificationDetailsData) {        
+        return done (err,certificationDetailsData);
       }
       return res.status(403).json({
         title: 'There was an error, please try again later',
         error: err,
-        result: {message: certificateDetailsData}
+        result: {message: certificationDetailsData}
       });
     });
 }
-function getPreviousEmployementHistoryDetails(req,res)
+function getPreviousEmployementInfo(req,res)
 {
   let emp_id=req.query.emp_id;
   let query={isDeleted:false};
@@ -1181,21 +1184,21 @@ function getPreviousEmployementHistoryDetails(req,res)
   {
     query={emp_id:emp_id,isDeleted:true};
   }
-  var previousEmployementHistoryInfoProjection = {
+  var previousEmployementInfoProjection = {
     createdAt: false,
     updatedAt: false,
     isDeleted: false,
     updatedBy: false,
     createdBy: false,
   };
-    PreviousEmployementHistory.find(query,previousEmployementHistoryInfoProjection, function (err, previousEmployementHistoryData) {
-      if (previousEmployementHistoryData) {
-        return res.status(200).json(previousEmployementHistoryData);
+    PreviousEmployementInfo.find(query,previousEmployementInfoProjection, function (err, previousEmployementData) {
+      if (previousEmployementData) {
+        return res.status(200).json(previousEmployementData);
       }
       return res.status(403).json({
         title: 'There was an error, please try again later',
         error: err,
-        result: {message: previousEmployementHistoryData}
+        result: {message: previousEmployementData}
       });
     });
 }
@@ -1241,7 +1244,7 @@ function getOfficeInfoDetails(req,res)
     updatedBy: false,
     createdBy: false,
   };
-    OfficeDetails.find(query,officeInfoProjection, function (err, officeInfoData) {
+    OfficeInfo.find(query,officeInfoProjection, function (err, officeInfoData) {
       if (officeInfoData) {
         return res.status(200).json(officeInfoData);
       }
@@ -1307,7 +1310,7 @@ function getPerformanceDairyInfoDetails(req,res)
     updatedBy: false,
     createdBy: false,
   };
-  PerformanceDairy.find(query, function (err, performanceDairyProjection) {
+  PerformanceDairyInfo.find(query, function (err, performanceDairyProjection) {
       if (performanceDairyProjection) {
         return res.status(200).json(performanceDairyProjection);
       }
@@ -1333,7 +1336,7 @@ function getBankInfoDetails(req,res)
     updatedBy: false,
     createdBy: false,
   };
-  Bank.findOne(query,bankDetailsProjection, function (err, bankDetailsData) {
+  BankInfo.findOne(query,bankDetailsProjection, function (err, bankDetailsData) {
       if (bankDetailsData) {
         return res.status(200).json(bankDetailsData);
       }
@@ -1408,7 +1411,7 @@ let functions = {
         });
       },
       function (token, done) {
-          let emp=new Employee();
+          let emp=new EmployeeInfo();
 
           //Fill Employee Details
           emp.resetPasswordToken = token;
@@ -1433,7 +1436,7 @@ let functions = {
               sendWelComeEmail(emp,req.body.personalEmail);
               async.parallel([
                 function (done) {
-                  addofficeInfoDetails(req,res,done)
+                  addOfficeInfoDetails(req,res,done)
                 },
                 function (done) {
                   addSupervisorDetails(req,res,done)
@@ -1459,7 +1462,7 @@ let functions = {
     ]);
   },
 
-  getEmployeeDetails:(req, res)=>
+  getEmployeeInfo:(req, res)=>
   {
     let params=req.query.formName;
     if(params)
@@ -1475,7 +1478,7 @@ let functions = {
             getAcademicInfoAndCertificationsAndTraniningInfo(req, res);
             break;
         case "employement":
-            getPreviousEmployementHistory(req, res);
+            getPreviousEmployement(req, res);
             break;
         case "family":
             getFamilyInfo(req, res);
@@ -1497,33 +1500,34 @@ let functions = {
   {
      getPersonalInfoDetails(req, res);
   },
-  getAddressDetails:(req, res)=>
+  getAddressInfo:(req, res)=>
   {
     getAddressInfoDetails(req, res);
   },
-  getDocuments:(req, res)=>
+  getDocumentsInfo:(req, res)=>
   {
-    getDocumentsDetails(req, res);
+    getDocumentsInfoDetails(req, res);
   },
   getAcademicInfo:(req, res)=>
   {
-    getAcademicInfo(req, res);
+    getAcademicnfoDetails(req, res);
   },
-  getCertification:(req, res)=>
+  getCertificationInfo:(req, res)=>
   {
-    async.parallel([
-      function(done){
-        getCertificationDetails(req, res, done)
-      },
-      function(certificateDetailsData)
-      {
-        return res.json(200).json(certificateDetailsData);
-      }
-    ])
+    async.waterfall([
+      function(done)
+       {
+        getCertificationInfoDetails(req,res,done);
+       },
+       function(certificationDetailsData,done)
+       {
+         return res.status(200).json({"data":certificationDetailsData});
+       }
+    ]);
   },
-  getPreviousEmployementHistory:(req, res)=>
+  getPreviousEmployementInfo:(req, res)=>
   {
-    getPreviousEmployementHistoryDetails(req, res);
+    getPreviousEmployementInfoDetails(req, res);
   },
   getFamilyInfo:(req, res)=>
   {
@@ -1533,27 +1537,27 @@ let functions = {
   {
     getOfficeInfoDetails(req, res)
   },
-  getJoiningDetails:(req, res)=>
+  getJoiningInfo:(req, res)=>
   {
     getJoiningInfoDetails(req, res)
   },
-  getPositionDetails:(req, res)=>
+  getPositionInfo:(req, res)=>
   {
     getPositionInfoDetails(req, res)
   },
-  getPerformanceDairy:(req, res)=>
+  getPerformanceDairyInfo:(req, res)=>
   {
     getPerformanceDairyInfoDetails(req, res);
   },
-  getBankDetails:(req, res)=>
+  getBankInfo:(req, res)=>
   {
     getBankInfoDetails(req, res);
   },
-  getSalaryDetails:(req, res)=>
+  getSalaryInfo:(req, res)=>
   {
     getSalaryInfoDetails(req, res);
   },
-  getCarDetails:(req, res)=>
+  getCarInfo:(req, res)=>
   {
     getCarInfoDetails(req, res);
   },
@@ -1625,12 +1629,12 @@ let functions = {
     ]);
   },
 
-  addDocuments:(req, res)=>
+  addDocumentsInfo:(req, res)=>
   {
     async.waterfall([
       function(done)
       {
-        addDocumentsDetails(req,res,done);
+        addDocumentsInfoDetails(req,res,done);
       },
       function(documentsData,done)
       {
@@ -1639,12 +1643,12 @@ let functions = {
     ]);
   },
 
-  updateDocuments:(req, res)=>
+  updateDocumentsInfo:(req, res)=>
   {
     async.waterfall([
       function(done)
       {
-        updateDocumentsDetails(req,res,done);
+        updateDocumentsInfoDetails(req,res,done);
       },
       function(documentsData,done)
       {
@@ -1680,7 +1684,7 @@ let functions = {
     ]);
   },
 
-  addAddress:(req, res)=>
+  addAddressInfo:(req, res)=>
   {
     async.waterfall([
       function(done)
@@ -1693,7 +1697,7 @@ let functions = {
        }
     ]);
   },
-  updateAddress:(req, res)=>
+  updateAddressInfo:(req, res)=>
   {
     async.waterfall([
       function(done)
@@ -1706,12 +1710,12 @@ let functions = {
        }
     ]);
   },
-  addofficeDetails:(req, res)=>
+  addOfficeInfo:(req, res)=>
   {
     async.waterfall([
       function(done)
        {
-        addofficeInfoDetails(req,res,done);
+        addOfficeInfoDetails(req,res,done);
        },
        function(officeInfoDetailsData,done)
        {
@@ -1719,12 +1723,12 @@ let functions = {
        }
     ]);
   },
-  addBank:(req, res)=>
+  addBankInfo:(req, res)=>
   {
     async.waterfall([
       function(done)
       {
-        addBankDetails(req,res,done);
+        addBankInfoDetails(req,res,done);
       },
       function(bankData,done)
       {
@@ -1733,12 +1737,12 @@ let functions = {
     ]);
   },
 
-  updateBank:(req, res)=>
+  updateBankInfo:(req, res)=>
   {
     async.waterfall([
       function(done)
       {
-        updateBankDetails(req,res,done);
+        updateBankInfoDetails(req,res,done);
       },
       function(bankData,done)
       {

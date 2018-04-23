@@ -4,7 +4,7 @@ let mongoose                = require('mongoose'),
     bcrypt                  = require('bcrypt');
     autoIncrement           = require('mongoose-sequence')(mongoose);
 
-      let PersonalEmpDetailsSchema = new Schema(
+      let EmployeePersonalDetailsSchema = new Schema(
       {
          _id:{type:Number},
          emp_id:{type: Number,ref: 'employees'},
@@ -34,15 +34,15 @@ let mongoose                = require('mongoose'),
       //UserRolesSchema.plugin(autoIncrement, {inc_field: '_id'});
 
    // Update the Emp_Id Hash user password when registering or when changing password
-    PersonalEmpDetailsSchema.pre('save', function (next) {
+    EmployeePersonalDetailsSchema.pre('save', function (next) {
     var _this=this;
     //Check the Count of Collection and add 1 to the Count and Assign it to Emp_Id 
-    mongoose.model('personalEmpDetails', PersonalEmpDetailsSchema).count(function(err, c) {
+    mongoose.model('employeePersonalDetails', EmployeePersonalDetailsSchema).count(function(err, c) {
       _this._id = c + 1;
       next();
     });
 });
 
-PersonalEmpDetailsSchema.plugin(mongooseUniqueValidator);
+EmployeePersonalDetailsSchema.plugin(mongooseUniqueValidator);
 
-     module.exports = mongoose.model('personalEmpDetails',PersonalEmpDetailsSchema);
+     module.exports = mongoose.model('employeePersonalDetails',EmployeePersonalDetailsSchema);

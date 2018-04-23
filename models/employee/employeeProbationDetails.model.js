@@ -4,7 +4,7 @@ let mongoose                = require('mongoose'),
     bcrypt                  = require('bcrypt');
     autoIncrement           = require('mongoose-sequence')(mongoose);
 
-      let EmpProbationSchema = new Schema(
+      let EmployeeProbationDetailsSchema = new Schema(
       {
          _id:{type:Number},
          emp_id:{type: Number,ref: 'employees', required: true, unique: true,},
@@ -23,15 +23,15 @@ let mongoose                = require('mongoose'),
       });
 
    // Update the Emp_id Hash user password when registering or when changing password
-   EmpProbationSchema.pre('save', function (next) {
+   EmployeeProbationDetailsSchema.pre('save', function (next) {
     var _this=this;
     //Check the Count of Collection and add 1 to the Count and Assign it to Emp_id 
-    mongoose.model('empProbation', EmpProbationSchema).count(function(err, c) {
+    mongoose.model('employeeProbationDetails', EmployeeProbationDetailsSchema).count(function(err, c) {
       _this._id = c + 1;
       next();
     });
 });
 
-EmpProbationSchema.plugin(mongooseUniqueValidator);
+EmployeeProbationDetailsSchema.plugin(mongooseUniqueValidator);
 
-     module.exports = mongoose.model('empProbation',EmpProbationSchema);
+     module.exports = mongoose.model('employeeProbationDetails',EmployeeProbationDetailsSchema);

@@ -5,7 +5,7 @@ let mongoose                = require('mongoose'),
     async       = require('async');
     
 
-    let UserSchema = new Schema(
+    let EmployeeDetailsSchema = new Schema(
     {
       _id:{ type:Number },
       fullName:{type: String, required: true}, 
@@ -30,7 +30,7 @@ let mongoose                = require('mongoose'),
       versionKey: false,
       _id:false
     });
-    //UserSchema.plugin(autoIncrement, {inc_field: 'emp_id'});
+    //EmployeeDetailsSchema.plugin(autoIncrement, {inc_field: 'emp_id'});
     
 
 
@@ -173,15 +173,15 @@ let mongoose                = require('mongoose'),
       //     });
 
     // Update the Emp_Id Hash user password when registering or when changing password
-    UserSchema.pre('save', function (next,req) {
+    EmployeeDetailsSchema.pre('save', function (next,req) {
           var _this=this;
           //Check the Count of Collection and add 1 to the Count and Assign it to Emp_Id 
-          mongoose.model('employee', UserSchema).count(function(err, c) {
+          mongoose.model('employeeDetails', EmployeeDetailsSchema).count(function(err, c) {
               //Hash the Password and assign it to Password
               if (_this.isNew) {
                 _this._id = c + 1;
                 
-                //Generate Employee Id 
+                //Generate EmployeeDetails Id 
                 let userName = "";
           switch(_this.company_id) {
             case 1:
@@ -236,11 +236,11 @@ let mongoose                = require('mongoose'),
           });
     });
 
-//UserSchema.index({volAddressCoords: '2dsphere'});
+//EmployeeDetailsSchema.index({volAddressCoords: '2dsphere'});
 
 //Find the last Sequence added to User DB
 function getNextSequence() {
-  var count = mongoose.model('employee', UserSchema).count(function(err, c) {
+  var count = mongoose.model('employeeDetails', EmployeeDetailsSchema).count(function(err, c) {
     return c;
   });
 }
@@ -249,7 +249,7 @@ function getNextSequence() {
 
 // create method to compare password upon login
 
-    UserSchema.methods.comparePassword = function (pw, cb) {
+    EmployeeDetailsSchema.methods.comparePassword = function (pw, cb) {
       bcrypt.compare(pw, this.password, function (err, isMatch) {
         if (err) {
           return cb(err);
@@ -258,6 +258,6 @@ function getNextSequence() {
       });
     };
 
-    UserSchema.plugin(mongooseUniqueValidator);
+    EmployeeDetailsSchema.plugin(mongooseUniqueValidator);
 
-    module.exports = mongoose.model('employee', UserSchema);
+    module.exports = mongoose.model('employeeDetails', EmployeeDetailsSchema);

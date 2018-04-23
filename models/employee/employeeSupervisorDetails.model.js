@@ -4,7 +4,7 @@ let mongoose                = require('mongoose'),
     bcrypt                  = require('bcrypt');
     autoIncrement           = require('mongoose-sequence')(mongoose);
 
-      let SupervisorDetailsSchema = new Schema(
+      let EmployeeSupervisorDetailsSchema = new Schema(
       {
         _id:{type:Number},
         emp_id: {type: String,required:true,unique: true},
@@ -22,9 +22,9 @@ let mongoose                = require('mongoose'),
         _id:false
       });
 
-      SupervisorDetailsSchema.plugin(mongooseUniqueValidator);
+      EmployeeSupervisorDetailsSchema.plugin(mongooseUniqueValidator);
 
-      // SupervisorDetailsSchema.pre('findOneAndUpdate', function (next) {
+      // EmployeeSupervisorDetailsSchema.pre('findOneAndUpdate', function (next) {
       //   this.setOptions({
       //     new: true,
       //     runValidators: true
@@ -36,21 +36,21 @@ let mongoose                = require('mongoose'),
       // });
 
       //Perform actions before saving the role
-      SupervisorDetailsSchema.pre('save', function (next) {
+      EmployeeSupervisorDetailsSchema.pre('save', function (next) {
         var _this=this;
         if (_this.isNew) {
-            mongoose.model('SupervisorDetails', SupervisorDetailsSchema).count(function(err, c) {
+            mongoose.model('employeeSupervisorDetails', EmployeeSupervisorDetailsSchema).count(function(err, c) {
                   _this._id = c + 1;
                   next();
             });
         }
       });
 
-      // SupervisorDetailsSchema.post('findOneAndUpdate', function(result) {
+      // EmployeeSupervisorDetailsSchema.post('findOneAndUpdate', function(result) {
       //   this.model.update({}, { 
       //       totalNumberOfComments: result.comments.length
       //   }).exec();
       // });
 
-     module.exports = mongoose.model('SupervisorDetails',SupervisorDetailsSchema);
+     module.exports = mongoose.model('employeeSupervisorDetails',EmployeeSupervisorDetailsSchema);
 
