@@ -61,7 +61,7 @@ let functions = {
               },
               {
                 "$lookup": {
-                    "from": "employees",
+                    "from": "employeedetails",
                     "localField": "emp_id",
                     "foreignField": "_id",
                     "as": "employees"
