@@ -15,6 +15,8 @@ let express           = require('express'),
     EmploymentType    = require('../models/master/employmentType.model'),
     EmploymentStatus  = require('../models/master/employmentStatus.model'),
     LevelOfEducation  = require('../models/master/levelOfEducation.model'),
+    Relation          = require('../models/master/relation.model'),
+    PerformanceRating = require('../models/master/performanceRating.model'),
     jwt               = require('jsonwebtoken'),
     config            = require('../config/config'),
     fs                = require('fs'),
@@ -385,6 +387,58 @@ let functions = {
       else{
         return res.status(403).json({
           title: 'Add new LevelOfEducation failed!',
+          error: {message: err},
+          result: {message: result}
+        });
+      }
+    });
+  }, 
+  createRelation: (req, res) => {
+    let relation=new Relation();
+    relation.relationName = req.body.relationName;
+   
+    var parent_id=req.body.parent_id;
+    if(parent_id){
+      relation.parent_id = parent_id;
+    }
+     relation.createdBy = req.body.createdBy;
+    //relation.createdBy = req.headers[emp_id];
+ 
+    relation.save(function (err, result) {
+      if(result)
+      {
+        return res.status(200).json({ status : '200',message: 'Relation added Successfully',
+        });
+      }
+      else{
+        return res.status(403).json({
+          title: 'Add new Relation failed!',
+          error: {message: err},
+          result: {message: result}
+        });
+      }
+    });
+  }, 
+  createPerformanceRating: (req, res) => {
+    let performanceRating=new PerformanceRating();
+    performanceRating.performanceRatingName = req.body.performanceRatingName;
+   
+    var parent_id=req.body.parent_id;
+    if(parent_id){
+      performanceRating.parent_id = parent_id;
+    }
+     performanceRating.createdBy = req.body.createdBy;
+    //performanceRating.createdBy = req.headers[emp_id];
+ 
+    performanceRating.save(function (err, result) {
+      if(result)
+      {
+        return res.status(200).json({ status : '200',message: 'PerformanceRating added Successfully',
+        });
+      }
+      else{
+        return res.status(403).json({
+          title: 'Add new PerformanceRating failed!',
           error: {message: err},
           result: {message: result}
         });

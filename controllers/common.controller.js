@@ -15,6 +15,8 @@ let express           = require('express'),
     EmploymentType    = require('../models/master/employmentType.model'),
     EmploymentStatus  = require('../models/master/employmentStatus.model'),
     LevelOfEducation  = require('../models/master/levelOfEducation.model'),
+    PerformanceRating = require('../models/master/performanceRating.model'),
+    Relation          = require('../models/master/relation.model'),    
     SupervisorDetails = require('../models/employee/employeeSupervisorDetails.model'),
     PersonalDetails   = require('../models/employee/employeePersonalDetails.model'),
     OfficeDetails     = require('../models/employee/employeeOfficeDetails.model'),
@@ -862,6 +864,70 @@ let functions = {
         })
       }
   },
+  getPerformanceRating: (req, res) => {
+    var query = {
+        isDeleted: false
+    }
+    var performanceRatingProjection = {
+        createdAt: false,
+        updatedAt: false,
+        isDeleted: false,
+        updatedBy: false,
+        createdBy: false
+    };
+    PerformanceRating.find({}, performanceRatingProjection, {
+      sort: {
+          _id: 1
+      }
+  }, function(err, performanceRatingData) {
+        if (performanceRatingData) {
+            return res.status(200).json(performanceRatingData);
+        }
+
+        return res.status(403).json({
+            title: 'Error',
+            error: {
+                message: err
+            },
+            result: {
+                message: result
+            }
+        });
+
+    })
+},
+getRelation: (req, res) => {
+    var query = {
+        isDeleted: false
+    }
+    var relationProjection = {
+        createdAt: false,
+        updatedAt: false,
+        isDeleted: false,
+        updatedBy: false,
+        createdBy: false
+    };
+    Relation.find({}, relationProjection, {
+      sort: {
+          _id: 1
+      }
+  }, function(err, relationData) {
+        if (relationData) {
+            return res.status(200).json(relationData);
+        }
+
+        return res.status(403).json({
+            title: 'Error',
+            error: {
+                message: err
+            },
+            result: {
+                message: result
+            }
+        });
+
+    })
+},
 };
 
 module.exports = functions;
