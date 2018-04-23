@@ -292,6 +292,9 @@ let express  = require('express'),
    // Register endpoint: http://localhost:3000/api/master/createEmploymentStatus
    masterRoutes.post('/createEmploymentStatus', master.createEmploymentStatus);
 
+   // Register endpoint: http://localhost:3000/api/master/createLevelOfEducation
+   masterRoutes.post('/createLevelOfEducation', master.createLevelOfEducation);
+
    
 
    
@@ -336,6 +339,8 @@ let express  = require('express'),
     commonRoutes.get('/getSupervisor', common.getSupervisor);
 
     commonRoutes.get('/checkEmailUnique', common.checkEmailUnique);
+
+    commonRoutes.get('/getLevelOfEducation', common.getLevelOfEducation);
     
 
     

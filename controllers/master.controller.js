@@ -14,6 +14,7 @@ let express           = require('express'),
     ManagementType    = require('../models/master/managementType.model'),
     EmploymentType    = require('../models/master/employmentType.model'),
     EmploymentStatus  = require('../models/master/employmentStatus.model'),
+    LevelOfEducation  = require('../models/master/levelOfEducation.model'),
     jwt               = require('jsonwebtoken'),
     config            = require('../config/config'),
     fs                = require('fs'),
@@ -364,6 +365,32 @@ let functions = {
       }
     });
   },
+  createLevelOfEducation: (req, res) => {
+    let levelOfEducation=new LevelOfEducation();
+    levelOfEducation.levelOfEducationName = req.body.levelOfEducationName;
+   
+    var parent_id=req.body.parent_id;
+    if(parent_id){
+      levelOfEducation.parent_id = parent_id;
+    }
+     levelOfEducation.createdBy = req.body.createdBy;
+    //levelOfEducation.createdBy = req.headers[emp_id];
+ 
+    levelOfEducation.save(function (err, result) {
+      if(result)
+      {
+        return res.status(200).json({ status : '200',message: 'LevelOfEducation added Successfully',
+        });
+      }
+      else{
+        return res.status(403).json({
+          title: 'Add new LevelOfEducation failed!',
+          error: {message: err},
+          result: {message: result}
+        });
+      }
+    });
+  }, 
 };
 
 module.exports = functions;

@@ -14,6 +14,7 @@ let express           = require('express'),
     ManagementType    = require('../models/master/managementType.model'),
     EmploymentType    = require('../models/master/employmentType.model'),
     EmploymentStatus  = require('../models/master/employmentStatus.model'),
+    LevelOfEducation  = require('../models/master/levelOfEducation.model'),
     SupervisorDetails = require('../models/employee/employeeSupervisorDetails.model'),
     PersonalDetails   = require('../models/employee/employeePersonalDetails.model'),
     OfficeDetails     = require('../models/employee/employeeOfficeDetails.model'),
@@ -653,6 +654,36 @@ let functions = {
             });
         })
     },
+    getLevelOfEducation: (req, res) => {
+        var query = {parent_id:null};
+        var parent_id = req.body.parent_id || req.params.parent_id || req.query.parent_id;
+        if (parent_id) 
+        {
+          query = {parent_id: parent_id}
+        }
+        var levelOfEducationProjection = {
+            createdAt: false,
+            updatedAt: false,
+            updatedBy: false,
+            createdBy: false
+        };
+        LevelOfEducation.find(query,levelOfEducationProjection, {sort: {_id: 1}},function(err, levelOfEducationData)
+        {
+            if (levelOfEducationData) {
+                return res.status(200).json(levelOfEducationData);
+            }
+  
+            return res.status(403).json({
+                title: 'Error',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: result
+                }
+            });
+        })
+      },
     getHr: (req, res) => {
         var query = {
             isDeleted: false,

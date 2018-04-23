@@ -6,7 +6,8 @@ let mongoose                = require('mongoose'),
 
       let LevelOfEducationSchema = new Schema(
       {
-        _id:{type:Number},
+         _id:{type:Number},
+         parent_id: {type:Number, default:null},
          levelOfEducationName: {type: String,required:true},
          updatedBy: {type: Number, default:null},
          createdBy: {type: Number, required: true},
