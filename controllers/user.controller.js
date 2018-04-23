@@ -119,22 +119,22 @@ let deleteImage = (image) => {
 };
 
 function addPersonalInfoDetails(req, res, done) {
-    let personalDetails = new PersonalInfo();
+    let personalDetails = new PersonalInfo(emp.body);
     personalDetails.emp_id = req.body.emp_id || req.query.emp_id;
-    personalDetails.gender = (req.body.gender == undefined) ? ((req.query.gender == undefined ? null : req.query.gender)) : req.body.gender;
-    personalDetails.personalMobileNumber = (req.body.personalMobileNumber == undefined) ? ((req.query.personalMobileNumber == undefined ? null : req.query.personalMobileNumber)) : req.body.personalMobileNumber;
-    personalDetails.personalEmail = (req.body.personalEmail == undefined) ? ((req.query.personalEmail == undefined ? null : req.query.personalEmail)) : req.body.personalEmail;
-    personalDetails.dob = (req.body.dob == undefined) ? ((req.query.dob == undefined ? null : new Date(req.body.dob))) : new Date(req.body.dob);
-    personalDetails.bloodGroup = (req.body.bloodGroup == undefined) ? ((req.query.bloodGroup == undefined ? null : req.query.bloodGroup)) : req.body.bloodGroup;
-    personalDetails.religion = req.body.religion;
-    personalDetails.nationality = req.body.nationality;
-    personalDetails.homePhone = req.body.homePhone;
-    personalDetails.motherName = req.body.motherName;
-    personalDetails.fatherName = req.body.fatherName;
-    personalDetails.maritialStatus = req.body.maritialStatus;
-    personalDetails.emergencyContactPerson = req.body.emergencyContactPerson;
-    personalDetails.emergencyContactNumber = req.body.emergencyContactNumber;
-    personalDetails.profileStatus = req.body.profileStatus;
+    // personalDetails.gender = (req.body.gender == undefined) ? ((req.query.gender == undefined ? null : req.query.gender)) : req.body.gender;
+    // personalDetails.personalMobileNumber = (req.body.personalMobileNumber == undefined) ? ((req.query.personalMobileNumber == undefined ? null : req.query.personalMobileNumber)) : req.body.personalMobileNumber;
+    // personalDetails.personalEmail = (req.body.personalEmail == undefined) ? ((req.query.personalEmail == undefined ? null : req.query.personalEmail)) : req.body.personalEmail;
+    // personalDetails.dob = (req.body.dob == undefined) ? ((req.query.dob == undefined ? null : new Date(req.body.dob))) : new Date(req.body.dob);
+    // personalDetails.bloodGroup = (req.body.bloodGroup == undefined) ? ((req.query.bloodGroup == undefined ? null : req.query.bloodGroup)) : req.body.bloodGroup;
+    // personalDetails.religion = req.body.religion;
+    // personalDetails.nationality = req.body.nationality;
+    // personalDetails.homePhone = req.body.homePhone;
+    // personalDetails.motherName = req.body.motherName;
+    // personalDetails.fatherName = req.body.fatherName;
+    // personalDetails.maritialStatus = req.body.maritialStatus;
+    // personalDetails.emergencyContactPerson = req.body.emergencyContactPerson;
+    // personalDetails.emergencyContactNumber = req.body.emergencyContactNumber;
+    // personalDetails.profileStatus = req.body.profileStatus;
     personalDetails.createdBy = 1;
     //personalDetails.createdBy =req.headers[emp_id];
 
@@ -157,21 +157,21 @@ function addPersonalInfoDetails(req, res, done) {
 }
 
 function updatePersonalInfoDetails(req, res, done) {
-    let personalDetails = new PersonalInfo();
-    personalDetails.gender = (req.body.gender == undefined) ? ((req.query.gender == undefined ? null : req.query.gender)) : req.body.gender;
-    personalDetails.personalMobileNumber = (req.body.personalMobileNumber == undefined) ? ((req.query.personalMobileNumber == undefined ? null : req.query.personalMobileNumber)) : req.body.personalMobileNumber;
-    personalDetails.personalEmail = (req.body.personalEmail == undefined) ? ((req.query.personalEmail == undefined ? null : req.query.personalEmail)) : req.body.personalEmail;
-    personalDetails.dob = (req.body.dob == undefined) ? ((req.query.dob == undefined ? null : new Date(req.body.dob))) : new Date(req.body.dob);
-    personalDetails.bloodGroup = (req.body.bloodGroup == undefined) ? ((req.query.bloodGroup == undefined ? null : req.query.bloodGroup)) : req.body.bloodGroup;
-    personalDetails.religion = req.body.religion;
-    personalDetails.nationality = req.body.nationality;
-    personalDetails.homePhone = req.body.homePhone;
-    personalDetails.motherName = req.body.motherName;
-    personalDetails.fatherName = req.body.fatherName;
-    personalDetails.maritialStatus = req.body.maritialStatus;
-    personalDetails.emergencyContactPerson = req.body.emergencyContactPerson;
-    personalDetails.emergencyContactNumber = req.body.emergencyContactNumber;
-    personalDetails.profileStatus = req.body.profileStatus;
+    let personalDetails = new PersonalInfo(emp.body);
+    // personalDetails.gender = (req.body.gender == undefined) ? ((req.query.gender == undefined ? null : req.query.gender)) : req.body.gender;
+    // personalDetails.personalMobileNumber = (req.body.personalMobileNumber == undefined) ? ((req.query.personalMobileNumber == undefined ? null : req.query.personalMobileNumber)) : req.body.personalMobileNumber;
+    // personalDetails.personalEmail = (req.body.personalEmail == undefined) ? ((req.query.personalEmail == undefined ? null : req.query.personalEmail)) : req.body.personalEmail;
+    // personalDetails.dob = (req.body.dob == undefined) ? ((req.query.dob == undefined ? null : new Date(req.body.dob))) : new Date(req.body.dob);
+    // personalDetails.bloodGroup = (req.body.bloodGroup == undefined) ? ((req.query.bloodGroup == undefined ? null : req.query.bloodGroup)) : req.body.bloodGroup;
+    // personalDetails.religion = req.body.religion;
+    // personalDetails.nationality = req.body.nationality;
+    // personalDetails.homePhone = req.body.homePhone;
+    // personalDetails.motherName = req.body.motherName;
+    // personalDetails.fatherName = req.body.fatherName;
+    // personalDetails.maritialStatus = req.body.maritialStatus;
+    // personalDetails.emergencyContactPerson = req.body.emergencyContactPerson;
+    // personalDetails.emergencyContactNumber = req.body.emergencyContactNumber;
+    // personalDetails.profileStatus = req.body.profileStatus;
     personalDetails.updatedBy = 1;
     //personalDetails.updatedBy =req.headers[emp_id];
 
@@ -210,20 +210,20 @@ function updatePersonalInfoDetails(req, res, done) {
 }
 
 function addAcademicInfoDetails(req, res, done) {
-    let academicInfo = new AcademicInfo();
+    let academicInfo = new AcademicInfo(emp.body);
     academicInfo.emp_id = req.body.emp_id || req.query.emp_id;
-    academicInfo.levelOfEducation = req.body.levelOfEducation;
-    academicInfo.examDegreeTitle = req.body.examDegreeTitle;
-    academicInfo.concentration = req.body.concentration;
-    academicInfo.instituteName = req.body.instituteName;
-    academicInfo.marks = req.body.marks;
-    academicInfo.result = req.body.result;
-    academicInfo.cgpa = req.body.cgpa;
-    academicInfo.scale = req.body.scale;
-    academicInfo.yearOfPassing = req.body.yearOfPassing;
-    academicInfo.duration = req.body.duration;
-    academicInfo.achievements = req.body.achievements;
-    academicInfo.isCompleted = true;
+    // academicInfo.levelOfEducation = req.body.levelOfEducation;
+    // academicInfo.examDegreeTitle = req.body.examDegreeTitle;
+    // academicInfo.concentration = req.body.concentration;
+    // academicInfo.instituteName = req.body.instituteName;
+    // academicInfo.marks = req.body.marks;
+    // academicInfo.result = req.body.result;
+    // academicInfo.cgpa = req.body.cgpa;
+    // academicInfo.scale = req.body.scale;
+    // academicInfo.yearOfPassing = req.body.yearOfPassing;
+    // academicInfo.duration = req.body.duration;
+    // academicInfo.achievements = req.body.achievements;
+    // academicInfo.isCompleted = true;
     academicInfo.createdBy = 1;
 
     //academicInfo.createdBy =req.headers[emp_id];
@@ -247,20 +247,20 @@ function addAcademicInfoDetails(req, res, done) {
 }
 
 function updateAcademicInfoDetails(req, res, done) {
-    let academicInfo = new AcademicInfo();
+    let academicInfo = new AcademicInfo(emp.body);
     academicInfo.emp_id = req.body.emp_id || req.query.emp_id;
-    academicInfo.levelOfEducation = req.body.levelOfEducation;
-    academicInfo.examDegreeTitle = req.body.examDegreeTitle;
-    academicInfo.concentration = req.body.concentration;
-    academicInfo.instituteName = req.body.instituteName;
-    academicInfo.marks = req.body.marks;
-    academicInfo.result = req.body.result;
-    academicInfo.cgpa = req.body.cgpa;
-    academicInfo.scale = req.body.scale;
-    academicInfo.yearOfPassing = req.body.yearOfPassing;
-    academicInfo.duration = req.body.duration;
-    academicInfo.achievements = req.body.achievements;
-    academicInfo.isCompleted = true;
+    // academicInfo.levelOfEducation = req.body.levelOfEducation;
+    // academicInfo.examDegreeTitle = req.body.examDegreeTitle;
+    // academicInfo.concentration = req.body.concentration;
+    // academicInfo.instituteName = req.body.instituteName;
+    // academicInfo.marks = req.body.marks;
+    // academicInfo.result = req.body.result;
+    // academicInfo.cgpa = req.body.cgpa;
+    // academicInfo.scale = req.body.scale;
+    // academicInfo.yearOfPassing = req.body.yearOfPassing;
+    // academicInfo.duration = req.body.duration;
+    // academicInfo.achievements = req.body.achievements;
+    // academicInfo.isCompleted = true;
     academicInfo.updatedBy = 1;
 
     //academicInfo.updatedBy =req.headers[emp_id];
@@ -323,16 +323,16 @@ function deleteAcademicInfoDetails(req, res, done) {
 }
 
 function addDocumentsInfoDetails(req, res, done) {
-    let documents = new DocumentsInfo();
+    let documents = new DocumentsInfo(emp.body);
     documents.emp_id = req.body.emp_id || req.query.emp_id;
-    documents.nationalIdSmartCard = req.body.nationalIdSmartCard;
-    documents.nationalIdSmartCardDocURL = req.body.nationalIdSmartCardDocURL;
-    documents.passportNumber = req.body.passportNumber;
-    documents.passportNumberDocURL = req.body.passportNumberDocURL;
-    documents.birthRegistrationNumber = req.body.birthRegistrationNumber;
-    documents.birthRegistrationNumberDocURL = req.body.birthRegistrationNumberDocURL;
-    documents.nationalIDOldFormat = req.body.nationalIDOldFormat;
-    documents.nationalIDOldFormatDocURL = req.body.nationalIDOldFormatDocURL;
+    // documents.nationalIdSmartCard = req.body.nationalIdSmartCard;
+    // documents.nationalIdSmartCardDocURL = req.body.nationalIdSmartCardDocURL;
+    // documents.passportNumber = req.body.passportNumber;
+    // documents.passportNumberDocURL = req.body.passportNumberDocURL;
+    // documents.birthRegistrationNumber = req.body.birthRegistrationNumber;
+    // documents.birthRegistrationNumberDocURL = req.body.birthRegistrationNumberDocURL;
+    // documents.nationalIDOldFormat = req.body.nationalIDOldFormat;
+    // documents.nationalIDOldFormatDocURL = req.body.nationalIDOldFormatDocURL;
     documents.isCompleted = true;
     documents.createdBy = 1;
 
@@ -357,17 +357,17 @@ function addDocumentsInfoDetails(req, res, done) {
 }
 
 function updateDocumentsInfoDetails(req, res, done) {
-    let documents = new DocumentsInfo();
+    let documents = new DocumentsInfo(emp.body);
     documents.emp_id = req.body.emp_id || req.query.emp_id;
-    documents.nationalIdSmartCard = req.body.nationalIdSmartCard;
-    documents.nationalIdSmartCardDocURL = req.body.nationalIdSmartCardDocURL;
-    documents.passportNumber = req.body.passportNumber;
-    documents.passportNumberDocURL = req.body.passportNumberDocURL;
-    documents.birthRegistrationNumber = req.body.birthRegistrationNumber;
-    documents.birthRegistrationNumberDocURL = req.body.birthRegistrationNumberDocURL;
-    documents.nationalIDOldFormat = req.body.nationalIDOldFormat;
-    documents.nationalIDOldFormatDocURL = req.body.nationalIDOldFormatDocURL;
-    documents.isCompleted = true;
+    // documents.nationalIdSmartCard = req.body.nationalIdSmartCard;
+    // documents.nationalIdSmartCardDocURL = req.body.nationalIdSmartCardDocURL;
+    // documents.passportNumber = req.body.passportNumber;
+    // documents.passportNumberDocURL = req.body.passportNumberDocURL;
+    // documents.birthRegistrationNumber = req.body.birthRegistrationNumber;
+    // documents.birthRegistrationNumberDocURL = req.body.birthRegistrationNumberDocURL;
+    // documents.nationalIDOldFormat = req.body.nationalIDOldFormat;
+    // documents.nationalIDOldFormatDocURL = req.body.nationalIDOldFormatDocURL;
+    // documents.isCompleted = true;
     documents.updatedBy = 1;
 
     //documents.updatedBy =req.headers[emp_id];
@@ -406,13 +406,13 @@ function updateDocumentsInfoDetails(req, res, done) {
 }
 
 function addFamilyInfoDetails(req, res, done) {
-    let familyInfo = new FamilyInfo();
+    let familyInfo = new FamilyInfo(emp.body);
     familyInfo.emp_id = req.body.emp_id || req.query.emp_id;
-    familyInfo.name = req.body.name;
-    familyInfo.relation_id = req.body.relation_id;
-    familyInfo.dateOfBirth = req.body.dateOfBirth;
-    familyInfo.contact = req.body.contact;
-    familyInfo.isCompleted = true;
+    // familyInfo.name = req.body.name;
+    // familyInfo.relation_id = req.body.relation_id;
+    // familyInfo.dateOfBirth = req.body.dateOfBirth;
+    // familyInfo.contact = req.body.contact;
+    // familyInfo.isCompleted = true;
     familyInfo.createdBy = 1;
 
     //familyInfo.createdBy =req.headers[emp_id];
@@ -436,13 +436,13 @@ function addFamilyInfoDetails(req, res, done) {
 }
 
 function updateFamilyInfoDetails(req, res, done) {
-    let familyInfo = new FamilyInfo();
+    let familyInfo = new FamilyInfo(emp.body);
     familyInfo.emp_id = req.body.emp_id || req.query.emp_id;
-    familyInfo.name = req.body.name;
-    familyInfo.relation_id = req.body.relation_id;
-    familyInfo.dateOfBirth = req.body.dateOfBirth;
-    familyInfo.contact = req.body.contact;
-    familyInfo.isCompleted = true;
+    // familyInfo.name = req.body.name;
+    // familyInfo.relation_id = req.body.relation_id;
+    // familyInfo.dateOfBirth = req.body.dateOfBirth;
+    // familyInfo.contact = req.body.contact;
+    // familyInfo.isCompleted = true;
     familyInfo.updatedBy = 1;
 
     //familyInfo.updatedBy =req.headers[emp_id];
@@ -481,24 +481,24 @@ function updateFamilyInfoDetails(req, res, done) {
 }
 
 function addAddressInfoDetails(req, res, done) {
-    let address = new AddressInfo();
+    let address = new AddressInfo(emp.body);
     address.emp_id = req.body.emp_id || req.query.emp_id;
 
-    address.permanentAddressLine1 = req.body.permanentAddressLine1;
-    address.permanentAddressLine2 = req.body.permanentAddressLine2;
-    address.permanentAddressThana_id = req.body.permanentAddressThana_id;
-    address.permanentAddressDistrict_id = req.body.permanentAddressDistrict_id;
-    address.permanentAddressDivision_id = req.body.permanentAddressDivision_id;
-    address.permanentAddressPostCode = req.body.permanentAddressPostCode;
+    // address.permanentAddressLine1 = req.body.permanentAddressLine1;
+    // address.permanentAddressLine2 = req.body.permanentAddressLine2;
+    // address.permanentAddressThana_id = req.body.permanentAddressThana_id;
+    // address.permanentAddressDistrict_id = req.body.permanentAddressDistrict_id;
+    // address.permanentAddressDivision_id = req.body.permanentAddressDivision_id;
+    // address.permanentAddressPostCode = req.body.permanentAddressPostCode;
 
-    address.currentAddressLine1 = req.body.currentAddressLine1;
-    address.currentAddressLine2 = req.body.currentAddressLine2;
-    address.currentAddressThana_id = req.body.currentAddressThana_id;
-    address.currentAddressDistrict_id = req.body.currentAddressDistrict_id;
-    address.currentAddressDivision_id = req.body.currentAddressDivision_id;
-    address.currentAddressPostCode = req.body.currentAddressPostCode;
+    // address.currentAddressLine1 = req.body.currentAddressLine1;
+    // address.currentAddressLine2 = req.body.currentAddressLine2;
+    // address.currentAddressThana_id = req.body.currentAddressThana_id;
+    // address.currentAddressDistrict_id = req.body.currentAddressDistrict_id;
+    // address.currentAddressDivision_id = req.body.currentAddressDivision_id;
+    // address.currentAddressPostCode = req.body.currentAddressPostCode;
 
-    address.isSameAsCurrent = req.body.isSameAsCurrent;
+    // address.isSameAsCurrent = req.body.isSameAsCurrent;
     address.createdBy = 1;
 
     address.save(function(err, addressData) {
@@ -520,23 +520,23 @@ function addAddressInfoDetails(req, res, done) {
 }
 
 function updateAddressInfoDetails(req, res, done) {
-    let address = new AddressInfo();
+    let address = new AddressInfo(emp.body);
     address.emp_id = req.body.emp_id || req.query.emp_id;
 
-    address.permanentAddressLine1 = req.body.permanentAddressLine1;
-    address.permanentAddressLine2 = req.body.permanentAddressLine2;
-    address.permanentAddressThana_id = req.body.permanentAddressThana_id;
-    address.permanentAddressDistrict_id = req.body.permanentAddressDistrict_id;
-    address.permanentAddressDivision_id = req.body.permanentAddressDivision_id;
-    address.permanentAddressPostCode = req.body.permanentAddressPostCode;
+    // address.permanentAddressLine1 = req.body.permanentAddressLine1;
+    // address.permanentAddressLine2 = req.body.permanentAddressLine2;
+    // address.permanentAddressThana_id = req.body.permanentAddressThana_id;
+    // address.permanentAddressDistrict_id = req.body.permanentAddressDistrict_id;
+    // address.permanentAddressDivision_id = req.body.permanentAddressDivision_id;
+    // address.permanentAddressPostCode = req.body.permanentAddressPostCode;
 
-    address.currentAddressLine1 = req.body.currentAddressLine1;
-    address.currentAddressLine2 = req.body.currentAddressLine2;
-    address.currentAddressThana_id = req.body.currentAddressThana_id;
-    address.currentAddressDistrict_id = req.body.currentAddressDistrict_id;
-    address.currentAddressDivision_id = req.body.currentAddressDivision_id;
-    address.currentAddressPostCode = req.body.currentAddressPostCode;
-    address.isSameAsCurrent = req.body.isSameAsCurrent;
+    // address.currentAddressLine1 = req.body.currentAddressLine1;
+    // address.currentAddressLine2 = req.body.currentAddressLine2;
+    // address.currentAddressThana_id = req.body.currentAddressThana_id;
+    // address.currentAddressDistrict_id = req.body.currentAddressDistrict_id;
+    // address.currentAddressDivision_id = req.body.currentAddressDivision_id;
+    // address.currentAddressPostCode = req.body.currentAddressPostCode;
+    // address.isSameAsCurrent = req.body.isSameAsCurrent;
     address.updatedBy = 1;
 
     let _id = req.body._id;
@@ -574,14 +574,14 @@ function updateAddressInfoDetails(req, res, done) {
 }
 
 function addBankInfoDetails(req, res, done) {
-    let bank = new BankInfo();
+    let bank = new BankInfo(emp.body);
     bank.emp_id = req.body.emp_id || req.query.emp_id;
-    bank.bankName = req.body.bankName;
-    bank.accountName = req.body.accountName;
-    bank.accountNumber = req.body.accountNumber;
-    bank.currency = req.body.currency;
-    bank.modeOfPaymentType = req.body.modeOfPaymentType;
-    bank.isCompleted = true;
+    // bank.bankName = req.body.bankName;
+    // bank.accountName = req.body.accountName;
+    // bank.accountNumber = req.body.accountNumber;
+    // bank.currency = req.body.currency;
+    // bank.modeOfPaymentType = req.body.modeOfPaymentType;
+    // bank.isCompleted = true;
     bank.createdBy = 1;
 
     //bank.createdBy =req.headers[emp_id];
@@ -605,15 +605,15 @@ function addBankInfoDetails(req, res, done) {
 }
 
 function updateBankInfoDetails(req, res, done) {
-    let bank = new BankInfo();
+    let bank = new BankInfo(emp.body);
     bank.emp_id = req.body.emp_id || req.query.emp_id;
-    bank.bankName = req.body.bankName;
-    bank.accountName = req.body.accountName;
-    bank.accountNumber = req.body.accountNumber;
-    bank.currency = req.body.currency;
-    bank.modeOfPaymentType = req.body.modeOfPaymentType;
-    bank.emp_id = req.body.emp_id;
-    bank.isCompleted = true;
+    // bank.bankName = req.body.bankName;
+    // bank.accountName = req.body.accountName;
+    // bank.accountNumber = req.body.accountNumber;
+    // bank.currency = req.body.currency;
+    // bank.modeOfPaymentType = req.body.modeOfPaymentType;
+    // bank.emp_id = req.body.emp_id;
+    // bank.isCompleted = true;
     bank.updatedBy = 1;
 
     //bank.updatedBy =req.headers[emp_id];
@@ -652,25 +652,25 @@ function updateBankInfoDetails(req, res, done) {
 }
 
 function addSalaryInfoDetails(req, res, done) {
-    let salaryInfo = new SalaryInfo();
+    let salaryInfo = new SalaryInfo(emp.body);
     salaryInfo.emp_id = req.body.emp_id || req.query.emp_id;
-    salaryInfo.basic = req.body.basic;
-    salaryInfo.hra = req.body.hra;
-    salaryInfo.conveyanceAllowance = req.body.conveyanceAllowance;
-    salaryInfo.lfa = req.body.lfa;
-    salaryInfo.medicalAllowance = req.body.medicalAllowance;
-    salaryInfo.specialAllowance = req.body.specialAllowance;
-    salaryInfo.grossSalary = req.body.grossSalary;
-    salaryInfo.lunchAllowance = req.body.lunchAllowance;
-    salaryInfo.mobileAllowance = req.body.mobileAllowance;
-    salaryInfo.otherAllowance = req.body.otherAllowance;
-    salaryInfo.totalEarnings = req.body.totalEarnings;
-    salaryInfo.festivalAllowance = req.body.festivalAllowance;
-    salaryInfo.providentFundMembership = req.body.providentFundMembership;
-    salaryInfo.groupLifeInsurance = req.body.groupLifeInsurance;
-    salaryInfo.hospitalizationScheme = req.body.hospitalizationScheme;
-    salaryInfo.isHike = req.body.isHike;
-    salaryInfo.isCompleted = true;
+    // salaryInfo.basic = req.body.basic;
+    // salaryInfo.hra = req.body.hra;
+    // salaryInfo.conveyanceAllowance = req.body.conveyanceAllowance;
+    // salaryInfo.lfa = req.body.lfa;
+    // salaryInfo.medicalAllowance = req.body.medicalAllowance;
+    // salaryInfo.specialAllowance = req.body.specialAllowance;
+    // salaryInfo.grossSalary = req.body.grossSalary;
+    // salaryInfo.lunchAllowance = req.body.lunchAllowance;
+    // salaryInfo.mobileAllowance = req.body.mobileAllowance;
+    // salaryInfo.otherAllowance = req.body.otherAllowance;
+    // salaryInfo.totalEarnings = req.body.totalEarnings;
+    // salaryInfo.festivalAllowance = req.body.festivalAllowance;
+    // salaryInfo.providentFundMembership = req.body.providentFundMembership;
+    // salaryInfo.groupLifeInsurance = req.body.groupLifeInsurance;
+    // salaryInfo.hospitalizationScheme = req.body.hospitalizationScheme;
+    // salaryInfo.isHike = req.body.isHike;
+    // salaryInfo.isCompleted = true;
     salaryInfo.createdBy = 1;
 
     //salaryInfo.createdBy =req.headers[emp_id];
@@ -694,25 +694,25 @@ function addSalaryInfoDetails(req, res, done) {
 }
 
 function updateSalaryInfoDetails(req, res, done) {
-    let salaryInfo = new SalaryInfo();
+    let salaryInfo = new SalaryInfo(emp.body);
     salaryInfo.emp_id = req.body.emp_id || req.query.emp_id;
-    salaryInfo.basic = req.body.basic;
-    salaryInfo.hra = req.body.hra;
-    salaryInfo.conveyanceAllowance = req.body.conveyanceAllowance;
-    salaryInfo.lfa = req.body.lfa;
-    salaryInfo.medicalAllowance = req.body.medicalAllowance;
-    salaryInfo.specialAllowance = req.body.specialAllowance;
-    salaryInfo.grossSalary = req.body.grossSalary;
-    salaryInfo.lunchAllowance = req.body.lunchAllowance;
-    salaryInfo.mobileAllowance = req.body.mobileAllowance;
-    salaryInfo.otherAllowance = req.body.otherAllowance;
-    salaryInfo.totalEarnings = req.body.totalEarnings;
-    salaryInfo.festivalAllowance = req.body.festivalAllowance;
-    salaryInfo.providentFundMembership = req.body.providentFundMembership;
-    salaryInfo.groupLifeInsurance = req.body.groupLifeInsurance;
-    salaryInfo.hospitalizationScheme = req.body.hospitalizationScheme;
-    salaryInfo.isHike = req.body.isHike;
-    salaryInfo.isCompleted = true;
+    // salaryInfo.basic = req.body.basic;
+    // salaryInfo.hra = req.body.hra;
+    // salaryInfo.conveyanceAllowance = req.body.conveyanceAllowance;
+    // salaryInfo.lfa = req.body.lfa;
+    // salaryInfo.medicalAllowance = req.body.medicalAllowance;
+    // salaryInfo.specialAllowance = req.body.specialAllowance;
+    // salaryInfo.grossSalary = req.body.grossSalary;
+    // salaryInfo.lunchAllowance = req.body.lunchAllowance;
+    // salaryInfo.mobileAllowance = req.body.mobileAllowance;
+    // salaryInfo.otherAllowance = req.body.otherAllowance;
+    // salaryInfo.totalEarnings = req.body.totalEarnings;
+    // salaryInfo.festivalAllowance = req.body.festivalAllowance;
+    // salaryInfo.providentFundMembership = req.body.providentFundMembership;
+    // salaryInfo.groupLifeInsurance = req.body.groupLifeInsurance;
+    // salaryInfo.hospitalizationScheme = req.body.hospitalizationScheme;
+    // salaryInfo.isHike = req.body.isHike;
+    // salaryInfo.isCompleted = true;
     salaryInfo.updatedBy = 1;
 
     //salaryInfo.updatedBy =req.headers[emp_id];
@@ -751,20 +751,20 @@ function updateSalaryInfoDetails(req, res, done) {
 
 
 function addCarInfoDetails(req, res, done) {
-    let carInfo = new CarInfo();
+    let carInfo = new CarInfo(emp.body);
     carInfo.emp_id = req.body.emp_id || req.query.emp_id;
-    carInfo.companyRegistrationNumber = req.body.companyRegistrationNumber;
-    carInfo.companyEffectiveDate = req.body.companyEffectiveDate;
-    carInfo.companyExpiryDate = req.body.companyExpiryDate;
-    carInfo.companyFuelAllowance = req.body.companyFuelAllowance;
-    carInfo.companyMaintenanceAllowance = req.body.companyMaintenanceAllowance;
-    carInfo.companyDriverAllowance = req.body.companyDriverAllowance;
-    carInfo.companyGrossPay = req.body.companyGrossPay;
-    carInfo.privateRegistrationNumber = req.body.privateRegistrationNumber;
-    carInfo.privateEffectiveDate = req.body.privateEffectiveDate;
-    carInfo.privateExpiryDate = req.body.privateExpiryDate;
-    carInfo.privateCarUsageAllowance = req.body.privateCarUsageAllowance;
-    carInfo.isCompleted = true;
+    // carInfo.companyRegistrationNumber = req.body.companyRegistrationNumber;
+    // carInfo.companyEffectiveDate = req.body.companyEffectiveDate;
+    // carInfo.companyExpiryDate = req.body.companyExpiryDate;
+    // carInfo.companyFuelAllowance = req.body.companyFuelAllowance;
+    // carInfo.companyMaintenanceAllowance = req.body.companyMaintenanceAllowance;
+    // carInfo.companyDriverAllowance = req.body.companyDriverAllowance;
+    // carInfo.companyGrossPay = req.body.companyGrossPay;
+    // carInfo.privateRegistrationNumber = req.body.privateRegistrationNumber;
+    // carInfo.privateEffectiveDate = req.body.privateEffectiveDate;
+    // carInfo.privateExpiryDate = req.body.privateExpiryDate;
+    // carInfo.privateCarUsageAllowance = req.body.privateCarUsageAllowance;
+    // carInfo.isCompleted = true;
     carInfo.createdBy = 1;
 
     //carInfo.createdBy =req.headers[emp_id];
@@ -788,20 +788,20 @@ function addCarInfoDetails(req, res, done) {
 }
 
 function updateCarInfoDetails(req, res, done) {
-    let carInfo = new CarInfo();
+    let carInfo = new CarInfo(emp.body);
     carInfo.emp_id = req.body.emp_id || req.query.emp_id;
-    carInfo.companyRegistrationNumber = req.body.companyRegistrationNumber;
-    carInfo.companyEffectiveDate = req.body.companyEffectiveDate;
-    carInfo.companyExpiryDate = req.body.companyExpiryDate;
-    carInfo.companyFuelAllowance = req.body.companyFuelAllowance;
-    carInfo.companyMaintenanceAllowance = req.body.companyMaintenanceAllowance;
-    carInfo.companyDriverAllowance = req.body.companyDriverAllowance;
-    carInfo.companyGrossPay = req.body.companyGrossPay;
-    carInfo.privateRegistrationNumber = req.body.privateRegistrationNumber;
-    carInfo.privateEffectiveDate = req.body.privateEffectiveDate;
-    carInfo.privateExpiryDate = req.body.privateExpiryDate;
-    carInfo.privateCarUsageAllowance = req.body.privateCarUsageAllowance;
-    carInfo.isCompleted = true;
+    // carInfo.companyRegistrationNumber = req.body.companyRegistrationNumber;
+    // carInfo.companyEffectiveDate = req.body.companyEffectiveDate;
+    // carInfo.companyExpiryDate = req.body.companyExpiryDate;
+    // carInfo.companyFuelAllowance = req.body.companyFuelAllowance;
+    // carInfo.companyMaintenanceAllowance = req.body.companyMaintenanceAllowance;
+    // carInfo.companyDriverAllowance = req.body.companyDriverAllowance;
+    // carInfo.companyGrossPay = req.body.companyGrossPay;
+    // carInfo.privateRegistrationNumber = req.body.privateRegistrationNumber;
+    // carInfo.privateEffectiveDate = req.body.privateEffectiveDate;
+    // carInfo.privateExpiryDate = req.body.privateExpiryDate;
+    // carInfo.privateCarUsageAllowance = req.body.privateCarUsageAllowance;
+    // carInfo.isCompleted = true;
     carInfo.updatedBy = 1;
 
     //carInfo.updatedBy =req.headers[emp_id];
@@ -840,14 +840,14 @@ function updateCarInfoDetails(req, res, done) {
 
 
 function addCertificationInfoDetails(req, res, done) {
-    let certificationInfo = new CertificationInfo();
+    let certificationInfo = new CertificationInfo(emp.body);
     certificationInfo.emp_id = req.body.emp_id || req.query.emp_id;
-    certificationInfo.certificationTitle = req.body.certificationTitle;
-    certificationInfo.location = req.body.location;
-    certificationInfo.institution = req.body.institution;
-    certificationInfo.duration = req.body.duration;
-    certificationInfo.topicsCovered = req.body.topicsCovered;
-    certificationInfo.isCompleted = true;
+    // certificationInfo.certificationTitle = req.body.certificationTitle;
+    // certificationInfo.location = req.body.location;
+    // certificationInfo.institution = req.body.institution;
+    // certificationInfo.duration = req.body.duration;
+    // certificationInfo.topicsCovered = req.body.topicsCovered;
+    // certificationInfo.isCompleted = true;
     certificationInfo.createdBy = 1;
 
     //certificationInfo.createdBy =req.headers[emp_id];
@@ -873,14 +873,14 @@ function addCertificationInfoDetails(req, res, done) {
 }
 
 function updateCertificationInfoDetails(req, res, done) {
-    let certificationInfo = new CertificationInfo();
+    let certificationInfo = new CertificationInfo(emp.body);
     certificationInfo.emp_id = req.body.emp_id || req.query.emp_id;
-    certificationInfo.certificationTitle = req.body.certificationTitle;
-    certificationInfo.location = req.body.location;
-    certificationInfo.institution = req.body.institution;
-    certificationInfo.duration = req.body.duration;
-    certificationInfo.topicsCovered = req.body.topicsCovered;
-    certificationInfo.isCompleted = true;
+    // certificationInfo.certificationTitle = req.body.certificationTitle;
+    // certificationInfo.location = req.body.location;
+    // certificationInfo.institution = req.body.institution;
+    // certificationInfo.duration = req.body.duration;
+    // certificationInfo.topicsCovered = req.body.topicsCovered;
+    // certificationInfo.isCompleted = true;
     certificationInfo.updatedBy = 1;
 
     //certificationInfo.updatedBy =req.headers[emp_id];
@@ -1023,21 +1023,22 @@ function sendWelComeEmail(emp, toemail) {
 
 function addOfficeInfoDetails(req, res, done) {
 
-    let officeEmpDetails = new OfficeInfo();
+    let officeEmpDetails = new OfficeInfo(emp.body);
     officeEmpDetails.emp_id = req.body.emp_id;
-    officeEmpDetails.employmentStatus_id = req.body.employmentStatus_id;
-    officeEmpDetails.managementType_id = req.body.managementType_id;
-    officeEmpDetails.jobTitle = req.body.jobTitle;
-    officeEmpDetails.idCardNumber = req.body.idCardNumber;
+    // officeEmpDetails.employmentStatus_id = req.body.employmentStatus_id;
+    // officeEmpDetails.managementType_id = req.body.managementType_id;
+    // officeEmpDetails.jobTitle = req.body.jobTitle;
+    // officeEmpDetails.idCardNumber = req.body.idCardNumber;
 
-    //officeEmpDetails.designation = req.body.designation;
-    officeEmpDetails.division_id = req.body.division_id;
-    officeEmpDetails.department_id = req.body.department_id;
-    officeEmpDetails.vertical_id = req.body.vertical_id;
-    officeEmpDetails.subVertical_id = req.body.subVertical_id;
-    officeEmpDetails.hrspoc_id = req.body.hrspoc_id;
-    officeEmpDetails.businessHrHead_id = req.body.businessHrHead_id;
-    officeEmpDetails.groupHrHead_id = req.body.groupHrHead_id;
+    // //officeEmpDetails.designation = req.body.designation;
+    // officeEmpDetails.division_id = req.body.division_id;
+    // officeEmpDetails.department_id = req.body.department_id;
+    // officeEmpDetails.vertical_id = req.body.vertical_id;
+    // officeEmpDetails.subVertical_id = req.body.subVertical_id;
+    // officeEmpDetails.hrspoc_id = req.body.hrspoc_id;
+    // officeEmpDetails.businessHrHead_id = req.body.businessHrHead_id;
+    // officeEmpDetails.groupHrHead_id = req.body.groupHrHead_id;
+    officeEmpDetails.createdBy = 1;
 
     officeEmpDetails.save(function(err, officeDetailsData) {
         if (officeDetailsData) {
@@ -1057,21 +1058,21 @@ function addOfficeInfoDetails(req, res, done) {
 }
 
 function updateofficeInfoDetails(req, res, done) {
-    let officeEmpDetails = new OfficeInfo();
+    let officeEmpDetails = new OfficeInfo(emp.body);
     officeEmpDetails.emp_id = req.body.emp_id;
-    officeEmpDetails.employmentStatus_id = req.body.employmentStatus_id;
-    officeEmpDetails.managementType_id = req.body.managementType_id;
-    officeEmpDetails.jobTitle = req.body.jobTitle;
-    officeEmpDetails.idCardNumber = req.body.idCardNumber;
-    //officeEmpDetails.designation = req.body.designation;
-    officeEmpDetails.division_id = req.body.division_id;
-    officeEmpDetails.department_id = req.body.department_id;
-    officeEmpDetails.vertical_id = req.body.vertical_id;
-    officeEmpDetails.subVertical_id = req.body.subVertical_id;
-    officeEmpDetails.hrspoc_id = req.body.hrspoc_id;
-    officeEmpDetails.businessHrHead_id = req.body.businessHrHead_id;
-    officeEmpDetails.groupHrHead_id = req.body.groupHrHead_id;
-    officeEmpDetails.createdBy = 1;
+    // officeEmpDetails.employmentStatus_id = req.body.employmentStatus_id;
+    // officeEmpDetails.managementType_id = req.body.managementType_id;
+    // officeEmpDetails.jobTitle = req.body.jobTitle;
+    // officeEmpDetails.idCardNumber = req.body.idCardNumber;
+    // //officeEmpDetails.designation = req.body.designation;
+    // officeEmpDetails.division_id = req.body.division_id;
+    // officeEmpDetails.department_id = req.body.department_id;
+    // officeEmpDetails.vertical_id = req.body.vertical_id;
+    // officeEmpDetails.subVertical_id = req.body.subVertical_id;
+    // officeEmpDetails.hrspoc_id = req.body.hrspoc_id;
+    // officeEmpDetails.businessHrHead_id = req.body.businessHrHead_id;
+    // officeEmpDetails.groupHrHead_id = req.body.groupHrHead_id;
+    officeEmpDetails.updatedBy = 1;
 
     let _id = req.body._id;
     var query = {
