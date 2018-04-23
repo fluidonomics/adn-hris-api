@@ -1366,14 +1366,15 @@ function getCarInfoDetails(req,res)
     createdBy: false,
   };
   CarInfo.findOne(query,carInfoProjection, function (err, carDetailsData) {
-       if (carDetailsData) {
-        return res.status(200).json(carDetailsData);
+      if(err)
+      {
+        return res.status(403).json({
+          title: 'There was an error, please try again later',
+          error: err,
+          result: {message: carDetailsData}
+        });
       }
-      return res.status(403).json({
-        title: 'There was an error, please try again later',
-        error: err,
-        result: {message: carDetailsData}
-      });
+      return res.status(200).json(carDetailsData);
     });
 }
 
