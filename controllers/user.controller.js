@@ -282,6 +282,26 @@ function updateAcademicInfoDetails(req,res,done)
  });
 }
 
+function deleteAcademicInfoDetails(req,res,done)
+{
+  let _id=req.body._id || req.query._id;
+  let emp_id = req.body.emp_id  || req.query.emp_id;
+  let success = "Entry has been Deleted";
+  var query = {_id:_id};
+  AcademicInfo.deleteOne(query,function(err, academicInfoData) {
+    if(academicInfoData){
+      auditTrailEntry(_id,"academic info",academicInfoData,"user","academic Info","DELETED");
+      return done(err, success);
+    }
+    else{
+      return res.status(403).json({
+        title: 'There was a problem',
+        error: {message: err},
+        result: {message: academicInfoData}
+      });
+    }
+  });
+}
 function addDocumentsDetails(req,res,done)
 {
   let documents = new Documents();
@@ -1590,6 +1610,18 @@ let functions = {
        {
          return res.status(200).json(academicInfoData);
        }
+    ]);
+  },
+  deleteAcademicInfo:(req,res)=>
+  {
+    async.waterfall([
+      function(done){
+        deleteAcademicInfoDetails(req,res,done);
+      },
+      function(academicInfoData,done)
+      {
+        return res.status(200).json(academicInfoData);
+      }
     ]);
   },
 

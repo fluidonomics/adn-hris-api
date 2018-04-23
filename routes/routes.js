@@ -127,6 +127,9 @@ let express  = require('express'),
   // Add Employee endpoint: http://localhost:3000/api/user/updateAcademicInfo
   userRoutes.post('/updateAcademicInfo', user.updateAcademicInfo);
 
+    // Academic Info Endpoint: http://localhost:3000/api/user/deleteAcademicInfo
+    userRoutes.post('/deleteAcademicInfo', user.deleteAcademicInfo);
+
   // Get Employee Address endpoint: http://localhost:3000/api/user/getAddressDetails
   userRoutes.get('/getAddressDetails',user.getAddressDetails);
 
