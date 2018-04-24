@@ -15,6 +15,7 @@ let express           = require('express'),
     SalaryInfo        = require('../models/employee/employeeSalaryDetails.model'),
     CarInfo           = require('../models/employee/employeeCarDetails.model'),
     DocumentsInfo     = require('../models/employee/employeeDocumentDetails.model'),
+    PerformanceRatingInfo = require('../models/employee/employeePerformanceRatingDetails.model'),
     config            = require('../config/config'),
     fs                = require('fs'),
     fse               = require('fs-extra'),
@@ -330,17 +331,6 @@ function deleteAcademicInfoDetails(req, res, done) {
 function addPreviousEmploymentInfoDetails(req, res, done) {
     let previousEmploymentInfo = new PreviousEmploymentInfo(req.body);
     previousEmploymentInfo.emp_id = req.body.emp_id || req.query.emp_id;
-    // previousEmploymentInfo.levelOfEducation = req.body.levelOfEducation;
-    // previousEmploymentInfo.examDegreeTitle = req.body.examDegreeTitle;
-    // previousEmploymentInfo.concentration = req.body.concentration;
-    // previousEmploymentInfo.instituteName = req.body.instituteName;
-    // previousEmploymentInfo.marks = req.body.marks;
-    // previousEmploymentInfo.result = req.body.result;
-    // previousEmploymentInfo.cgpa = req.body.cgpa;
-    // previousEmploymentInfo.scale = req.body.scale;
-    // previousEmploymentInfo.yearOfPassing = req.body.yearOfPassing;
-    // previousEmploymentInfo.duration = req.body.duration;
-    // previousEmploymentInfo.achievements = req.body.achievements;
     previousEmploymentInfo.isCompleted = true;
     previousEmploymentInfo.createdBy = 1;
 
@@ -366,18 +356,7 @@ function addPreviousEmploymentInfoDetails(req, res, done) {
 function updatePreviousEmploymentInfoDetails(req, res, done) {
     let previousEmploymentInfo = new PreviousEmploymentInfo(req.body);
     previousEmploymentInfo.emp_id = req.body.emp_id || req.query.emp_id;
-    // previousEmploymentInfo.levelOfEducation = req.body.levelOfEducation;
-    // previousEmploymentInfo.examDegreeTitle = req.body.examDegreeTitle;
-    // previousEmploymentInfo.concentration = req.body.concentration;
-    // previousEmploymentInfo.instituteName = req.body.instituteName;
-    // previousEmploymentInfo.marks = req.body.marks;
-    // previousEmploymentInfo.result = req.body.result;
-    // previousEmploymentInfo.cgpa = req.body.cgpa;
-    // previousEmploymentInfo.scale = req.body.scale;
-    // previousEmploymentInfo.yearOfPassing = req.body.yearOfPassing;
-    // previousEmploymentInfo.duration = req.body.duration;
-    // previousEmploymentInfo.achievements = req.body.achievements;
-    // previousEmploymentInfo.isCompleted = true;
+    previousEmploymentInfo.isCompleted = true;
     previousEmploymentInfo.updatedBy = 1;
 
     //previousEmploymentInfo.updatedBy =req.headers[emp_id];
@@ -1088,6 +1067,76 @@ function deleteCertificationInfoDetails(req, res, done) {
     });
 }
 
+
+function addPerformanceRatingInfoDetails(req, res, done) {
+    let performanceRatingInfo = new PerformanceRatingInfo(req.body);
+    performanceRatingInfo.emp_id = req.body.emp_id || req.query.emp_id;
+
+    performanceRatingInfo.isCompleted = true;
+    performanceRatingInfo.createdBy = 1;
+
+    //performanceRatingInfo.createdBy =req.headers[emp_id];
+
+    performanceRatingInfo.save(function(err, performanceRatingInfoData) {
+        if (err) {
+            return res.status(403).json({
+                title: 'There was a problem',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: performanceRatingInfoData
+                }
+            });
+        }           
+        auditTrailEntry(performanceRatingInfo.emp_id, "performanceRatingInfo", performanceRatingInfo, "user", "performanceRatingInfo", "ADDED");
+        return done(err, performanceRatingInfoData);
+    });
+}
+
+function updatePerformanceRatingInfoDetails(req, res, done) {
+    let performanceRatingInfo = new PerformanceRatingInfo(req.body);
+    performanceRatingInfo.emp_id = req.body.emp_id || req.query.emp_id;
+
+    performanceRatingInfo.isCompleted = true;
+    performanceRatingInfo.updatedBy = 1;
+
+    //performanceRatingInfo.updatedBy =req.headers[emp_id];
+    let _id = req.body._id;
+    var query = {
+        _id: _id,
+        isDeleted: false
+    }
+
+    var performanceRatingInfoProjection = {
+        createdAt: false,
+        updatedAt: false,
+        isDeleted: false,
+        updatedBy: false,
+        createdBy: false,
+    };
+
+    PerformanceRatingInfo.findOneAndUpdate(query, performanceRatingInfo, {
+        new: true,
+        projection: performanceRatingInfoProjection
+    }, function(err, performanceRatingInfoData) {
+        if (err) {
+            return res.status(403).json({
+                title: 'There was a problem',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: performanceRatingInfoData
+                }
+            });
+        } 
+        auditTrailEntry(performanceRatingInfo.emp_id, "performanceRatingInfo", performanceRatingInfo, "user", "performanceRatingInfo", "UPDATED");
+        return done(err, performanceRatingInfoData);        
+    });
+}
+
+
 let notificationFlag = 0;
 
 function sendNotifications(emp, title, message, senderEmp_id, recipientEmp_id, type_id, linkUrl) {
@@ -1614,7 +1663,7 @@ function getPositionInfoDetails(req, res) {
 
 }
 
-function getPerformanceDairyInfoDetails(req, res) {
+function getPerformanceRatingInfoDetails(req, res) {
     let emp_id = req.query.emp_id;
     let query = {
         isDeleted: false
@@ -1625,22 +1674,22 @@ function getPerformanceDairyInfoDetails(req, res) {
             isDeleted: false
         };
     }
-    var performanceDairyProjection = {
+    var performanceRatingProjection = {
         createdAt: false,
         updatedAt: false,
         isDeleted: false,
         updatedBy: false,
         createdBy: false,
     };
-    PerformanceDairyInfo.find(query, function(err, performanceDairyProjection) {
-        if (performanceDairyProjection) {
-            return res.status(200).json(performanceDairyProjection);
+    PerformanceRatingInfo.find(query, function(err, performanceRatingProjection) {
+        if (performanceRatingProjection) {
+            return res.status(200).json(performanceRatingProjection);
         }
         return res.status(403).json({
             title: 'There was an error, please try again later',
             error: err,
             result: {
-                message: performanceDairyProjection
+                message: performanceRatingProjection
             }
         });
     });
@@ -1828,7 +1877,7 @@ let functions = {
                     getFamilyInfo(req, res);
                     break;
                 case "office":
-                    getOfficeInfoAndJoiningDetailsAndPositionDetailsAndPerformanceDairy(req, res);
+                    getOfficeInfoAndJoiningDetailsAndPositionDetailsAndPerformanceRating(req, res);
                     break;
                 case "payroll":
                     getBankDetailsAndSalaryDetailsAndOtherBanefitDetailsAndCompanyCarAndPersonalCarDetails(req, res);
@@ -1879,8 +1928,8 @@ let functions = {
     getPositionInfo: (req, res) => {
         getPositionInfoDetails(req, res)
     },
-    getPerformanceDairyInfo: (req, res) => {
-        getPerformanceDairyInfoDetails(req, res);
+    getPerformanceRatingInfo: (req, res) => {
+        getPerformanceRatingInfoDetails(req, res);
     },
     getBankInfo: (req, res) => {
         getBankInfoDetails(req, res);
@@ -2156,6 +2205,28 @@ let functions = {
             },
             function(certificationInfoData, done) {
                 return res.status(200).json(certificationInfoData);
+            }
+        ]);
+    },
+
+    addPerformanceRatingInfo: (req, res) => {
+        async.waterfall([
+            function(done) {
+                addPerformanceRatingInfoDetails(req, res, done);
+            },
+            function(performanceRatingInfoData, done) {
+                return res.status(200).json(performanceRatingInfoData);
+            }
+        ]);
+    },
+
+    updatePerformanceRatingInfo: (req, res) => {
+        async.waterfall([
+            function(done) {
+                updatePerformanceRatingInfoDetails(req, res, done);
+            },
+            function(performanceRatingInfoData, done) {
+                return res.status(200).json(performanceRatingInfoData);
             }
         ]);
     },

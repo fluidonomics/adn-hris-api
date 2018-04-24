@@ -187,6 +187,12 @@ let express  = require('express'),
   // Add Employee endpoint: http://localhost:3000/api/user/deleteCertificationInfo
   userRoutes.delete('/deleteCertificationInfo', user.deleteCertificationInfo);
 
+  // Add Employee endpoint: http://localhost:3000/api/user/addPerformanceRatingInfo
+  userRoutes.post('/addPerformanceRatingInfo', user.addPerformanceRatingInfo);
+
+  // Add Employee endpoint: http://localhost:3000/api/user/updatePerformanceRatingInfo
+  userRoutes.post('/updatePerformanceRatingInfo', user.updatePerformanceRatingInfo);
+
   // Get All Employee
   //userRoutes.get('/getEmployeeInfo', user.getEmployeeInfo);
 
@@ -213,7 +219,7 @@ let express  = require('express'),
   //userRoutes.get('/getJoiningDetails',user.getJoiningDetails);
 
 
-   userRoutes.get('/getPerformanceDairyInfo',user.getPerformanceDairyInfo);
+   userRoutes.get('/getPerformanceRatingInfo',user.getPerformanceRatingInfo);
 
    userRoutes.get('/getBankInfo',user.getBankInfo);
 
