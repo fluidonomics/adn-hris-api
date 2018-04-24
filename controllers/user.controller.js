@@ -1305,7 +1305,7 @@ function getCertificationInfoDetails(req, res, done) {
     });
 }
 
-function getPreviousEmployementInfo(req, res) {
+function getPreviousEmployementInfoDetails(req, res) {
     let emp_id = req.query.emp_id;
     let query = {
         isDeleted: false
@@ -1324,16 +1324,16 @@ function getPreviousEmployementInfo(req, res) {
         createdBy: false,
     };
     PreviousEmployementInfo.find(query, previousEmployementInfoProjection, function(err, previousEmployementData) {
-        if (previousEmployementData) {
-            return res.status(200).json(previousEmployementData);
+        if (err) {
+            return res.status(403).json({
+                title: 'There was an error, please try again later',
+                error: err,
+                result: {
+                    message: previousEmployementData
+                }
+            });
         }
-        return res.status(403).json({
-            title: 'There was an error, please try again later',
-            error: err,
-            result: {
-                message: previousEmployementData
-            }
-        });
+        return res.status(200).json({"data":previousEmployementData});
     });
 }
 
@@ -1357,16 +1357,16 @@ function getFamilyInfoDetails(req, res) {
         createdBy: false,
     };
     FamilyInfo.find(query, familyInfoProjection, function(err, familyInfoData) {
-        if (familyInfoData) {
-            return res.status(200).json(familyInfoData);
+        if (err) {
+            return res.status(403).json({
+                title: 'There was an error, please try again later',
+                error: err,
+                result: {
+                    message: documentsData
+                }
+            });
         }
-        return res.status(403).json({
-            title: 'There was an error, please try again later',
-            error: err,
-            result: {
-                message: documentsData
-            }
-        });
+        return res.status(200).json({"data":familyInfoData});
     });
 }
 
@@ -1493,16 +1493,17 @@ function getBankInfoDetails(req, res) {
         createdBy: false,
     };
     BankInfo.findOne(query, bankDetailsProjection, function(err, bankDetailsData) {
-        if (bankDetailsData) {
-            return res.status(200).json(bankDetailsData);
+        if (err) {
+            return res.status(403).json({
+                title: 'There was an error, please try again later',
+                error: err,
+                result: {
+                    message: bankDetailsData
+                }
+            });
         }
-        return res.status(403).json({
-            title: 'There was an error, please try again later',
-            error: err,
-            result: {
-                message: bankDetailsData
-            }
-        });
+        return res.status(200).json(bankDetailsData);
+     
     });
 }
 
@@ -1525,16 +1526,16 @@ function getSalaryInfoDetails(req, res) {
         createdBy: false,
     };
     SalaryInfo.findOne(query, salaryDetailsProjection, function(err, salaryDetailsData) {
-        if (salaryDetailsData) {
-            return res.status(200).json(salaryDetailsData);
+        if (err) {
+            return res.status(403).json({
+                title: 'There was an error, please try again later',
+                error: err,
+                result: {
+                    message: salaryDetailsData
+                }
+            });
         }
-        return res.status(403).json({
-            title: 'There was an error, please try again later',
-            error: err,
-            result: {
-                message: salaryDetailsData
-            }
-        });
+        return res.status(200).json(salaryDetailsData);
     });
 }
 

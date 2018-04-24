@@ -128,7 +128,7 @@ let express  = require('express'),
   userRoutes.post('/updateAcademicInfo', user.updateAcademicInfo);
 
     // Academic Info Endpoint: http://localhost:3000/api/user/deleteAcademicInfo
-    userRoutes.post('/deleteAcademicInfo', user.deleteAcademicInfo);
+    userRoutes.delete('/deleteAcademicInfo', user.deleteAcademicInfo);
 
 
   // Add Employee Address endpoint: http://localhost:3000/api/user/addAddressInfo
