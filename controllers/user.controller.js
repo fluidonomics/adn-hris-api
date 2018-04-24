@@ -1477,7 +1477,7 @@ function getCertificationInfoDetails(req, res, done) {
     });
 }
 
-function getPreviousEmployementInfoDetails(req, res) {
+function getPreviousEmploymentInfoDetails(req, res) {
     let emp_id = req.query.emp_id;
     let query = {
         isDeleted: false
@@ -1485,27 +1485,27 @@ function getPreviousEmployementInfoDetails(req, res) {
     if (emp_id) {
         query = {
             emp_id: emp_id,
-            isDeleted: true
+            isDeleted: false
         };
     }
-    var previousEmployementInfoProjection = {
+    var previousEmploymentInfoProjection = {
         createdAt: false,
         updatedAt: false,
         isDeleted: false,
         updatedBy: false,
         createdBy: false,
     };
-    PreviousEmployementInfo.find(query, previousEmployementInfoProjection, function(err, previousEmployementData) {
+    PreviousEmploymentInfo.find(query, previousEmploymentInfoProjection, function(err, previousEmploymentData) {
         if (err) {
             return res.status(403).json({
                 title: 'There was an error, please try again later',
                 error: err,
                 result: {
-                    message: previousEmployementData
+                    message: previousEmploymentData
                 }
             });
         }
-        return res.status(200).json({"data":previousEmployementData});
+        return res.status(200).json({"data":previousEmploymentData});
     });
 }
 
@@ -1821,8 +1821,8 @@ let functions = {
                 case "education":
                     getAcademicInfoAndCertificationsAndTraniningInfo(req, res);
                     break;
-                case "employement":
-                    getPreviousEmployement(req, res);
+                case "employment":
+                    getPreviousEmployment(req, res);
                     break;
                 case "family":
                     getFamilyInfo(req, res);
@@ -1864,8 +1864,8 @@ let functions = {
             }
         ]);
     },
-    getPreviousEmployementInfo: (req, res) => {
-        getPreviousEmployementInfoDetails(req, res);
+    getPreviousEmploymentInfo: (req, res) => {
+        getPreviousEmploymentInfoDetails(req, res);
     },
     getFamilyInfo: (req, res) => {
         getFamilyInfoDetails(req, res);

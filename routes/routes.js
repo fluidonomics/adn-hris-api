@@ -204,7 +204,7 @@ let express  = require('express'),
 
   userRoutes.get('/getCertificationInfo',user.getCertificationInfo);
 
-  userRoutes.get('/getPreviousEmployementInfo',user.getPreviousEmployementInfo);
+  userRoutes.get('/getPreviousEmploymentInfo',user.getPreviousEmploymentInfo);
   
   userRoutes.get('/getFamilyInfo',user.getFamilyInfo);
 
