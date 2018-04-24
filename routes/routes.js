@@ -307,8 +307,8 @@ let express  = require('express'),
    // Register endpoint: http://localhost:3000/api/master/createEmploymentStatus
    masterRoutes.post('/createEmploymentStatus', master.createEmploymentStatus);
 
-   // Register endpoint: http://localhost:3000/api/master/createLevelOfEducation
-   masterRoutes.post('/createLevelOfEducation', master.createLevelOfEducation);
+   // Register endpoint: http://localhost:3000/api/master/createEducation
+   masterRoutes.post('/createEducation', master.createEducation);
 
    // Register endpoint: http://localhost:3000/api/master/createRelation
    masterRoutes.post('/createRelation', master.createRelation);
@@ -361,7 +361,7 @@ let express  = require('express'),
 
     commonRoutes.get('/checkEmailUnique', common.checkEmailUnique);
 
-    commonRoutes.get('/getLevelOfEducation', common.getLevelOfEducation);
+    commonRoutes.get('/getEducation', common.getEducation);
 
     commonRoutes.get('/getPerformanceRating', common.getPerformanceRating);
 

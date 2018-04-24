@@ -4,11 +4,11 @@ let mongoose                = require('mongoose'),
     bcrypt                  = require('bcrypt');
     autoIncrement           = require('mongoose-sequence')(mongoose);
 
-      let LevelOfEducationSchema = new Schema(
+      let EducationSchema = new Schema(
       {
          _id:{type:Number},
          parent_id: {type:Number, default:null},
-         levelOfEducationName: {type: String,required:true},
+         educationName: {type: String,required:true},
          updatedBy: {type: Number, default:null},
          createdBy: {type: Number, required: true},
       },
@@ -18,9 +18,9 @@ let mongoose                = require('mongoose'),
         _id:false
       });
 
-      LevelOfEducationSchema.plugin(mongooseUniqueValidator);
+      EducationSchema.plugin(mongooseUniqueValidator);
 
-      // LevelOfEducationSchema.pre('findOneAndUpdate', function (next) {
+      // EducationSchema.pre('findOneAndUpdate', function (next) {
       //   this.setOptions({
       //     new: true,
       //     runValidators: true
@@ -32,21 +32,21 @@ let mongoose                = require('mongoose'),
       // });
 
       //Perform actions before saving the role
-      LevelOfEducationSchema.pre('save', function (next) {
+      EducationSchema.pre('save', function (next) {
         var _this=this;
         if (_this.isNew) {
-        mongoose.model('levelOfEducation', LevelOfEducationSchema).count(function(err, c) {
+        mongoose.model('education', EducationSchema).count(function(err, c) {
           _this._id = c + 1;
           next();
         });
       }
       });
 
-      // LevelOfEducationSchema.post('findOneAndUpdate', function(result) {
+      // EducationSchema.post('findOneAndUpdate', function(result) {
       //   this.model.update({}, { 
       //       totalNumberOfComments: result.comments.length
       //   }).exec();
       // });
 
-     module.exports = mongoose.model('levelOfEducation',LevelOfEducationSchema);
+     module.exports = mongoose.model('education',EducationSchema);
 

@@ -14,7 +14,7 @@ let express           = require('express'),
     ManagementType    = require('../models/master/managementType.model'),
     EmploymentType    = require('../models/master/employmentType.model'),
     EmploymentStatus  = require('../models/master/employmentStatus.model'),
-    LevelOfEducation  = require('../models/master/levelOfEducation.model'),
+    Education         = require('../models/master/education.model'),
     Relation          = require('../models/master/relation.model'),
     PerformanceRating = require('../models/master/performanceRating.model'),
     jwt               = require('jsonwebtoken'),
@@ -367,26 +367,26 @@ let functions = {
       }
     });
   },
-  createLevelOfEducation: (req, res) => {
-    let levelOfEducation=new LevelOfEducation();
-    levelOfEducation.levelOfEducationName = req.body.levelOfEducationName;
+  createEducation: (req, res) => {
+    let education=new Education();
+    education.educationName = req.body.educationName;
    
     var parent_id=req.body.parent_id;
     if(parent_id){
-      levelOfEducation.parent_id = parent_id;
+      education.parent_id = parent_id;
     }
-     levelOfEducation.createdBy = req.body.createdBy;
-    //levelOfEducation.createdBy = req.headers[emp_id];
+     education.createdBy = req.body.createdBy;
+    //education.createdBy = req.headers[emp_id];
  
-    levelOfEducation.save(function (err, result) {
+    education.save(function (err, result) {
       if(result)
       {
-        return res.status(200).json({ status : '200',message: 'LevelOfEducation added Successfully',
+        return res.status(200).json({ status : '200',message: 'Education added Successfully',
         });
       }
       else{
         return res.status(403).json({
-          title: 'Add new LevelOfEducation failed!',
+          title: 'Add new Education failed!',
           error: {message: err},
           result: {message: result}
         });
