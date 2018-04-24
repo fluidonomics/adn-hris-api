@@ -9,7 +9,7 @@ let express           = require('express'),
     EmployeeRoles     = require('../models/employee/employeeRoleDetails.model'),
     AcademicInfo      = require('../models/employee/employeeAcademicDetails.model'),
     FamilyInfo        = require('../models/employee/employeeFamilyDetails.model'),
-    PreviousEmployementInfo = require('../models/employee/employeePreviousEmploymentDetails.model'),
+    PreviousEmploymentInfo = require('../models/employee/employeePreviousEmploymentDetails.model'),
     CertificationInfo = require('../models/employee/employeeCertificationDetails.model'),
     BankInfo          = require('../models/employee/employeeBankDetails.model'),
     SalaryInfo        = require('../models/employee/employeeSalaryDetails.model'),
@@ -139,10 +139,7 @@ function addPersonalInfoDetails(req, res, done) {
     //personalDetails.createdBy =req.headers[emp_id];
 
     personalDetails.save(function(err, personalInfoData) {
-        if (personalInfoData) {
-            auditTrailEntry(personalDetails.emp_id, "personalDetails", personalDetails, "user", "personalDetails", "ADDED");
-            return done(err, personalInfoData);
-        } else {
+        if (err) {
             return res.status(403).json({
                 title: 'There was a problem',
                 error: {
@@ -153,6 +150,8 @@ function addPersonalInfoDetails(req, res, done) {
                 }
             });
         }
+        auditTrailEntry(personalDetails.emp_id, "personalDetails", personalDetails, "user", "personalDetails", "ADDED");
+        return done(err, personalInfoData);   
     });
 }
 
@@ -193,9 +192,7 @@ function updatePersonalInfoDetails(req, res, done) {
         new: true,
         projection: personalInfoProjection
     }, function(err, personalDetailsData) {
-        if (personalDetailsData) {
-            return done(err, personalDetailsData);
-        } else {
+        if (err) {
             return res.status(403).json({
                 title: 'There was a problem',
                 error: {
@@ -204,8 +201,10 @@ function updatePersonalInfoDetails(req, res, done) {
                 result: {
                     message: personalDetailsData
                 }
-            });
+            });            
         }
+        auditTrailEntry(personalDetails.emp_id, "personalDetails", personalDetails, "user", "personalDetails", "UPDATED");
+        return done(err, personalDetailsData);
     });
 }
 
@@ -229,10 +228,7 @@ function addAcademicInfoDetails(req, res, done) {
     //academicInfo.createdBy =req.headers[emp_id];
 
     academicInfo.save(function(err, academicInfoData) {
-        if (academicInfoData) {
-            auditTrailEntry(academicInfo.emp_id, "academicInfo", academicInfo, "user", "academicInfo", "ADDED");
-            return done(err, academicInfoData);
-        } else {
+        if (err) {
             return res.status(403).json({
                 title: 'There was a problem',
                 error: {
@@ -242,7 +238,9 @@ function addAcademicInfoDetails(req, res, done) {
                     message: academicInfoData
                 }
             });
-        }
+        }           
+        auditTrailEntry(academicInfo.emp_id, "academicInfo", academicInfo, "user", "academicInfo", "ADDED");
+        return done(err, academicInfoData);
     });
 }
 
@@ -282,9 +280,7 @@ function updateAcademicInfoDetails(req, res, done) {
         new: true,
         projection: academicInfoProjection
     }, function(err, academicInfoData) {
-        if (academicInfoData) {
-            return done(err, academicInfoData);
-        } else {
+        if (err) {
             return res.status(403).json({
                 title: 'There was a problem',
                 error: {
@@ -294,21 +290,21 @@ function updateAcademicInfoDetails(req, res, done) {
                     message: academicInfoData
                 }
             });
-        }
+        } 
+        auditTrailEntry(academicInfo.emp_id, "academicInfo", academicInfo, "user", "academicInfo", "UPDATED");
+        return done(err, academicInfoData);        
     });
 }
 
 function deleteAcademicInfoDetails(req, res, done) {
     let _id = req.body._id || req.query._id;
+
     let success = "Entry has been Deleted";
     var query = {
         _id: _id
     };
     AcademicInfo.deleteOne(query, function(err, academicInfoData) {
-        if (academicInfoData) {
-            auditTrailEntry(_id, "academic info", academicInfoData, "user", "academic Info", "DELETED");
-            return done(err, success);
-        } else {
+        if (err) {            
             return res.status(403).json({
                 title: 'There was a problem',
                 error: {
@@ -318,9 +314,139 @@ function deleteAcademicInfoDetails(req, res, done) {
                     message: academicInfoData
                 }
             });
-        }
+        } 
+        academicInfoData._id = _id;
+        auditTrailEntry(1, "employeeacademicdetails", academicInfoData, "user", "deleteAcademicInfoDetails", "Deleted the Academic Info");
+        return done(err, success);        
     });
 }
+
+
+
+
+
+
+
+function addPreviousEmploymentInfoDetails(req, res, done) {
+    let previousEmploymentInfo = new PreviousEmploymentInfo(req.body);
+    previousEmploymentInfo.emp_id = req.body.emp_id || req.query.emp_id;
+    // previousEmploymentInfo.levelOfEducation = req.body.levelOfEducation;
+    // previousEmploymentInfo.examDegreeTitle = req.body.examDegreeTitle;
+    // previousEmploymentInfo.concentration = req.body.concentration;
+    // previousEmploymentInfo.instituteName = req.body.instituteName;
+    // previousEmploymentInfo.marks = req.body.marks;
+    // previousEmploymentInfo.result = req.body.result;
+    // previousEmploymentInfo.cgpa = req.body.cgpa;
+    // previousEmploymentInfo.scale = req.body.scale;
+    // previousEmploymentInfo.yearOfPassing = req.body.yearOfPassing;
+    // previousEmploymentInfo.duration = req.body.duration;
+    // previousEmploymentInfo.achievements = req.body.achievements;
+    previousEmploymentInfo.isCompleted = true;
+    previousEmploymentInfo.createdBy = 1;
+
+    //previousEmploymentInfo.createdBy =req.headers[emp_id];
+
+    previousEmploymentInfo.save(function(err, previousEmploymentInfoData) {
+        if (err) {
+            return res.status(403).json({
+                title: 'There was a problem',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: previousEmploymentInfoData
+                }
+            });
+        }           
+        auditTrailEntry(previousEmploymentInfo.emp_id, "previousEmploymentInfo", previousEmploymentInfo, "user", "previousEmploymentInfo", "ADDED");
+        return done(err, previousEmploymentInfoData);
+    });
+}
+
+function updatePreviousEmploymentInfoDetails(req, res, done) {
+    let previousEmploymentInfo = new PreviousEmploymentInfo(req.body);
+    previousEmploymentInfo.emp_id = req.body.emp_id || req.query.emp_id;
+    // previousEmploymentInfo.levelOfEducation = req.body.levelOfEducation;
+    // previousEmploymentInfo.examDegreeTitle = req.body.examDegreeTitle;
+    // previousEmploymentInfo.concentration = req.body.concentration;
+    // previousEmploymentInfo.instituteName = req.body.instituteName;
+    // previousEmploymentInfo.marks = req.body.marks;
+    // previousEmploymentInfo.result = req.body.result;
+    // previousEmploymentInfo.cgpa = req.body.cgpa;
+    // previousEmploymentInfo.scale = req.body.scale;
+    // previousEmploymentInfo.yearOfPassing = req.body.yearOfPassing;
+    // previousEmploymentInfo.duration = req.body.duration;
+    // previousEmploymentInfo.achievements = req.body.achievements;
+    // previousEmploymentInfo.isCompleted = true;
+    previousEmploymentInfo.updatedBy = 1;
+
+    //previousEmploymentInfo.updatedBy =req.headers[emp_id];
+    let _id = req.body._id;
+    var query = {
+        _id: _id,
+        isDeleted: false
+    }
+
+    var previousEmploymentInfoProjection = {
+        createdAt: false,
+        updatedAt: false,
+        isDeleted: false,
+        updatedBy: false,
+        createdBy: false,
+    };
+
+    PreviousEmploymentInfo.findOneAndUpdate(query, previousEmploymentInfo, {
+        new: true,
+        projection: previousEmploymentInfoProjection
+    }, function(err, previousEmploymentInfoData) {
+        if (err) {
+            return res.status(403).json({
+                title: 'There was a problem',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: previousEmploymentInfoData
+                }
+            });
+        }          
+        auditTrailEntry(previousEmploymentInfo.emp_id, "previousEmploymentInfo", previousEmploymentInfo, "user", "previousEmploymentInfo", "UPDATED");
+        return done(err, previousEmploymentInfoData);
+    });
+}
+
+function deletePreviousEmploymentInfoDetails(req, res, done) {
+    let _id = req.body._id || req.query._id;
+
+    let success = "Entry has been Deleted";
+    var query = {
+        _id: _id
+    };
+    PreviousEmploymentInfo.deleteOne(query, function(err, previousEmploymentInfoData) {
+        if (err) {            
+            return res.status(403).json({
+                title: 'There was a problem',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: previousEmploymentInfoData
+                }
+            });
+        } 
+        previousEmploymentInfoData._id = _id;
+        auditTrailEntry(1, "employeepreviousEmploymentdetails", previousEmploymentInfoData, "user", "deletePreviousEmploymentInfoDetails", "Deleted the PreviousEmployment Info");
+        return done(err, success);        
+    });
+}
+
+
+
+
+
+
+
+
 
 function addDocumentsInfoDetails(req, res, done) {
     let documents = new DocumentsInfo(req.body);
@@ -339,10 +465,7 @@ function addDocumentsInfoDetails(req, res, done) {
     //documents.createdBy =req.headers[emp_id];
 
     documents.save(function(err, documentsData) {
-        if (documentsData) {
-            auditTrailEntry(documents.emp_id, "documents", documents, "user", "documents", "ADDED");
-            return done(err, documentsData);
-        } else {
+        if (err) {
             return res.status(403).json({
                 title: 'There was a problem',
                 error: {
@@ -353,6 +476,8 @@ function addDocumentsInfoDetails(req, res, done) {
                 }
             });
         }
+        auditTrailEntry(documents.emp_id, "documents", documents, "user", "documents", "ADDED");
+        return done(err, documentsData); 
     });
 }
 
@@ -389,9 +514,7 @@ function updateDocumentsInfoDetails(req, res, done) {
         new: true,
         projection: documentsProjection
     }, function(err, documentsData) {
-        if (documentsData) {
-            return done(err, documentsData);
-        } else {
+        if (err) {
             return res.status(403).json({
                 title: 'There was a problem',
                 error: {
@@ -402,6 +525,8 @@ function updateDocumentsInfoDetails(req, res, done) {
                 }
             });
         }
+            auditTrailEntry(documents.emp_id, "documents", documents, "user", "documents", "UPDATED");
+            return done(err, documentsData);
     });
 }
 
@@ -418,10 +543,7 @@ function addFamilyInfoDetails(req, res, done) {
     //familyInfo.createdBy =req.headers[emp_id];
 
     familyInfo.save(function(err, familyInfoData) {
-        if (familyInfoData) {
-            auditTrailEntry(familyInfo.emp_id, "familyInfo", familyInfo, "user", "familyInfo", "ADDED");
-            return done(err, familyInfoData);
-        } else {
+        if (err) {
             return res.status(403).json({
                 title: 'There was a problem',
                 error: {
@@ -432,6 +554,8 @@ function addFamilyInfoDetails(req, res, done) {
                 }
             });
         }
+            auditTrailEntry(familyInfo.emp_id, "familyInfo", familyInfo, "user", "familyInfo", "ADDED");
+            return done(err, familyInfoData);
     });
 }
 
@@ -464,9 +588,7 @@ function updateFamilyInfoDetails(req, res, done) {
         new: true,
         projection: familyInfoProjection
     }, function(err, familyInfoData) {
-        if (familyInfoData) {
-            return done(err, familyInfoData);
-        } else {
+        if (err) {
             return res.status(403).json({
                 title: 'There was a problem',
                 error: {
@@ -476,9 +598,36 @@ function updateFamilyInfoDetails(req, res, done) {
                     message: familyInfoData
                 }
             });
+            auditTrailEntry(familyInfo.emp_id, "familyInfo", familyInfo, "user", "familyInfo", "UPDATED");
+            return done(err, familyInfoData);
         }
     });
 }
+function deleteFamilyInfoDetails(req, res, done) {
+    let _id = req.body._id || req.query._id;
+
+    let success = "Entry has been Deleted";
+    var query = {
+        _id: _id
+    };
+    FamilyInfo.deleteOne(query, function(err, familyInfoData) {
+        if (err) {            
+            return res.status(403).json({
+                title: 'There was a problem',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: familyInfoData
+                }
+            });
+        } 
+        familyInfoData._id = _id;
+        auditTrailEntry(1, "employeefamilydetails", familyInfoData, "user", "deleteFamilyInfoDetails", "Deleted the Family Info");
+        return done(err, success);        
+    });
+}
+
 
 function addAddressInfoDetails(req, res, done) {
     let address = new AddressInfo(req.body);
@@ -502,10 +651,7 @@ function addAddressInfoDetails(req, res, done) {
     address.createdBy = 1;
 
     address.save(function(err, addressData) {
-        if (addressData) {
-            auditTrailEntry(address.emp_id, "address", address, "user", "address", "ADDED");
-            return done(err, addressData);
-        } else {
+        if (err) {
             return res.status(403).json({
                 title: 'There was a problem',
                 error: {
@@ -515,7 +661,9 @@ function addAddressInfoDetails(req, res, done) {
                     message: addressData
                 }
             });
-        }
+        }            
+        auditTrailEntry(address.emp_id, "address", address, "user", "address", "ADDED");
+        return done(err, addressData);
     });
 }
 
@@ -557,9 +705,7 @@ function updateAddressInfoDetails(req, res, done) {
         new: true,
         projection: addressInfoProjection
     }, function(err, addressData) {
-        if (addressData) {
-            return done(err, addressData);
-        } else {
+        if (err) {
             return res.status(403).json({
                 title: 'There was a problem',
                 error: {
@@ -569,7 +715,9 @@ function updateAddressInfoDetails(req, res, done) {
                     message: addressData
                 }
             });
-        }
+        }         
+        auditTrailEntry(address.emp_id, "address", address, "user", "address", "UPDATED");
+        return done(err, addressData);
     });
 }
 
@@ -582,15 +730,12 @@ function addBankInfoDetails(req, res, done) {
     // bank.currency = req.body.currency;
     // bank.modeOfPaymentType = req.body.modeOfPaymentType;
     // bank.isCompleted = true;
-    bank.createdBy = 1;
+       bank.createdBy = 1;
 
     //bank.createdBy =req.headers[emp_id];
 
     bank.save(function(err, bankData) {
-        if (bankData) {
-            auditTrailEntry(bank.emp_id, "bank", bank, "user", "bank", "ADDED");
-            return done(err, bankData);
-        } else {
+        if (err) {
             return res.status(403).json({
                 title: 'There was a problem',
                 error: {
@@ -601,6 +746,9 @@ function addBankInfoDetails(req, res, done) {
                 }
             });
         }
+
+        auditTrailEntry(bank.emp_id, "bank", bank, "user", "bank", "ADDED");
+         return done(err, bankData);
     });
 }
 
@@ -635,9 +783,7 @@ function updateBankInfoDetails(req, res, done) {
         new: true,
         projection: bankProjection
     }, function(err, bankData) {
-        if (bankData) {
-            return done(err, bankData);
-        } else {
+        if (err) {
             return res.status(403).json({
                 title: 'There was a problem',
                 error: {
@@ -647,8 +793,10 @@ function updateBankInfoDetails(req, res, done) {
                     message: bankData
                 }
             });
-        }
-    });
+        } 
+            auditTrailEntry(bank.emp_id, "bank", bank, "user", "bank", "UPDATED");
+            return done(err, bankData);
+        });
 }
 
 function addSalaryInfoDetails(req, res, done) {
@@ -676,10 +824,7 @@ function addSalaryInfoDetails(req, res, done) {
     //salaryInfo.createdBy =req.headers[emp_id];
 
     salaryInfo.save(function(err, salaryInfoData) {
-        if (salaryInfoData) {
-            auditTrailEntry(salaryInfo.emp_id, "salaryInfo", salaryInfo, "user", "salaryInfo", "ADDED");
-            return done(err, salaryInfoData);
-        } else {
+        if (err) {
             return res.status(403).json({
                 title: 'There was a problem',
                 error: {
@@ -689,7 +834,9 @@ function addSalaryInfoDetails(req, res, done) {
                     message: salaryInfoData
                 }
             });
-        }
+        }            
+        auditTrailEntry(salaryInfo.emp_id, "salaryInfo", salaryInfo, "user", "salaryInfo", "ADDED");
+        return done(err, salaryInfoData);
     });
 }
 
@@ -734,10 +881,8 @@ function updateSalaryInfoDetails(req, res, done) {
         new: true,
         projection: salaryInfoProjection
     }, function(err, salaryInfoData) {
-        if (salaryInfoData) {
-            return done(err, salaryInfoData);
-        }
-        return res.status(403).json({
+        if (err) {
+            return res.status(403).json({
             title: 'There was a problem',
             error: {
                 message: err
@@ -746,6 +891,9 @@ function updateSalaryInfoDetails(req, res, done) {
                 message: salaryInfoData
             }
         });
+        }        
+        auditTrailEntry(salaryInfo.emp_id, "salaryInfo", salaryInfo, "user", "salaryInfo", "UPDATED");
+        return done(err, salaryInfoData);
     });
 }
 
@@ -770,10 +918,7 @@ function addCarInfoDetails(req, res, done) {
     //carInfo.createdBy =req.headers[emp_id];
 
     carInfo.save(function(err, carInfoData) {
-        if (carInfoData) {
-            auditTrailEntry(carInfo.emp_id, "carInfo", carInfo, "user", "carInfo", "ADDED");
-            return done(err, carInfoData);
-        } else {
+        if (err) {
             return res.status(403).json({
                 title: 'There was a problem',
                 error: {
@@ -783,7 +928,9 @@ function addCarInfoDetails(req, res, done) {
                     message: carInfoData
                 }
             });
-        }
+        }            
+        auditTrailEntry(carInfo.emp_id, "carInfo", carInfo, "user", "carInfo", "ADDED");
+         return done(err, carInfoData);
     });
 }
 
@@ -823,10 +970,8 @@ function updateCarInfoDetails(req, res, done) {
         new: true,
         projection: carInfoProjection
     }, function(err, carInfoData) {
-        if (carInfoData) {
-            return done(err, carInfoData);
-        }
-        return res.status(403).json({
+        if (err) {
+            return res.status(403).json({
             title: 'There was a problem',
             error: {
                 message: err
@@ -835,6 +980,9 @@ function updateCarInfoDetails(req, res, done) {
                 message: carInfoData
             }
         });
+        }       
+        auditTrailEntry(carInfo.emp_id, "carInfo", carInfo, "user", "carInfo", "UPDATED");
+         return done(err, carInfoData);
     });
 }
 
@@ -853,12 +1001,7 @@ function addCertificationInfoDetails(req, res, done) {
     //certificationInfo.createdBy =req.headers[emp_id];
 
     certificationInfo.save(function(err, certificationInfoData) {
-        if (certificationInfoData) {
-            auditTrailEntry(certificationInfo.emp_id, "certificationInfo", certificationInfo, "user", "certificationInfo", "ADDED");
-            //return done(err, certificationInfoData);
-            req.query.emp_id = certificationInfo.emp_id;
-            getCertificationInfoDetails(req, res, done)
-        } else {
+        if (err) {
             return res.status(403).json({
                 title: 'There was a problem',
                 error: {
@@ -868,7 +1011,10 @@ function addCertificationInfoDetails(req, res, done) {
                     message: certificationInfoData
                 }
             });
-        }
+        }            
+        auditTrailEntry(certificationInfo.emp_id, "certificationInfo", certificationInfo, "user", "certificationInfo", "ADDED");
+        req.query.emp_id = certificationInfo.emp_id;
+        getCertificationInfoDetails(req, res, done)
     });
 }
 
@@ -902,10 +1048,8 @@ function updateCertificationInfoDetails(req, res, done) {
         new: true,
         projection: certificationInfoProjection
     }, function(err, certificationInfoData) {
-        if (certificationInfoData) {
-            return done(err, certificationInfoData);
-        }
-        return res.status(403).json({
+        if (err) {
+            return res.status(403).json({
             title: 'There was a problem',
             error: {
                 message: err
@@ -914,6 +1058,33 @@ function updateCertificationInfoDetails(req, res, done) {
                 message: certificationInfoData
             }
         });
+        }        
+        auditTrailEntry(certificationInfo.emp_id, "certificationInfo", certificationInfo, "user", "certificationInfo", "UPDATED");
+        return done(err, certificationInfoData);
+    });
+}
+function deleteCertificationInfoDetails(req, res, done) {
+    let _id = req.body._id || req.query._id;
+
+    let success = "Entry has been Deleted";
+    var query = {
+        _id: _id
+    };
+    CertificationInfo.deleteOne(query, function(err, certificationInfoData) {
+        if (err) {            
+            return res.status(403).json({
+                title: 'There was a problem',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: certificationInfoData
+                }
+            });
+        } 
+        certificationInfoData._id = _id;
+        auditTrailEntry(1, "employeecertificationdetails", certificationInfoData, "user", "deleteCertificationInfoDetails", "Deleted the Certification Info");
+        return done(err, success);        
     });
 }
 
@@ -1774,6 +1945,38 @@ let functions = {
         ]);
     },
 
+    addPreviousEmploymentInfo: (req, res) => {
+        async.waterfall([
+            function(done) {
+                addPreviousEmploymentInfoDetails(req, res, done);
+            },
+            function(previousEmploymentInfoData, done) {
+                return res.status(200).json(previousEmploymentInfoData);
+            }
+        ]);
+    },
+
+    updatePreviousEmploymentInfo: (req, res) => {
+        async.waterfall([
+            function(done) {
+                updatePreviousEmploymentInfoDetails(req, res, done);
+            },
+            function(previousEmploymentInfoData, done) {
+                return res.status(200).json(previousEmploymentInfoData);
+            }
+        ]);
+    },
+    deletePreviousEmploymentInfo: (req, res) => {
+        async.waterfall([
+            function(done) {
+                deletePreviousEmploymentInfoDetails(req, res, done);
+            },
+            function(previousEmploymentInfoData, done) {
+                return res.status(200).json(previousEmploymentInfoData);
+            }
+        ]);
+    },
+
     addDocumentsInfo: (req, res) => {
         async.waterfall([
             function(done) {
@@ -1810,6 +2013,16 @@ let functions = {
         async.waterfall([
             function(done) {
                 updateFamilyInfoDetails(req, res, done);
+            },
+            function(familyInfoData, done) {
+                return res.status(200).json(familyInfoData);
+            }
+        ]);
+    },
+    deleteFamilyInfo: (req, res) => {
+        async.waterfall([
+            function(done) {
+                deleteFamilyInfoDetails(req, res, done);
             },
             function(familyInfoData, done) {
                 return res.status(200).json(familyInfoData);
@@ -1929,6 +2142,17 @@ let functions = {
         async.waterfall([
             function(done) {
                 updateCertificationInfoDetails(req, res, done);
+            },
+            function(certificationInfoData, done) {
+                return res.status(200).json(certificationInfoData);
+            }
+        ]);
+    },
+
+    deleteCertificationInfo: (req, res) => {
+        async.waterfall([
+            function(done) {
+                deleteCertificationInfoDetails(req, res, done);
             },
             function(certificationInfoData, done) {
                 return res.status(200).json(certificationInfoData);

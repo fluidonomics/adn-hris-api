@@ -130,6 +130,14 @@ let express  = require('express'),
     // Academic Info Endpoint: http://localhost:3000/api/user/deleteAcademicInfo
     userRoutes.delete('/deleteAcademicInfo', user.deleteAcademicInfo);
 
+    // Add Employee endpoint: http://localhost:3000/api/user/addPreviousEmploymentInfo
+ userRoutes.post('/addPreviousEmploymentInfo', user.addPreviousEmploymentInfo);
+
+ // Add Employee endpoint: http://localhost:3000/api/user/updatePreviousEmploymentInfo
+ userRoutes.post('/updatePreviousEmploymentInfo', user.updatePreviousEmploymentInfo);
+
+   // PreviousEmployment Info Endpoint: http://localhost:3000/api/user/deletePreviousEmploymentInfo
+   userRoutes.delete('/deletePreviousEmploymentInfo', user.deletePreviousEmploymentInfo);
 
   // Add Employee Address endpoint: http://localhost:3000/api/user/addAddressInfo
   userRoutes.post('/addAddressInfo', user.addAddressInfo);
@@ -186,6 +194,7 @@ let express  = require('express'),
   userRoutes.get('/getDocumentsInfo',user.getDocumentsInfo);
 
   userRoutes.get('/getAcademicInfo',user.getAcademicInfo);
+
 
   userRoutes.get('/getCertificationInfo',user.getCertificationInfo);
 
