@@ -227,7 +227,8 @@ let express  = require('express'),
 
    userRoutes.get('/getSalaryInfo',user.getSalaryInfo);
 
-
+   userRoutes.get('/getAllEmployee',user.getAllEmployee);
+   
    userRoutes.get('/getCarInfo',user.getCarInfo);
 
   // userRoutes.get('/getCompanyCarDetails',user.getCompanyCarDetails);

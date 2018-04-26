@@ -1889,6 +1889,31 @@ let functions = {
             }
         ]);
     },
+    getAllEmployee(req, res)
+    {
+        let query = {
+            isDeleted: false
+        };
+        var EmployeeInfoProjection = {
+            createdAt: false,
+            updatedAt: false,
+            isDeleted: false,
+            updatedBy: false,
+            createdBy: false,
+        };
+        EmployeeInfo.find(query, EmployeeInfoProjection, function(err, employeeDetailsData) {
+            if (err) {
+                return res.status(403).json({
+                    title: 'There was an error, please try again later',
+                    error: err,
+                    result: {
+                        message: employeeDetailsData
+                    }
+                });
+            }
+            return res.status(200).json({"data":employeeDetailsData});
+        });
+    },
 
     getEmployeeInfo: (req, res) => {
         let params = req.query.formName;
