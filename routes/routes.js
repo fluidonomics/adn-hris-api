@@ -216,6 +216,8 @@ let express  = require('express'),
 
   userRoutes.get('/getOfficeInfo',user.getOfficeInfo);
 
+  userRoutes.get('/getPositionInfo',user.getPositionInfo);
+
   //userRoutes.get('/getJoiningDetails',user.getJoiningDetails);
 
 

@@ -18,7 +18,6 @@ let mongoose                = require('mongoose'),
          costCentre :{type: Number,default:null},
          dateOfJoining :{type: Date,default:null},
          dateOfConfirmation :{type: Date,default:null},
-
          employmentStatus_id : {type: String,default:null},
          managementType_id : {type: Number,default:null},
          jobTitle :{type: String,default:null},

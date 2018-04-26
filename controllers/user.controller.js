@@ -1593,75 +1593,108 @@ function getFamilyInfoDetails(req, res) {
 
 function getOfficeInfoDetails(req, res) {
     let emp_id = req.query.emp_id;
-    let query = {
-        isDeleted: false
-    };
-    if (emp_id) {
-        query = {
-            emp_id: emp_id,
-            isDeleted: false
-        };
-    }
-    var officeInfoProjection = {
-        createdAt: false,
-        updatedAt: false,
-        isDeleted: false,
-        updatedBy: false,
-        createdBy: false,
-    };
-    OfficeInfo.find(query, officeInfoProjection, function(err, officeInfoData) {
-        if (officeInfoData) {
-            return res.status(200).json(officeInfoData);
-        }
-        return res.status(403).json({
-            title: 'There was an error, please try again later',
-            error: err,
-            result: {
-                message: officeInfoData
-            }
-        });
-    });
+    OfficeInfo.aggregate([
+        {
+              "$lookup": {
+                  "from": "employeedetails",
+                  "localField": "emp_id",
+                  "foreignField": "_id",
+                  "as": "employees"
+              }
+        },
+        { "$match": { "emp_id":parseInt(emp_id),"isDeleted":false,"employees.isDeleted":false} },  
+      ])
+      .exec(function(err, results){
+        
+         var i = 0;
+        
+        //   if(results.length > 0){
+        //     PersonalDetails.find({ "emp_id": user._id}).exec(function(pdErr, personalDetailsResults){
+        //           results.forEach(element => {
+        //             roles.push(element.roles[0].roleName);
+        //             i++;
+        //           });
+
+        officeInfoData = {
+            _id : results[0].employees[0]._id,
+            fullname : results[0].employees[0].fullName,
+            userName : results[0].employees[0].userName,
+            idCardNumber : results[0].idCardNumber,
+            officeEmail: results[0].officeEmail,
+            officePhone : results[0].officePhone,
+            officeMobile : results[0].officeMobile,
+            facility : results[0].facility,
+            city_id : results[0].city_id,
+            country_id : results[0].country_id,
+            costCentre : results[0].costCentre,
+            dateOfJoining : results[0].dateOfJoining,
+            dateOfConfirmation : results[0].dateOfConfirmation,
+            workPermitNumber : results[0].workPermitNumber,
+            workPermitEffectiveDate : results[0].workPermitEffectiveDate,
+            workPermitExpiryDate : results[0].workPermitExpiryDate,
+        };       
+                return res.status(200).json(officeInfoData);
+     });
 }
 
-function getJoiningInfoDetails(req, res) {
-    // let emp_id=req.query.emp_id;
-    // let query={isDeleted:false};
-    // if(emp_id)
-    // {
-    //  query={emp_id:emp_id,isDeleted:false};
-    // }
-    // var joiningInfoProjection = {
-    //   createdAt: false,
-    //   updatedAt: false,
-    //   isDeleted: false,
-    //   updatedBy: false,
-    //   createdBy: false,
-    // };
-    //   JoiningDetails.find(query,joiningInfoProjection, function (err, joiningDetailsData) {
-    // if (joiningDetailsData) {
-    //   return res.status(200).json(joiningDetailsData);
-    // }
-    // return res.status(403).json({
-    //   title: 'There was an error, please try again later',
-    //   error: err,
-    //   result: {message: joiningDetailsData}
-    // });
-    //   });
-}
 
-function getPositionInfoDetails(req, res) {
-    // let query={_id:1};
-    //   PositionDetails.find(query, function (err, positionDetailsData) {
-    //     if (err) {
-    //       return res.status(403).json({
-    //         title: 'There was an error, please try again later',
-    //         error: err
-    //       });
-    //     }
-    //     return done(err,positionDetailsData)
-    //   });
 
-}
+
+// function getPositionInfoDetails(req, res) {
+//     let emp_id = req.query.emp_id;
+//     OfficeInfo.aggregate([
+//         {
+//               "$lookup": {
+//                   "from": "employeedetails",
+//                   "localField": "emp_id",
+//                   "foreignField": "_id",
+//                   "as": "employees"
+//               },
+//               "$lookup": {
+//                 "from": "supervisordetails",
+//                 "localField": "emp_id",
+//                 "foreignField": "_id",
+//                 "as": "supervisor"
+//             }
+//         },
+//         { "$match": { "emp_id":parseInt(emp_id),"isDeleted":false,"employees.isDeleted":false} },  
+//       ])
+//       .exec(function(err, results){
+        
+//          var i = 0;
+        
+//         //   if(results.length > 0){
+//         //     PersonalDetails.find({ "emp_id": user._id}).exec(function(pdErr, personalDetailsResults){
+//         //           results.forEach(element => {
+//         //             roles.push(element.roles[0].roleName);
+//         //             i++;
+//         //           });
+
+//         officeInfoData = {
+//             _id : results[0].employees[0]._id,
+//             company_id: 
+//             division_id : 
+//             department_id : 
+//             vertical_id : 
+//             subVertical_id : 
+//             managementType_id : 
+//             tenureOfContract : 
+//             groupHrHead_id : 
+//             businessHrHead_id :
+//             employmentType_id : 
+//             employmentStatus_id : 
+//             grade_id :  
+//             designation_id : 
+//             jobTitle :
+//             hrspoc_id : 
+//             groupHrHead_id : 
+//             businessHrHead_id : 
+//         };
+        
+//         return res.status(200).json(officeInfoData);
+     
+//       })
+// }
 
 function getPerformanceRatingInfoDetails(req, res) {
     let emp_id = req.query.emp_id;
