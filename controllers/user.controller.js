@@ -1684,7 +1684,7 @@ function getPositionInfoDetails(req, res) {
             {
                 positionInfoData=  {
                     _id :  results[0]._id,
-                    company_id:  results[0].company_id,
+                    company_id:  results[0].employees[0].company_id,
                     division_id : results[0].division_id,
                     department_id : results[0].department_id,
                     vertical_id : results[0].vertical_id,
@@ -1699,7 +1699,7 @@ function getPositionInfoDetails(req, res) {
                     designation_id : results[0].employees[0].designation_id,
                     jobTitle :results[0].jobTitle,
                     hrspoc_id : results[0].hrspoc_id,
-                    primarySupervisorEmp_id:results[0].supervisor[0].primarySupervisorEmp_id,
+                    primarySupervisorEmp_id:parseInt(results[0].supervisor[0].primarySupervisorEmp_id),
                   }
             }
             return res.status(200).json(positionInfoData);
