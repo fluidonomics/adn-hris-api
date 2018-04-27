@@ -101,8 +101,11 @@ function getDesignationByGrade(req, res) {
 let functions = {
     getRole: (req, res) => {
         var query = {
-            isActive: true
+            isActive: true,
+            roleName: {$ne: 'Admin'}
         }
+
+    
         var roleProjection = {
             createdAt: false,
             updatedAt: false,
