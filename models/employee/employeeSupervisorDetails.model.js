@@ -7,7 +7,7 @@ let mongoose                = require('mongoose'),
       let EmployeeSupervisorDetailsSchema = new Schema(
       {
         _id:{type:Number},
-        emp_id: {type: String,required:true,unique: true},
+        emp_id: {type:Number,ref:'employeedetails'},
         primarySupervisorEmp_id: {type: String},
         secondarySupervisorEmp_id: {type: String, default:null},
         reason: {type: String, default:null},

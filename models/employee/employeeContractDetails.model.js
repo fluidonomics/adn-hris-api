@@ -7,7 +7,7 @@ let mongoose                = require('mongoose'),
       let EmployeeContractDetailsSchema = new Schema(
       {
          _id:{type:Number},
-         emp_id:{type: Number,ref: 'employees', required: true, unique: true,},
+         emp_id:{type: Number,ref: 'employeedetails', required: true, unique: true,},
          contractPeriod :{type: Number,default:null},
          isContractExtended : {type: Boolean,default:false},
          IsContractCompleted : {type: Boolean,default:false},

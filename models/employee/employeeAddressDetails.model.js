@@ -7,7 +7,7 @@ let mongoose                = require('mongoose'),
       let EmployeeAddressDetailsSchema = new Schema(
       {
          _id:{type:Number},
-         emp_id:{type: Number,ref: 'employees'},
+         emp_id:{type: Number,ref: 'employeedetails'},
          permanentEmployeeAddressDetailsLine1 : {type: String, default:null},
          permanentEmployeeAddressDetailsLine2 : {type: String, default:null},
          permanentEmployeeAddressDetailsThana_id : {type: Number, default:null},

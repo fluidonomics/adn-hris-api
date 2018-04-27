@@ -7,7 +7,7 @@ let mongoose                = require('mongoose'),
       let KraWorkFlowSchema = new Schema(
       {
          _id:{type:Number},
-         kraEmp_id:{type: Number,ref: 'employees'},
+         kraEmp_id:{type: Number,ref: 'employeedetails'},
          kraInitiatedBy:{type: Number,default:null},
          endDate: {type: Date,default:null},
          kraWorkFlowStatus: {type: String,default:null},

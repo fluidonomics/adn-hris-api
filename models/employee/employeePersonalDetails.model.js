@@ -7,7 +7,7 @@ let mongoose                = require('mongoose'),
       let EmployeePersonalDetailsSchema = new Schema(
       {
          _id:{type:Number},
-         emp_id:{type: Number,ref: 'employees'},
+         emp_id:{type: Number,ref: 'employeedetails'},
          gender:{type: String},
          personalMobileNumber: {type: Number,default:null},
          personalEmail:{type: String, unique: true,lowercase: true,uniqueCaseInsensitive:true},

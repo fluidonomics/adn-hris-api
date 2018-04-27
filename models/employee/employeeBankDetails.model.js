@@ -7,7 +7,7 @@ let mongoose                = require('mongoose'),
       let EmployeeBankDetailsSchema = new Schema(
       {
          _id:{type:Number},
-         emp_id:{type: Number,ref: 'employees'},
+         emp_id:{type: Number,ref: 'employeedetails'},
          bankName:{type: String,default:null},
          accountName: {type: String,default:null},
          accountNumber: {type: String,default:null},

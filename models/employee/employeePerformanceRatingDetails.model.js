@@ -7,7 +7,7 @@ let mongoose                = require('mongoose'),
       let EmployeePerformanceRatingDetailsSchema = new Schema(
       {
          _id:{type:Number},
-         emp_id:{type: Number,ref: 'employees'},
+         emp_id:{type: Number,ref: 'employeedetails'},
          performanceRatingName:{type: Number,ref:'performanceratings'},
          performanceRatingValue: {type:String,default:null},
          updatedBy: {type: Number, default:null},

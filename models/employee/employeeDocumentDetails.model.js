@@ -7,7 +7,7 @@ let mongoose                = require('mongoose'),
       let EmployeeDocumentDetailsSchema = new Schema(
       {
         _id:{type:Number},
-        emp_id   :{type: Number,ref: 'employees', required: true, unique: true,},    
+        emp_id   :{type: Number,ref: 'employeedetails', required: true, unique: true,},    
         nationalIdSmartCard : {type: String,default:null}, 
         nationalIdSmartCardDocURL : {type: String,default:null}, 
         passportNumber : {type: String,default:null}, 

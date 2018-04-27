@@ -7,7 +7,7 @@ let mongoose                = require('mongoose'),
       let EmployeeSeparationDetailsSchema = new Schema(
       {
          _id:{type:Number},
-         emp_id:{type: Number,ref: 'employee'},
+         emp_id:{type: Number,ref: 'employeedetails'},
          dateOfResignation:{type: Date,default:null},
          dateOfSeparation: {type: Date,default:null},
          effectiveDate: {type: Date,default:null},

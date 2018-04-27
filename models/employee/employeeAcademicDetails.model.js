@@ -7,7 +7,7 @@ let mongoose                = require('mongoose'),
       let EmployeeAcademicDetailsSchema = new Schema(
       {
         _id:{type:Number},
-        emp_id:{type:Number,ref:'employees'},
+        emp_id:{type:Number,ref:'employeedetails'},
         levelOfEducation_id:{type:Number,ref:'educations',default:null},
         examDegreeTitle_id:{type:Number,ref:'educations',default:null},
         concentration:{type:String,default:null},

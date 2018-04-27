@@ -7,7 +7,7 @@ let mongoose                = require('mongoose'),
       let EmployeeRoleDetailsSchema = new Schema(
       {
           _id:{type:Number},
-         emp_id:{type: Number,ref: 'employees'},
+         emp_id:{type: Number,ref: 'employeedetails'},
          role_id:{type: Number, ref: 'roles'},
          isDeleted: {type: Boolean,default:false},
       },
