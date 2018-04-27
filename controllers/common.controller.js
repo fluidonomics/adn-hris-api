@@ -793,10 +793,14 @@ let functions = {
             if (grade_id) {
                 subQuery = {
                     isDeleted: false,
-                    grade_id: grade_id
+                    grade_id: {$lte: grade_id}
                 }
             }
-            Employee.find(subQuery).where('_id').in(empRoleData).select('_id, fullName').exec(function(err, empData) {
+            let arrRoles=[];
+            for (let i = 0; i < empRoleData.length; i++) { 
+                arrRoles.push(empRoleData[i].emp_id);
+            }
+            Employee.find(subQuery).where('_id').in(arrRoles).select('_id, fullName').exec(function(err, empData) {
                 if (empData) {
                     return res.status(200).json(empData);
                 }
