@@ -72,6 +72,7 @@ let express  = require('express'),
       userRoutes  = express.Router(),
       masterRoutes= express.Router();
       commonRoutes= express.Router();
+      uploadRoutes = express.Router(),
 
   //= ========================
   // Auth Routes
@@ -254,8 +255,10 @@ let express  = require('express'),
   // Administrator Routes
   //= ========================
 
-//   // Admin endpoint: http://localhost:3000/api/admin
-//   apiRoutes.use('/admin', adminRoutes);
+  // Admin endpoint: http://localhost:3000/api/admin
+      // apiRoutes.use('/admin', adminRoutes);
+
+      // adminRoutes.post('/upload', admin.uploadImage);
 
 //   // Upload image endpoint: http://localhost:3000/api/admin/form/image
 //   formRoutes.post('/form/image', requireAuth, admin.uploadImage);
@@ -377,7 +380,14 @@ let express  = require('express'),
 
     commonRoutes.get('/getRelation', common.getRelation);
     
+      //= ========================
+      // Upload Routes
+      //= ========================
 
+
+    apiRoutes.use('/upload', uploadRoutes);
+
+    uploadRoutes.post('/document', admin.uploadDocumentImage);
     
     // Set url for API group routes, all endpoints start with /api/ eg http://localhost:3000/api/admin  || http://localhost:3000/api/auth
     app.use('/api', apiRoutes);

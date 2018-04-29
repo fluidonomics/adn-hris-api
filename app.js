@@ -37,7 +37,7 @@ app.use(bodyParser.urlencoded({extended: false}));
 app.disable('x-powered-by');
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, config.paths.dist)));
-app.use('/uploads', express.static(__dirname + config.paths.expressUploads));
+//app.use('/uploads', express.static(__dirname + config.paths.expressUploads));
 
 // CORS setup
 app.use(function (req, res, next) {
