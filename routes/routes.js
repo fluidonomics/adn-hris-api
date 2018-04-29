@@ -256,9 +256,9 @@ let express  = require('express'),
   //= ========================
 
   // Admin endpoint: http://localhost:3000/api/admin
-      // apiRoutes.use('/admin', adminRoutes);
+  // apiRoutes.use('/admin', adminRoutes);
 
-      // adminRoutes.post('/upload', admin.uploadImage);
+  // adminRoutes.post('/upload', admin.uploadImage);
 
 //   // Upload image endpoint: http://localhost:3000/api/admin/form/image
 //   formRoutes.post('/form/image', requireAuth, admin.uploadImage);
