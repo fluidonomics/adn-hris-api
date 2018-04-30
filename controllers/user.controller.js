@@ -17,107 +17,17 @@ let express           = require('express'),
     DocumentsInfo     = require('../models/employee/employeeDocumentDetails.model'),
     PerformanceRatingInfo = require('../models/employee/employeePerformanceRatingDetails.model'),
     config            = require('../config/config'),
-    fs                = require('fs'),
-    fse               = require('fs-extra'),
-    mkdirP            = require('mkdirp'),
-    multer            = require('multer'),
-    mime              = require('mime'),
-    path              = require('path'),
     crypto            = require('crypto'),
     async             = require('async'),
     nodemailer        = require('nodemailer'),
     hbs               = require('nodemailer-express-handlebars'),
     sgTransport       = require('nodemailer-sendgrid-transport'),
-    uuidV1            = require('uuid/v1'),
-    gm                = require('gm').subClass({imageMagick: true});
+    uuidV1            = require('uuid/v1');
     require('dotenv').load()
 
-// this function deletes the image
-let rmDir = (dirPath, removeSelf) => {
-    if (removeSelf === undefined)
-        removeSelf = true;
-    try {
-        var files = fs.readdirSync(dirPath);
-    } catch (e) {
-        return;
-    }
-    if (files.length > 0)
-        for (let i = 0; i < files.length; i++) {
-            let filePath = dirPath + '/' + files[i];
-            if (fs.statSync(filePath).isFile())
-                fs.unlinkSync(filePath);
-            else
-                rmDir(filePath);
-        }
-    if (removeSelf)
-        fs.rmdirSync(dirPath);
-};
 
-// create a Temp storage for images, when the user submits the form, the temp image will be moved to the appropriate folder inside /uploads/forms/user_id/photo.jpg
-let tempStorage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        let dest = config.paths.tmpImagePath;
-        let stat = null;
-        try {
-            stat = fs.statSync(dest);
-        } catch (err) {
-            fs.mkdirSync(dest);
-        }
-        if (stat && !stat.isDirectory()) {
-            throw new Error('Directory cannot be created because an inode of a different type exists at "' + dest + '"');
-        }
-        cb(null, dest);
-    },
-    filename: (req, file, cb) => {
-        // if you want even more random characters prefixing the filename then change the value '2' below as you wish, right now, 4 charaters are being prefixed
-        crypto.pseudoRandomBytes(4, (err, raw) => {
-            let filename = file.originalname.replace(/_/gi, '');
-            cb(null, raw.toString('hex') + '.' + filename.toLowerCase());
-        });
-    }
-});
 
-//  multer configuration
-let uploadTemp = multer({
-    storage: tempStorage,
-    limits: {
-        fileSize: 5000000, // 5MB filesize limit
-        parts: 1
-    },
-    fileFilter: (req, file, cb) => {
-        let filetypes = /jpe?g|png/;
-        let mimetype = filetypes.test(file.mimetype);
-        let extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-        if (mimetype && extname) {
-            return cb(null, true);
-        }
-        cb('Error: File upload only supports the following filetypes - ' + filetypes);
-    }
-}).single('fileUp');
 
-// When user submits the form, the temp image is copied to /uploads/forms/user_id/photo.jpg
-let copyImage = (req, source) => {
-    mkdirP(config.paths.profileImagePath + req.user._id, (err) => {
-        if (err) {
-            console.log(err);
-        }
-        fse.copy(config.paths.tmpImagePath + source, config.paths.profileImagePath + req.user._id + '/' + source)
-            .then(() => {
-                console.log(source);
-            })
-            .catch((error) => console.log(error));
-    });
-};
-// delete the temp image from front-end
-let deleteImage = (image) => {
-    fse.remove(config.paths.tmpImagePath + image)
-        .then(() => {
-            console.log('success!');
-        })
-        .catch(err => {
-            console.error(err);
-        });
-};
 
 function addPersonalInfoDetails(req, res, done) {
     let personalDetails = new PersonalInfo(req.body);
@@ -1241,90 +1151,198 @@ function sendWelComeEmail(emp, toemail) {
     transporter.sendMail(mailOptions);
 }
 
-function addOfficeInfoDetails(req, res, done) {
+// function addOfficeInfoDetails(req, res, done) {
 
-    let officeEmpDetails = new OfficeInfo(req.body);
-    officeEmpDetails.emp_id = req.body.emp_id;
-    // officeEmpDetails.employmentStatus_id = req.body.employmentStatus_id;
-    // officeEmpDetails.managementType_id = req.body.managementType_id;
-    // officeEmpDetails.jobTitle = req.body.jobTitle;
-    // officeEmpDetails.idCardNumber = req.body.idCardNumber;
+//     let officeEmpDetails = new OfficeInfo(req.body);
+//     officeEmpDetails.emp_id = req.body.emp_id;
+//     // officeEmpDetails.employmentStatus_id = req.body.employmentStatus_id;
+//     // officeEmpDetails.managementType_id = req.body.managementType_id;
+//     // officeEmpDetails.jobTitle = req.body.jobTitle;
+//     // officeEmpDetails.idCardNumber = req.body.idCardNumber;
 
-    // //officeEmpDetails.designation = req.body.designation;
-    // officeEmpDetails.division_id = req.body.division_id;
-    // officeEmpDetails.department_id = req.body.department_id;
-    // officeEmpDetails.vertical_id = req.body.vertical_id;
-    // officeEmpDetails.subVertical_id = req.body.subVertical_id;
-    // officeEmpDetails.hrspoc_id = req.body.hrspoc_id;
-    // officeEmpDetails.businessHrHead_id = req.body.businessHrHead_id;
-    // officeEmpDetails.groupHrHead_id = req.body.groupHrHead_id;
-    officeEmpDetails.createdBy = 1;
+//     // //officeEmpDetails.designation = req.body.designation;
+//     // officeEmpDetails.division_id = req.body.division_id;
+//     // officeEmpDetails.department_id = req.body.department_id;
+//     // officeEmpDetails.vertical_id = req.body.vertical_id;
+//     // officeEmpDetails.subVertical_id = req.body.subVertical_id;
+//     // officeEmpDetails.hrspoc_id = req.body.hrspoc_id;
+//     // officeEmpDetails.businessHrHead_id = req.body.businessHrHead_id;
+//     // officeEmpDetails.groupHrHead_id = req.body.groupHrHead_id;
+//     officeEmpDetails.createdBy = 1;
 
-    officeEmpDetails.save(function(err, officeDetailsData) {
-        if (officeDetailsData) {
-            auditTrailEntry(officeEmpDetails.emp_id, "officeDetails", officeEmpDetails, "user", "addOfficeDetails", "Office ");
-            return done(err, officeDetailsData);
+//     officeEmpDetails.save(function(err, officeDetailsData) {
+//         if (officeDetailsData) {
+//             auditTrailEntry(officeEmpDetails.emp_id, "officeDetails", officeEmpDetails, "user", "addOfficeDetails", "Office ");
+//             return done(err, officeDetailsData);
+//         }
+//         return res.status(403).json({
+//             title: 'There was a problem',
+//             error: {
+//                 message: err
+//             },
+//             result: {
+//                 message: officeDetailsData
+//             }
+//         });
+//     });
+// }
+
+function updateofficeInfoDetails(req, res) {
+    let _id = req.body._id;
+    let emp_id=req.body.emp_id;
+    var query = {
+        _id: emp_id,
+        isDeleted: false
+    }
+
+    var queryUpdate={};
+    queryUpdate={ $set: { updatedBy:1, fullName: req.body.fullName }};
+    EmployeeInfo.findOneAndUpdate(query, queryUpdate,
+        function(err,employeeData)
+        {
+           if(employeeData)
+           {
+                query = {
+                    _id: _id,
+                    isDeleted: false
+                }
+                queryUpdate=   {$set:{
+                        "idCardNumber" : req.body.idCardNumber,
+                        "officeEmail": req.body.officeEmail,
+                        "officePhone" : req.body.officePhone,
+                        "officeMobile" : req.body.officeMobile,
+                        "facility" : req.body.facility,
+                        "city" : req.body.city,
+                        "country" : req.body.country,
+                        "costCentre" : req.body.costCentre,
+                        "dateOfJoining" : req.body.dateOfJoining,
+                        "dateOfConfirmation" : req.body.dateOfConfirmation,
+                        "workPermitNumber" : req.body.workPermitNumber,
+                        "workPermitEffectiveDate" : req.body.workPermitEffectiveDate,
+                        "workPermitExpiryDate" : req.body.workPermitExpiryDate,
+                        "updatedBy":1
+                }};
+                OfficeInfo.findOneAndUpdate(query, queryUpdate, function(err, officeDetailsData) {
+                    if (officeDetailsData)
+                    { 
+                        req.query.emp_id= req.body.emp_id;
+                        return getOfficeInfoDetails(req,res);
+                    } 
+                    else 
+                    {
+                        return res.status(403).json({
+                            title: 'There was a problem',
+                            error: {
+                                message: err
+                            },
+                            result: {
+                                message: officeDetailsData
+                            }
+                        });
+                    }
+                });
+           }
+           else {
+                return res.status(403).json({
+                    title: 'There was a problem',
+                    error: {
+                        message: err
+                    },
+                    result: {
+                        message: officeDetailsData
+                    }
+                });
+           }
         }
-        return res.status(403).json({
-            title: 'There was a problem',
-            error: {
-                message: err
-            },
-            result: {
-                message: officeDetailsData
-            }
-        });
-    });
+    )
 }
 
-function updateofficeInfoDetails(req, res, done) {
-    let officeEmpDetails = new OfficeInfo(req.body);
-    officeEmpDetails.emp_id = req.body.emp_id;
-    // officeEmpDetails.employmentStatus_id = req.body.employmentStatus_id;
-    // officeEmpDetails.managementType_id = req.body.managementType_id;
-    // officeEmpDetails.jobTitle = req.body.jobTitle;
-    // officeEmpDetails.idCardNumber = req.body.idCardNumber;
-    // //officeEmpDetails.designation = req.body.designation;
-    // officeEmpDetails.division_id = req.body.division_id;
-    // officeEmpDetails.department_id = req.body.department_id;
-    // officeEmpDetails.vertical_id = req.body.vertical_id;
-    // officeEmpDetails.subVertical_id = req.body.subVertical_id;
-    // officeEmpDetails.hrspoc_id = req.body.hrspoc_id;
-    // officeEmpDetails.businessHrHead_id = req.body.businessHrHead_id;
-    // officeEmpDetails.groupHrHead_id = req.body.groupHrHead_id;
-    officeEmpDetails.updatedBy = 1;
-
-    let _id = req.body._id;
+function updatepositionInfoDetails(req, res) {
+    let _id = req.body.emp_id;
     var query = {
         _id: _id,
         isDeleted: false
     }
 
-    var officeDetailsProjection = {
-        createdAt: false,
-        updatedAt: false,
-        isDeleted: false,
-        updatedBy: false,
-        createdBy: false,
-    };
-
-    OfficeInfo.findOneAndUpdate(query, academicInfo, {
-        new: true,
-        projection: officeDetailsProjection
-    }, function(err, officeDetailsData) {
-        if (officeDetailsData) {
-            return done(err, officeDetailsData);
-        } else {
-            return res.status(403).json({
-                title: 'There was a problem',
-                error: {
-                    message: err
-                },
-                result: {
-                    message: officeDetailsData
+    var queryUpdate={};
+    queryUpdate={ $set: { updatedBy:1,
+                          employmentType_id: req.body.employmentType_id,
+                          designation_id : req.body.designation_id,
+                          company_id :req.body.company_id,
+                          grade_id : req.body.grade_id
+                 }};
+    EmployeeInfo.findOneAndUpdate(query,  queryUpdate,function(err,employeeData)
+    {
+           if(employeeData)
+           {
+                query = {
+                    _id: _id,
+                    isDeleted: false
                 }
-            });
-        }
+                queryUpdate=   {$set:{
+                    "division_id" :req.body.division_id,
+                    "department_id" :req.body.department_id,
+                    "vertical_id" :req.body.vertical_id,
+                    "subVertical_id" : req.body.subVertical_id,
+                    "managementType_id" : req.body.managementType_id,
+                    "tenureOfContract" :req.body.tenureOfContract, 
+                    "groupHrHead_id" : req.body.groupHrHead_id,
+                    "businessHrHead_id" :req.body.businessHrHead_id,
+                    "jobTitle" :req.body.jobTitle,
+                    "hrspoc_id" :req.body.hrspoc_id
+                }};
+                OfficeInfo.findOneAndUpdate(query, queryUpdate, function(err, officeDetailsData) {
+                    if (officeDetailsData)
+                    { 
+                        queryUpdate={$set:{
+                            "emp_id" :req.body.emp_id,
+                            "primarySupervisorEmp_id" :req.body.primarySupervisorEmp_id,
+                        }}
+                        SupervisorInfo.findOneAndUpdate(query, queryUpdate, function(err, supervisorData) {
+                            if(supervisorData)
+                            {
+                               req.query.emp_id=req.body.emp_id;
+                               return getPositionInfoDetails(req,res);
+                            }
+                            else 
+                            {
+                                return res.status(403).json({
+                                    title: 'There was a problem',
+                                    error: {
+                                        message: err
+                                    },
+                                    result: {
+                                        message: supervisorData
+                                    }
+                                });
+                            }
+                        });
+                    } 
+                    else 
+                    {
+                        return res.status(403).json({
+                            title: 'There was a problem',
+                            error: {
+                                message: err
+                            },
+                            result: {
+                                message: officeDetailsData
+                            }
+                        });
+                    }
+                });
+           }
+           else {
+                return res.status(403).json({
+                    title: 'There was a problem',
+                    error: {
+                        message: err
+                    },
+                    result: {
+                        message: employeeData
+                    }
+                });
+           }
     });
 }
 
@@ -1621,7 +1639,7 @@ function getOfficeInfoDetails(req, res) {
            {
                 officeInfoData = {
                     _id : results[0]._id,
-                    emp_id: results[0].employees[0].emp_id,
+                    emp_id: results[0].employees[0]._id,
                     fullName : results[0].employees[0].fullName,
                     userName : results[0].employees[0].userName,
                     idCardNumber : results[0].idCardNumber,
@@ -1629,8 +1647,8 @@ function getOfficeInfoDetails(req, res) {
                     officePhone : results[0].officePhone,
                     officeMobile : results[0].officeMobile,
                     facility : results[0].facility,
-                    city_id : results[0].city_id,
-                    country_id : results[0].country_id,
+                    city : results[0].city,
+                    country : results[0].country,
                     costCentre : results[0].costCentre,
                     dateOfJoining : results[0].dateOfJoining,
                     dateOfConfirmation : results[0].dateOfConfirmation,
@@ -1684,6 +1702,7 @@ function getPositionInfoDetails(req, res) {
             {
                 positionInfoData=  {
                     _id :  results[0]._id,
+                    emp_id:results[0].employees[0]._id,
                     company_id:  results[0].employees[0].company_id,
                     division_id : results[0].division_id,
                     department_id : results[0].department_id,
@@ -1700,6 +1719,7 @@ function getPositionInfoDetails(req, res) {
                     jobTitle :results[0].jobTitle,
                     hrspoc_id : results[0].hrspoc_id,
                     primarySupervisorEmp_id:parseInt(results[0].supervisor[0].primarySupervisorEmp_id),
+                    supervisor_Id:parseInt(results[0].supervisor[0]._id),
                   }
             }
             return res.status(200).json(positionInfoData);
@@ -2300,99 +2320,13 @@ let functions = {
         ]);
     },
 
-    // updateofficeDetails:(req, res)=>
-    // {
-    //   async.waterfall([
-    //     function(done)
-    //      {
-    //       updatePersonalInfoDetails(req,res,done);
-    //      },
-    //      function(personalDetailsData,done)
-    //      {
-    //        return res.status(200).json(personalDetailsData);
-    //      }
-    //   ]);
-    // },
-
-    // Get User Info
-    getUserInfo: (req, res) => {
-        User.findOne({
-            _id: req.user._id
-        }, function(err, user) {
-            if (err) {
-                return res.status(403).json({
-                    title: 'There was an error, please try again later',
-                    error: err
-                });
-            }
-            return res.status(200).json({
-                user: user
-            });
-        });
+    updateOfficeInfo:(req, res)=>
+    {
+        updateofficeInfoDetails(req,res);
     },
-
-    // Upload Image to Server Temp Folder
-    uploadImage: (req, res) => {
-        let userId = req.user._id;
-        uploadTemp(req, res, (err) => {
-            if (err) {
-                console.log(err);
-            }
-            if (req.file !== undefined) {
-                gm(req.file.path)
-                    .resize(445, null)
-                    .noProfile()
-                    .write(req.file.path, (err) => {
-                        if (err) {
-                            console.log(err);
-                            res.status(500).json({
-                                message: 'The file you selected is not an image'
-                            });
-                        }
-                        User.findById(userId, (err, user) => {
-                            if (err) {
-                                return res.status(403).json({
-                                    title: 'There was an error, please try again later',
-                                    error: err
-                                });
-                            }
-                            if (!user) {
-                                return res.status(403).json({
-                                    title: 'You cannot change the password',
-                                    error: {
-                                        message: 'You do not have access rights'
-                                    }
-                                });
-                            }
-                            if (user) {
-                                user.profilePic = req.file.filename;
-                                user.save((err, result) => {
-                                    if (err) {
-                                        return res.status(403).json({
-                                            title: 'There was an error, please try again later',
-                                            error: err
-                                        });
-                                    } else {
-                                        if (req.file.filename !== undefined) {
-                                            copyImage(req, req.file.filename);
-                                        }
-                                    }
-                                });
-                            }
-                        });
-                        res.status(201).json(req.file.filename);
-                    });
-            }
-        });
-    },
-
-    // Delete Temporary Image From Temp Folder
-    deleteImage: (req, res) => {
-        let params = req.params.id;
-        deleteImage(params);
-        res.status(200).json({
-            message: 'Image deleted successfully!'
-        });
+    updatePositionInfo:(req, res)=>
+    {
+       updatepositionInfoDetails(req, res);
     },
 
     // Change User Password via Front End (not via email)
