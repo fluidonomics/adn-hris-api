@@ -1151,41 +1151,41 @@ function sendWelComeEmail(emp, toemail) {
     transporter.sendMail(mailOptions);
 }
 
-// function addOfficeInfoDetails(req, res, done) {
+function addOfficeInfoDetails(req, res, done) {
 
-//     let officeEmpDetails = new OfficeInfo(req.body);
-//     officeEmpDetails.emp_id = req.body.emp_id;
-//     // officeEmpDetails.employmentStatus_id = req.body.employmentStatus_id;
-//     // officeEmpDetails.managementType_id = req.body.managementType_id;
-//     // officeEmpDetails.jobTitle = req.body.jobTitle;
-//     // officeEmpDetails.idCardNumber = req.body.idCardNumber;
+    let officeEmpDetails = new OfficeInfo(req.body);
+    officeEmpDetails.emp_id = req.body.emp_id;
+    // officeEmpDetails.employmentStatus_id = req.body.employmentStatus_id;
+    // officeEmpDetails.managementType_id = req.body.managementType_id;
+    // officeEmpDetails.jobTitle = req.body.jobTitle;
+    // officeEmpDetails.idCardNumber = req.body.idCardNumber;
 
-//     // //officeEmpDetails.designation = req.body.designation;
-//     // officeEmpDetails.division_id = req.body.division_id;
-//     // officeEmpDetails.department_id = req.body.department_id;
-//     // officeEmpDetails.vertical_id = req.body.vertical_id;
-//     // officeEmpDetails.subVertical_id = req.body.subVertical_id;
-//     // officeEmpDetails.hrspoc_id = req.body.hrspoc_id;
-//     // officeEmpDetails.businessHrHead_id = req.body.businessHrHead_id;
-//     // officeEmpDetails.groupHrHead_id = req.body.groupHrHead_id;
-//     officeEmpDetails.createdBy = 1;
+    // //officeEmpDetails.designation = req.body.designation;
+    // officeEmpDetails.division_id = req.body.division_id;
+    // officeEmpDetails.department_id = req.body.department_id;
+    // officeEmpDetails.vertical_id = req.body.vertical_id;
+    // officeEmpDetails.subVertical_id = req.body.subVertical_id;
+    // officeEmpDetails.hrspoc_id = req.body.hrspoc_id;
+    // officeEmpDetails.businessHrHead_id = req.body.businessHrHead_id;
+    // officeEmpDetails.groupHrHead_id = req.body.groupHrHead_id;
+    officeEmpDetails.createdBy = 1;
 
-//     officeEmpDetails.save(function(err, officeDetailsData) {
-//         if (officeDetailsData) {
-//             auditTrailEntry(officeEmpDetails.emp_id, "officeDetails", officeEmpDetails, "user", "addOfficeDetails", "Office ");
-//             return done(err, officeDetailsData);
-//         }
-//         return res.status(403).json({
-//             title: 'There was a problem',
-//             error: {
-//                 message: err
-//             },
-//             result: {
-//                 message: officeDetailsData
-//             }
-//         });
-//     });
-// }
+    officeEmpDetails.save(function(err, officeDetailsData) {
+        if (officeDetailsData) {
+            auditTrailEntry(officeEmpDetails.emp_id, "officeDetails", officeEmpDetails, "user", "addOfficeDetails", "Office ");
+            return done(err, officeDetailsData);
+        }
+        return res.status(403).json({
+            title: 'There was a problem',
+            error: {
+                message: err
+            },
+            result: {
+                message: officeDetailsData
+            }
+        });
+    });
+}
 
 function updateofficeInfoDetails(req, res) {
     let _id = req.body._id;
@@ -1884,6 +1884,7 @@ let functions = {
 
                 emp.save(req, function(err, result) {
                     if (result) {
+                        req.body.roles=[5];
                         auditTrailEntry(emp._id, "employee", emp, "user", "addEmployee", "Employee Added");
                         addEmpRoles(0, req, res, emp);
                         req.body.emp_id = emp._id;
