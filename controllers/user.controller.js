@@ -1601,10 +1601,11 @@ function getFamilyInfoDetails(req, res) {
                 title: 'There was an error, please try again later',
                 error: err,
                 result: {
-                    message: documentsData
+                    message: familyInfoData
                 }
             });
         }
+        
         return res.status(200).json({"data":familyInfoData});
     });
 }
@@ -1650,11 +1651,11 @@ function getOfficeInfoDetails(req, res) {
                     city : results[0].city,
                     country : results[0].country,
                     costCentre : results[0].costCentre,
-                    dateOfJoining : results[0].dateOfJoining,
-                    dateOfConfirmation : results[0].dateOfConfirmation,
+                    dateOfJoining :results[0].dateOfJoining ? new Date(results[0].dateOfJoining):null,
+                    dateOfConfirmation :results[0].dateOfConfirmation ? new Date(results[0].dateOfJoining):null,
                     workPermitNumber : results[0].workPermitNumber,
-                    workPermitEffectiveDate : results[0].workPermitEffectiveDate,
-                    workPermitExpiryDate : results[0].workPermitExpiryDate,
+                    workPermitEffectiveDate :results[0].workPermitEffectiveDate ? new Date(results[0].workPermitEffectiveDate):null,
+                    workPermitExpiryDate :results[0].workPermitExpiryDate ? new Date(results[0].workPermitEffectiveDate):null,
                 }; 
            }
            return res.status(200).json(officeInfoData);
