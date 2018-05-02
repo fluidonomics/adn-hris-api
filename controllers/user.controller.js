@@ -1276,8 +1276,9 @@ function updatepositionInfoDetails(req, res) {
     {
            if(employeeData)
            {
+
                 query = {
-                    _id: _id,
+                    _id: req.body._id,
                     isDeleted: false
                 }
                 queryUpdate=   {$set:{
@@ -1295,6 +1296,10 @@ function updatepositionInfoDetails(req, res) {
                 OfficeInfo.findOneAndUpdate(query, queryUpdate, function(err, officeDetailsData) {
                     if (officeDetailsData)
                     { 
+                        query = {
+                            _id:req.body.supervisor_Id,
+                            isActive: true
+                        }
                         queryUpdate={$set:{
                             "emp_id" :req.body.emp_id,
                             "primarySupervisorEmp_id" :req.body.primarySupervisorEmp_id,
