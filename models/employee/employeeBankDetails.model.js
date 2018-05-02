@@ -31,7 +31,9 @@ EmployeeBankDetailsSchema.plugin(mongooseUniqueValidator);
     var _this=this;
     if (_this.isNew) {
         mongoose.model('employeeBankDetails', EmployeeBankDetailsSchema).count(function(err, c) {
-              _this._id = c + 1;
+        _this._id = c + 1;
+        _this.isCompleted = true;
+              
               next();
         });
     }

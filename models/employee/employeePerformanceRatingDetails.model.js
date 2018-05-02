@@ -12,7 +12,9 @@ let mongoose                = require('mongoose'),
          performanceRatingValue: {type:String,default:null},
          updatedBy: {type: Number, default:null},
          createdBy: {type: Number, default:null},
-         isDeleted: {type: Boolean,default:false} 
+         isDeleted: {type: Boolean,default:false},
+         isCompleted: {type: Boolean,default:false} 
+         
       },
       {
         timestamps: true,
@@ -27,7 +29,9 @@ EmployeePerformanceRatingDetailsSchema.plugin(mongooseUniqueValidator);
     var _this=this;
     if (_this.isNew) {
         mongoose.model('employeePerformanceRatingDetails', EmployeePerformanceRatingDetailsSchema).count(function(err, c) {
-              _this._id = c + 1;
+            _this._id = c + 1;
+            _this.isCompleted = true;
+              
               next();
         });
     }

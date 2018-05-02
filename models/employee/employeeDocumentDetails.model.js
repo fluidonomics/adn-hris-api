@@ -33,6 +33,7 @@ let mongoose                = require('mongoose'),
     //Check the Count of Collection and add 1 to the Count and Assign it to Emp_id 
     mongoose.model('employeeDocumentDetails', EmployeeDocumentDetailsSchema).count(function(err, c) {
       _this._id = c + 1;
+      _this.isCompleted = true;
       next();
     });
 });

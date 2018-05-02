@@ -83,6 +83,7 @@ function updatePersonalInfoDetails(req, res, done) {
     // personalDetails.emergencyContactNumber = req.body.emergencyContactNumber;
     // personalDetails.profileStatus = req.body.profileStatus;
     personalDetails.updatedBy = 1;
+    personalDetails.isCompleted = true;
     //personalDetails.updatedBy =req.headers[emp_id];
 
     let _id = req.body._id;
@@ -576,6 +577,7 @@ function updateAddressInfoDetails(req, res, done) {
     // address.currentAddressPostCode = req.body.currentAddressPostCode;
     // address.isSameAsCurrent = req.body.isSameAsCurrent;
     address.updatedBy = 1;
+    address.isCompleted = true;
 
     let _id = req.body._id;
     var query = {
@@ -1221,7 +1223,8 @@ function updateofficeInfoDetails(req, res) {
                         "workPermitNumber" : req.body.workPermitNumber,
                         "workPermitEffectiveDate" : req.body.workPermitEffectiveDate,
                         "workPermitExpiryDate" : req.body.workPermitExpiryDate,
-                        "updatedBy":1
+                        "updatedBy":1,
+                        "isCompleted": true
                 }};
                 OfficeInfo.findOneAndUpdate(query, queryUpdate, function(err, officeDetailsData) {
                     if (officeDetailsData)
@@ -1727,6 +1730,7 @@ function getPositionInfoDetails(req, res) {
                     hrspoc_id : results[0].hrspoc_id,
                     primarySupervisorEmp_id:parseInt(results[0].supervisor[0].primarySupervisorEmp_id),
                     supervisor_Id:parseInt(results[0].supervisor[0]._id),
+                    isCompleted : results[0].isCompleted
                   }
             }
             return res.status(200).json(positionInfoData);
