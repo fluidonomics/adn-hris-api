@@ -487,9 +487,10 @@ function updateFamilyInfoDetails(req, res, done) {
                     message: familyInfoData
                 }
             });
+        }
             auditTrailEntry(familyInfo.emp_id, "familyInfo", familyInfo, "user", "familyInfo", "UPDATED");
             return done(err, familyInfoData);
-        }
+        
     });
 }
 function deleteFamilyInfoDetails(req, res, done) {
