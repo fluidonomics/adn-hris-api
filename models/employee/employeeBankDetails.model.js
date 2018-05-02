@@ -13,6 +13,7 @@ let mongoose                = require('mongoose'),
          accountNumber: {type: String,default:null},
          currency:{type: String, default:null},
          modeOfPaymentType:{type: String, default:null},
+         isCompleted:{type:Boolean,default:false},
          updatedBy: {type: Number, default:null},
          createdBy: {type: Number, default:null},
          isDeleted: {type: Boolean,default:false} 

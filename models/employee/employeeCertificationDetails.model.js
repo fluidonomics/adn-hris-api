@@ -13,6 +13,7 @@ let mongoose                = require('mongoose'),
          institution: {type: String,default:null},
          duration:{type: String, default:null},
          topicsCovered:{type: String, default:null},
+         isCompleted:{type:Boolean,default:false},
          updatedBy: {type: Number, default:null},
          createdBy: {type: Number, default:null},
          isDeleted: {type: Boolean,default:false} 

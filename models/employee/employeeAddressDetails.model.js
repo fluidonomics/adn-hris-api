@@ -21,6 +21,7 @@ let mongoose                = require('mongoose'),
          currentAddressDivision_id : {type: Number, default:null},
          currentAddressPostCode : {type: Number, default:null},
          isSameAsCurrent : {type: Boolean, default:false},
+         isCompleted:{type:Boolean,default:false},
          isActive: {type: Boolean,default:true},
          updatedBy: {type: Number, default:null},
          createdBy: {type: Number, required: true}
