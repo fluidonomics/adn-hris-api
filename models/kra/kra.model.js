@@ -4,42 +4,35 @@ let mongoose                = require('mongoose'),
     bcrypt                  = require('bcrypt');
     autoIncrement           = require('mongoose-sequence')(mongoose);
 
-      let KraSchema = new Schema(
+      let EmployeeKraSchema = new Schema(
       {
-         _id:{type:Number},
-         KraWorkFlow_id:{type: Number,ref: 'kraWorkFlow'},
-         supervisor_id:{type: Number,default:null},
-         isApproved: {type: Boolean,default:false},
-         declineReason: {type: String,default:null},
-         approvedReason:{type: String, default:null},
-         kraWeightage:{type: String, default:null},
-         unitOfSuccess:{type: String, default:null},
-         measureOfSuccess:{type: String, default:null},
-         kraCategory_id:{type: String, default:null,ref: 'kraCategory'},
-         kraStatus:{type: Number, default:null},
-         isActive:{type: Boolean, default:true},
-
-         updatedBy: {type: Number, default:null},
-         createdBy: {type: Number, default:null},
-         isDeleted: {type: Boolean,default:false} 
+          _id:{type:Number},
+          kraWorkflow_id:{type:Number,ref:'kraworkflowdetails', required: true},
+          kra:{type:String,default:null},
+          category_id:{type:Number,default:null},
+          weightage_id:{type:Number,default:null},
+          unitOfSuccess:{type:String,default:null},
+          measureOfSuccess:{type:String,default:null},
+          supervisor_id:{type: Number,ref: 'employeedetails', required: true},  
+          isDeleted:{type:Boolean,default:false},
+          createdBy:{type:Number,default:null},
+          updatedBy:{type:Number,default:null},
       },
       {
         timestamps: true,
         versionKey: false,
         _id:false
       });
+      //UserRolesSchema.plugin(autoIncrement, {inc_field: '_id'});
 
-KraSchema.plugin(mongooseUniqueValidator);
-
-  //Perform actions before saving the bank details
-  KraSchema.pre('save', function (next) {
+   // Update the Emp_id Hash user password when registering or when changing password
+   EmployeeKraSchema.pre('save', function (next) {
     var _this=this;
-    if (_this.isNew) {
-        mongoose.model('kra', KraSchema).count(function(err, c) {
-              _this._id = c + 1;
-              next();
-        });
-    }
-  });
-
-module.exports = mongoose.model('kra',KraSchema);
+    //Check the Count of Collection and add 1 to the Count and Assign it to Emp_id 
+    mongoose.model('employeeKra', EmployeeKraSchema).count(function(err, c) {
+      _this._id = c + 1;
+      next();
+    });
+});
+EmployeeKraSchema.plugin(mongooseUniqueValidator);
+module.exports = mongoose.model('employeeKra',EmployeeKraSchema);
