@@ -16,6 +16,7 @@ let express           = require('express'),
     CarInfo           = require('../models/employee/employeeCarDetails.model'),
     DocumentsInfo     = require('../models/employee/employeeDocumentDetails.model'),
     PerformanceRatingInfo = require('../models/employee/employeePerformanceRatingDetails.model'),
+    ProfileProcessInfo     = require('../models/employee/employeeProfileProcessDetails.model'),
     config            = require('../config/config'),
     crypto            = require('crypto'),
     async             = require('async'),
@@ -202,6 +203,71 @@ function updateAcademicInfoDetails(req, res, done) {
         } 
         auditTrailEntry(academicInfo.emp_id, "academicInfo", academicInfo, "user", "academicInfo", "UPDATED");
         return done(err, academicInfoData);        
+    });
+}
+
+
+function addProfileProcessInfoDetails(req, res, done) {
+    let profileProcessInfo = new ProfileProcessInfo(req.body);
+    profileProcessInfo.emp_id = req.body.emp_id || req.query.emp_id;
+    profileProcessInfo.createdBy = 1;
+
+    //profileProcessInfo.createdBy =req.headers[emp_id];
+
+    profileProcessInfo.save(function(err, profileProcessInfoData) {
+        if (err) {
+            return res.status(403).json({
+                title: 'There was a problem',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: profileProcessInfoData
+                }
+            });
+        }           
+        auditTrailEntry(profileProcessInfo.emp_id, "profileProcessInfo", profileProcessInfo, "user", "profileProcessInfo", "ADDED");
+        return done(err, profileProcessInfoData);
+    });
+}
+
+function updateProfileProcessInfoDetails(req, res, done) {
+    let profileProcessInfo = new ProfileProcessInfo(req.body);
+    profileProcessInfo.emp_id = req.body.emp_id || req.query.emp_id;
+    profileProcessInfo.updatedBy = 1;
+
+    //profileProcessInfo.updatedBy =req.headers[emp_id];
+    let _id = req.body._id;
+    var query = {
+        _id: _id,
+        isDeleted: false
+    }
+
+    var profileProcessInfoProjection = {
+        createdAt: false,
+        updatedAt: false,
+        isDeleted: false,
+        updatedBy: false,
+        createdBy: false,
+    };
+
+    ProfileProcessInfo.findOneAndUpdate(query, profileProcessInfo, {
+        new: true,
+        projection: profileProcessInfoProjection
+    }, function(err, profileProcessInfoData) {
+        if (err) {
+            return res.status(403).json({
+                title: 'There was a problem',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: profileProcessInfoData
+                }
+            });
+        } 
+        auditTrailEntry(profileProcessInfo.emp_id, "profileProcessInfo", profileProcessInfo, "user", "profileProcessInfo", "UPDATED");
+        return done(err, profileProcessInfoData);        
     });
 }
 
@@ -1472,6 +1538,40 @@ function getDocumentsInfoDetails(req, res) {
     });
 }
 
+
+function getProfileProcessInfoDetails(req, res) {
+    let emp_id = req.query.emp_id;
+    let query = {
+        isDeleted: false
+    };
+    if (emp_id) {
+        query = {
+            emp_id: emp_id,
+            isDeleted: false
+        };
+    }
+    var documentProjection = {
+        createdAt: false,
+        updatedAt: false,
+        isDeleted: false,
+        updatedBy: false,
+        createdBy: false,
+    };
+    ProfileProcessInfo.findOne(query, documentProjection, function(err, profileProcessData) {
+        if (profileProcessData) {
+            return res.status(200).json(profileProcessData);
+        }
+        return res.status(403).json({
+            title: 'There was an error, please try again later',
+            error: err,
+            result: {
+                message: profileProcessData
+            }
+        });
+    });
+}
+
+
 function getAcademicnfoDetails(req, res) {
     let emp_id = req.query.emp_id;
     let query = {
@@ -1952,6 +2052,9 @@ let functions = {
     getAcademicInfo: (req, res) => {
         getAcademicnfoDetails(req, res);
     },
+    getProfileProcessInfo: (req, res) => {
+        getProfileProcessInfoDetails(req, res);
+    },
     getCertificationInfo: (req, res) => {
         async.waterfall([
             function(done) {
@@ -2031,6 +2134,29 @@ let functions = {
             }
         ]);
     },
+
+    addProfileProcessInfo: (req, res) => {
+        async.waterfall([
+            function(done) {
+                addProfileProcessInfoDetails(req, res, done);
+            },
+            function(profileProcessInfoData, done) {
+                return res.status(200).json(profileProcessInfoData);
+            }
+        ]);
+    },
+
+    updateProfileProcessInfo: (req, res) => {
+        async.waterfall([
+            function(done) {
+                updateProfileProcessInfoDetails(req, res, done);
+            },
+            function(profileProcessInfoData, done) {
+                return res.status(200).json(profileProcessInfoData);
+            }
+        ]);
+    },
+
     deleteAcademicInfo: (req, res) => {
         async.waterfall([
             function(done) {

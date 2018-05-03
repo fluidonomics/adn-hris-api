@@ -126,6 +126,12 @@ let express  = require('express'),
     // Academic Info Endpoint: http://localhost:3000/api/user/deleteAcademicInfo
     userRoutes.delete('/deleteAcademicInfo', user.deleteAcademicInfo);
 
+     // Add Employee endpoint: http://localhost:3000/api/user/addProfileProcessInfo
+ userRoutes.post('/addProfileProcessInfo', user.addProfileProcessInfo);
+
+ // Add Employee endpoint: http://localhost:3000/api/user/updateProfileProcessInfo
+ userRoutes.post('/updateProfileProcessInfo', user.updateProfileProcessInfo);
+
     // Add Employee endpoint: http://localhost:3000/api/user/addPreviousEmploymentInfo
  userRoutes.post('/addPreviousEmploymentInfo', user.addPreviousEmploymentInfo);
 
@@ -210,6 +216,7 @@ let express  = require('express'),
 
   userRoutes.get('/getAcademicInfo',user.getAcademicInfo);
 
+  userRoutes.get('/getProfileProcessInfo',user.getProfileProcessInfo);
 
   userRoutes.get('/getCertificationInfo',user.getCertificationInfo);
 
