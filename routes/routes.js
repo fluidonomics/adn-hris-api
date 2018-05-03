@@ -6,10 +6,7 @@ let express  = require('express'),
     common   = require('../controllers/common.controller'),
     upload   = require('../controllers/upload.controller'),
     Employee = require('../models/employee/employeeDetails.model'),
-    // passport = require('passport');
     jwt = require('jsonwebtoken-refresh');
-
-    //let requireAuth = passport.authenticate('jwt', {session: false});
 
     function ensureAuthenticated(req, res, next) {
       if(req.headers && req.headers['access-token'])
@@ -63,11 +60,8 @@ let express  = require('express'),
 
    module.exports = (app) => {
 
-  // app.use(passport.initialize());
-  // require('../config/passport')(passport);
-
   // Initializing route groups
-  let apiRoutes   = express.Router(),
+   let apiRoutes   = express.Router(),
       authRoutes  = express.Router(),
       adminRoutes = express.Router(),
       userRoutes  = express.Router(),
@@ -208,7 +202,7 @@ let express  = require('express'),
   //userRoutes.post('/employeeDetails',user.employeeDetails);
 
 
-  userRoutes.get('/getPersonalInfo',user.getPersonalInfo);
+  userRoutes.get('/getPersonalInfo',ensureAuthenticated,user.getPersonalInfo);
 
   userRoutes.get('/getAddressInfo',user.getAddressInfo);
 
@@ -226,10 +220,6 @@ let express  = require('express'),
   userRoutes.get('/getOfficeInfo',user.getOfficeInfo);
 
   userRoutes.get('/getPositionInfo',user.getPositionInfo);
-  
-
-  //userRoutes.get('/getJoiningDetails',user.getJoiningDetails);
-
 
    userRoutes.get('/getPerformanceRatingInfo',user.getPerformanceRatingInfo);
 
@@ -241,9 +231,6 @@ let express  = require('express'),
    
    userRoutes.get('/getCarInfo',user.getCarInfo);
 
-  // userRoutes.get('/getCompanyCarDetails',user.getCompanyCarDetails);
-
-  // userRoutes.get('/getPersonalCarDetails',user.getPersonalCarDetails);
 
   //= ========================
   // User Forms Routes
@@ -387,6 +374,8 @@ let express  = require('express'),
     commonRoutes.get('/getPerformanceRating', common.getPerformanceRating);
 
     commonRoutes.get('/getRelation', common.getRelation);
+
+    commonRoutes.get('/checkTabCompleted', common.checkTabCompleted);
     
       //= ========================
       // Upload Routes

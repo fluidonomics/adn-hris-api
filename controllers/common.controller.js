@@ -21,6 +21,8 @@ let express           = require('express'),
     PersonalDetails   = require('../models/employee/employeePersonalDetails.model'),
     OfficeDetails     = require('../models/employee/employeeOfficeDetails.model'),
     Employee          = require('../models/employee/employeeDetails.model'),
+    BankInfo          = require('../models/employee/employeeBankDetails.model'),
+    SalaryInfo        = require('../models/employee/employeeSalaryDetails.model'),
     EmployeeRole      = require('../models/employee/employeeRoleDetails.model'),
     uuidV1            = require('uuid/v1'),
     async             = require('async')
@@ -688,7 +690,7 @@ let functions = {
                 }
             });
         })
-      },
+    },
     getHr: (req, res) => {
         var query = {
             isDeleted: false,
@@ -818,18 +820,15 @@ let functions = {
         })
     },
     checkEmailUnique: (req, res) => {
-      var personalEmail = req.body.personalEmail || req.params.personalEmail || req.query.personalEmail;
-      var officeEmail = req.body.officeEmail || req.params.officeEmail || req.query.officeEmail;
+      var personalEmail =  req.params.personalEmail || req.query.personalEmail;
+      var officeEmail =  req.params.officeEmail || req.query.officeEmail;
       var query = {
           isDeleted: false,
           personalEmail:personalEmail
       }
-      var personalEmpDetailsProjection = {
-        _id: true,
-      };
       if(personalEmail)
       {
-        PersonalDetails.find(query, personalEmpDetailsProjection, function(err, PersonalDetailsData) {
+        PersonalDetails.find(query, function(err, PersonalDetailsData) {
           if(PersonalDetailsData)
           {
             if(PersonalDetailsData.length > 0)
@@ -870,71 +869,122 @@ let functions = {
         });
         })
       }
-  },
-  getPerformanceRating: (req, res) => {
-    var query = {
-        isDeleted: false
-    }
-    var performanceRatingProjection = {
-        createdAt: false,
-        updatedAt: false,
-        isDeleted: false,
-        updatedBy: false,
-        createdBy: false
-    };
-    PerformanceRating.find({}, performanceRatingProjection, {
-      sort: {
-          _id: 1
-      }
-  }, function(err, performanceRatingData) {
-        if (performanceRatingData) {
-            return res.status(200).json(performanceRatingData);
+    },
+    checkTabCompleted: (req, res) => {
+        var tab =  req.params.tab || req.query.tab;
+        var emp_id =  req.params.emp_id || req.query.emp_id;
+    
+        if(tab="Office")
+        {
+        var query = {
+                isDeleted: false,
+                emp_id:parseInt(emp_id)
         }
-
-        return res.status(403).json({
-            title: 'Error',
-            error: {
-                message: err
-            },
-            result: {
-                message: result
+        OfficeDetails.count(query, function (err, count) {
+            if (count>0) 
+            {
+                BankInfo.count(query, function (err, count) {
+                    if (count>0) 
+                    {
+                        SalaryInfo.count({isActive: true,emp_id:parseInt(emp_id)}, function (err, count) {
+                            if (count>0) 
+                            {
+                                return res.status(200).json(true);
+                            }
+                            return res.status(200).json(false);
+                        });
+                    }
+                    else{
+                        return res.status(200).json(false); 
+                    }
+                });  
+            }
+            else{
+            return res.status(200).json(false);
             }
         });
-
-    })
-},
-getRelation: (req, res) => {
-    var query = {
-        isDeleted: false
-    }
-    var relationProjection = {
-        createdAt: false,
-        updatedAt: false,
-        isDeleted: false,
-        updatedBy: false,
-        createdBy: false
-    };
-    Relation.find({}, relationProjection, {
-      sort: {
-          _id: 1
-      }
-  }, function(err, relationData) {
-        if (relationData) {
-            return res.status(200).json(relationData);
         }
-
-        return res.status(403).json({
-            title: 'Error',
-            error: {
-                message: err
-            },
-            result: {
-                message: result
+        else 
+        {
+        var query = {
+                isDeleted: false,
+                emp_id:parseInt(emp_id),
+                isCompleted:true
+        }
+        PersonalDetails.count(query, function (err, count) {
+            if(count>0)
+            {
+                //    AddressDetails.count({isActive:true,emp_id:parseInt(emp_id),isCompleted:true},function(err,count)
+                //    {
+                    
+                //    })
+                return res.status(200).json(true);
+            }
+            else{
+                return res.status(200).json(false); 
             }
         });
+            
 
-    })
-},
+        }
+
+
+
+    },
+    getPerformanceRating: (req, res) => {
+        var query = {
+            isDeleted: false
+        }
+        var performanceRatingProjection = {
+            createdAt: false,
+            updatedAt: false,
+            isDeleted: false,
+            updatedBy: false,
+            createdBy: false
+        };
+        PerformanceRating.find({}, performanceRatingProjection, {sort: {_id: 1}}, function(err, performanceRatingData) {
+            if (performanceRatingData) {
+                return res.status(200).json(performanceRatingData);
+            }
+
+            return res.status(403).json({
+                title: 'Error',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: result
+                }
+            });
+
+        })
+    },
+    getRelation: (req, res) => {
+        var query = {
+            isDeleted: false
+        }
+        var relationProjection = {
+            createdAt: false,
+            updatedAt: false,
+            isDeleted: false,
+            updatedBy: false,
+            createdBy: false
+        };
+            Relation.find({}, relationProjection, {sort: {_id: 1}}, function(err, relationData) {
+                if (relationData) {
+                    return res.status(200).json(relationData);
+                }
+                return res.status(403).json({
+                    title: 'Error',
+                    error: {
+                        message: err
+                    },
+                    result: {
+                        message: result
+                    }
+            });
+        })
+    },
 };
 
 module.exports = functions;

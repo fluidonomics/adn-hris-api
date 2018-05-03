@@ -26,9 +26,6 @@ let express           = require('express'),
     require('dotenv').load()
 
 
-
-
-
 function addPersonalInfoDetails(req, res, done) {
     let personalDetails = new PersonalInfo(req.body);
     personalDetails.emp_id = req.body.emp_id || req.query.emp_id;
@@ -233,12 +230,6 @@ function deleteAcademicInfoDetails(req, res, done) {
     });
 }
 
-
-
-
-
-
-
 function addPreviousEmploymentInfoDetails(req, res, done) {
     let previousEmploymentInfo = new PreviousEmploymentInfo(req.body);
     previousEmploymentInfo.emp_id = req.body.emp_id || req.query.emp_id;
@@ -329,14 +320,6 @@ function deletePreviousEmploymentInfoDetails(req, res, done) {
         return done(err, success);        
     });
 }
-
-
-
-
-
-
-
-
 
 function addDocumentsInfoDetails(req, res, done) {
     let documents = new DocumentsInfo(req.body);
@@ -494,6 +477,7 @@ function updateFamilyInfoDetails(req, res, done) {
         
     });
 }
+
 function deleteFamilyInfoDetails(req, res, done) {
     let _id = req.body._id || req.query._id;
 
@@ -518,7 +502,6 @@ function deleteFamilyInfoDetails(req, res, done) {
         return done(err, success);        
     });
 }
-
 
 function addAddressInfoDetails(req, res, done) {
     let address = new AddressInfo(req.body);
@@ -788,7 +771,6 @@ function updateSalaryInfoDetails(req, res, done) {
         return done(err, salaryInfoData);
     });
 }
-
 
 function addCarInfoDetails(req, res, done) {
     let carInfo = new CarInfo(req.body);
@@ -1954,42 +1936,10 @@ let functions = {
                     }
                 });
             }
+
             return res.status(200).json({"data":employeeDetailsData});
         });
     },
-
-    getEmployeeInfo: (req, res) => {
-        let params = req.query.formName;
-        if (params) {
-            switch (params) {
-                case "personal":
-                    getPersonalInfoAndAddress(req, res);
-                    break;
-                case "documents":
-                    getDocuments(req, res);
-                    break;
-                case "education":
-                    getAcademicInfoAndCertificationsAndTraniningInfo(req, res);
-                    break;
-                case "employment":
-                    getPreviousEmployment(req, res);
-                    break;
-                case "family":
-                    getFamilyInfo(req, res);
-                    break;
-                case "office":
-                    getOfficeInfoAndJoiningDetailsAndPositionDetailsAndPerformanceRating(req, res);
-                    break;
-                case "payroll":
-                    getBankDetailsAndSalaryDetailsAndOtherBanefitDetailsAndCompanyCarAndPersonalCarDetails(req, res);
-                    break;
-                default:
-                    getPersonalInfoAndAddress();
-                    break;
-            }
-        }
-    },
-
     getPersonalInfo: (req, res) => {
         getPersonalInfoDetails(req, res);
     },
@@ -2022,9 +1972,6 @@ let functions = {
     },
     getOfficeInfo: (req, res) => {
         getOfficeInfoDetails(req, res)
-    },
-    getJoiningInfo: (req, res) => {
-        getJoiningInfoDetails(req, res)
     },
     getPositionInfo: (req, res) => {
         getPositionInfoDetails(req, res)
