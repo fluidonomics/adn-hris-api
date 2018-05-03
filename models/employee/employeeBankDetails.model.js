@@ -13,6 +13,7 @@ let mongoose                = require('mongoose'),
          accountNumber: {type: String,default:null},
          currency:{type: String, default:null},
          modeOfPaymentType:{type: String, default:null},
+         isCompleted:{type:Boolean,default:false},
          updatedBy: {type: Number, default:null},
          createdBy: {type: Number, default:null},
          isDeleted: {type: Boolean,default:false} 
@@ -30,7 +31,9 @@ EmployeeBankDetailsSchema.plugin(mongooseUniqueValidator);
     var _this=this;
     if (_this.isNew) {
         mongoose.model('employeeBankDetails', EmployeeBankDetailsSchema).count(function(err, c) {
-              _this._id = c + 1;
+        _this._id = c + 1;
+        _this.isCompleted = true;
+              
               next();
         });
     }

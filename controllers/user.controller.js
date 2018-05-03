@@ -83,6 +83,7 @@ function updatePersonalInfoDetails(req, res, done) {
     // personalDetails.emergencyContactNumber = req.body.emergencyContactNumber;
     // personalDetails.profileStatus = req.body.profileStatus;
     personalDetails.updatedBy = 1;
+    personalDetails.isCompleted = true;
     //personalDetails.updatedBy =req.headers[emp_id];
 
     let _id = req.body._id;
@@ -487,9 +488,10 @@ function updateFamilyInfoDetails(req, res, done) {
                     message: familyInfoData
                 }
             });
+        }
             auditTrailEntry(familyInfo.emp_id, "familyInfo", familyInfo, "user", "familyInfo", "UPDATED");
             return done(err, familyInfoData);
-        }
+        
     });
 }
 function deleteFamilyInfoDetails(req, res, done) {
@@ -575,6 +577,7 @@ function updateAddressInfoDetails(req, res, done) {
     // address.currentAddressPostCode = req.body.currentAddressPostCode;
     // address.isSameAsCurrent = req.body.isSameAsCurrent;
     address.updatedBy = 1;
+    address.isCompleted = true;
 
     let _id = req.body._id;
     var query = {
@@ -1220,7 +1223,8 @@ function updateofficeInfoDetails(req, res) {
                         "workPermitNumber" : req.body.workPermitNumber,
                         "workPermitEffectiveDate" : req.body.workPermitEffectiveDate,
                         "workPermitExpiryDate" : req.body.workPermitExpiryDate,
-                        "updatedBy":1
+                        "updatedBy":1,
+                        "isCompleted": true
                 }};
                 OfficeInfo.findOneAndUpdate(query, queryUpdate, function(err, officeDetailsData) {
                     if (officeDetailsData)
@@ -1275,8 +1279,9 @@ function updatepositionInfoDetails(req, res) {
     {
            if(employeeData)
            {
+
                 query = {
-                    _id: _id,
+                    _id: req.body._id,
                     isDeleted: false
                 }
                 queryUpdate=   {$set:{
@@ -1294,6 +1299,10 @@ function updatepositionInfoDetails(req, res) {
                 OfficeInfo.findOneAndUpdate(query, queryUpdate, function(err, officeDetailsData) {
                     if (officeDetailsData)
                     { 
+                        query = {
+                            _id:req.body.supervisor_Id,
+                            isActive: true
+                        }
                         queryUpdate={$set:{
                             "emp_id" :req.body.emp_id,
                             "primarySupervisorEmp_id" :req.body.primarySupervisorEmp_id,
@@ -1601,10 +1610,11 @@ function getFamilyInfoDetails(req, res) {
                 title: 'There was an error, please try again later',
                 error: err,
                 result: {
-                    message: documentsData
+                    message: familyInfoData
                 }
             });
         }
+        
         return res.status(200).json({"data":familyInfoData});
     });
 }
@@ -1650,11 +1660,11 @@ function getOfficeInfoDetails(req, res) {
                     city : results[0].city,
                     country : results[0].country,
                     costCentre : results[0].costCentre,
-                    dateOfJoining : results[0].dateOfJoining,
-                    dateOfConfirmation : results[0].dateOfConfirmation,
+                    dateOfJoining :results[0].dateOfJoining ? new Date(results[0].dateOfJoining):null,
+                    dateOfConfirmation :results[0].dateOfConfirmation ? new Date(results[0].dateOfJoining):null,
                     workPermitNumber : results[0].workPermitNumber,
-                    workPermitEffectiveDate : results[0].workPermitEffectiveDate,
-                    workPermitExpiryDate : results[0].workPermitExpiryDate,
+                    workPermitEffectiveDate :results[0].workPermitEffectiveDate ? new Date(results[0].workPermitEffectiveDate):null,
+                    workPermitExpiryDate :results[0].workPermitExpiryDate ? new Date(results[0].workPermitEffectiveDate):null,
                 }; 
            }
            return res.status(200).json(officeInfoData);
@@ -1720,6 +1730,7 @@ function getPositionInfoDetails(req, res) {
                     hrspoc_id : results[0].hrspoc_id,
                     primarySupervisorEmp_id:parseInt(results[0].supervisor[0].primarySupervisorEmp_id),
                     supervisor_Id:parseInt(results[0].supervisor[0]._id),
+                    isCompleted : results[0].isCompleted
                   }
             }
             return res.status(200).json(positionInfoData);

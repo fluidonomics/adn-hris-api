@@ -21,6 +21,7 @@ let mongoose                = require('mongoose'),
          currentAddressDivision_id : {type: Number, default:null},
          currentAddressPostCode : {type: Number, default:null},
          isSameAsCurrent : {type: Boolean, default:false},
+         isCompleted:{type:Boolean,default:false},
          isActive: {type: Boolean,default:true},
          updatedBy: {type: Number, default:null},
          createdBy: {type: Number, required: true}
@@ -38,6 +39,7 @@ let mongoose                = require('mongoose'),
     //Check the Count of Collection and add 1 to the Count and Assign it to Emp_Id 
     mongoose.model('employeeAddressDetails', EmployeeAddressDetailsSchema).count(function(err, c) {
       _this._id = c + 1;
+      _this.isCompleted = true;
       next();
     });
 });
