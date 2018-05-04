@@ -30,5 +30,4 @@ KraCategorySchema.plugin(mongooseUniqueValidator);
         });
     }
   });
-
 module.exports = mongoose.model('kraCategory',KraCategorySchema);
