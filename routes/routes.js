@@ -5,6 +5,7 @@ let express  = require('express'),
     master   = require('../controllers/master.controller'),
     common   = require('../controllers/common.controller'),
     upload   = require('../controllers/upload.controller'),
+    kra      = require('../controllers/kra.controller'),
     Employee = require('../models/employee/employeeDetails.model'),
     // passport = require('passport');
     jwt = require('jsonwebtoken-refresh');
@@ -73,7 +74,8 @@ let express  = require('express'),
       userRoutes  = express.Router(),
       masterRoutes= express.Router();
       commonRoutes= express.Router();
-      uploadRoutes = express.Router(),
+      uploadRoutes= express.Router(),
+      kraRoutes   = express.Router(),
 
   //= ========================
   // Auth Routes
@@ -273,6 +275,29 @@ let express  = require('express'),
 
 //   // Delete Image endpoint: http://localhost:3000/api/admin/form/image/:id
 //   formRoutes.delete('/form/image/:id', requireAuth, admin.deleteImage);
+
+  //= ========================
+  // Kra Routes 
+  //= ========================
+
+  apiRoutes.use('/kra', kraRoutes);
+
+  kraRoutes.post('/addKraInfo', kra.addKraInfo);
+
+  kraRoutes.post('/updateKraInfo', kra.updateKraInfo);
+
+
+
+
+
+
+
+
+
+  kraRoutes.get('/getKraInfo', kra.getKraInfo);
+
+
+
 
 
 
