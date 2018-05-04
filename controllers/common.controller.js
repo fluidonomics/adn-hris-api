@@ -161,11 +161,11 @@ function getProfileProcessStatusInfoDetails(req,res)
     }
 }
 
-function sendmail(req,res)
+function sendEmailMail(req,res)
 {
-    let toemail=req.boyy.toemail;
-    let subject=req.boyy.subject;
-    let htmlBody=req.boyy.htmlBody;
+    let toemail=req.body.toemail;
+    let subject=req.body.subject;
+    let htmlBody=req.body.htmlBody;
 
     let transporter = nodemailer.createTransport({
         host: process.env.EmailHost,
@@ -1083,7 +1083,7 @@ let functions = {
     },
 
     sendEmail: (req, res) => {
-        sendEmail(req, res);
+        sendEmailMail(req, res);
     },
 
    

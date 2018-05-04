@@ -2,6 +2,7 @@ let express          = require('express'),
     Employee         = require('../models/employee/employeeDetails.model'),
     PersonalDetails  = require('../models/employee/employeePersonalDetails.model'),
     EmployeeRoles    = require('../models/employee/employeeRoleDetails.model'),
+    OfficeInfo        = require('../models/employee/employeeOfficeDetails.model'),
     Roles            = require('../models/master/role.model'),
     jwt              = require('jsonwebtoken-refresh');
     config           = require('../config/config'),
@@ -130,28 +131,37 @@ let functions = {
           });
         },
         function (token, done) {
-          Employee.findOne({email: req.body.email}, function (err, user) {
+          OfficeInfo.findOne({officeEmail: req.body.email,isDeleted:false}, function (err, office) {
             if (err) {
               return res.status(403).json({
                 title: 'There was an error',
                 error: err
               });
             }
-            if (!user) {
-              return res.status(403).json({
+            if (!office) {
+              return res.status(200).json({
                 title: 'Please check if your email is correct',
                 error: {message: 'Please check if your email is correct'}
               });
             }
-            user.resetPasswordToken = token;
-            user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
-  
-            user.save(function (err) {
-              done(err, token, user);
+
+            let queryUpdate={ $set: {resetPasswordToken:token, resetPasswordExpires: Date.now() + 3600000 }};
+
+            Employee.findOneAndUpdate({_id:office.emp_id,isDeleted:false},queryUpdate,function(err,user)
+            {
+              if(user)
+              {
+                done(err, token, user);
+              }
+              // user.resetPasswordToken = token;
+              // user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+              // user.save(function (err,updatedTank) {
+              //   done(err, token, user);
+              // });
             });
           });
         },
-        // sending the notification email to the user with the link and the token created above
+        //sending the notification email to the user with the link and the token created above
         (token, user, done) => {
           let options = {
             viewPath: config.paths.emailPath,

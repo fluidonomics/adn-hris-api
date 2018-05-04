@@ -13,6 +13,10 @@ module.exports = {
     'welcome':{
       from:'"Team HRIS" <hris@adnsl.net>',
       subject:'Welcome to ADN'
+    },
+    'forget':{
+      from:'"Team HRIS" <hris@adnsl.net>',
+      subject:'Reset Password'
     }
   }
 };
