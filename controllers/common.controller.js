@@ -24,6 +24,7 @@ let express           = require('express'),
     BankInfo          = require('../models/employee/employeeBankDetails.model'),
     SalaryInfo        = require('../models/employee/employeeSalaryDetails.model'),
     EmployeeRole      = require('../models/employee/employeeRoleDetails.model'),
+    ProfileProcessStatus= require('../models/employee/employeeProfileProcessDetails.model'),
     uuidV1            = require('uuid/v1'),
     async             = require('async')
     awaitEach         = require('await-each');
@@ -99,6 +100,65 @@ function getDesignationByGrade(req, res) {
     })
 }
 
+
+function getProfileProcessStatusInfoDetails(req,res)
+{
+    let emp_id=req.body.emp_id||req.query.emp_id;
+    let query={
+        isActive:true
+    }
+    if(emp_id)
+    {
+        query={
+            emp_id:emp_id,
+            isActive:true
+        }
+        ProfileProcessStatus.findOne(query, function(err, profileData)
+        {
+        if(err)
+        {
+            return res.status(403).json({
+                title: 'Error',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: profileData
+                }
+            });  
+        }
+        let profile={
+                "_id":profileData._id,
+                "emp_id":profileData.emp_id,
+                "profileProcess":profileData.personalProfileStatus,
+                "officeProfileStatus":profileData.officeProfileStatus,
+                "hrSupervisorSendbackComment":profileData.hrSupervisorSendbackComment,
+                "hrSendbackComment":profileData.hrSendbackComment,
+                "isOfficeProfileCompleted":(profileData.officeProfileStatus== 'Approved' ? true :false),
+                "isPersonalProfileCompleted":(profileData.personalProfileStatus== 'Approved'||'Submitted' ||'SentBack' ? true :false)
+        }
+        return res.status(200).json(profile);
+        });
+    }
+    else{
+        ProfileProcessStatus.findOne(query, function(err, profileData)
+        {
+        if(err)
+        {
+            return res.status(403).json({
+                title: 'Error',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: profileData
+                }
+            });  
+        }
+        return res.status(200).json({"data":profileData});
+        });
+    }
+}
 
 let functions = {
     getRole: (req, res) => {
@@ -984,6 +1044,9 @@ let functions = {
                     }
             });
         })
+    },
+    getProfileProcessStatus: (req, res) => {
+        getProfileProcessStatusInfoDetails(req, res);
     },
 };
 

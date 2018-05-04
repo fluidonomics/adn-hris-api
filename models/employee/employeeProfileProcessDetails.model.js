@@ -8,12 +8,10 @@ let mongoose                = require('mongoose'),
       {
         _id:{type:Number},
         emp_id:{type: Number,ref:'employeedetails',required: true},
-        hr_id:{type: Number,ref:'employeedetails',required: true},
-        hrSupervisor_id:{type: Number,ref:'employeedetails',required: true},
         personalProfileStatus:{type: String,default:null},//Submitted/SentBack/Approved
         officeProfileStatus:{type: String,default:null},//Submitted/SentBack/Approved
         hrSupervisorSendbackComment:{type: String,default:null},
-        hrSendbackComment:{type:String,required:true},
+        hrSendbackComment:{type:String,default:null},
         createdBy: {type: Number,default:null},
         updatedBy: {type: Number,default:null},
         isActive: {type: Boolean,default:true}, 
@@ -28,7 +26,7 @@ let mongoose                = require('mongoose'),
    ProfileProcessDetailsSchema.pre('save', function (next) {
     var _this=this;
     //Check the Count of Collection and add 1 to the Count and Assign it to Emp_id 
-    mongoose.model('profileProcessDetails', ProfileProcessDetailsSchema).count(function(err, c) {
+    mongoose.model('employeeprofileProcessDetails', ProfileProcessDetailsSchema).count(function(err, c) {
       _this._id = c + 1;
       next();
     });
@@ -36,4 +34,4 @@ let mongoose                = require('mongoose'),
 
 ProfileProcessDetailsSchema.plugin(mongooseUniqueValidator);
 
-module.exports = mongoose.model('profileProcessDetails',ProfileProcessDetailsSchema);
+module.exports = mongoose.model('employeeprofileProcessDetails',ProfileProcessDetailsSchema);

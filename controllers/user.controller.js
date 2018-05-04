@@ -1991,6 +1991,10 @@ let functions = {
                                 },
                                 function(done) {
                                     addPersonalInfoDetails(req, res, done)
+                                },
+                                function(done)
+                                {
+                                    addProfileProcessInfoDetails(req, res, done)
                                 }
                             ],
                             function(done) {
@@ -2016,29 +2020,75 @@ let functions = {
     },
     getAllEmployee(req, res)
     {
-        let query = {
-            isDeleted: false
-        };
-        var EmployeeInfoProjection = {
-            createdAt: false,
-            updatedAt: false,
-            isDeleted: false,
-            updatedBy: false,
-            createdBy: false,
-        };
-        EmployeeInfo.find(query, EmployeeInfoProjection, function(err, employeeDetailsData) {
-            if (err) {
-                return res.status(403).json({
-                    title: 'There was an error, please try again later',
-                    error: err,
-                    result: {
-                        message: employeeDetailsData
-                    }
-                });
+        EmployeeInfo.aggregate([
+        {
+            "$lookup": {
+                "from": "designations",
+                "localField": "designation_id",
+                "foreignField": "_id",
+                "as": "designations"
             }
-
-            return res.status(200).json({"data":employeeDetailsData});
-        });
+        },
+        {
+          "$unwind": "$designations"
+        },
+        {
+          "$lookup": {
+              "from": "employeeofficedetails",
+              "localField": "_id",
+              "foreignField": "emp_id",
+              "as": "officeDetails"
+          }
+        },
+        {
+          "$unwind": "$officeDetails"
+        },
+        {
+            "$lookup": {
+                "from": "employeesupervisordetails",
+                "localField": "_id",
+                "foreignField": "emp_id",
+                "as": "supervisor"
+            }
+        },
+        {
+            "$unwind": "$supervisor"
+        },
+        {
+            "$lookup": {
+                "from": "employeedetails",
+                "localField": "supervisor.primarySupervisorEmp_id",
+                "foreignField": "_id",
+                "as": "employees"
+            }
+        },
+        {
+            "$unwind": "$employees"
+        },
+        {"$match": {"isDeleted":false,"designations.isActive":true,"officeDetails.isDeleted":false} },
+        {"$project":{
+          "_id":"$_id",
+          "FullName":"$fullName",
+          "ProfileImage":"$profileImage",
+          "OfficeEmail":"$officeDetails.officeEmail",
+          "Designation":"$designations.designationName",
+          "Supervisor":"$employees.fullName"
+        }}
+        ]).exec(function(err, results){
+        if(err)
+        {
+            return res.status(403).json({
+                title: 'There was a problem',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: results
+                }
+            });
+        } 
+        return res.status(200).json({"data":results});
+     });
     },
     getPersonalInfo: (req, res) => {
         getPersonalInfoDetails(req, res);
@@ -2091,7 +2141,7 @@ let functions = {
     getCarInfo: (req, res) => {
         getCarInfoDetails(req, res);
     },
-
+    
     addPersonalInfo: (req, res) => {
         async.waterfall([
             function(done) {

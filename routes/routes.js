@@ -382,6 +382,8 @@ let express  = require('express'),
 
     commonRoutes.get('/getRelation', common.getRelation);
 
+    commonRoutes.get('/getProfileProcessStatus', common.getProfileProcessStatus);
+
     commonRoutes.get('/checkTabCompleted', common.checkTabCompleted);
     
       //= ========================
