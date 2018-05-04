@@ -385,6 +385,8 @@ let express  = require('express'),
     commonRoutes.get('/getProfileProcessStatus', common.getProfileProcessStatus);
 
     commonRoutes.get('/checkTabCompleted', common.checkTabCompleted);
+
+    commonRoutes.post('/sendEmail', common.sendEmail);
     
       //= ========================
       // Upload Routes

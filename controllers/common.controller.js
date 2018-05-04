@@ -28,6 +28,7 @@ let express           = require('express'),
     uuidV1            = require('uuid/v1'),
     async             = require('async')
     awaitEach         = require('await-each');
+    require('dotenv').load()
 
 function getDesignationByGrade(req, res) {
 
@@ -159,6 +160,38 @@ function getProfileProcessStatusInfoDetails(req,res)
         });
     }
 }
+
+function sendmail(req,res)
+{
+    let toemail=req.boyy.toemail;
+    let subject=req.boyy.subject;
+    let htmlBody=req.boyy.htmlBody;
+
+    let transporter = nodemailer.createTransport({
+        host: process.env.EmailHost,
+        secure: false,
+        auth: {
+            user: process.env.EmailUser,
+            pass: process.env.EmailPassword
+        },
+        tls: {
+            rejectUnauthorized: false
+        }
+    });
+    let mailOptions = {
+        from: '"Team HRIS" <hris@adnsl.net>', // sender address
+        to: toemail,
+        subject: subject, // Subject line
+        html: htmlBody
+    };
+    transporter.sendMail(mailOptions, (error2, info) => {
+        if (error2) {
+            return console.log("RESULT ERROR = ", error2);
+        }
+        res.status(200).json(true);
+     });
+}
+
 
 let functions = {
     getRole: (req, res) => {
@@ -1048,6 +1081,12 @@ let functions = {
     getProfileProcessStatus: (req, res) => {
         getProfileProcessStatusInfoDetails(req, res);
     },
+
+    sendEmail: (req, res) => {
+        sendEmail(req, res);
+    },
+
+   
 };
 
 module.exports = functions;
