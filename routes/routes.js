@@ -280,15 +280,11 @@ let express  = require('express'),
 
   kraRoutes.post('/updateKraInfo', kra.updateKraInfo);
 
-
-
-
-
-
-
-
-
   kraRoutes.get('/getKraInfo', kra.getKraInfo);
+
+  kraRoutes.get('/getKraDetailsData', kra.getKraDetailsData);
+
+  
 
 
 
