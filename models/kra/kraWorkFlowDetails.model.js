@@ -4,13 +4,13 @@ let mongoose                = require('mongoose'),
     bcrypt                  = require('bcrypt');
     autoIncrement           = require('mongoose-sequence')(mongoose);
 
-      let KraWorkFlowSchema = new Schema(
+      let KraWorkflowDetailsSchema = new Schema(
       {
          _id:{type:Number},
-         kraEmp_id:{type: Number,ref: 'employeedetails'},
-         kraInitiatedBy:{type: Number,default:null},
-         endDate: {type: Date,default:null},
-         kraWorkFlowStatus: {type: String,default:null},
+         batch_id:{type: Number,ref: 'batchdetails'},
+         timeline_id:{type: Number,ref: 'timelinedetails'},
+         emp_id:{type: Number,ref: 'employeedetails'},
+         status: {type: String,default:null},
          updatedBy: {type: Number, default:null},
          createdBy: {type: Number, default:null},
          isDeleted: {type: Boolean,default:false} 
@@ -21,17 +21,16 @@ let mongoose                = require('mongoose'),
         _id:false
       });
 
-KraWorkFlowSchema.plugin(mongooseUniqueValidator);
+KraWorkflowDetailsSchema.plugin(mongooseUniqueValidator);
 
   //Perform actions before saving the bank details
-  KraWorkFlowSchema.pre('save', function (next) {
+  KraWorkflowDetailsSchema.pre('save', function (next) {
     var _this=this;
     if (_this.isNew) {
-        mongoose.model('kraWorkFlow', KraWorkFlowSchema).count(function(err, c) {
+        mongoose.model('kraWorkflowDetails', KraWorkflowDetailsSchema).count(function(err, c) {
               _this._id = c + 1;
               next();
         });
     }
   });
-
-module.exports = mongoose.model('kraWorkFlow',KraWorkFlowSchema);
+module.exports = mongoose.model('kraWorkflowDetails',KraWorkflowDetailsSchema);
