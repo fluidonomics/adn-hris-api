@@ -2072,7 +2072,8 @@ let functions = {
           "ProfileImage":"$profileImage",
           "OfficeEmail":"$officeDetails.officeEmail",
           "Designation":"$designations.designationName",
-          "Supervisor":"$employees.fullName"
+          "Supervisor":"$employees.fullName",
+          "HrScope_Id":'$officeDetails.hrspoc_id'
         }}
         ]).exec(function(err, results){
         if(err)
