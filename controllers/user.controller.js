@@ -1743,10 +1743,10 @@ function getOfficeInfoDetails(req, res) {
                     country : results[0].country,
                     costCentre : results[0].costCentre,
                     dateOfJoining :results[0].dateOfJoining ? new Date(results[0].dateOfJoining):null,
-                    dateOfConfirmation :results[0].dateOfConfirmation ? new Date(results[0].dateOfJoining):null,
+                    dateOfConfirmation :results[0].dateOfConfirmation ? new Date(results[0].dateOfConfirmation):null,
                     workPermitNumber : results[0].workPermitNumber,
                     workPermitEffectiveDate :results[0].workPermitEffectiveDate ? new Date(results[0].workPermitEffectiveDate):null,
-                    workPermitExpiryDate :results[0].workPermitExpiryDate ? new Date(results[0].workPermitEffectiveDate):null,
+                    workPermitExpiryDate :results[0].workPermitExpiryDate ? new Date(results[0].workPermitExpiryDate):null,
                 }; 
            }
            return res.status(200).json(officeInfoData);
