@@ -145,7 +145,7 @@ function updateKraInfoDetails(req, res, done) {
 
 function getKraInfoDetailsData(req, res) {
     let emp_id=req.query.emp_id;
-    KraWorkflow.aggregate([
+    KraWorkFlowInfo.aggregate([
         {
             "$lookup": {
                 "from": "kradetails",
