@@ -284,6 +284,10 @@ let express  = require('express'),
 
   kraRoutes.get('/getKraDetailsData', kra.getKraDetailsData);
 
+  kraRoutes.post('/addKraWorkFlowInfo', kra.addKraWorkFlowInfo);
+
+  kraRoutes.get('/getKraWorkFlowInfo', kra.getKraWorkFlowInfo);
+
   
 
 

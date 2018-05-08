@@ -7,7 +7,7 @@ let express           = require('express'),
     Notification      = require('../models/common/notification.model'),
     EmployeeRoles     = require('../models/employee/employeeRoleDetails.model'),
     KraInfo           = require('../models/kra/kraDetails.model'),
-    KraWorkflow       = require('../models/kra/kraWorkFlowDetails.model'),
+    KraWorkFlowInfo   = require('../models/kra/kraWorkFlowDetails.model'),
     config            = require('../config/config'),
     crypto            = require('crypto'),
     async             = require('async'),
@@ -30,6 +30,59 @@ let express           = require('express'),
       auditTrail.save();
   }
   
+
+  function addKraWorkFlowInfoDetails(req, res, done) {
+    let kraWorkFlowDetails = new KraWorkFlowInfo(req.body);
+    kraWorkFlowDetails.emp_id = req.body.emp_id || req.query.emp_id;
+    kraWorkFlowDetails.createdBy = 1;
+
+    kraWorkFlowDetails.save(function(err, kraWorkFlowInfoData) {
+        if (err) {
+            return res.status(403).json({
+                title: 'There was a problem',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: kraWorkFlowInfoData
+                }
+            });
+        }
+        auditTrailEntry(kraWorkFlowDetails.emp_id, "kraWorkFlowDetails", kraWorkFlowDetails, "user", "kraWorkFlowDetails", "ADDED");
+        return done(err, kraWorkFlowInfoData);   
+    });
+}
+
+
+
+function getKraWorkFlowInfoDetails(req, res) {
+    let _id = req.query._id;
+    let query = {
+        isDeleted: false
+    };
+    if (_id) {
+        query = {
+            _id: _id,
+            isDeleted: false
+        };
+    }
+    var kraWorkflowProjection = {
+        createdAt: false,
+        updatedAt: false,
+        isDeleted: false,
+        updatedBy: false,
+        createdBy: false,
+    };
+    KraWorkFlowInfo.findOne(query, kraWorkflowProjection, function(err, kraWorkflowInfoData) {
+        if (err) {
+            return res.status(403).json({
+                title: 'There was an error, please try again later',
+                error: err
+            });
+        }
+        return res.status(200).json(kraWorkflowInfoData);
+    });
+  }
 
 
 function addKraInfoDetails(i,req, res, done) {
@@ -159,6 +212,31 @@ function getKraInfoDetails(req, res) {
 }
 
 let functions = {
+    addKraWorkFlowInfo:(req,res )=> {
+        async.waterfall([
+          function(done) {
+            addKraWorkFlowInfoDetails(req,res,done);
+          },
+          function(kraWorkFlowInfoData,done) {
+            return res.status(200).json(kraWorkFlowInfoData);
+          }
+        ]);
+      },
+
+      getKraWorkFlowInfo: (req, res) => {
+        async.waterfall([
+            function(done) {
+                getKraWorkFlowInfoDetails(req, res, done);
+            },
+            function(kraWorkflowDetailsData, done) {
+                return res.status(200).json({
+                    "data": kraWorkflowDetailsData
+                });
+            }
+        ]);
+    },
+
+
     addKraInfo:(req,res )=> {
       async.waterfall([
         function(done) {
