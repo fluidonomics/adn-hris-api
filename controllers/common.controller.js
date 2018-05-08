@@ -169,7 +169,7 @@ function sendEmailMail(req,res)
 
     let transporter = nodemailer.createTransport({
         host: process.env.EmailHost,
-        secure: true,
+        secure: false,
         auth: {
             user: process.env.EmailUser,
             pass: process.env.EmailPassword
@@ -184,7 +184,6 @@ function sendEmailMail(req,res)
         subject: subject, // Subject line
         html: htmlBody
     };
-    console.log(transporter);
     console.log(mail);
     transporter.sendMail(mailOptions, (error2, info) => {
         if (error2) {
