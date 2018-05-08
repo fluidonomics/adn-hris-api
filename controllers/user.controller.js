@@ -953,8 +953,9 @@ function addCertificationInfoDetails(req, res, done) {
             });
         }            
         auditTrailEntry(certificationInfo.emp_id, "certificationInfo", certificationInfo, "user", "certificationInfo", "ADDED");
-        req.query.emp_id = certificationInfo.emp_id;
-        getCertificationInfoDetails(req, res, done)
+        return done(err, certificationInfoData);
+        //req.query.emp_id = certificationInfo.emp_id;
+        //getCertificationInfoDetails(req, res, done)
     });
 }
 
