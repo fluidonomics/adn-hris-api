@@ -184,7 +184,7 @@ function sendEmailMail(req,res)
         subject: subject, // Subject line
         html: htmlBody
     };
-    console.log(mail);
+    console.log(mailOptions);
     transporter.sendMail(mailOptions, (error2, info) => {
         if (error2) {
             return console.log("RESULT ERROR = ", error2);
