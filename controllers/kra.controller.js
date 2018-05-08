@@ -34,6 +34,8 @@ let express           = require('express'),
   function addKraWorkFlowInfoDetails(req, res, done) {
     let kraWorkFlowDetails = new KraWorkFlowInfo(req.body);
     kraWorkFlowDetails.emp_id = req.body.emp_id || req.query.emp_id;
+    kraWorkFlowDetails.timeline_id=1;
+    kraWorkFlowDetails.batch_id=1;
     kraWorkFlowDetails.createdBy = 1;
 
     kraWorkFlowDetails.save(function(err, kraWorkFlowInfoData) {
