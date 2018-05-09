@@ -4,10 +4,10 @@ module.exports = {
     serverPath      : '../server/app',
     imagePath       : 'uploads/',
     profileImagePath: 'uploads/profiles/',
-    tmpImagePath    : 'uploads/tmp/',
     dist            : '../dist',
     expressUploads  : 'uploads',
     emailPath       : 'views/email_templates/',
+
   },
   'email':{
     'welcome':{
@@ -18,5 +18,12 @@ module.exports = {
       from:'"Team HRIS" <hris@adnsl.net>',
       subject:'Reset Password'
     }
+  },
+  'aws':
+  {
+    fileSize        : 5000000,
+    documentPath    : 'document/',
+    profilePath     : 'profile/',
+    tmpImagePath    : 'tmp/'
   }
 };

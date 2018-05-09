@@ -415,7 +415,17 @@ let express  = require('express'),
 
     apiRoutes.use('/upload', uploadRoutes);
 
-    uploadRoutes.post('/document', upload.uploadDocumentImage);
+     // upload document
+     uploadRoutes.post('/document', upload.uploadDocument);
+
+     // upload profile image
+     uploadRoutes.post('/profile', upload.uploadProfile);
+ 
+     //delete  Image
+     uploadRoutes.post('/deleteImage',upload.deleteImage);
+
+     //move file from tmp to dest folder
+     uploadRoutes.post('/uploadImage',upload.uploadImage);
     
     // Set url for API group routes, all endpoints start with /api/ eg http://localhost:3000/api/admin  || http://localhost:3000/api/auth
     app.use('/api', apiRoutes);
