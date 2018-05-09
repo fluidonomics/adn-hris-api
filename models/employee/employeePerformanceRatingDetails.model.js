@@ -8,13 +8,12 @@ let mongoose                = require('mongoose'),
       {
          _id:{type:Number},
          emp_id:{type: Number,ref: 'employeedetails'},
-         performanceRatingName:{type: Number,ref:'performanceratings'},
+         performanceRating_id:{type: Number,ref:'performanceratings'},
          performanceRatingValue: {type:String,default:null},
          updatedBy: {type: Number, default:null},
          createdBy: {type: Number, default:null},
          isDeleted: {type: Boolean,default:false},
          isCompleted: {type: Boolean,default:false} 
-         
       },
       {
         timestamps: true,

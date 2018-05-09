@@ -21,7 +21,7 @@ let mongoose                = require('mongoose'),
          maritialStatus : {type: String, default:null},
          emergencyContactPerson : {type: String, default:null},
          emergencyContactNumber : {type: Number, default:null},        
-         isCompleted : {type: String, default:null},
+         isCompleted : {type: Boolean, default:false},
          isDeleted: {type: Boolean,default:false},
          updatedBy: {type: Number, default:null},
          createdBy: {type: Number, required: true}

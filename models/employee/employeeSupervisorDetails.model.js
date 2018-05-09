@@ -8,13 +8,13 @@ let mongoose                = require('mongoose'),
       {
         _id:{type:Number},
         emp_id: {type:Number,ref:'employeedetails'},
-        primarySupervisorEmp_id: {type: Number,default:null},
-        secondarySupervisorEmp_id: {type:Number, default:null},
+        primarySupervisorEmp_id: {type:Number,ref:'employeedetails', default:null},
+        secondarySupervisorEmp_id: {type:Number,ref:'employeedetails', default:null},
+        leaveSupervisorEmp_id: {type:Number,ref:'employeedetails', default:null},
         reason: {type: String, default:null},
-        leaveSupervisorEmp_id: {type: String, default:null},
         isActive:{type:Boolean,default:true},
         updatedBy: {type: Number, default:null},
-        createdBy: {type: Number, required:true}
+        createdBy: {type: Number, default:null}
       },
       {
         timestamps: true,
