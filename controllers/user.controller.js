@@ -659,7 +659,6 @@ function updateSalaryInfoDetails(req, res, done) {
     salaryInfo.isCompleted = true;
     salaryInfo.updatedBy = parseInt(req.headers.uid);
 
-    //salaryInfo.updatedBy =req.headers[emp_id];
     let _id = req.body._id;
     var query = {
         _id: _id,
