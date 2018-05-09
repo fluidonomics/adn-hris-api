@@ -16,7 +16,7 @@ let express           = require('express'),
     CarInfo           = require('../models/employee/employeeCarDetails.model'),
     DocumentsInfo     = require('../models/employee/employeeDocumentDetails.model'),
     PerformanceRatingInfo = require('../models/employee/employeePerformanceRatingDetails.model'),
-    ProfileProcessInfo     = require('../models/employee/employeeProfileProcessDetails.model'),
+    ProfileProcessInfo = require('../models/employee/employeeProfileProcessDetails.model'),
     config            = require('../config/config'),
     crypto            = require('crypto'),
     async             = require('async'),
@@ -1749,6 +1749,8 @@ function getCarInfoDetails(req, res) {
 
 let functions = {
     addEmployee: (req, res) => {
+        //uncomment below line to add user from backend.
+        //req.headers.uid =0;
         async.waterfall([
             function(done) {
                 crypto.randomBytes(20, function(err, buf) {
@@ -1758,14 +1760,10 @@ let functions = {
             },
             function(token, done) {
                 let emp = new EmployeeInfo();
-
-                //Fill Employee Details
                 emp.resetPasswordToken = token;
-                emp.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+                emp.resetPasswordExpires = Date.now() + 86400000; // 24 hours
                 emp.fullName = req.body.fullName;
                 emp.password = "Test@123";
-                //emp.email = req.body.email;
-                //emp.officeEmail = req.body.officeEmail;
                 emp.employmentType_id = req.body.employmentType_id;
                 emp.designation_id = req.body.designation_id;
                 emp.company_id = req.body.company_id;
@@ -1796,7 +1794,6 @@ let functions = {
                                 }
                             ],
                             function(done) {
-                                //let dataToSend = [{"userName" : emp.userName}];
                                 return res.status(200).json({
                                     "userName": emp.userName
                                 });

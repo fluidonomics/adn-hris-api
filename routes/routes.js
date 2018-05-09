@@ -106,7 +106,7 @@ let express  = require('express'),
   // userRoutes.delete('/image/:id', requireAuth, user.deleteImage);
 
   // Add Employee endpoint: http://localhost:3000/api/user/addEmployee
-  userRoutes.post('/addEmployee', ensureAuthenticated,user.addEmployee);
+  userRoutes.post('/addEmployee', user.addEmployee);
 
   // Add Employee endpoint: http://localhost:3000/api/user/addPersonalInfo
   userRoutes.post('/addPersonalInfo',ensureAuthenticated, user.addPersonalInfo);
