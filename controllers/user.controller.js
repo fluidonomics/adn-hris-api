@@ -128,7 +128,7 @@ function updateAcademicInfoDetails(req, res, done) {
         updatedAt: false,
         isDeleted: false,
         updatedBy: false,
-        createdBy: false,
+       // createdBy: false,
     };
 
     AcademicInfo.findOneAndUpdate(query, academicInfo, {
@@ -436,7 +436,7 @@ function updateFamilyInfoDetails(req, res, done) {
         updatedAt: false,
         isDeleted: false,
         updatedBy: false,
-        createdBy: false,
+        //createdBy: false,
     };
 
     FamilyInfo.findOneAndUpdate(query, familyInfo, {
@@ -525,7 +525,7 @@ function updateAddressInfoDetails(req, res, done) {
         updatedAt: false,
         isDeleted: false,
         updatedBy: false,
-        createdBy: false,
+       // createdBy: false,
     };
 
     AddressInfo.findOneAndUpdate(query, address, {
@@ -1387,7 +1387,7 @@ function getAcademicnfoDetails(req, res) {
         updatedAt: false,
         isDeleted: false,
         updatedBy: false,
-        createdBy: false,
+        // createdBy: false,
     };
     AcademicInfo.find(query, academicProjection, function(err, academicInfoData) {
         if (err) {
@@ -1418,7 +1418,7 @@ function getCertificationInfoDetails(req, res, done) {
         updatedAt: false,
         isDeleted: false,
         updatedBy: false,
-        createdBy: false,
+        // createdBy: false,
     };
     CertificationInfo.find(query, certificationAndTraniningProjection, function(err, certificationDetailsData) {
         if (certificationDetailsData) {
@@ -1450,7 +1450,7 @@ function getPreviousEmploymentInfoDetails(req, res) {
         updatedAt: false,
         isDeleted: false,
         updatedBy: false,
-        createdBy: false,
+        // createdBy: false,
     };
     PreviousEmploymentInfo.find(query, previousEmploymentInfoProjection, function(err, previousEmploymentData) {
         if (err) {
@@ -1483,7 +1483,7 @@ function getFamilyInfoDetails(req, res) {
         updatedAt: false,
         isDeleted: false,
         updatedBy: false,
-        createdBy: false,
+        // createdBy: false,
     };
     FamilyInfo.find(query, familyInfoProjection, function(err, familyInfoData) {
         if (err) {
