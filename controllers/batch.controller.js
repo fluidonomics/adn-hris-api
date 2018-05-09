@@ -25,7 +25,7 @@ let express           = require('express'),
       auditTrail.controllerName = controllerName;
       auditTrail.action = action;
       auditTrail.comments = comments;
-      auditTrail.save();
+      auditTrail.save(); 
   }
   
 function addBatchInfoDetails(req, res, done) {
