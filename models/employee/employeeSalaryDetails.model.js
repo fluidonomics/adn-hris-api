@@ -7,7 +7,7 @@ let mongoose                = require('mongoose'),
       let EmployeeSalaryDetailsSchema = new Schema(
       {
         _id:{type:Number},
-        emp_id   :{type: Number,ref: 'employeedetails', required: true, unique: true,},    
+        emp_id   :{type: Number,ref: 'employeedetails', required: true},    
         basic : {type: String,default:null}, 
         hra : {type: String,default:null}, 
         conveyanceAllowance : {type: String,default:null}, 

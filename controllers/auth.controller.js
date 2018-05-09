@@ -34,89 +34,165 @@ function setUserInfo(req) {
 
 let functions = {
     loginUser: (req, res) => {
+      // Employee.findOne({userName: req.body.userName}, (err, user) => {
+      //   if (err) {
+      //     return res.status(500).json({
+      //       title: 'There was a problem',
+      //       error: err
+      //     });
+      //   }
+      //   if (!user) {
+      //     return res.status(403).json({
+      //       title: 'Wrong Email or Password',
+      //       error: {message: 'Please check if your password or email are correct'}
+      //     });
+      //   } else {
+      //     var loginData = {};
+      //     user.comparePassword(req.body.password, (err, isMatch) => {
+      //       if (isMatch && !err) {
+      //       let userInfo = setUserInfo(user);
+      //       EmployeeRoles.aggregate([
+      //         {
+      //               "$lookup": {
+      //                   "from": "roles",
+      //                   "localField": "role_id",
+      //                   "foreignField": "_id",
+      //                   "as": "roles"
+      //               }
+      //         },
+      //         {
+      //           "$lookup": {
+      //               "from": "employeedetails",
+      //               "localField": "emp_id",
+      //               "foreignField": "_id",
+      //               "as": "employees"
+      //             }
+      //         },
+      //         { "$match": { "emp_id": user._id,"employees.isDeleted":false,"roles.isActive":true} },  
+      //       ]).exec(function(err, results){
+      //         var roles = [];
+      //         var i = 0;
+      //           //console.log(results[0].employees[0]);
+      //           if(results.length > 0){
+      //             PersonalDetails.find({ "emp_id": user._id}).exec(function(pdErr, personalDetailsResults){
+      //                   results.forEach(element => {
+      //                     roles.push(element.roles[0].roleName);
+      //                     i++;
+      //                   });
+
+      //                 loginData = {
+      //                   _id              :results[0].employees[0]._id,
+      //                   officeEmail      :"",
+      //                   personalEmail    :personalDetailsResults[0].personalEmail,
+      //                   profileImage     :results[0].employees[0].profileImage,
+      //                   fullName         :results[0].employees[0].fullName,
+      //                   designation_id   :results[0].employees[0].designation_id,
+      //                   roles            :roles
+      //                 };
+
+      //                 res.setHeader('access-token', jwt.sign(loginData, process.env.Secret, {expiresIn: process.env.JwtExpire}));
+      //                 res.setHeader('client', "application_id");
+      //                 res.setHeader('expiry', '');
+      //                 res.setHeader('token-type', 'Bearer');
+      //                 res.setHeader('uid', results[0].employees[0]._id);
+
+      //                 // return res.status(200).json({
+      //                 //   status : '200',
+      //                 //   message: 'Login successful!',
+      //                 //   //token  : generateToken(userInfo),
+      //                 //   data   : loginData
+      //                 // });
+      //                 return res.status(200).json(loginData);
+      //             });
+      //         }
+      //       })
+      //       } else {
+      //         return res.status(403).json({
+      //           status: '403',
+      //           title : 'Wrong Email or Password',
+      //           error : {message: 'Please check your email or password'}
+      //         });
+
+      //       }
+      //     });
+      //   }
+      // }).populate("employee").populate("role");
       Employee.findOne({userName: req.body.userName}, (err, user) => {
-        if (err) {
-          return res.status(500).json({
-            title: 'There was a problem',
-            error: err
-          });
-        }
-        if (!user) {
-          return res.status(403).json({
-            title: 'Wrong Email or Password',
-            error: {message: 'Please check if your password or email are correct'}
-          });
-        } else {
-          var loginData = {};
-          user.comparePassword(req.body.password, (err, isMatch) => {
-            if (isMatch && !err) {
-            let userInfo = setUserInfo(user);
-            EmployeeRoles.aggregate([
-              {
-                    "$lookup": {
-                        "from": "roles",
-                        "localField": "role_id",
-                        "foreignField": "_id",
-                        "as": "roles"
-                    }
-              },
-              {
-                "$lookup": {
-                    "from": "employeedetails",
-                    "localField": "emp_id",
-                    "foreignField": "_id",
-                    "as": "employees"
-                  }
-              },
-              { "$match": { "emp_id": user._id,"employees.isDeleted":false,"roles.isActive":true} },  
-            ]).exec(function(err, results){
-              var roles = [];
-              var i = 0;
-                //console.log(results[0].employees[0]);
-                if(results.length > 0){
-                  PersonalDetails.find({ "emp_id": user._id}).exec(function(pdErr, personalDetailsResults){
-                        results.forEach(element => {
-                          roles.push(element.roles[0].roleName);
-                          i++;
-                        });
-
-                      loginData = {
-                        _id              :results[0].employees[0]._id,
-                        officeEmail      :"",
-                        personalEmail    :personalDetailsResults[0].personalEmail,
-                        profileImage     :results[0].employees[0].profileImage,
-                        fullName         :results[0].employees[0].fullName,
-                        designation_id   :results[0].employees[0].designation_id,
-                        roles            :roles
-                      };
-
-                      res.setHeader('access-token', jwt.sign(loginData, process.env.Secret, {expiresIn: process.env.JwtExpire}));
-                      res.setHeader('client', "application_id");
-                      res.setHeader('expiry', '');
-                      res.setHeader('token-type', 'Bearer');
-                      res.setHeader('uid', results[0].employees[0]._id);
-
-                      // return res.status(200).json({
-                      //   status : '200',
-                      //   message: 'Login successful!',
-                      //   //token  : generateToken(userInfo),
-                      //   data   : loginData
-                      // });
-                      return res.status(200).json(loginData);
-                  });
-              }
-            })
-            } else {
-              return res.status(403).json({
-                status: '403',
-                title : 'Wrong Email or Password',
-                error : {message: 'Please check your email or password'}
+      if (err) {
+        return res.status(500).json({
+                title: 'There was a problem',
+                error: err
               });
-
-            }
-          });
-        }
-      }).populate("employee").populate("role");
+      }
+      else if(!user) {
+        return res.status(403).json({
+          title: 'Wrong Email or Password',
+          error: {message: 'Please check if your password or email are correct'}
+        });
+       }
+      else{
+        user.comparePassword(req.body.password, (err, isMatch) => {
+          Employee.aggregate([
+            {
+              "$lookup": {
+                  "from": "employeeroledetails",
+                  "localField": "_id",
+                  "foreignField": "emp_id",
+                  "as": "employeeroles"
+              }
+            },
+            {
+                  "$lookup": {
+                      "from": "roles",
+                      "localField": "employeeroles.role_id",
+                      "foreignField": "_id",
+                      "as": "roles"
+                  }
+            },
+            {
+                "$lookup": {
+                    "from": "employeepersonaldetails",
+                    "localField": "_id",
+                    "foreignField": "emp_id",
+                    "as": "employeepersonaldetails"
+                  }
+            },
+            {
+              "$unwind": "$employeepersonaldetails"
+            },
+            {
+                "$lookup": {
+                    "from": "employeeofficedetails",
+                    "localField": "_id",
+                    "foreignField": "emp_id",
+                    "as": "employeeofficedetails"
+                  }
+            },
+            {
+              "$unwind": "$employeeofficedetails"
+            },
+            { "$match": {"_id":user._id,"isDeleted":false,"userName": req.body.userName,"roles.isActive":true,"employeepersonaldetails.isDeleted":false,"employeeofficedetails.isDeleted":false,"employeeroles.isDeleted":false} },
+            {"$project":{
+              "_id": "$_id",
+              "officeEmail"      :"$employeeofficedetails.officeEmail",
+              "personalEmail"    :"$employeepersonaldetails.personalEmail",
+              "profileImage"     :"$profileImage",
+              "fullName"         :"$fullName",
+              "designation_id"   :"$designation_id",
+              "roles"            :"$roles.roleName"
+            }}
+          ]).exec(function(err, employeeDetailsData){
+            let userInfo = setUserInfo(employeeDetailsData[0]);
+            res.setHeader('access-token', jwt.sign(employeeDetailsData[0], process.env.Secret, {expiresIn: process.env.JwtExpire}));
+            res.setHeader('client', "application_id");
+            res.setHeader('expiry', '');
+            res.setHeader('token-type', 'Bearer');
+            res.setHeader('uid', employeeDetailsData[0]._id);
+            return res.status(200).json(employeeDetailsData[0]);
+          }); 
+        })
+       } 
+      });
     },
 
     // requesting password reset and setting the fields resetPasswordToken to a newly generated token
@@ -144,9 +220,7 @@ let functions = {
                 error: {message: 'Please check if your email is correct'}
               });
             }
-
             let queryUpdate={ $set: {resetPasswordToken:token, resetPasswordExpires: Date.now() + 3600000 }};
-
             Employee.findOneAndUpdate({_id:office.emp_id,isDeleted:false},queryUpdate,function(err,user)
             {
               if(user)
@@ -185,7 +259,7 @@ let functions = {
             subject: config.email.forget.subject, // Subject line
             template: 'email-password',
             context : {
-              token: token,
+              action_url:process.env.HostUrl+"/reset/"+token,
               uid  : uuidV1()
             }
             };

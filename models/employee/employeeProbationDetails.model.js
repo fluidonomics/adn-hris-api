@@ -7,10 +7,10 @@ let mongoose                = require('mongoose'),
       let EmployeeProbationDetailsSchema = new Schema(
       {
          _id:{type:Number},
-         emp_id:{type: Number,ref: 'employeedetails', required: true, unique: true,},
+         emp_id:{type: Number,ref: 'employeedetails', required: true},
          probationPeriod :{type: Number,default:null},
          isProbationExtended : {type: Boolean,default:false},
-         IsProbationCompleted : {type: Boolean,default:false},
+         isProbationCompleted : {type: Boolean,default:false},
          isActive :  {type: Boolean,default:true},
          createdBy :{type: Number,default:null},
          updatedBy :{type: Number,default:null},

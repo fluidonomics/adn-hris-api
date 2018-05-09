@@ -963,67 +963,220 @@ let functions = {
         })
       }
     },
+
     checkTabCompleted: (req, res) => {
         var tab =  req.params.tab || req.query.tab;
-        var emp_id =  req.params.emp_id || req.query.emp_id;
+        let emp_id = parseInt(req.params.emp_id || req.query.emp_id);
     
-        if(tab="Office")
+        if(tab=="Office")
         {
-        var query = {
-                isDeleted: false,
-                emp_id:parseInt(emp_id)
-        }
-        OfficeDetails.count(query, function (err, count) {
-            if (count>0) 
-            {
-                BankInfo.count(query, function (err, count) {
-                    if (count>0) 
-                    {
-                        SalaryInfo.count({isActive: true,emp_id:parseInt(emp_id)}, function (err, count) {
-                            if (count>0) 
-                            {
-                                return res.status(200).json(true);
-                            }
-                            return res.status(200).json(false);
-                        });
-                    }
-                    else{
-                        return res.status(200).json(false); 
-                    }
-                });  
-            }
-            else{
-            return res.status(200).json(false);
-            }
-        });
+            Employee.aggregate([
+                {
+                    "$lookup": {
+                        "from": "employeeofficedetails",
+                        "localField": "_id",
+                        "foreignField": "emp_id",
+                        "as": "employeeofficedetails"
+                      }
+                },
+                {
+                    "$lookup": {
+                        "from": "employeebankdetails",
+                        "localField": "_id",
+                        "foreignField": "emp_id",
+                        "as": "employeebankdetails"
+                      }
+                },
+                {
+                    "$lookup": {
+                        "from": "employeesalarydetails",
+                        "localField": "_id",
+                        "foreignField": "emp_id",
+                        "as": "employeesalarydetails"
+                      }
+                },
+                {
+                    "$lookup": {
+                        "from": "employeecardetails",
+                        "localField": "_id",
+                        "foreignField": "emp_id",
+                        "as": "employeecardetails"
+                      }
+                },
+                { "$match": 
+                   {
+                     "_id": parseInt(emp_id),
+                     "isDeleted":false,
+                     "employeeofficedetails.isDeleted":false,
+                     "employeebankdetails.isDeleted":false,
+                     "employeesalarydetails.isActive":true,
+                     "employeecardetails.isDeleted":false,
+                    
+                     "employeeofficedetails.isCompleted":true,
+                     "employeebankdetails.isCompleted":true,
+                     "employeesalarydetails.isCompleted":true,
+                     "employeecardetails.isCompleted":true,
+                  
+                   }
+                },
+                {
+                    "$project":{
+                            "office":{$size:"$employeeofficedetails"},
+                            "bank":{$size:"$employeebankdetails"},
+                            "salary":{$size:"$employeesalarydetails"},
+                            "car":{$size:"$employeecardetails"},
+                        }
+                }
+                ]).exec(function(err, employeeDetailsData){
+                  if(err)
+                  {
+                    return res.status(403).json({
+                        title: 'Error',
+                        error: {
+                            message: err
+                        },
+                        result: {
+                            message: result
+                        }
+                    });
+                  }
+                  else if(employeeDetailsData.length > 0 && employeeDetailsData[0].office > 0 
+                    && employeeDetailsData[0].bank > 0
+                    && employeeDetailsData[0].salary > 0 
+                    && employeeDetailsData[0].car > 0
+                  )
+                  {
+                    return res.status(200).json(true);
+                  }
+                  else{
+                    return res.status(200).json(false);
+                  }
+            });
         }
         else 
         {
-        var query = {
-                isDeleted: false,
-                emp_id:parseInt(emp_id),
-                isCompleted:true
-        }
-        PersonalDetails.count(query, function (err, count) {
-            if(count>0)
-            {
-                //    AddressDetails.count({isActive:true,emp_id:parseInt(emp_id),isCompleted:true},function(err,count)
-                //    {
-                    
-                //    })
-                return res.status(200).json(true);
-            }
-            else{
-                return res.status(200).json(false); 
-            }
-        });
-            
-
+            Employee.aggregate([
+                {
+                    "$lookup": {
+                        "from": "employeepersonaldetails",
+                        "localField": "_id",
+                        "foreignField": "emp_id",
+                        "as": "employeepersonaldetails"
+                      }
+                },
+                {
+                    "$lookup": {
+                        "from": "employeeaddressdetails",
+                        "localField": "_id",
+                        "foreignField": "emp_id",
+                        "as": "employeeaddressdetails"
+                      }
+                },
+                {
+                    "$lookup": {
+                        "from": "employeedocumentdetails",
+                        "localField": "_id",
+                        "foreignField": "emp_id",
+                        "as": "employeedocumentdetails"
+                      }
+                },
+                {
+                    "$lookup": {
+                        "from": "employeeacademicdetails",
+                        "localField": "_id",
+                        "foreignField": "emp_id",
+                        "as": "employeeacademicdetails"
+                      }
+                },
+                {
+                    "$lookup": {
+                        "from": "employeecertificationdetails",
+                        "localField": "_id",
+                        "foreignField": "emp_id",
+                        "as": "employeecertificationdetails"
+                      }
+                },
+                {
+                    "$lookup": {
+                        "from": "employeepreviousemploymentdetails",
+                        "localField": "_id",
+                        "foreignField": "emp_id",
+                        "as": "employeepreviousemploymentdetails"
+                      }
+                },
+                {
+                    "$lookup": {
+                        "from": "employeefamilydetails",
+                        "localField": "_id",
+                        "foreignField": "emp_id",
+                        "as": "employeefamilydetails"
+                      }
+                },
+                { "$match": 
+                   {
+                    "_id": parseInt(emp_id),
+                    "isDeleted":false,
+                     "employeepersonaldetails.isDeleted":false,
+                     "employeeaddressdetails.isActive":true,
+                     "employeedocumentdetails.isDeleted":false,
+                     "employeeacademicdetails.isDeleted":false,
+                     "employeecertificationdetails.isDeleted":false,
+                     "employeepreviousemploymentdetails.isDeleted":false,
+                     "employeefamilydetails.isDeleted":false,
+                     "employeepersonaldetails.isCompleted":true,
+                     "employeeaddressdetails.isCompleted":true,
+                     "employeedocumentdetails.isCompleted":true,
+                     "employeeacademicdetails.isCompleted":true,
+                     "employeecertificationdetails.isCompleted":true,
+                     "employeepreviousemploymentdetails.isCompleted":true,
+                     "employeefamilydetails.isCompleted":true,
+                   }
+                },
+                {
+                    "$project":{
+                            "personal":{$size:"$employeepersonaldetails"},
+                            "address":{$size:"$employeeaddressdetails"},
+                            "documents":{$size:"$employeedocumentdetails"},
+                            "academicInfo":{$size:"$employeeacademicdetails"},
+                            "certificateInfo":{$size:"$employeecertificationdetails"},
+                            "employment":{$size:"$employeepreviousemploymentdetails"},
+                            "familyInfo":{$size:"$employeefamilydetails"}
+                        }
+                }
+                ]).exec(function(err, employeeDetailsData){
+                  if(err)
+                  {
+                    return res.status(403).json({
+                        title: 'Error',
+                        error: {
+                            message: err
+                        },
+                        result: {
+                            message: result
+                        }
+                    });
+                  }
+                  else if(employeeDetailsData.length > 0 && employeeDetailsData[0].personal > 0 
+                    && employeeDetailsData[0].address > 0
+                    && employeeDetailsData[0].documents > 0 
+                    && employeeDetailsData[0].academicInfo > 0
+                    && employeeDetailsData[0].certificateInfo > 0
+                    && employeeDetailsData[0].employment > 0
+                    && employeeDetailsData[0].familyInfo > 0
+                  )
+                  {
+                    return res.status(200).json(true);
+                  }
+                  else{
+                    return res.status(200).json(false);
+                  }
+            });
         }
 
 
 
     },
+    
     getPerformanceRating: (req, res) => {
         var query = {
             isDeleted: false

@@ -10,6 +10,8 @@ let mongoose                = require('mongoose'),
          emp_id:{type: Number,ref: 'employeedetails'},
          role_id:{type: Number, ref: 'roles'},
          isDeleted: {type: Boolean,default:false},
+         createdBy: {type: Number,default:null},
+         updatedBy: {type: Number,default:null},
       },
       {
         timestamps: true,
