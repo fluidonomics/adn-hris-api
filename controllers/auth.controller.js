@@ -259,7 +259,7 @@ let functions = {
             subject: config.email.forget.subject, // Subject line
             template: 'email-password',
             context : {
-              action_url:process.env.HostUrl + token,
+              action_url:process.env.HostUrl+"/reset/"+token,
               uid  : uuidV1()
             }
             };
