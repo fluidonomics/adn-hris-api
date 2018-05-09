@@ -1074,7 +1074,7 @@ function updateofficeInfoDetails(req, res) {
                         "workPermitNumber" : req.body.workPermitNumber,
                         "workPermitEffectiveDate" : req.body.workPermitEffectiveDate,
                         "workPermitExpiryDate" : req.body.workPermitExpiryDate,
-                        "updatedBy":1,
+                        "updatedBy":parseInt(req.headers.uid),
                         "isCompleted": true
                 }};
                 OfficeInfo.findOneAndUpdate(query, queryUpdate, function(err, officeDetailsData) {
