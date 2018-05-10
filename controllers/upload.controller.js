@@ -13,15 +13,15 @@ process.on('uncaughtException', function (err) {
 });
 
 aws.config.update({
-  secretAccessKey: process.env.secretAccessKey,
-  accessKeyId: process.env.accessKeyId
+  secretAccessKey: process.env.SecretAccessKey,
+  accessKeyId: process.env.AccessKeyId
 });
 s3 = new aws.S3();
 
 // create a Temp storage for images, when the user submits the form, the temp image will be moved to the appropriate folder inside /uploads/forms/user_id/photo.jpg
 let tempStorage=multerS3({
   s3: s3,
-  bucket: process.env.bucketName,
+  bucket: process.env.BucketName,
   acl: 'public-read',
   key: function (req, file, cb) {
         crypto.pseudoRandomBytes(4, (err, raw) => {
@@ -37,8 +37,8 @@ let copyImage = (profileImage,dest) => {
         var key = profileImage.replace('tmp/','');
        
         var params = {
-            Bucket : process.env.bucketName, 
-            CopySource : '/' + process.env.bucketName +'/' + config.aws.tmpImagePath + key, 
+            Bucket : process.env.BucketName, 
+            CopySource : '/' + process.env.BucketName +'/' + config.aws.tmpImagePath + key, 
             Key : dest + key,
             ACL : 'public-read',
         };
@@ -56,7 +56,7 @@ let copyImage = (profileImage,dest) => {
 //  delete Image
 let deleteImage = (imagekey) =>{
   const params = {
-    Bucket: process.env.bucketName,
+    Bucket: process.env.BucketName,
      Key: imagekey
   };
   s3.deleteObject(params, function (err, data) {
@@ -80,9 +80,9 @@ let documentsTemp = multer({
     if (mimetype && extname) {
       return cb(null, true);
     }
-    cb('Error: File upload only supports the following filetypes - ' + filetypes);
+    cb('File upload only supports the following filetypes - jpg|jpeg|png');
   }
-}).single('documents');
+}).single('profileDocuments');
 
 
 //  upload profile Image
@@ -131,9 +131,15 @@ let functions = {
   uploadDocument: (req, res) => {
     documentsTemp(req, res, (err) => {
       if (err) {
-        return res.status(500).json(err);
+        return res.status(403).json({
+          title: 'Error',
+          error: {
+              message: err
+          }
+        
+        });
       }
-      if (req.file !== undefined) {
+      else if (req.file !== undefined) {
         res.status(200).json({
           message: 'Document Image uploaded successfully!',key:req.file.key
         });
