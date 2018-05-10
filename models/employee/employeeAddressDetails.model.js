@@ -36,12 +36,13 @@ let mongoose                = require('mongoose'),
    // Update the Emp_Id Hash user password when registering or when changing password
     EmployeeAddressDetailsSchema.pre('save', function (next) {
     var _this=this;
-    //Check the Count of Collection and add 1 to the Count and Assign it to Emp_Id 
-    mongoose.model('employeeAddressDetails', EmployeeAddressDetailsSchema).count(function(err, c) {
-      _this._id = c + 1;
-      _this.isCompleted = true;
-      next();
-    });
+    if (_this.isNew) {
+          //Check the Count of Collection and add 1 to the Count and Assign it to Emp_Id 
+         mongoose.model('employeeAddressDetails', EmployeeAddressDetailsSchema).count(function(err, c) {
+        _this._id = c + 1;
+        next();
+        });
+    }
 });
 
 EmployeeAddressDetailsSchema.plugin(mongooseUniqueValidator);

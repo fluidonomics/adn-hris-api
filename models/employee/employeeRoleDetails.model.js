@@ -22,12 +22,14 @@ let mongoose                = require('mongoose'),
 
 // Update the Emp_Id Hash user password when registering or when changing password
 EmployeeRoleDetailsSchema.pre('save', function (next) {
-    var _this=this;
-    //Check the Count of Collection and add 1 to the Count and Assign it to Emp_Id 
-    mongoose.model('employeeRoleDetails', EmployeeRoleDetailsSchema).count(function(err, c) {
-      _this._id = c + 1;
-      next();
-    });
+  var _this=this;
+  if (_this.isNew) {
+      //Check the Count of Collection and add 1 to the Count and Assign it to Emp_Id 
+      mongoose.model('employeeRoleDetails', EmployeeRoleDetailsSchema).count(function(err, c) {
+        _this._id = c + 1;
+        next();
+      });
+  }
 });
 
       EmployeeRoleDetailsSchema.plugin(mongooseUniqueValidator);

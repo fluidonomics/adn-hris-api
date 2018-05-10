@@ -49,11 +49,13 @@ let mongoose                = require('mongoose'),
    // Update the Emp_id Hash user password when registering or when changing password
    EmployeeOfficeDetailsSchema.pre('save', function (next) {
     var _this=this;
+    if (_this.isNew) {
     //Check the Count of Collection and add 1 to the Count and Assign it to Emp_id 
     mongoose.model('employeeOfficeDetails', EmployeeOfficeDetailsSchema).count(function(err, c) {
       _this._id = c + 1;
       next();
     });
+  }
 });
 
 EmployeeOfficeDetailsSchema.plugin(mongooseUniqueValidator);

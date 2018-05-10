@@ -32,11 +32,13 @@ let mongoose                = require('mongoose'),
    // Update the Emp_id Hash user password when registering or when changing password
    EmployeeCarDetailsSchema.pre('save', function (next) {
     var _this=this;
+    if (_this.isNew) {
     //Check the Count of Collection and add 1 to the Count and Assign it to Emp_id 
     mongoose.model('employeeCarDetails', EmployeeCarDetailsSchema).count(function(err, c) {
       _this._id = c + 1;
       next();
     });
+  }
 });
 
 EmployeeCarDetailsSchema.plugin(mongooseUniqueValidator);

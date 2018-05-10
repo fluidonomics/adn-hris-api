@@ -29,9 +29,7 @@ EmployeePerformanceRatingDetailsSchema.plugin(mongooseUniqueValidator);
     if (_this.isNew) {
         mongoose.model('employeePerformanceRatingDetails', EmployeePerformanceRatingDetailsSchema).count(function(err, c) {
             _this._id = c + 1;
-            _this.isCompleted = true;
-              
-              next();
+            next();
         });
     }
   });
