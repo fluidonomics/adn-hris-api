@@ -235,21 +235,6 @@ let express  = require('express'),
    
    userRoutes.get('/getCarInfo',ensureAuthenticated,user.getCarInfo);
 
-
-  //= ========================
-  // User Forms Routes
-  //= ========================
-
-//   apiRoutes.use('/forms', formRoutes);
-
-//   // Upload image endpoint: http://localhost:3000/api/forms/image
-//   formRoutes.post('/image', requireAuth, forms.uploadImage);
-
-//   // Delete Image endpoint: http://localhost:3000/api/forms/image/:id
-//   formRoutes.delete('/image/:id', requireAuth, forms.deleteImage);
-
-
-
   //= ========================
   // Administrator Routes
   //= ========================
@@ -259,11 +244,6 @@ let express  = require('express'),
 
   // adminRoutes.post('/upload', admin.uploadImage);
 
-//   // Upload image endpoint: http://localhost:3000/api/admin/form/image
-//   formRoutes.post('/form/image', requireAuth, admin.uploadImage);
-
-//   // Delete Image endpoint: http://localhost:3000/api/admin/form/image/:id
-//   formRoutes.delete('/form/image/:id', requireAuth, admin.deleteImage);
 
   //= ========================
   // Kra Routes 
