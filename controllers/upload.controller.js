@@ -31,40 +31,27 @@ let tempStorage=multerS3({
   }
 });
 
-// When user submits the form, the tmp image is copied to /dest/photo.jpg
-let copyImage = (profileImage,dest) => {
-   
-        var key = profileImage.replace('tmp/','');
-       
-        var params = {
-            Bucket : process.env.BucketName, 
-            CopySource : '/' + process.env.BucketName +'/' + config.aws.tmpImagePath + key, 
-            Key : dest + key,
-            ACL : 'public-read',
-        };
-        s3.copyObject(params, function(err, data) {
-            if (err)
-                console.log(err); // an error occurred
-            else {
-              deleteImage(profileImage);
-              
-            }
-        });
-};
-
-
-//  delete Image
-let deleteImage = (imagekey) =>{
+function deleteImageFormPath(req, res) {
+  let imagekey = req.body.key;
   const params = {
-    Bucket: process.env.BucketName,
+     Bucket: process.env.BucketName,
      Key: imagekey
   };
   s3.deleteObject(params, function (err, data) {
-    if (err) 
-       console.log(err);
-    });
-
-};
+   if (err)
+   {
+      return res.status(403).json({
+        title: 'Error',
+        error: {
+            message: err
+        }
+     });
+   }
+   return res.status(200).json({
+      message: 'Image deleted successfully!'
+     });
+  });
+}
 
 //  upload document Image
 let documentsTemp = multer({
@@ -106,11 +93,7 @@ let profileTemp = multer({
 let functions = {
   //delete image from S3
   deleteImage: (req, res) => {
-       let params = req.body.key;
-       deleteImage(params);
-      res.status(200).json({
-        message: 'Image deleted successfully!'
-       });
+    deleteImageFormPath(req,res);
   },
 
   // Upload profile Image to S3 tmp Folder
@@ -126,7 +109,7 @@ let functions = {
       }
     });
   },
-
+  
   // Upload document Image to S3 tmp Folder
   uploadDocument: (req, res) => {
     documentsTemp(req, res, (err) => {
@@ -147,20 +130,19 @@ let functions = {
     });
   },
 
-  //upload Image to S3 dest Folder
-  uploadImage: (req,res) => 
-  {
-    let imageKey = req.body.key;
-    let destFolder = req.body.dest;
-
-    copyImage(imageKey,destFolder);
-    var key = imageKey.replace('tmp/','');
-    res.status(200).json({
-      message: 'Image save successfully!',key:destFolder + key
-     });
-    
-
-  }
+  copyAndMoveImage(image,destination) {
+    var params = {
+        Bucket : process.env.BucketName, 
+        CopySource : '/' + process.env.BucketName +'/' + image, 
+        Key : destination + image.replace('tmp/',''),
+        ACL : 'public-read',
+    };
+    s3.copyObject(params, function(err, data) {
+        if (err)
+        {
+        }
+    });
+   }
 };
 
 module.exports = functions;

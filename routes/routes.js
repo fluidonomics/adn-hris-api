@@ -424,9 +424,6 @@ let express  = require('express'),
      //delete  Image
      uploadRoutes.post('/deleteImage',upload.deleteImage);
 
-     //move file from tmp to dest folder
-     uploadRoutes.post('/uploadImage',upload.uploadImage);
-    
     // Set url for API group routes, all endpoints start with /api/ eg http://localhost:3000/api/admin  || http://localhost:3000/api/auth
     app.use('/api', apiRoutes);
 };
