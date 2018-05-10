@@ -23,6 +23,7 @@ let express           = require('express'),
     nodemailer        = require('nodemailer'),
     hbs               = require('nodemailer-express-handlebars'),
     sgTransport       = require('nodemailer-sendgrid-transport'),
+    uploadCtrl=         require('./upload.controller'),
     uuidV1            = require('uuid/v1');
     require('dotenv').load()
 
@@ -325,76 +326,106 @@ function deletePreviousEmploymentInfoDetails(req, res, done) {
     });
 }
 
-function addDocumentsInfoDetails(req, res, done) {
-    let documents = new DocumentsInfo(req.body);
-    documents.emp_id = req.body.emp_id || req.query.emp_id;
-    documents.isCompleted = true;
-    documents.createdBy = parseInt(req.headers.uid);
+function deleteAndRenameDocument (req, res, done)
+{
+    if(req.body.birthRegistrationNumberDocURL && req.body.birthRegistrationNumberDocURL.split('/')[0]=='tmp' )
+    {
+        uploadCtrl.copyAndMoveImage(req.body.birthRegistrationNumberDocURL,'document/');
+        req.body.birthRegistrationNumberDocURL= req.body.birthRegistrationNumberDocURL.replace('tmp','document')
+    }
+    if(req.body.nationalIDOldFormatDocURL && req.body.nationalIDOldFormatDocURL.split('/')[0]=='tmp' )
+    {
+        uploadCtrl.copyAndMoveImage(req.body.nationalIDOldFormatDocURL,'document/');
+        req.body.nationalIDOldFormatDocURL=req.body.nationalIDOldFormatDocURL.replace('tmp','document')
+    }
+    if(req.body.nationalIdSmartCardDocURL && req.body.nationalIdSmartCardDocURL.split('/')[0]=='tmp' )
+    {
+        uploadCtrl.copyAndMoveImage(req.body.nationalIdSmartCardDocURL,'document/');
+        req.body.nationalIdSmartCardDocURL=req.body.nationalIdSmartCardDocURL.replace('tmp','document')
+    }
+    if(req.body.passportNumberDocURL && req.body.passportNumberDocURL.split('/')[0]=='tmp' )
+    {
+        uploadCtrl.copyAndMoveImage(req.body.passportNumberDocURL,'document/');
+        req.body.passportNumberDocURL=req.body.passportNumberDocURL.replace('tmp','document')
+    }
+    return done(null, req);     
+}
 
-    documents.save(function(err, documentsData) {
-        if (err) {
-            return res.status(403).json({
-                title: 'There was a problem',
-                error: {
-                    message: err
-                },
-                result: {
-                    message: documentsData
+function addDocumentsInfoDetails(req, res, done) {
+    async.waterfall([
+        function(callback) {
+           deleteAndRenameDocument(req, res, callback)
+        },
+        function(req, callback) {
+            let documents = new DocumentsInfo(req.body);
+            documents.emp_id = req.body.emp_id || req.query.emp_id;
+            documents.isCompleted = true;
+            documents.createdBy = parseInt(req.headers.uid);
+
+            documents.save(function(err, documentsData) {
+                if (err) {
+                    return res.status(403).json({
+                        title: 'There was a problem',
+                        error: {
+                            message: err
+                        },
+                        result: {
+                            message: documentsData
+                        }
+                    });
                 }
-            });
+                auditTrailEntry(documents.emp_id, "documents", documents, "user", "documents", "ADDED");
+                return done(err, documentsData); 
+             });
         }
-        auditTrailEntry(documents.emp_id, "documents", documents, "user", "documents", "ADDED");
-        return done(err, documentsData); 
-    });
+    ]);
 }
 
 function updateDocumentsInfoDetails(req, res, done) {
-    let documents = new DocumentsInfo(req.body);
-    documents.emp_id = req.body.emp_id || req.query.emp_id;
-    // documents.nationalIdSmartCard = req.body.nationalIdSmartCard;
-    // documents.nationalIdSmartCardDocURL = req.body.nationalIdSmartCardDocURL;
-    // documents.passportNumber = req.body.passportNumber;
-    // documents.passportNumberDocURL = req.body.passportNumberDocURL;
-    // documents.birthRegistrationNumber = req.body.birthRegistrationNumber;
-    // documents.birthRegistrationNumberDocURL = req.body.birthRegistrationNumberDocURL;
-    // documents.nationalIDOldFormat = req.body.nationalIDOldFormat;
-    // documents.nationalIDOldFormatDocURL = req.body.nationalIDOldFormatDocURL;
-    // documents.isCompleted = true;
-    documents.updatedBy = 1;
-
-    //documents.updatedBy =req.headers[emp_id];
-    let _id = req.body._id;
-    var query = {
-        _id: _id,
-        isDeleted: false
-    }
-
-    var documentsProjection = {
-        createdAt: false,
-        updatedAt: false,
-        isDeleted: false,
-        updatedBy: false,
-        createdBy: false,
-    };
-
-    DocumentsInfo.findOneAndUpdate(query, documents, {
-        new: true,
-        projection: documentsProjection
-    }, function(err, documentsData) {
-        if (err) {
-            return res.status(403).json({
-                title: 'There was a problem',
-                error: {
-                    message: err
-                },
-                result: {
-                    message: documentsData
+    async.waterfall([
+        function(callback) {
+          deleteAndRenameDocument(req, res, callback)
+        },
+        function(req, callback) {
+            let documents = new DocumentsInfo(req.body);
+            documents.emp_id = req.body.emp_id || req.query.emp_id;
+            documents.isCompleted = true;
+            documents.updatedBy = parseInt(req.headers.uid);
+        
+            let _id = req.body._id;
+            var query = {
+                _id: _id,
+                isDeleted: false
+            }
+        
+            var documentsProjection = {
+                createdAt: false,
+                updatedAt: false,
+                isDeleted: false,
+                updatedBy: false,
+                createdBy: false,
+            };
+        
+            DocumentsInfo.findOneAndUpdate(query, documents, {
+                new: true,
+                projection: documentsProjection
+            }, function(err, documentsData) {
+                if (err) {
+                    return res.status(403).json({
+                        title: 'There was a problem',
+                        error: {
+                            message: err
+                        },
+                        result: {
+                            message: documentsData
+                        }
+                    });
                 }
-            });
+                    auditTrailEntry(documents.emp_id, "documents", documents, "user", "documents", "UPDATED");
+                    return done(err, documentsData);
+            });  
         }
-            auditTrailEntry(documents.emp_id, "documents", documents, "user", "documents", "UPDATED");
-            return done(err, documentsData);
-    });
+    ]);
 }
 
 function addFamilyInfoDetails(req, res, done) {
@@ -1326,16 +1357,16 @@ function getDocumentsInfoDetails(req, res) {
         createdBy: false,
     };
     DocumentsInfo.findOne(query, documentProjection, function(err, documentsData) {
-        if (documentsData) {
-            return res.status(200).json(documentsData);
+        if (err) {
+            return res.status(403).json({
+                title: 'There was an error, please try again later',
+                error: err,
+                result: {
+                    message: documentsData
+                }
+            });
         }
-        return res.status(403).json({
-            title: 'There was an error, please try again later',
-            error: err,
-            result: {
-                message: documentsData
-            }
-        });
+        return res.status(200).json(documentsData);
     });
 }
 
@@ -1358,16 +1389,16 @@ function getProfileProcessInfoDetails(req, res) {
         createdBy: false,
     };
     ProfileProcessInfo.findOne(query, documentProjection, function(err, profileProcessData) {
-        if (profileProcessData) {
-            return res.status(200).json(profileProcessData);
+        if (err) {
+            return res.status(403).json({
+                title: 'There was an error, please try again later',
+                error: err,
+                result: {
+                    message: profileProcessData
+                }
+            });
         }
-        return res.status(403).json({
-            title: 'There was an error, please try again later',
-            error: err,
-            result: {
-                message: profileProcessData
-            }
-        });
+        return res.status(200).json(profileProcessData);
     });
 }
 
@@ -1421,16 +1452,16 @@ function getCertificationInfoDetails(req, res, done) {
         // createdBy: false,
     };
     CertificationInfo.find(query, certificationAndTraniningProjection, function(err, certificationDetailsData) {
-        if (certificationDetailsData) {
-            return done(err, certificationDetailsData);
+        if (err) {
+            return res.status(403).json({
+                title: 'There was an error, please try again later',
+                error: err,
+                result: {
+                    message: certificationDetailsData
+                }
+            });
         }
-        return res.status(403).json({
-            title: 'There was an error, please try again later',
-            error: err,
-            result: {
-                message: certificationDetailsData
-            }
-        });
+        return done(err, certificationDetailsData);
     });
 }
 
