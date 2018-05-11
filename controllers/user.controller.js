@@ -1668,16 +1668,18 @@ function getPerformanceRatingInfoDetails(req, res) {
         createdBy: false,
     };
     PerformanceRatingInfo.find(query, function(err, performanceRatingProjection) {
-        if (performanceRatingProjection) {
-            return res.status(200).json(performanceRatingProjection);
+        if (err) {
+            return res.status(403).json({
+                title: 'There was an error, please try again later',
+                error: err,
+                result: {
+                    message: performanceRatingProjection
+                }
+            });
+            
         }
-        return res.status(403).json({
-            title: 'There was an error, please try again later',
-            error: err,
-            result: {
-                message: performanceRatingProjection
-            }
-        });
+        return res.status(200).json(performanceRatingProjection);
+        
     });
 }
 
@@ -2332,7 +2334,6 @@ let functions = {
                         user.set('password', newPassword);
                         user.save((err) => {
                             if (err) {
-                                console.log(err);
                                 return res.status(500).json({
                                     err: {
                                         message: 'There was an error, please try again'

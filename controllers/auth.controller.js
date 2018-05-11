@@ -46,21 +46,20 @@ let functions = {
           title: 'Wrong Email or Password',
           error: {message: 'Email or password is incorrect'}
         });
-       }
-      else{
+      }
+      else
+      {
         if(user.isAccountActive)
         {
           user.comparePassword(req.body.password, (err, isMatch) => {
-
-            if(!isMatch)
-            {
+          if(!isMatch)
+          {
               return res.status(403).json({
                 title: 'Wrong Email or Password',
                 error: {message: 'Please check if your password or email are correct'}
               });
-            }
-            
-              Employee.aggregate([
+          }
+          Employee.aggregate([
                 {
                   "$lookup": {
                       "from": "employeeroledetails",
@@ -117,15 +116,15 @@ let functions = {
                 res.setHeader('token-type', 'Bearer');
                 res.setHeader('uid', employeeDetailsData[0]._id);
                 return res.status(200).json(employeeDetailsData[0]);
-              }); 
-            
+            }); 
           })
         }
-        return res.status(403).json({
-          title: 'Account is deactivated',
-          error: {message: 'Please change your password and login'}
-        });
-        
+        else{
+              return res.status(403).json({
+                title: 'Account is deactivated',
+                error: {message: 'Please change your password and login'}
+              });
+          }
        } 
       });
     },
