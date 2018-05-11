@@ -32,8 +32,8 @@ let mongoose                = require('mongoose'),
 
     // Update the Emp_Id Hash user password when registering or when changing password
     EmployeeDetailsSchema.pre('save', function (next,req) {
-          var _this=this;
-          if (_this.isNew) {
+        var _this=this;
+        if (_this.isNew) {
           //Check the Count of Collection and add 1 to the Count and Assign it to Emp_Id 
           mongoose.model('employeeDetails', EmployeeDetailsSchema).count(function(err, c) {
               //Hash the Password and assign it to Password
@@ -82,6 +82,20 @@ let mongoose                = require('mongoose'),
                         });
                 });
                 next();
+          });
+        }
+        else{
+            bcrypt.genSalt(10, function (err, salt) {
+                if (err) {
+                    next(err);
+                }
+                bcrypt.hash(_this.password, salt,  (err, hash) => {
+                  if (err) {
+                    next(err);
+                  }
+                  _this.password = hash;
+                  next();
+                });
           });
         }
     });

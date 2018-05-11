@@ -128,7 +128,6 @@ let functions = {
        } 
       });
     },
-
     // requesting password reset and setting the fields resetPasswordToken to a newly generated token
     // and resetPasswordExpires to the exact date the form is submitted so we can set/check the validity of the timestamp (token is valid for only one hour)
     // after that, the user must request a new password reset. 
@@ -141,7 +140,7 @@ let functions = {
           });
         },
         function (token, done) {
-          OfficeInfo.findOne({officeEmail: req.body.email,isDeleted:false}, function (err, office) {
+          OfficeInfo.findOne({officeEmail: req.body.officeEmail,isDeleted:false}, function (err, office) {
             if (err) {
               return res.status(403).json({
                 title: 'There was an error',
@@ -189,7 +188,7 @@ let functions = {
           transporter.use('compile', hbs(options));
           let mailOptions = {
             from: config.email.forget.from, // sender address
-            to: req.body.email,
+            to: req.body.officeEmail,
             subject: config.email.forget.subject, // Subject line
             template: 'email-password',
             context : {
@@ -200,15 +199,18 @@ let functions = {
              // send mail with defined transport object
             transporter.sendMail(mailOptions, (error2, info) => {
                 if (error2) {
-                    return console.log("RESULT ERROR = ", error2);
+                    return res.status(403).json({
+                      title: 'There was a problem',
+                      error: {
+                          message:error2
+                      }
+                    });
                 }
+               return res.status(200).json({"message":"Reset Password Link Send to Your Email Address"});
             });
         }
-      ], (err) => {
-        if (err) return next(err);
-      });
+      ]);
     },
-  
     // Verify if password reset token is valid ie not expired
     verifyPasswordResetToken: (req, res) => {
       let token = req.params.token;
@@ -231,74 +233,106 @@ let functions = {
         });
       });
     },
-  
     // after getting token from email, check if it's still valid and then proceed in password reset by
     // getting the user new password, hashing it and then reset the passwordToken and passwordExpires fields to undefined
     changePassword: (req, res) => {
-      async.waterfall([
-        function (done) {
-          let token = req.params.token;
-          User.findOne({resetPasswordToken: token, resetPasswordExpires: {$gt: Date.now()}}, function (err, user) {
-            if (err) {
-              return res.status(403).json({
-                title: 'An error occured',
-                error: err
-              });
-            }
-            if (!user) {
-              return res.status(403).json({
-                title: 'There was an error',
-                error: {message: 'Please check if your email is correct'}
-              });
-            }
-            user.password = req.body.password;
-            user.resetPasswordToken = undefined;
-            user.resetPasswordExpires = undefined;
-  
-            user.save(function (err) {
-              done(err, user);
-            });
-          });
-        },
-        // sending notification email to user that his password has changed
-        (user, done) => {
-          let options = {
-            viewPath: config.paths.emailPath,
-            extName : '.hbs'
-          };
-          let transporter = nodemailer.createTransport({
-            host: process.env.EmailHost,
-            secure: false,
-            auth: {
-                user: process.env.EmailUser,
-                pass: process.env.EmailPassword
-            },
-            tls:{
-              rejectUnauthorized: false
-            }
-          });
-          transporter.use('compile', hbs(options));
-          let mailOptions = {
-            from: config.email.resetPassword.from, // sender address
-            to: req.body.email,
-            subject: config.email.resetPassword.subject, // Subject line
-            template: 'email-notify-password-reset',
-            context : {
-              email: user.email,
-              uid  : uuidV1()
-            }
-            };
-             // send mail with defined transport object
-            transporter.sendMail(mailOptions, (error2, info) => {
-                if (error2) {
-                    return console.log("RESULT ERROR = ", error2);
-                }
-            });
-        }],
-         (err) => {
+      // async.waterfall([
+      //   function (done) {
+      //     let token = req.body.token;
+      //     Employee.findOne({resetPasswordToken: token, resetPasswordExpires: {$gt: Date.now()}}, function (err, user) {
+      //       if (err) {
+      //         return res.status(403).json({
+      //           title: 'An error occured',
+      //           error: err
+      //         });
+      //       }
+      //       if (!user) {
+      //         return res.status(401).json({
+      //           title: 'There was an error',
+      //           error: {message: 'Please check if your email is correct'}
+      //         });
+      //       }
+
+      //       user.password = req.body.newPassword;
+      //       user.resetPasswordToken = undefined;
+      //       user.resetPasswordExpires = undefined;
+      //       user.save(function (err) {
+      //         done(err, user);
+      //       });
+      //     });
+      //   },
+      //   // sending notification email to user that his password has changed
+      //   (user, done) => {
+      //     let options = {
+      //       viewPath: config.paths.emailPath,
+      //       extName : '.hbs'
+      //     };
+      //     let transporter = nodemailer.createTransport({
+      //       host: process.env.EmailHost,
+      //       secure: false,
+      //       auth: {
+      //           user: process.env.EmailUser,
+      //           pass: process.env.EmailPassword
+      //       },
+      //       tls:{
+      //         rejectUnauthorized: false
+      //       }
+      //     });
+      //     transporter.use('compile', hbs(options));
+      //     let mailOptions = {
+      //       from: config.email.resetPassword.from, // sender address
+      //       to: "req.body.email",
+      //       subject: config.email.resetPassword.subject, // Subject line
+      //       template: 'email-notify-password-reset',
+      //       context : {
+      //         email: user.email,
+      //         uid  : uuidV1()
+      //       }
+      //       };
+      //        // send mail with defined transport object
+      //       transporter.sendMail(mailOptions, (error2, info) => {
+      //           if (error2) {
+      //             return res.status(403).json({
+      //               title: 'There was a problem',
+      //               error: {
+      //                   message:error2
+      //               }
+      //             });
+      //           }
+      //           return res.status(200).json({"message":"Reset Password Success Please Login With new Password"});
+      //       });
+      //   }
+      // ]);
+      let token = req.body.token;
+      Employee.findOne({resetPasswordToken: token, resetPasswordExpires: {$gt: Date.now()}}, function (err, user) {
         if (err) {
-          console.log(err);
+          return res.status(403).json({
+            title: 'An error occured',
+            error: err
+          });
         }
+        if (!user) {
+          return res.status(401).json({
+            title: 'There was an error',
+            error: {message: 'Please check if your email is correct'}
+          });
+        }
+
+        user.password = req.body.newPassword;
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpires = undefined;
+        user.save(function (err) {
+          if (err)
+           {
+             return res.status(403).json({
+               title: 'There was a problem',
+               error: {
+                   message:err
+               }
+             });
+           }
+           return res.status(200).json({"message":"Reset Password Success Please Login With new Password"});
+        });
       });
     },
 

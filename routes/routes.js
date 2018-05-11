@@ -85,7 +85,7 @@ let express  = require('express'),
   authRoutes.get('/reset/:token', auth.verifyPasswordResetToken);
 
   // If password reset token is valid (not expired) then proceed to password change. endpoint: http://localhost:3000/api/auth/reset/:token
-  authRoutes.post('/reset/:token', auth.changePassword);
+  authRoutes.post('/reset', auth.changePassword);
 
   //= ========================
   // User Routes
