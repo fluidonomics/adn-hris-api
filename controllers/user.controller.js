@@ -190,7 +190,7 @@ function updateProfileProcessInfoDetails(req, res, done) {
         updatedAt: false,
         isDeleted: false,
         updatedBy: false,
-        createdBy: false,
+        createdBy: true,
     };
 
     ProfileProcessInfo.findOneAndUpdate(query, profileProcessInfo, {
@@ -209,7 +209,18 @@ function updateProfileProcessInfoDetails(req, res, done) {
             });
         } 
         auditTrailEntry(profileProcessInfo.emp_id, "profileProcessInfo", profileProcessInfo, "user", "profileProcessInfo", "UPDATED");
-        return done(err, profileProcessInfoData);        
+        let profileData={
+            "_id":profileProcessInfoData._id,
+            "emp_id":profileProcessInfoData.emp_id,
+            "hrSupervisorSendbackComment":profileProcessInfoData.hrSupervisorSendbackComment,
+            "hrSendbackComment":profileProcessInfoData.hrSendbackComment,
+            "isEmployeeStatus":profileProcessInfoData.employeeStatus== 'Submitted'? true:false,
+            "isHrStatus":profileProcessInfoData.hrStatus== 'Submitted'? true:false,
+            "isHrSatusSendBack":profileProcessInfoData.hrStatus== 'SendBack'? true:false,
+            "isSupervisorStatus":profileProcessInfoData.supervisorStatus== 'Approved'?true:false,
+            "createdBy":profileProcessInfoData.createdBy
+        } 
+        return done(err, profileData);        
     });
 }
 
@@ -335,7 +346,7 @@ function deleteAndRenameDocument (req, res, done)
     }
     if(req.body.nationalIDOldFormatDocURL && req.body.nationalIDOldFormatDocURL.split('/')[0]=='tmp' )
     {
-        uploadCtrl.copyAndMoveImage(req.body.nationalIDOldFormatDocURL,'document/');
+        uploadCtrl.copyAnetdMoveImage(req.body.nationalIDOldFormatDocURL,'document/');
         req.body.nationalIDOldFormatDocURL=req.body.nationalIDOldFormatDocURL.replace('tmp','document')
     }
     if(req.body.nationalIdSmartCardDocURL && req.body.nationalIdSmartCardDocURL.split('/')[0]=='tmp' )
@@ -1370,35 +1381,45 @@ function getDocumentsInfoDetails(req, res) {
     });
 }
 
-function getProfileProcessInfoDetails(req, res) {
-    let emp_id = req.query.emp_id;
-    let query = {
-        isDeleted: false
-    };
-    if (emp_id) {
-        query = {
-            emp_id: emp_id,
-            isDeleted: false
-        };
+function getProfileProcessInfoDetails(req,res)
+{
+    let emp_id=req.body.emp_id||req.query.emp_id;
+    let query={
+        isActive:true
     }
-    var documentProjection = {
-        createdAt: false,
-        updatedAt: false,
-        isDeleted: false,
-        updatedBy: false,
-        createdBy: false,
-    };
-    ProfileProcessInfo.findOne(query, documentProjection, function(err, profileProcessData) {
-        if (err) {
-            return res.status(403).json({
-                title: 'There was an error, please try again later',
-                error: err,
-                result: {
-                    message: profileProcessData
-                }
-            });
+    if(emp_id)
+    {
+        query={
+            emp_id:emp_id,
+            isActive:true
         }
-        return res.status(200).json(profileProcessData);
+    }
+    ProfileProcessInfo.findOne(query, function(err, profileData)
+    {
+        if(err)
+        {
+            return res.status(403).json({
+                title: 'Error',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: profileData
+                }
+            });  
+        }
+        let profile={
+                "_id":profileData._id,
+                "emp_id":profileData.emp_id,
+                "hrSupervisorSendbackComment":profileData.hrSupervisorSendbackComment,
+                "hrSendbackComment":profileData.hrSendbackComment,
+                "isEmployeeStatus":profileData.employeeStatus== 'Submitted'? true:false,
+                "isHrStatus":profileData.hrStatus== 'Submitted'? true:false,
+                "isHrSatusSendBack":profileData.hrStatus== 'SendBack'? true:false,
+                "isSupervisorStatus":profileData.supervisorStatus== 'Approved'?true:false,
+                "createdBy":profileData.createdBy
+        } 
+        return res.status(200).json(profile);
     });
 }
 
@@ -2292,7 +2313,7 @@ let functions = {
     {
        updatepositionInfoDetails(req, res);
     },
-
+    
     // Change User Password via Front End (not via email)
     changePassword: (req, res) => {
         let userId = req.user._id;

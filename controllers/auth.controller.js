@@ -56,7 +56,7 @@ let functions = {
           {
               return res.status(403).json({
                 title: 'Wrong Email or Password',
-                error: {message: 'Please check if your password or email are correct'}
+                error: {message: 'Password or email are correct'}
               });
           }
           Employee.aggregate([
@@ -321,6 +321,7 @@ let functions = {
         user.password = req.body.newPassword;
         user.resetPasswordToken = undefined;
         user.resetPasswordExpires = undefined;
+        user.isAccountActive=true;
         user.save(function (err) {
           if (err)
            {
@@ -331,6 +332,7 @@ let functions = {
                }
              });
            }
+           //getEmployeeEmailAndSendEmail();
            return res.status(200).json({"message":"Reset Password Success Please Login With new Password"});
         });
       });
