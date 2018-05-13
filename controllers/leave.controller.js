@@ -1,6 +1,7 @@
 let express = require('express'),
 
-    LeaveApply = require('../models/leave/leaveApply.model');
+    LeaveApply = require('../models/leave/leaveApply.model'),
+    LeaveTransactionType = require('../models/leave/leaveTransactioType.model');
 config = require('../config/config'),
     crypto = require('crypto'),
     async = require('async'),
@@ -28,79 +29,140 @@ function applyLeave(req, res, done) {
             });
         }
         return done(err, leavesInfoData);
-    })
+    });
 
 }
-// function updateLeave(req, res, done){
-
-// }
-// function userLeaveDashboardDetails(req, res, done){
-
-// }
-// function empLeaveDetails(req, res, done){
-
-// }
 
 let functions = {
     postApplyLeave: (req, res) => {
         async.waterfall([
             function (done) {
-                // let details = new LeaveApply();
-                // details.leave_type = req.body.leave_type;
-                // details.fromDate = req.body.fromDate;
-                // details.toDate = req.body.toDate;
-                // details.days = req.body.days;
-                // details.applyTo = req.body.applyTo;
-                // details.reason = req.body.reason;
-                // details.contactDetails = req.body.contactDetails;
-                // details.attachment = req.body.attachment;
-                // details.ccTo = req.body.ccTo;
-                // details.isApproved = req.body.isApproved;
-                // details.isCancelled = req.body.isCancelled
-                // details.cancelReason  = req.body.cancelReason;
-                // details.cancelLeaveApplyTo  = req.body.cancelLeaveApplyTo;
-                // details.remark  = req.body.remark;
-                // details.forwardTo  = req.body.forwardTo;
-                // details.updatedBy  = req.body.updatedBy;
-                // details.createdBy  = parseInt(req.headers.uid);
-                // details.isDeleted = false;
                 applyLeave(req, res, done);
             },
             function (kraWorkFlowInfoData, done) {
                 return res.status(200).json(kraWorkFlowInfoData);
             }
         ])
+    },
+    getLeaveTransaction: (req, res) => {
+        let query = {
+            isDeleted: false
+        }
+        var transactionProjection = {
+            createdAt: false,
+            updatedAt: false,
+            isDeleted: false,
+            updatedBy: false,
+            createdBy: false,
+        };
+        LeaveTransactionType.find(query, transactionProjection, {
+            sort: {
+                _id: 1
+            }
+        }, function (err, leaveTransactionTypeData) {
+            if (leaveTransactionTypeData) {
+                return res.status(200).json(leaveTransactionTypeData);
+            }
+            return res.status(403).json({
+                title: 'Error',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: result
+                }
+            });
+        })
+    },
+    getEmployeeLeaveDetails: (req, res) => {
+        LeaveApply.aggregate([
+            {
+                "$lookup": {
+                    "from": "employeedetails",
+                    "localField": "emp_id",
+                    "foreignField": "_id",
+                    "as": "emp_name"
+                }
+            },
+            {
+              "$unwind": "$emp_name"
+            },
+            {
+                "$lookup": {
+                    "from": "employeedetails",
+                    "localField": "applyTo",
+                    "foreignField": "_id",
+                    "as": "sup_name"
+                }
+            },
+            {
+              "$unwind": "$sup_name"
+            },
+            {
+                "$lookup": {
+                    "from": "employeedetails",
+                    "localField": "cancelLeaveApplyTo",
+                    "foreignField": "_id",
+                    "as": "cancelLeave_ApplyTo"
+                }
+            },
+            {
+              "$unwind":{
+                  path: "$cancelLeave_ApplyTo",
+              "preserveNullAndEmptyArrays": true}
+            },
+            {
+                "$lookup": {
+                    "from": "employeedetails",
+                    "localField": "ccTo",
+                    "foreignField": "_id",
+                    "as": "ccTo_user"
+                }
+            },
+            {
+              "$unwind": {
+                path: "$ccTo_user",
+            "preserveNullAndEmptyArrays": true}
+            
+            },
+            {"$match": {"isDeleted":false, "emp_id" : parseInt( req.headers.emp_id)} },
+            {"$project":{
+                "_id":"$_id",
+                "emp_id":"$emp_id",
+                "emp_name":"$emp_name.userName",
+                "leave_type":"$leave_type",
+                "forwardTo":"$forwardTo",
+                "remark":"$remark",
+                "cancelLeaveApplyTo":"$cancelLeaveApplyTo",
+                "cancelLeaveApplyTo_name":"$cancelLeave_ApplyTo.userName",
+                "cancelReason":"$cancelReason",
+                "isCancelled":"$isCancelled",
+                "isApproved":"$isApproved",
+                "ccTo":"$ccTo",
+                "ccTo_name":"$ccTo_user.userName",
+                "contactDetails":"$contactDetails",
+                "applyTo":"$applyTo",
+                "applyTo_name":"$sup_name.userName",
+                "toDate":"$toDate",
+                "fromDate":"$fromDate"
+                
+              }}
+            
+    ]).exec(function(err, results){
+        if(err){
+            return res.status(403).json({
+                title: 'There is a problem',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: results
+                }
+            });
+        }
+        return res.status(200).json({"data":results});
+    });
     }
-    // postUpdateLeave: (req, res) => {
-    //     async.waterfall([
-    //         function(done){
-    //             updateLeave(req, res,done);
-    //         },
-    //         function() {
-    //             return res.status(200).json();
-    //         }
-    //     ])
-    // },
-    // getUserLeaveDashboardDetails: (req, res) => {
-    //     async.waterfall([
-    //         function(done){
-    //             userLeaveDashboardDetails(req, res, done);
-    //         },
-    //         function(){
-    //             return res.status(200).json();
-    //         }
-    //     ])
-    // },
-    // getEmpLeaveDetails: (req,res) => {
-    //     async.waterfall([
-    //         function(done){
-    //             empLeaveDetails(req, res, done);
-    //         },
-    //         function() {
-    //             return res.status(200).json();
-    //         }
-    //     ])
-    // }
 }
 
 module.exports = functions;
