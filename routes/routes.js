@@ -388,7 +388,7 @@ let express  = require('express'),
 
     commonRoutes.get('/getHr',ensureAuthenticated, common.getHr);
 
-    commonRoutes.get('/getSupervisor',ensureAuthenticated, common.getSupervisor);
+    commonRoutes.get('/getSupervisor', common.getSupervisor);
 
     commonRoutes.get('/checkEmailUnique',ensureAuthenticated, common.checkEmailUnique);
 
