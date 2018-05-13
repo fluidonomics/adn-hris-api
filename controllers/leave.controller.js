@@ -1,30 +1,22 @@
-let express           = require('express'),
-    // EmployeeInfo      = require('../models/employee/employeeDetails.model'),
-    // PersonalInfo      = require('../models/employee/employeePersonalDetails.model'),
-    // OfficeInfo        = require('../models/employee/employeeOfficeDetails.model'),
-    // SupervisorInfo    = require('../models/employee/employeeSupervisorDetails.model'),
-    // AuditTrail        = require('../models/common/auditTrail.model'),
-    // Notification      = require('../models/common/notification.model'),
-    // EmployeeRoles     = require('../models/employee/employeeRoleDetails.model'),
-    // KraInfo           = require('../models/kra/kraDetails.model'),
-    // KraWorkFlowInfo   = require('../models/kra/kraWorkFlowDetails.model'),
+let express = require('express'),
+
     LeaveApply = require('../models/leave/leaveApply.model');
-    config            = require('../config/config'),
-    crypto            = require('crypto'),
-    async             = require('async'),
-    nodemailer        = require('nodemailer'),
-    hbs               = require('nodemailer-express-handlebars'),
-    sgTransport       = require('nodemailer-sendgrid-transport'),
-    uuidV1            = require('uuid/v1');
-    require('dotenv').load()
-function applyLeave(req, res, done){
+config = require('../config/config'),
+    crypto = require('crypto'),
+    async = require('async'),
+    nodemailer = require('nodemailer'),
+    hbs = require('nodemailer-express-handlebars'),
+    sgTransport = require('nodemailer-sendgrid-transport'),
+    uuidV1 = require('uuid/v1');
+require('dotenv').load()
+function applyLeave(req, res, done) {
     let leavedetails = new LeaveApply(req.body);
     leavedetails.emp_id = req.body.emp_id || req.query.emp_id;
     leavedetails.createdBy = parseInt(req.headers.uid);
     leavedetails.fromDate = new Date(req.body.fromDate);
     leavedetails.toDate = new Date(req.body.toDate);
-    leavedetails.save(function(err, leavesInfoData) {
-        if(err){
+    leavedetails.save(function (err, leavesInfoData) {
+        if (err) {
             return res.status(403).json({
                 title: 'There is a problem',
                 error: {
@@ -32,27 +24,27 @@ function applyLeave(req, res, done){
                 },
                 result: {
                     message: leavesInfoData
-                }                
+                }
             });
         }
-        return done(err,leavesInfoData);
+        return done(err, leavesInfoData);
     })
 
 }
 // function updateLeave(req, res, done){
-    
+
 // }
 // function userLeaveDashboardDetails(req, res, done){
-    
+
 // }
 // function empLeaveDetails(req, res, done){
-    
+
 // }
 
 let functions = {
     postApplyLeave: (req, res) => {
         async.waterfall([
-            function(done){
+            function (done) {
                 // let details = new LeaveApply();
                 // details.leave_type = req.body.leave_type;
                 // details.fromDate = req.body.fromDate;
@@ -75,7 +67,7 @@ let functions = {
                 applyLeave(req, res, done);
             },
             function (kraWorkFlowInfoData, done) {
-                return res.status(200).json(leavesInfoData);
+                return res.status(200).json(kraWorkFlowInfoData);
             }
         ])
     }
