@@ -6,6 +6,7 @@ let express  = require('express'),
     common   = require('../controllers/common.controller'),
     upload   = require('../controllers/upload.controller'),
     kra      = require('../controllers/kra.controller'),
+    leave    = require('../controllers/leave.controller'),
     Employee = require('../models/employee/employeeDetails.model'),
     jwt = require('jsonwebtoken-refresh');
 
@@ -65,6 +66,8 @@ let express  = require('express'),
       commonRoutes= express.Router();
       uploadRoutes= express.Router(),
       kraRoutes   = express.Router(),
+      leaveRoutes = express.Router(),
+
 
   //= ========================
   // Auth Routes
@@ -267,6 +270,19 @@ let express  = require('express'),
 
 
 
+//= ========================
+  // Leave Routes 
+  //= ========================
+
+  apiRoutes.use('/leave', leaveRoutes);
+
+  leaveRoutes.post('/applyLeave', leave.postApplyLeave);
+
+  // leaveRoutes.post('/updateLeave', kra.postUpdateLeave);
+
+  // leaveRoutes.get('/userLeaveDashboard', kra.getUserLeaveDashboardDetails);
+
+  // leaveRoutes.get('/empLeaveDetails', kra.getEmpLeaveDetails);
 
 
 
