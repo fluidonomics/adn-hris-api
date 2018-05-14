@@ -182,7 +182,7 @@ let functions = {
             "preserveNullAndEmptyArrays": true}
             
             },
-            {"$match": {"isDeleted":false, "emp_id" : parseInt( req.headers.emp_id)} },
+            {"$match": {"isDeleted":false, "emp_id" : parseInt( req.query.emp_id)} },
             {"$project":{
                 "_id":"$_id",
                 "emp_id":"$emp_id",
