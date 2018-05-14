@@ -13,12 +13,9 @@ let express          = require('express'),
     uuidV1           = require('uuid/v1'),
     async            = require('async'),
     awaitEach        =require('await-each');
+    sendEmailInfo     =require('../class/sendEmail');
     require('dotenv').load()
-    //fs          = require('fs'),
-    //multer      = require('multer'),
-    //mime        = require('mime'),    
-    //gm          = require('gm').subClass({imageMagick: true}),    
-    //sgTransport = require('nodemailer-sendgrid-transport'),    
+ 
 
 function generateToken(user) {
   return jwt.sign(user, process.env.Secret, {expiresIn: process.env.JwtExpire});
@@ -133,13 +130,13 @@ let functions = {
     // after that, the user must request a new password reset. 
     forgetPassword: (req, res, next) => {
       async.waterfall([
-        function (done) {
+        function(done){
           crypto.randomBytes(20, function (err, buf) {
             let token = buf.toString('hex');
             done(err, token);
           });
         },
-        function (token, done) {
+        function(token, done){
           OfficeInfo.findOne({officeEmail: req.body.officeEmail,isDeleted:false}, function (err, office) {
             if (err) {
               return res.status(403).json({
@@ -156,58 +153,22 @@ let functions = {
             let queryUpdate={ $set: {resetPasswordToken:token, resetPasswordExpires: Date.now() + 3600000 }};
             Employee.findOneAndUpdate({_id:office.emp_id,isDeleted:false},queryUpdate,function(err,user)
             {
+              if (err) {
+                return res.status(403).json({
+                  title: 'There was an error',
+                  error: err
+                });
+              }
               if(user)
               {
-                done(err, token, user);
+                sendEmailInfo.sendEmailResetPassword(req.body.officeEmail, process.env.HostUrl+"/reset/"+token)
               }
-              // user.resetPasswordToken = token;
-              // user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
-              // user.save(function (err,updatedTank) {
-              //   done(err, token, user);
-              // });
+              done(err, user);
             });
-          });
+          })
         },
-        //sending the notification email to the user with the link and the token created above
-        (token, user, done) => {
-          let options = {
-            viewPath: config.paths.emailPath,
-            extName : '.hbs'
-          };
-          let transporter = nodemailer.createTransport({
-            host: process.env.EmailHost,
-            secure: false,
-            auth: {
-                user: process.env.EmailUser,
-                pass: process.env.EmailPassword
-            },
-            tls:{
-              rejectUnauthorized: false
-            }
-          });
-          transporter.use('compile', hbs(options));
-          let mailOptions = {
-            from: config.email.forget.from, // sender address
-            to: req.body.officeEmail,
-            subject: config.email.forget.subject, // Subject line
-            template: 'email-password',
-            context : {
-              action_url:process.env.HostUrl+"/reset/"+token,
-              uid  : uuidV1()
-            }
-            };
-             // send mail with defined transport object
-            transporter.sendMail(mailOptions, (error2, info) => {
-                if (error2) {
-                    return res.status(403).json({
-                      title: 'There was a problem',
-                      error: {
-                          message:error2
-                      }
-                    });
-                }
-               return res.status(200).json({"message":"Reset Password Link Send to Your Email Address"});
-            });
+        function(result) {
+          return res.status(200).json({"message":"Reset Password Link Send to Your Email Address"}); 
         }
       ]);
     },
@@ -236,73 +197,6 @@ let functions = {
     // after getting token from email, check if it's still valid and then proceed in password reset by
     // getting the user new password, hashing it and then reset the passwordToken and passwordExpires fields to undefined
     changePassword: (req, res) => {
-      // async.waterfall([
-      //   function (done) {
-      //     let token = req.body.token;
-      //     Employee.findOne({resetPasswordToken: token, resetPasswordExpires: {$gt: Date.now()}}, function (err, user) {
-      //       if (err) {
-      //         return res.status(403).json({
-      //           title: 'An error occured',
-      //           error: err
-      //         });
-      //       }
-      //       if (!user) {
-      //         return res.status(401).json({
-      //           title: 'There was an error',
-      //           error: {message: 'Please check if your email is correct'}
-      //         });
-      //       }
-
-      //       user.password = req.body.newPassword;
-      //       user.resetPasswordToken = undefined;
-      //       user.resetPasswordExpires = undefined;
-      //       user.save(function (err) {
-      //         done(err, user);
-      //       });
-      //     });
-      //   },
-      //   // sending notification email to user that his password has changed
-      //   (user, done) => {
-      //     let options = {
-      //       viewPath: config.paths.emailPath,
-      //       extName : '.hbs'
-      //     };
-      //     let transporter = nodemailer.createTransport({
-      //       host: process.env.EmailHost,
-      //       secure: false,
-      //       auth: {
-      //           user: process.env.EmailUser,
-      //           pass: process.env.EmailPassword
-      //       },
-      //       tls:{
-      //         rejectUnauthorized: false
-      //       }
-      //     });
-      //     transporter.use('compile', hbs(options));
-      //     let mailOptions = {
-      //       from: config.email.resetPassword.from, // sender address
-      //       to: "req.body.email",
-      //       subject: config.email.resetPassword.subject, // Subject line
-      //       template: 'email-notify-password-reset',
-      //       context : {
-      //         email: user.email,
-      //         uid  : uuidV1()
-      //       }
-      //       };
-      //        // send mail with defined transport object
-      //       transporter.sendMail(mailOptions, (error2, info) => {
-      //           if (error2) {
-      //             return res.status(403).json({
-      //               title: 'There was a problem',
-      //               error: {
-      //                   message:error2
-      //               }
-      //             });
-      //           }
-      //           return res.status(200).json({"message":"Reset Password Success Please Login With new Password"});
-      //       });
-      //   }
-      // ]);
       let token = req.body.token;
       Employee.findOne({resetPasswordToken: token, resetPasswordExpires: {$gt: Date.now()}}, function (err, user) {
         if (err) {
@@ -332,25 +226,24 @@ let functions = {
                }
              });
            }
-           //getEmployeeEmailAndSendEmail();
-           return res.status(200).json({"message":"Reset Password Success Please Login With new Password"});
+           else{
+            OfficeInfo.findOne({emp_id: user_id,isDeleted:false}, function (err, office) {
+              sendEmailInfo.sendEmailResetPasswordComplete(office.officeEmail,user.fullName,user.userName);
+              return res.status(200).json({"message":"Reset Password Success Please Login With new Password"});
+            });
+           }
         });
       });
     },
 
     validateToken: (req, res) => {
-    //if(req.headers && (req.headers.Authorization)
-      // if(req.headers.access-token)
-      // {
           let token=req.headers['access-token'];
-        
-          //let token=req.headers.Authorization.split(' ')[1] || req.headers['access-token'];
           jwt.verify(token,process.env.Secret, function(err, decoded) {
-            if (err) {
+          if (err) {
               return res.status(401).json({
                 error: err
               });
-            }
+          }
           else{
               Employee.find({_id:parseInt(decoded._id),isDeleted:false},function(err,users)
               {
@@ -376,7 +269,6 @@ let functions = {
               })
             }
           });
-      // }
     }
 };
 

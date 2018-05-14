@@ -74,17 +74,19 @@ let functions =
     sendEmailResetPassword:(toEmail,redirectUrl)=>{
         let mailOptions = {
             from: config.email.forget.from, // sender address
-            to: req.body.officeEmail,
+            to:toEmail,
             subject: config.email.forget.subject, // Subject line
             template: 'email-password',
             context : {
-              action_url:process.env.HostUrl + redirectUrl,
+              action_url:redirectUrl,
               uid  : uuidV1()
             }
         };
+        transporter.sendMail(mailOptions);
+                 
     },
 
-    sendEmailResetPasswordComplete:(toEmail)=>{
+    sendEmailResetPasswordComplete:(toEmail,fullName,userName)=>{
         let mailOptions = {
                   from: config.email.resetPassword.from, // sender address
                   to: toEmail,
@@ -92,6 +94,8 @@ let functions =
                   template: 'email-notify-password-reset',
                   context : {
                     email: toEmail,
+                    fullName:fullName,
+                    userName:userName,
                     uid  : uuidV1()
                   }
         };
