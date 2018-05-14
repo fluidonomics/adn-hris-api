@@ -90,7 +90,7 @@ let functions =
         let mailOptions = {
                   from: config.email.forget.from, // sender address
                   to: toEmail,
-                  subject: config.email.resetPassword.subject, // Subject line
+                  subject: config.email.forget.subject, // Subject line
                   template: 'email-notify-password-reset',
                   context : {
                     email: toEmail,
