@@ -90,11 +90,11 @@ function cancelLeave(req, res, done) {
         createdBy: false,
     };
 
-    LeaveApply.findOneAndUpdate(query,cancelLeaveDetals, {
+    LeaveApply.findOneAndUpdate(query, cancelLeaveDetals, {
         new: true,
         projection: leaveProjection
     }, function (err, _leaveDetails) {
-        if(err) {
+        if (err) {
             return res.status(403).json({
                 title: 'There was a problem',
                 error: {
@@ -106,7 +106,7 @@ function cancelLeave(req, res, done) {
             });
         }
         return done(err, _leaveDetails);
-    } )
+    })
 
 }
 let functions = {
@@ -180,7 +180,10 @@ let functions = {
                 }
             },
             {
-                "$unwind": "$emp_name"
+                "$unwind": {
+                    path: "$emp_name",
+                    "preserveNullAndEmptyArrays": true
+                }
             },
             {
                 "$lookup": {
@@ -191,7 +194,10 @@ let functions = {
                 }
             },
             {
-                "$unwind": "$forwardTo_name"
+                "$unwind": {
+                    path: "$forwardTo_name",
+                    "preserveNullAndEmptyArrays": true
+                }
             },
             {
                 "$lookup": {
@@ -202,7 +208,10 @@ let functions = {
                 }
             },
             {
-                "$unwind": "$sup_name"
+                "$unwind": {
+                    path: "$sup_name",
+                    "preserveNullAndEmptyArrays": true
+                }
             },
             {
                 "$lookup": {
@@ -239,9 +248,9 @@ let functions = {
                     "emp_id": "$emp_id",
                     "emp_name": "$emp_name.fullName",
                     "leave_type": "$leave_type",
-                    "leave_type_name" : "$leaveTypes.type",
+                    "leave_type_name": "$leaveTypes.type",
                     "forwardTo": "$forwardTo",
-                    "forwardTo_FullName" : "$forwardTo_name.fullName",
+                    "forwardTo_FullName": "$forwardTo_name.fullName",
                     "remark": "$remark",
                     "cancelLeaveApplyTo": "$cancelLeaveApplyTo",
                     "cancelLeaveApplyTo_name": "$cancelLeave_ApplyTo.fullName",
@@ -249,7 +258,7 @@ let functions = {
                     "isCancelled": "$isCancelled",
                     "isApproved": "$isApproved",
                     "ccTo": "$ccTo",
-                   "contactDetails": "$contactDetails",
+                    "contactDetails": "$contactDetails",
                     "applyTo": "$applyTo",
                     "applyTo_name": "$sup_name.fullName",
                     "toDate": "$toDate",
