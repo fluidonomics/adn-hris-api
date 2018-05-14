@@ -73,6 +73,40 @@ function getAllEmployeeEmails(req, res) {
 }
 function cancelLeave(req, res, done) {
     let cancelLeaveDetals = new LeaveApply(req.body);
+    // LeaveApply._id = req.body.id;
+    cancelLeaveDetals.updatedBy = req.body.emp_id;
+    cancelLeaveDetals.cancelReason = req.body.reason;
+    cancelLeaveDetals.ccTo = req.body.CCto;
+    var query = {
+        _id: parseInt(req.body.id),
+        isDeleted: false
+    }
+
+    var leaveProjection = {
+        createdAt: false,
+        updatedAt: false,
+        isDeleted: false,
+        updatedBy: false,
+        createdBy: false,
+    };
+
+    LeaveApply.findOneAndUpdate(query,cancelLeaveDetals, {
+        new: true,
+        projection: leaveProjection
+    }, function (err, _leaveDetails) {
+        if(err) {
+            return res.status(403).json({
+                title: 'There was a problem',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: _leaveDetails
+                }
+            });
+        }
+        return done(err, _leaveDetails);
+    } )
 
 }
 let functions = {
