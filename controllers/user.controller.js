@@ -1953,15 +1953,28 @@ let functions = {
         {
             "$unwind": "$employees"
         },
+        {
+            "$lookup": {
+                "from": "employeeprofileprocessdetails",
+                "localField": "_id",
+                "foreignField": "emp_id",
+                "as": "employeeprofileProcessDetails"
+            }
+        },
+        {
+            "$unwind": "$employeeprofileProcessDetails"
+        },
         {"$match": {"isDeleted":false,"designations.isActive":true,"officeDetails.isDeleted":false} },
         {"$project":{
           "_id":"$_id",
-          "FullName":"$fullName",
-          "ProfileImage":"$profileImage",
-          "OfficeEmail":"$officeDetails.officeEmail",
-          "Designation":"$designations.designationName",
-          "Supervisor":"$employees.fullName",
-          "HrScope_Id":'$officeDetails.hrspoc_id'
+          "fullName":"$fullName",
+          "profileImage":"$profileImage",
+          "officeEmail":"$officeDetails.officeEmail",
+          "designation":"$designations.designationName",
+          "supervisor":"$employees.fullName",
+          "hrScope_Id":'$officeDetails.hrspoc_id',
+          "supervisor_id":"$employees._id",
+          "profileProcessDetails":"$employeeprofileProcessDetails"
         }}
         ]).exec(function(err, results){
         if(err)
