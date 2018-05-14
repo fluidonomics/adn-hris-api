@@ -921,7 +921,7 @@ let functions = {
                 "isSalaryInfo":(counts[9]>0)?true:false,
                 "isCarInfo":(counts[10]>0)?true:false,
              }
-            return res.status(200).json({statusData});
+            return res.status(200).json(statusData);
           })
           .catch(function(err) {
             return res.status(403).json({

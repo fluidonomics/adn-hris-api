@@ -182,7 +182,7 @@ function updateProfileProcessInfoDetails(req, res, done) {
     let _id = req.body._id;
     var query = {
         _id: _id,
-        isDeleted: false
+        isActive: true
     }
 
     var profileProcessInfoProjection = {
@@ -190,13 +190,13 @@ function updateProfileProcessInfoDetails(req, res, done) {
         updatedAt: false,
         isDeleted: false,
         updatedBy: false,
-        createdBy: true,
+        //createdBy: true,
     };
 
     ProfileProcessInfo.findOneAndUpdate(query, profileProcessInfo, {
         new: true,
         projection: profileProcessInfoProjection
-    }, function(err, profileProcessInfoData) {
+    }, function(err, profileProcessData) {
         if (err) {
             return res.status(403).json({
                 title: 'There was a problem',
@@ -204,23 +204,27 @@ function updateProfileProcessInfoDetails(req, res, done) {
                     message: err
                 },
                 result: {
-                    message: profileProcessInfoData
+                    message: profileProcessData
                 }
             });
         } 
         auditTrailEntry(profileProcessInfo.emp_id, "profileProcessInfo", profileProcessInfo, "user", "profileProcessInfo", "UPDATED");
-        let profileData={
-            "_id":profileProcessInfoData._id,
-            "emp_id":profileProcessInfoData.emp_id,
-            "hrSupervisorSendbackComment":profileProcessInfoData.hrSupervisorSendbackComment,
-            "hrSendbackComment":profileProcessInfoData.hrSendbackComment,
-            "isEmployeeStatus":profileProcessInfoData.employeeStatus== 'Submitted'? true:false,
-            "isHrStatus":profileProcessInfoData.hrStatus== 'Submitted'? true:false,
-            "isHrSatusSendBack":profileProcessInfoData.hrStatus== 'SendBack'? true:false,
-            "isSupervisorStatus":profileProcessInfoData.supervisorStatus== 'Approved'?true:false,
-            "createdBy":profileProcessInfoData.createdBy
+        let profileProcess={
+            "_id":profileProcessData._id,
+            "emp_id":profileProcessData.emp_id,
+            "supervisorStatus": profileProcessData.supervisorStatus,
+            "hrStatus": profileProcessData.hrStatus,
+            "employeeStatus": profileProcessData.employeeStatus,
+            "hrSupervisorSendbackComment":profileProcessData.hrSupervisorSendbackComment,
+            "hrSendbackComment":profileProcessData.hrSendbackComment,
+            "isEmployeeSubmitted":profileProcessData.employeeStatus== 'Submitted'? true:false,
+            "isHrSubmitted":profileProcessData.hrStatus== 'Submitted'? true:false,
+            "isHrSendBack":profileProcessData.hrStatus== 'SendBack'? true:false,
+            "isSupervisorApproved":profileProcessData.supervisorStatus== 'Approved'? true:false,
+            "isSupervisorSendBack":profileProcessData.supervisorStatus== 'SendBack'? true:false,
+            "createdBy":profileProcessData.createdBy
         } 
-        return done(err, profileData);        
+        return done(err, profileProcess);        
     });
 }
 
@@ -1411,12 +1415,18 @@ function getProfileProcessInfoDetails(req,res)
         let profile={
                 "_id":profileData._id,
                 "emp_id":profileData.emp_id,
+                "hrSendbackComment": profileData.hrSendbackComment,
+                "hrSupervisorSendbackComment": profileData.hrSupervisorSendbackComment,
+                "supervisorStatus": profileData.supervisorStatus,
+                "hrStatus": profileData.hrStatus,
+                "employeeStatus": profileData.employeeStatus,
                 "hrSupervisorSendbackComment":profileData.hrSupervisorSendbackComment,
                 "hrSendbackComment":profileData.hrSendbackComment,
-                "isEmployeeStatus":profileData.employeeStatus== 'Submitted'? true:false,
-                "isHrStatus":profileData.hrStatus== 'Submitted'? true:false,
-                "isHrSatusSendBack":profileData.hrStatus== 'SendBack'? true:false,
-                "isSupervisorStatus":profileData.supervisorStatus== 'Approved'?true:false,
+                "isEmployeeSubmitted":profileData.employeeStatus== 'Submitted'? true:false,
+                "isHrSubmitted":profileData.hrStatus== 'Submitted'? true:false,
+                "isHrSendBack":profileData.hrStatus== 'SendBack'? true:false,
+                "isSupervisorApproved":profileData.supervisorStatus== 'Approved'? true:false,
+                "isSupervisorSendBack":profileData.supervisorStatus== 'SendBack'? true:false,
                 "createdBy":profileData.createdBy
         } 
         return res.status(200).json(profile);
@@ -2313,7 +2323,7 @@ let functions = {
     {
        updatepositionInfoDetails(req, res);
     },
-    
+
     // Change User Password via Front End (not via email)
     changePassword: (req, res) => {
         let userId = req.user._id;

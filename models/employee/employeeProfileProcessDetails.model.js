@@ -8,14 +8,11 @@ let mongoose                = require('mongoose'),
       {
         _id:{type:Number},
         emp_id:{type: Number,ref:'employeedetails',required: true},
-
         employeeStatus:{type:String,default:null},//Submitted
         hrStatus:{type:String,default:null},//Submitted/SentBack
         supervisorStatus:{type:String,default:null},//Submitted/Approved
-
         hrSupervisorSendbackComment:{type: String,default:null},
         hrSendbackComment:{type:String,default:null},
-        
         createdBy: {type: Number,default:null},
         updatedBy: {type: Number,default:null},
         isActive: {type: Boolean,default:true}, 

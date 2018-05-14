@@ -22,6 +22,7 @@ let mongoose                = require('mongoose'),
         createdBy: {type: Number,default:null},
         updatedBy: {type: Number,default:null},
         isDeleted: {type: Boolean,default:false}, 
+        isCompleted:{type:Boolean,default:false}
       },
       {
         timestamps: true,

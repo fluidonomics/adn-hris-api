@@ -312,7 +312,7 @@ let express  = require('express'),
    masterRoutes.post('/createPerformanceRating',ensureAuthenticated, master.createPerformanceRating);
   //= ========================
 
-  // Common Data For All (Dropdowns) Data Routes 
+  // Common Data For All (Dropdowns) Data Routes
   //= ========================
 
     apiRoutes.use('/common', commonRoutes);
