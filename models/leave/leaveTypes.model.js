@@ -1,18 +1,18 @@
-let mongoose                = require('mongoose'),
-    Schema                  = mongoose.Schema,
+let mongoose = require('mongoose'),
+    Schema = mongoose.Schema,
     mongooseUniqueValidator = require('mongoose-unique-validator'),
-    bcrypt                  = require('bcrypt');
-    autoIncrement           = require('mongoose-sequence')(mongoose);
+    bcrypt = require('bcrypt');
+autoIncrement = require('mongoose-sequence')(mongoose);
 
-    let LeaveTypesSchema = new Schema({
-        _id: {type:Number},
-        type: {type:String},
-        updatedAt: {type: Date, default: null},
-        createdAt: {type: Date, default: null},
-         updatedBy:{type:Number,default:null},
-        createdBy:{type:Number,default:null},
-        isDeleted:{type:Boolean,default:null}
-    },
+let LeaveTypesSchema = new Schema({
+    _id: { type: Number },
+    type: { type: String },
+    updatedAt: { type: Date, default: null },
+    createdAt: { type: Date, default: null },
+    updatedBy: { type: Number, default: null },
+    createdBy: { type: Number, default: null },
+    isDeleted: { type: Boolean, default: null }
+},
     {
         timestamps: true,
         versionKey: false,
@@ -21,7 +21,7 @@ let mongoose                = require('mongoose'),
 );
 //LeaveTypesSchema.plugin(mongooseUniqueValidator);
 
-  //Perform actions before saving the bank details
+//Perform actions before saving the bank details
 //   LeaveTypesSchema.pre('save', function (next) {
 //     var _this=this;
 //     if (_this.isNew) {
@@ -32,4 +32,4 @@ let mongoose                = require('mongoose'),
 //     }
 //   });
 
-module.exports = mongoose.model('leavetypes',LeaveTypesSchema, 'leaveTypes');
+module.exports = mongoose.model('leavetypes', LeaveTypesSchema, 'leaveTypes');
