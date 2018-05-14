@@ -3,7 +3,7 @@ let express = require('express'),
     LeaveApply = require('../models/leave/leaveApply.model'),
     LeaveTransactionType = require('../models/leave/leaveTransactioType.model');
     PersonalInfo      = require('../models/employee/employeePersonalDetails.model'),
-    
+    LeaveTypes = require('../models/leave/leaveTypes.model');
 config = require('../config/config'),
     crypto = require('crypto'),
     async = require('async'),
@@ -82,24 +82,13 @@ let functions = {
             }
         ])
     },
-    getLeaveTransaction: (req, res) => {
+    getLeaveTypes: (req, res) => {
         let query = {
-            isDeleted: false
-        }
-        var transactionProjection = {
-            createdAt: false,
-            updatedAt: false,
-            isDeleted: false,
-            updatedBy: false,
-            createdBy: false,
+            'isDeleted': false
         };
-        LeaveTransactionType.find(query, transactionProjection, {
-            sort: {
-                _id: 1
-            }
-        }, function (err, leaveTransactionTypeData) {
-            if (leaveTransactionTypeData) {
-                return res.status(200).json(leaveTransactionTypeData);
+        LeaveTypes.find(query, function (err, leaveTypesData) {
+            if (leaveTypesData) {
+                return res.status(200).json(leaveTypesData);
             }
             return res.status(403).json({
                 title: 'Error',
@@ -112,6 +101,36 @@ let functions = {
             });
         })
     },
+     getLeaveTransaction: (req, res) => {
+         let query = {
+             isDeleted: false
+         }
+         var transactionProjection = {
+             createdAt: false,
+             updatedAt: false,
+             isDeleted: false,
+             updatedBy: false,
+             createdBy: false,
+         };
+         LeaveTransactionType.find(query, transactionProjection, {
+             sort: {
+                 _id: 1
+             }
+         }, function (err, leaveTransactionTypeData) {
+             if (leaveTransactionTypeData) {
+                 return res.status(200).json(leaveTransactionTypeData);
+             }
+             return res.status(403).json({
+                 title: 'Error',
+                 error: {
+                     message: err
+                 },
+                 result: {
+                     message: result
+                 }
+             });
+         })
+     },
     getEmployeeLeaveDetails: (req, res) => {
         LeaveApply.aggregate([
             {
