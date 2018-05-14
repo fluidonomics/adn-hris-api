@@ -660,9 +660,9 @@ function updateBankInfoDetails(req, res, done) {
         });
 }
 
-function addSalaryInfoDetails(req, res, done) {
-    let emp_id=req.body.emp_id || req.query.emp_id;
-    SalaryInfo.findAndUpdate({emp_id:emp_id}, { $set: { isActive: false } },function(err,salaryUpdate)
+function addSalaryInfoDetailsWithUpdate(req, res, done) {
+    let emp_id=parseInt(req.body.emp_id || req.query.emp_id);
+    SalaryInfo.updateMany({emp_id:emp_id}, { $set: { isActive: false } },function(err,salaryUpdate)
     { 
         if(err)
         {
@@ -677,7 +677,33 @@ function addSalaryInfoDetails(req, res, done) {
             });
         }
         else{
-            let salaryInfo = new SalaryInfo(req.body);
+            addSalaryInfoDetails(req, res, done);            
+            // let salaryInfo = new SalaryInfo(req.body);
+            // salaryInfo.emp_id = req.body.emp_id || req.query.emp_id;
+            // salaryInfo.isCompleted = true;
+            // salaryInfo.createdBy = parseInt(req.headers.uid);
+            // salaryInfo.save(function(err, salaryInfoData) {
+            //     if (err) {
+            //         return res.status(403).json({
+            //             title: 'There was a problem',
+            //             error: {
+            //                 message: err
+            //             },
+            //             result: {
+            //                 message: salaryInfoData
+            //             }
+            //         });
+            //     }            
+            //     auditTrailEntry(salaryInfo.emp_id, "salaryInfo", salaryInfo, "user", "salaryInfo", "ADDED");
+            //     return done(err, salaryInfoData);
+            // });
+       }
+    })
+}
+
+function addSalaryInfoDetails(req, res, done) {
+    let emp_id=parseInt(req.body.emp_id || req.query.emp_id);
+    let salaryInfo = new SalaryInfo(req.body);
             salaryInfo.emp_id = req.body.emp_id || req.query.emp_id;
             salaryInfo.isCompleted = true;
             salaryInfo.createdBy = parseInt(req.headers.uid);
@@ -696,8 +722,6 @@ function addSalaryInfoDetails(req, res, done) {
                 auditTrailEntry(salaryInfo.emp_id, "salaryInfo", salaryInfo, "user", "salaryInfo", "ADDED");
                 return done(err, salaryInfoData);
             });
-       }
-    })
 }
 
 function updateSalaryInfoDetails(req, res, done) {
@@ -1057,7 +1081,7 @@ function sendWelComeEmail(emp, toemail) {
         context: {
             fullName: emp.fullName,
             userName: emp.userName,
-            token: emp.resetPasswordToken,
+            redirectUrl:process.env.HostUrl +"/reset/" + emp.resetPasswordToken,
             uid: uuidV1()
         }
     };
@@ -2221,15 +2245,42 @@ let functions = {
     },
 
     addSalaryInfo: (req, res) => {
-        async.waterfall([
-            function(done) {
-                addSalaryInfoDetails(req, res, done);
-            },
-            function(salaryInfoData, done) {
-                return res.status(200).json(salaryInfoData);
-            }
-        ]);
+        let emp_id=req.body.emp_id || req.query.emp_id;
+        Promise.all([
+          SalaryInfo.find({emp_id:emp_id,isActive:true}).count().exec(),   
+          ]).then(function(counts) {
+              if(counts[0]>0)
+              {
+                async.waterfall([
+                    function(done) {
+                        addSalaryInfoDetailsWithUpdate(req, res, done);
+                    },
+                    function(salaryInfoData, done) {
+                        return res.status(200).json(salaryInfoData);
+                    }
+                ]);
+              }
+              else{
+                async.waterfall([
+                    function(done) {
+                        addSalaryInfoDetails(req, res, done);
+                    },
+                    function(salaryInfoData, done) {
+                        return res.status(200).json(salaryInfoData);
+                    }
+                ]);
+              }
+          })
+          .catch(function(err) {
+            return res.status(403).json({
+                                title: 'Error',
+                                error: {
+                                    message: err
+                                }
+                });
+          });
     },
+
 
     updateSalaryInfo: (req, res) => {
         async.waterfall([
