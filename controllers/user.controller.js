@@ -33,6 +33,7 @@ function addPersonalInfoDetails(req, res, done) {
     personalDetails.emp_id = req.body.emp_id || req.query.emp_id;
     personalDetails.isCompleted = true;
     personalDetails.createdBy = parseInt(req.headers.uid);
+    //personalDetails.createdBy = 0;
     personalDetails.save(function(err, personalInfoData) {
         if (err) {
             return res.status(403).json({
@@ -156,7 +157,7 @@ function addProfileProcessInfoDetails(req, res, done) {
     let profileProcessInfo = new ProfileProcessInfo(req.body);
     profileProcessInfo.emp_id = req.body.emp_id || req.query.emp_id;
     profileProcessInfo.createdBy = parseInt(req.headers.uid);
-
+    //profileProcessInfo.createdBy = 0;
     profileProcessInfo.save(function(err, profileProcessInfoData) {
         if (err) {
             return res.status(403).json({
@@ -1021,6 +1022,7 @@ function addEmpRoles(i, req, res, emp) {
     empRole.emp_id = emp._id;
     empRole.role_id = req.body.roles[i];
     empRole.createdBy = parseInt(req.headers.uid);
+    //empRole.createdBy = 0;
     empRole.save(function(err, roleDaata) {
         auditTrailEntry(emp._id, "user", empRole, "addEmpRole", "Role added for the Employee");
         if ((i + 1) < req.body.roles.length) {
@@ -1068,6 +1070,7 @@ function addOfficeInfoDetails(req, res, done) {
     let officeEmpDetails = new OfficeInfo(req.body);
     officeEmpDetails.emp_id = req.body.emp_id;
     officeEmpDetails.createdBy = parseInt(req.headers.uid);
+    //officeEmpDetails.createdBy = 0;
 
     officeEmpDetails.save(function(err, officeDetailsData) {
         if (officeDetailsData) {
@@ -1256,6 +1259,7 @@ function addSupervisorDetails(req, res, done) {
     supervisorDetails.emp_id = req.body.emp_id;
     supervisorDetails.primarySupervisorEmp_id = req.body.primarySupervisorEmp_id;
     supervisorDetails.createdBy = parseInt(req.headers.uid);
+    //supervisorDetails.createdBy = 0;
 
     supervisorDetails.save(function(err, supervisorDetailsData) {
         if (supervisorDetailsData) {
@@ -1834,6 +1838,7 @@ let functions = {
                 emp.grade_id = req.body.grade_id;
                 emp.userName = req.body.userName;
                 emp.createdBy = parseInt(req.headers.uid);
+                //emp.createdBy = 0;
 
                 emp.save(req, function(err, result) {
                     if (result) {

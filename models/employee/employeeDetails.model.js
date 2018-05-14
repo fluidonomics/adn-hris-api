@@ -77,11 +77,13 @@ let mongoose                = require('mongoose'),
                           if (err) {
                             next(err);
                           }
-                          _this.password = hash;
-                          next();
+                          else{
+                            _this.password = hash;
+                            next();
+                          }
                         });
                 });
-                next();
+              
           });
         }
         else{
@@ -93,8 +95,10 @@ let mongoose                = require('mongoose'),
                   if (err) {
                     next(err);
                   }
-                  _this.password = hash;
-                  next();
+                  else{
+                    _this.password = hash;
+                    next();
+                  }
                 });
           });
         }
