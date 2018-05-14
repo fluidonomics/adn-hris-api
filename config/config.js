@@ -17,6 +17,10 @@ module.exports = {
     'forget':{
       from:'"Team HRIS" <hris@adnsl.net>',
       subject:'Reset Password'
+    },
+    'resetPassword':{
+      from:'"Team HRIS" <hris@adnsl.net>',
+      subject:'Password has Changed'
     }
   },
   'aws':

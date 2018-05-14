@@ -88,9 +88,9 @@ let functions =
 
     sendEmailResetPasswordComplete:(toEmail,fullName,userName)=>{
         let mailOptions = {
-                  from: config.email.forget.from, // sender address
+                  from: config.email.resetPassword.from, // sender address
                   to: toEmail,
-                  subject: config.email.forget.subject, // Subject line
+                  subject: config.email.resetPassword.subject, // Subject line
                   template: 'email-notify-password-reset',
                   context : {
                     email: toEmail,
@@ -99,6 +99,7 @@ let functions =
                     uid  : uuidV1()
                   }
         };
+        transporter.sendMail(mailOptions);
     },
 }
 
