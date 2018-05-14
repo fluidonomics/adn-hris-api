@@ -32,4 +32,4 @@ LeaveTransactionTypeSchema.plugin(mongooseUniqueValidator);
     }
   });
 
-module.exports = mongoose.model('leavetransactiontype',LeaveTransactionTypeSchema);
+module.exports = mongoose.model('leavetransactiontype',LeaveTransactionTypeSchema, 'leaveTransactionType');
