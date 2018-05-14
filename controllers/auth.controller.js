@@ -227,7 +227,7 @@ let functions = {
              });
            }
            else{
-            OfficeInfo.findOne({emp_id: user_id,isDeleted:false}, function (err, office) {
+            OfficeInfo.findOne({emp_id: user._id,isDeleted:false}, function (err, office) {
               sendEmailInfo.sendEmailResetPasswordComplete(office.officeEmail,user.fullName,user.userName);
               return res.status(200).json({"message":"Reset Password Success Please Login With new Password"});
             });

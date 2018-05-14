@@ -88,7 +88,7 @@ let functions =
 
     sendEmailResetPasswordComplete:(toEmail,fullName,userName)=>{
         let mailOptions = {
-                  from: config.email.resetPassword.from, // sender address
+                  from: config.email.forget.from, // sender address
                   to: toEmail,
                   subject: config.email.resetPassword.subject, // Subject line
                   template: 'email-notify-password-reset',
