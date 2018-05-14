@@ -351,7 +351,7 @@ function deleteAndRenameDocument (req, res, done)
     }
     if(req.body.nationalIDOldFormatDocURL && req.body.nationalIDOldFormatDocURL.split('/')[0]=='tmp' )
     {
-        uploadCtrl.copyAnetdMoveImage(req.body.nationalIDOldFormatDocURL,'document/');
+        uploadCtrl.copyAndMoveImage(req.body.nationalIDOldFormatDocURL,'document/');
         req.body.nationalIDOldFormatDocURL=req.body.nationalIDOldFormatDocURL.replace('tmp','document')
     }
     if(req.body.nationalIdSmartCardDocURL && req.body.nationalIdSmartCardDocURL.split('/')[0]=='tmp' )
