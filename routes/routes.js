@@ -279,6 +279,7 @@ let express  = require('express'),
   leaveRoutes.post('/applyLeave', leave.postApplyLeave);
   leaveRoutes.get('/leaveTransactionDetails', leave.getLeaveTransaction);
   leaveRoutes.get('/getEmployeeLeaveDetails', leave.getEmployeeLeaveDetails);
+  leaveRoutes.get('/getEmployeEmailDetails', leave.getAllEmployeeEmails);
 
   // leaveRoutes.post('/updateLeave', kra.postUpdateLeave);
 

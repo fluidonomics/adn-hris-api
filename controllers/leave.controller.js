@@ -2,6 +2,8 @@ let express = require('express'),
 
     LeaveApply = require('../models/leave/leaveApply.model'),
     LeaveTransactionType = require('../models/leave/leaveTransactioType.model');
+    PersonalInfo      = require('../models/employee/employeePersonalDetails.model'),
+    
 config = require('../config/config'),
     crypto = require('crypto'),
     async = require('async'),
@@ -32,7 +34,43 @@ function applyLeave(req, res, done) {
     });
 
 }
-
+function getAllEmployeeEmails(req, res) {
+    let query = {
+        isDeleted: false
+    };
+    var personalInfoProjection = {
+        createdAt: false,
+        updatedAt: false,
+        isDeleted: false,
+        updatedBy: false,
+        createdBy: false,
+        emergencyContactNumber: false,
+        emergencyContactPerson: false,
+        maritialStatus: false,
+        fatherName: false,
+        motherName: false,
+        homePhone: false,
+        nationality: false,
+        religion: false,
+        bloodGroup: false,
+        dob: false,
+        personalMobileNumber: false,
+        isCompleted: false
+    };
+    PersonalInfo.find(query, personalInfoProjection, function(err, personalEmpDetails) {
+        if (err) {
+            return res.status(403).json({
+                title: 'There was an error, please try again later',
+                error: err
+            });
+        }
+        // var finalResponse;
+        // finalResponse._id = personalEmpDetails._id;
+        // finalResponse.emp_id = personalEmpDetails.emp_id;
+        // finalResponse.personalEmail = personalEmpDetails.personalEmail;
+        return res.status(200).json(personalEmpDetails);
+    });
+}
 let functions = {
     postApplyLeave: (req, res) => {
         async.waterfall([
@@ -162,7 +200,10 @@ let functions = {
         }
         return res.status(200).json({"data":results});
     });
-    }
+    },
+    getAllEmployeeEmails: (req, res) => {
+        getAllEmployeeEmails(req, res);
+    },
 }
 
 module.exports = functions;
