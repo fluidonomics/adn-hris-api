@@ -186,7 +186,6 @@ let express  = require('express'),
 
       userRoutes.post('/updatePositionInfo',ensureAuthenticated, user.updatePositionInfo);
 
-      
       userRoutes.post('/saveBulkPerformanceRating',ensureAuthenticated, user.saveBulkPerformanceRating);
       
 
