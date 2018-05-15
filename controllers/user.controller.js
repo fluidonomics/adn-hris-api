@@ -17,6 +17,7 @@ let express           = require('express'),
     DocumentsInfo     = require('../models/employee/employeeDocumentDetails.model'),
     PerformanceRatingInfo = require('../models/employee/employeePerformanceRatingDetails.model'),
     ProfileProcessInfo = require('../models/employee/employeeProfileProcessDetails.model'),
+    PerformanceRatingMaster = require('../models/master/performanceRating.model'),
     config            = require('../config/config'),
     crypto            = require('crypto'),
     async             = require('async'),
@@ -1709,37 +1710,64 @@ function getPositionInfoDetails(req, res) {
 }
 
 function getPerformanceRatingInfoDetails(req, res) {
-    let emp_id = req.query.emp_id;
-    let query = {
-        isDeleted: false
-    };
-    if (emp_id) {
-        query = {
-            emp_id: emp_id,
-            isDeleted: false
-        };
-    }
-    var performanceRatingProjection = {
-        createdAt: false,
-        updatedAt: false,
-        isDeleted: false,
-        updatedBy: false,
-        createdBy: false,
-    };
-    PerformanceRatingInfo.find(query, function(err, performanceRatingProjection) {
-        if (err) {
+    let emp_id = req.query.emp_id; 
+    let masterDa=[]; 
+    PerformanceRatingMaster.find({isDeleted:false},function(err,masterData)
+    {
+        if(err)
+        {
             return res.status(403).json({
                 title: 'There was an error, please try again later',
-                error: err,
-                result: {
-                    message: performanceRatingProjection
-                }
+                error: err
             });
-            
         }
-        return res.status(200).json(performanceRatingProjection);
-        
-    });
+        else{
+            for (let j = 0; j < masterData.length; j++) {
+                PerformanceRatingInfo.findOne({performanceRating_id:masterData[j]._id,emp_id:parseInt(emp_id),isDeleted:false},function(err,employeeData)
+                {
+                    if(err)
+                    {
+                        return res.status(403).json({
+                            title: 'There was an error, please try again later',
+                            error: err
+                        });
+                    }
+                    else if(employeeData)
+                    {
+                        masterDa.push({
+                        "_id":employeeData._id,
+                        "performanceRatingName":masterData[j].performanceRatingName,
+                        "emp_id":employeeData.emp_id,
+                        "performanceRating_id":masterData[j]._id,
+                        "performanceRatingValue":employeeData.performanceRatingValue,
+                        "createdBy":employeeData.createdBy,
+                        "isCompleted":employeeData.isCompleted
+                    });
+                    if(j== (masterData.length-1))
+                    {
+                        return res.status(200).json(masterDa);
+                    }
+                    }
+                    else
+                    {
+                        masterDa.push({
+                            "_id":null,
+                            "performanceRatingName":masterData[j].performanceRatingName,
+                            "emp_id":parseInt(emp_id),
+                            "performanceRating_id":null,
+                            "performanceRatingValue":null,
+                            "createdBy":null,
+                            "isCompleted":false
+                        });
+                        if(j== (masterData.length-1))
+                        {
+                            return res.status(200).json(masterDa);
+                        }
+                    }
+                }); 
+            }
+       }
+    })
 }
 
 function getBankInfoDetails(req, res) {
@@ -2372,7 +2400,6 @@ let functions = {
             }
         ]);
     },
-
     updatePerformanceRatingInfo: (req, res) => {
         async.waterfall([
             function(done) {
@@ -2383,7 +2410,6 @@ let functions = {
             }
         ]);
     },
-
     updateOfficeInfo:(req, res)=>
     {
         updateofficeInfoDetails(req,res);
@@ -2392,7 +2418,15 @@ let functions = {
     {
        updatepositionInfoDetails(req, res);
     },
-
+    saveBulkPerformanceRating:(req, res)=>
+    {
+        // for (let index = 0; index < array.length; index++) {
+        //     if(req.body[0]._id)
+        //     {
+               
+        //     }
+        // }
+    },
     // Change User Password via Front End (not via email)
     changePassword: (req, res) => {
         let userId = req.user._id;
