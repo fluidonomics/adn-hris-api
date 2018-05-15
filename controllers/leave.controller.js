@@ -377,27 +377,26 @@ let functions = {
             {
                 "$project": {
                     "_id": "$_id",
-                    // "emp_id": "$emp_id",
-                    // "emp_name": "$emp_name.fullName",
-                    // "leave_type": "$leave_type",
-                    // "leave_type_name" : "$leaveTypes.type",
-                    // "forwardTo": "$forwardTo",
-                    // "forwardTo_FullName" : "$forwardTo_name.fullName",
-                    // "remark": "$remark",
-                    // "cancelLeaveApplyTo": "$cancelLeaveApplyTo",
-                    // "cancelLeaveApplyTo_name": "$cancelLeave_ApplyTo.fullName",
-                    // "cancelReason": "$cancelReason",
+                    "emp_id": "$emp_id",
+                    "emp_name": "$emp_name.fullName",
+                    "leave_type": "$leave_type",
+                    "leave_type_name": "$leaveTypes.type",
+                    "forwardTo": "$forwardTo",
+                    "forwardTo_FullName": "$forwardTo_name.fullName",
+                    "remark": "$remark",
+                    "cancelLeaveApplyTo": "$cancelLeaveApplyTo",
+                    "cancelLeaveApplyTo_name": "$cancelLeave_ApplyTo.fullName",
+                    "cancelReason": "$cancelReason",
                     "isCancelled": "$isCancelled",
-
                     "isApproved": "$isApproved",
                     "isForwarded": "$isForwarded",
                     "status": '',
-                    //     "ccTo": "$ccTo",
-                    //    "contactDetails": "$contactDetails",
-                    //     "applyTo": "$applyTo",
-                    //     "applyTo_name": "$sup_name.fullName",
-                    //     "toDate": "$toDate",
-                    //     "fromDate": "$fromDate"
+                    "ccTo": "$ccTo",
+                    "contactDetails": "$contactDetails",
+                    "applyTo": "$applyTo",
+                    "applyTo_name": "$sup_name.fullName",
+                    "toDate": "$toDate",
+                    "fromDate": "$fromDate"
 
                 }
             }
@@ -415,13 +414,13 @@ let functions = {
                 });
             }
             results.forEach((x) => {
-                if ((x.isForwarded === null || x.isForwarded === undefined) && (x.isCancelled === null || x.isCancelled ===undefined ) && (x.isApproved === null || x.isApproved === undefined)) {
+                if ((x.isForwarded === null || x.isForwarded === undefined) && (x.isCancelled === null || x.isCancelled === undefined) && (x.isApproved === null || x.isApproved === undefined)) {
                     x.status = "pending"
-                 }
-                else if (x.isForwarded === true && (x.isCancelled === null || x.isCancelled ===undefined )  && (x.isApproved === null || x.isApproved === undefined)) {
+                }
+                else if (x.isForwarded === true && (x.isCancelled === null || x.isCancelled === undefined) && (x.isApproved === null || x.isApproved === undefined)) {
                     x.status = "forwarded"
                 }
-                else if((x.isForwarded === null || x.isForwarded === undefined) && (x.isCancelled === null || x.isCancelled ===undefined ) && x.isApproved === true) {
+                else if ((x.isForwarded === null || x.isForwarded === undefined) && (x.isCancelled === null || x.isCancelled === undefined) && x.isApproved === true) {
                     x.status = "approved"
                 }
             })
