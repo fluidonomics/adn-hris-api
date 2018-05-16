@@ -103,7 +103,8 @@ let functions = {
                   "profileImage"     :"$profileImage",
                   "fullName"         :"$fullName",
                   "designation_id"   :"$designation_id",
-                  "roles"            :"$roles.roleName"
+                  "roles"            :"$roles.roleName",
+                  "userName"         :"$userName"
                 }}
               ]).exec(function(err, employeeDetailsData){
                 let userInfo = setUserInfo(employeeDetailsData[0]);
