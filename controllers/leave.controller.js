@@ -1,8 +1,9 @@
 let express = require('express'),
 
+    LeaveWorkflowHistory = require('../models/leave/leaveWorkflowHistory.model'),
     LeaveApply = require('../models/leave/leaveApply.model'),
-    LeaveTransactionType = require('../models/leave/leaveTransactioType.model');
-PersonalInfo = require('../models/employee/employeePersonalDetails.model'),
+    LeaveTransactionType = require('../models/leave/leaveTransactioType.model'),
+    PersonalInfo = require('../models/employee/employeePersonalDetails.model'),
     LeaveTypes = require('../models/leave/leaveTypes.model');
 config = require('../config/config'),
     crypto = require('crypto'),
@@ -26,10 +27,12 @@ function applyLeave(req, res, done) {
                     message: err
                 },
                 result: {
+
                     message: leavesInfoData
                 }
             });
         }
+        leaveWorkflowDetails(leavesInfoData, req.body.updatedBy, 'applied');
         return done(err, leavesInfoData);
     });
 
@@ -105,8 +108,40 @@ function cancelLeave(req, res, done) {
                 }
             });
         }
+        leaveWorkflowDetails(_leaveDetails, req.body.updatedBy, 'cancelled');
         return done(err, _leaveDetails);
     })
+
+}
+function leaveWorkflowDetails(req, applied_by_id, step) {
+    let _LeaveWorkflowDetails = new LeaveWorkflowHistory(req._doc);
+    var query = {
+        isDeleted: false
+    }
+
+    var leaveProjection = {
+        createdAt: false,
+        updatedAt: false,
+        isDeleted: false,
+        updatedBy: false,
+        createdBy: false,
+    };
+
+    _LeaveWorkflowDetails.emp_id = parseInt(req._doc.emp_id);
+    _LeaveWorkflowDetails.Owner = parseInt(applied_by_id);
+    _LeaveWorkflowDetails.appliedLeaveId = parseInt(req._doc.leave_type);
+    _LeaveWorkflowDetails.updatedAt = new Date(req._doc.updatedAt);
+    _LeaveWorkflowDetails.Step = step;
+    switch (step) {
+        case 'applied':
+            _LeaveWorkflowDetails.Status = 'pending';
+            break;
+        case 'cancelled':
+            _LeaveWorkflowDetails.Status = 'Cancelled';
+
+
+    }
+    _LeaveWorkflowDetails.save();
 
 }
 let functions = {
@@ -438,6 +473,35 @@ let functions = {
                 return res.status(200).json(_cancelLeaveDetails);
             }
         ])
+    },
+    postLeaveWorkflowDetails: (req, res) => {
+        async.waterfall([
+            function (done) {
+                cancelLeave(req, res, done);
+            }, function (_cancelLeaveDetails, done) {
+                return res.status(200).json(_cancelLeaveDetails);
+            }
+        ])
+    },
+    getLeaveWorkflowDetails: (req, res) => {
+        let query = {
+            'isDeleted': false,
+            'emp_id': parseInt(req.query.id)
+        };
+        LeaveWorkflowHistory.find(query, function (err, workflowData) {
+            if (workflowData) {
+                return res.status(200).json(workflowData);
+            }
+            return res.status(403).json({
+                title: 'Error',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: result
+                }
+            });
+        })
     }
 }
 
