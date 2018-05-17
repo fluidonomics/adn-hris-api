@@ -481,11 +481,11 @@ let functions = {
     getLeaveWorkflowDetails: (req, res) => {
         let query = {
             'isDeleted': false,
-            'emp_id': parseInt(req.query.id)
+            'appliedLeaveId': parseInt(req.query.id)
         };
         LeaveWorkflowHistory.find(query, function (err, workflowData) {
             if (workflowData) {
-                return res.status(200).json(workflowData);
+                return res.status(200).json({ "data": workflowData });
             }
             return res.status(403).json({
                 title: 'Error',
