@@ -1056,6 +1056,43 @@ function addEmpRoles(i, req, res, emp) {
     });
 }
 
+function fnSaveBulkPerformanceRating(index,req,res)
+{
+    if(req.body.length > 0 && index < req.body.length)
+    {   
+                let requestObj={
+                }
+                requestObj.body=req.body[index];
+                requestObj.headers=req.headers;
+               
+                if(!requestObj.body._id)
+                {
+                    async.waterfall([
+                        function(done) {
+                            addPerformanceRatingInfoDetails(requestObj, res, done);
+                        },
+                        function(prerformanceInfo, done) {
+                            fnSaveBulkPerformanceRating(index+1,req,res);
+                        }
+                    ]);
+                }
+                else{
+                    async.waterfall([
+                        function(done) {
+                            updatePerformanceRatingInfoDetails(requestObj, res, done);
+                        },
+                        function(prerformanceInfo, done) {
+                            fnSaveBulkPerformanceRating(index+1,req,res);
+                        }
+                    ]);
+                }
+    } 
+    else{
+        req.query.emp_id=req.body[0].emp_id;
+        getPerformanceRatingInfoDetails(req,res);
+    }
+}
+
 function sendWelComeEmail(emp, toemail) {
     let options = {
         viewPath: config.paths.emailPath,
@@ -1771,7 +1808,7 @@ function getPerformanceRatingInfoDetails(req, res) {
                             "_id":null,
                             "performanceRatingName":masterData[j].performanceRatingName,
                             "emp_id":parseInt(emp_id),
-                            "performanceRating_id":null,
+                            "performanceRating_id":masterData[j]._id,
                             "performanceRatingValue":null,
                             "createdBy":null,
                             "isCompleted":false
@@ -2437,12 +2474,7 @@ let functions = {
     },
     saveBulkPerformanceRating:(req, res)=>
     {
-        // for (let index = 0; index < array.length; index++) {
-        //     if(req.body[0]._id)
-        //     {
-
-        //     }
-        // }
+      fnSaveBulkPerformanceRating(0,req,res);
     },
     // Change User Password via Front End (not via email)
     changePassword: (req, res) => {
