@@ -1266,7 +1266,7 @@ function updatepositionInfoDetails(req, res) {
                         }
                         queryUpdate={$set:{
                             "emp_id" :req.body.emp_id,
-                            "primarySupervisorEmp_id" :req.body.primarySupervisorEmp_id,
+                            "primarySupervisorEmp_id" :req.body.primarySupervisorEmp_id
                         }}
                         SupervisorInfo.findOneAndUpdate(query, queryUpdate, function(err, supervisorData) {
                             if(supervisorData)
@@ -1754,7 +1754,7 @@ function getPositionInfoDetails(req, res) {
                     jobTitle :results[0].jobTitle,
                     hrspoc_id : results[0].hrspoc_id,
                     primarySupervisorEmp_id:parseInt(results[0].supervisor[0].primarySupervisorEmp_id),
-                    supervisor_Id:parseInt(results[0].supervisor[0]._id),
+                    supervisor_id:parseInt(results[0].supervisor[0]._id),
                     isCompleted : results[0].isCompleted
                   }
             }
