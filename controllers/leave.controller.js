@@ -87,7 +87,6 @@ function cancelLeave(req, res, done) {
 
     var leaveProjection = {
         createdAt: false,
-        updatedAt: false,
         isDeleted: false,
         updatedBy: false,
         createdBy: false,
@@ -115,18 +114,6 @@ function cancelLeave(req, res, done) {
 }
 function leaveWorkflowDetails(req, applied_by_id, step) {
     let _LeaveWorkflowDetails = new LeaveWorkflowHistory(req._doc);
-    var query = {
-        isDeleted: false
-    }
-
-    var leaveProjection = {
-        createdAt: false,
-        updatedAt: false,
-        isDeleted: false,
-        updatedBy: false,
-        createdBy: false,
-    };
-
     _LeaveWorkflowDetails.emp_id = parseInt(req._doc.emp_id);
     _LeaveWorkflowDetails.Owner = parseInt(applied_by_id);
     _LeaveWorkflowDetails.appliedLeaveId = parseInt(req._doc.leave_type);
@@ -141,7 +128,15 @@ function leaveWorkflowDetails(req, applied_by_id, step) {
 
 
     }
-    _LeaveWorkflowDetails.save();
+    try {
+        _LeaveWorkflowDetails.save(function (err, leavesInfoData) {
+            if (err) {
+                console.log(err);
+            }
+        });
+    } catch (e) {
+        console.log(e);
+    }
 
 }
 let functions = {
