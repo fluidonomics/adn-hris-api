@@ -51,16 +51,18 @@ let mongoose                = require('mongoose'),
     var _this=this;
     if (_this.isNew) {
     //Check the Count of Collection and add 1 to the Count and Assign it to Emp_id 
-    
-    mongoose.model('employeeOfficeDetails', EmployeeOfficeDetailsSchema).find({ _id : 1 }).sort(last_mod, 1).run( function(err, doc)
+    mongoose.model('employeeOfficeDetails', EmployeeOfficeDetailsSchema).find().sort({_id:-1}).limit(1)
+    .exec(function(err, doc)
     {
-      var max = doc.last_mod;
-    });
-  
-
-    mongoose.model('employeeOfficeDetails', EmployeeOfficeDetailsSchema).count(function(err, c) {
-      _this._id = c + 1;
-      next();
+      if(doc.length >0)
+      {
+        _this._id=doc[0]._id + 1;
+        next();
+      }
+      else{
+        _this._id = 1;
+        next();
+      }
     });
   }
 });

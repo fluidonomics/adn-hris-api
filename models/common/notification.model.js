@@ -28,16 +28,16 @@ let mongoose                = require('mongoose'),
 
    NotificationSchema.plugin(mongooseUniqueValidator);
    
-   // Update the Emp_Id Hash user password when registering or when changing password
-//     NotificationSchema.pre('save', function (next) {
-//     var _this=this;
-//     if (_this.isNew) {
-//       mongoose.model('notification', NotificationSchema).count(function(err, c) {
-//             _this._id = c + 1;
-//             next();
-//       });
-//   }
-// });
+    // Update the Emp_Id Hash user password when registering or when changing password
+    //     NotificationSchema.pre('save', function (next) {
+    //     var _this=this;
+    //     if (_this.isNew) {
+    //       mongoose.model('notification', NotificationSchema).count(function(err, c) {
+    //             _this._id = c + 1;
+    //             next();
+    //       });
+    //   }
+    // });
 
 
 
