@@ -41,7 +41,13 @@ let mongoose                = require('mongoose'),
         next();
       }
     });
-  }
+   }
+});
+
+ProfileProcessDetailsSchema.pre('findOneAndUpdate', function (next) {
+  var _this=this;
+  _this.updatedAt = new Date();
+  next();
 });
 
 ProfileProcessDetailsSchema.plugin(mongooseUniqueValidator);

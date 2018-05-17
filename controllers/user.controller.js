@@ -180,6 +180,7 @@ function updateProfileProcessInfoDetails(req, res, done) {
     let profileProcessInfo = new ProfileProcessInfo(req.body);
     profileProcessInfo.emp_id = req.body.emp_id || req.query.emp_id;
     profileProcessInfo.updatedBy = parseInt(req.headers.uid);
+    
 
     let _id = req.body._id;
     var query = {
@@ -211,22 +212,26 @@ function updateProfileProcessInfoDetails(req, res, done) {
             });
         }
         auditTrailEntry(profileProcessInfo.emp_id, "profileProcessInfo", profileProcessInfo, "user", "profileProcessInfo", "UPDATED");
-        let profileProcess={
-            "_id":profileProcessData._id,
-            "emp_id":profileProcessData.emp_id,
-            "supervisorStatus": profileProcessData.supervisorStatus,
-            "hrStatus": profileProcessData.hrStatus,
-            "employeeStatus": profileProcessData.employeeStatus,
-            "hrSupervisorSendbackComment":profileProcessData.hrSupervisorSendbackComment,
-            "hrSendbackComment":profileProcessData.hrSendbackComment,
-            "isEmployeeSubmitted":profileProcessData.employeeStatus== 'Submitted'? true:false,
-            "isHrSubmitted":profileProcessData.hrStatus== 'Submitted'? true:false,
-            "isHrSendBack":profileProcessData.hrStatus== 'SendBack'? true:false,
-            "isSupervisorApproved":profileProcessData.supervisorStatus== 'Approved'? true:false,
-            "isSupervisorSendBack":profileProcessData.supervisorStatus== 'SendBack'? true:false,
-            "createdBy":profileProcessData.createdBy
-        }
-        return done(err, profileProcess);
+        getProfileProcessInfoDetails(req,res);
+        // let profileProcess={
+        //     "_id":profileProcessData._id,
+        //     "emp_id":profileProcessData.emp_id,
+        //     "supervisorStatus": profileProcessData.supervisorStatus,
+        //     "hrStatus": profileProcessData.hrStatus,
+        //     "employeeStatus": profileProcessData.employeeStatus,
+        //     "hrSupervisorSendbackComment":profileProcessData.hrSupervisorSendbackComment,
+        //     "hrSendbackComment":profileProcessData.hrSendbackComment,
+        //     "isEmployeeSubmitted":profileProcessData.employeeStatus== 'Submitted'? true:false,
+        //     "isHrSubmitted":profileProcessData.hrStatus== 'Submitted'? true:false,
+        //     "isHrSendBack":profileProcessData.hrStatus== 'SendBack'? true:false,
+        //     "isSupervisorApproved":profileProcessData.supervisorStatus== 'Approved'? true:false,
+        //     "isSupervisorSendBack":profileProcessData.supervisorStatus== 'SendBack'? true:false,
+        //     "createdBy":profileProcessData.createdBy
+        // }
+       
+        //return done(err, profileProcess);
+
+        
     });
 }
 
