@@ -2054,9 +2054,11 @@ let functions = {
           "officeEmail":"$officeDetails.officeEmail",
           "designation":"$designations.designationName",
           "supervisor":"$employees.fullName",
-          "hrScope_Id":'$officeDetails.hrspoc_id',
+          "hrScope_id":'$officeDetails.hrspoc_id',
           "supervisor_id":"$employees._id",
-          "profileProcessDetails":"$employeeprofileProcessDetails"
+          "profileProcessDetails":"$employeeprofileProcessDetails",
+          "department_id":"$officeDetails.department_id",
+          "grade_id":"$grade_id"
         }}
         ]).exec(function(err, results){
         if(err)
