@@ -35,55 +35,59 @@ let mongoose                = require('mongoose'),
         var _this=this;
         if (_this.isNew) {
           //Check the Count of Collection and add 1 to the Count and Assign it to Emp_Id 
-          mongoose.model('employeeDetails', EmployeeDetailsSchema).count(function(err, c) {
-              //Hash the Password and assign it to Password
-                _this._id = c + 1;
-                //Generate EmployeeDetails Id 
-                let userName = "";
-                switch(_this.company_id) {
-                  case 1:
-                      userName = "10";
-                      break;
-                  case 2:
-                      userName = "20";
-                      break;
-                  case 3:
-                      userName = "30"; 
-                      break;
-                  case 4:
-                      userName = "40";
-                      break
-                  default:
-                      break;
-                };    
-                switch(req.body.managementType_id) {
-                  case 1:
-                      userName += "1";
-                      break;
-                  case 2:
-                      userName += "2";
-                      break;
-                  default:
-                      break;
-                }; 
-                let n = _this._id;
-                userName += n < 10 ?  "000" + n : ((n > 9 && n <100) ? "00" + n : ((n > 99 && n < 1000) ? "0" + n : n ));
-                _this.userName = userName;
-                bcrypt.genSalt(10, function (err, salt) {
+          mongoose.model('employeeDetails', EmployeeDetailsSchema).find().sort({_id:-1}).limit(1)
+          .exec(function(err, doc)
+          {
+            if(doc.length >0)
+              _this._id=doc[0]._id + 1;
+            else{
+              _this._id = 1;
+            }
+
+            let userName = "";
+            switch(_this.company_id) {
+                case 1:
+                    userName = "10";
+                    break;
+                case 2:
+                    userName = "20";
+                    break;
+                case 3:
+                    userName = "30"; 
+                    break;
+                case 4:
+                    userName = "40";
+                    break
+                default:
+                    break;
+            };    
+              switch(req.body.managementType_id) {
+                case 1:
+                    userName += "1";
+                    break;
+                case 2:
+                    userName += "2";
+                    break;
+                default:
+                    break;
+              }; 
+              let n = _this._id;
+              userName += n < 10 ?  "000" + n : ((n > 9 && n <100) ? "00" + n : ((n > 99 && n < 1000) ? "0" + n : n ));
+              _this.userName = userName;
+            bcrypt.genSalt(10, function (err, salt) {
+                      if (err) {
+                          next(err);
+                      }
+                      bcrypt.hash(_this.password, salt,  (err, hash) => {
                         if (err) {
-                            next(err);
+                          next(err);
                         }
-                        bcrypt.hash(_this.password, salt,  (err, hash) => {
-                          if (err) {
-                            next(err);
-                          }
-                          else{
-                            _this.password = hash;
-                            next();
-                          }
-                        });
-                });
-              
+                        else{
+                          _this.password = hash;
+                          next();
+                        }
+                      });
+            });
           });
         }
         else{

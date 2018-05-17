@@ -29,9 +29,18 @@ EmployeeSeparationDetailsSchema.plugin(mongooseUniqueValidator);
   EmployeeSeparationDetailsSchema.pre('save', function (next) {
     var _this=this;
     if (_this.isNew) {
-        mongoose.model('employeeSeparationDetails', EmployeeSeparationDetailsSchema).count(function(err, c) {
-              _this._id = c + 1;
-              next();
+        mongoose.model('employeeSeparationDetails', EmployeeSeparationDetailsSchema).find().sort({_id:-1}).limit(1)
+        .exec(function(err, doc)
+        {
+          if(doc.length >0)
+          {
+            _this._id=doc[0]._id + 1;
+            next();
+          }
+          else{
+            _this._id = 1;
+            next();
+          }
         });
     }
   });
