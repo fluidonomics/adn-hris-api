@@ -4,7 +4,8 @@ let express = require('express'),
     LeaveApply = require('../models/leave/leaveApply.model'),
     LeaveTransactionType = require('../models/leave/leaveTransactioType.model'),
     PersonalInfo = require('../models/employee/employeePersonalDetails.model'),
-    LeaveTypes = require('../models/leave/leaveTypes.model');
+    LeaveTypes = require('../models/leave/leaveTypes.model'),
+    LeaveBalance = require('../models/leave/EmployeeLeaveBalance.model');
 config = require('../config/config'),
     crypto = require('crypto'),
     async = require('async'),
@@ -138,6 +139,31 @@ function leaveWorkflowDetails(req, applied_by_id, step) {
         console.log(e);
     }
 
+}
+function grantLeaveEmployee(req, res, done) {
+    let _leaveBalance = new LeaveBalance(req.body);
+    _leaveBalance.emp_id = parseInt(req.body.emp_id);
+    _leaveBalance.leave_type = parseInt(req.body.leave_type);
+    _leaveBalance.lapseDate = new Date(req.body.lapseDate);
+    _leaveBalance.createdDate = new Date(req.body.createdDate);
+    _leaveBalance.updatedDate = new Date(req.body.updatedDate);
+    _leaveBalance.balance = parseInt(req.body.balance);
+    _leaveBalance.updatedBy = parseInt(req.body.updatedBy);
+    _leaveBalance.createdBy = parseInt(req.body.emp_id);
+    _leaveBalance.save(function (err, _leaveBalanceResponse) {
+        if (err) {
+            return res.status(403).json({
+                title: 'There is a problem',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: _leaveBalanceResponse
+                }
+            });
+        }
+        return done(err, _leaveBalanceResponse);
+    });
 }
 let functions = {
     postApplyLeave: (req, res) => {
@@ -530,10 +556,10 @@ let functions = {
                     "emp_name": "$emp_name.fullName",
                     "leave_type": "$leave_type",
                     "leave_type_name": "$leavesDetail.type",
-                    "Owner":"$Owner",
-                    "Owner_name":"$Owner_name.fullName",
+                    "Owner": "$Owner",
+                    "Owner_name": "$Owner_name.fullName",
                     "updatedAt": "$updatedAt",
-                    "Status":"$Status"
+                    "Status": "$Status"
                 }
             }
 
@@ -778,6 +804,15 @@ let functions = {
             return res.status(200).json({ "data": results });
         });
     },
+    grantLeaveByEmployee: (req, res) => {
+        async.waterfall([
+            function (done) {
+                grantLeaveEmployee(req, res, done);
+            }, function (_leaveGrantedDepartment, done) {
+                return res.status(200).json(_leaveGrantedDepartment);
+            }
+        ])
+    }
 }
 
 module.exports = functions;

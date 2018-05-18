@@ -286,7 +286,7 @@ let express  = require('express'),
   leaveRoutes.get('/getLeaveWorkflowDetails', leave.getLeaveWorkflowDetails);
   leaveRoutes.get('/getSupervisorLeaveDetails', leave.getSupervisorLeaveDetails);
   leaveRoutes.get('/getHRLeaveDetails', leave.getHRLeaveDetails);
-  
+  leaveRoutes.post('/grantLeaveByEmployee', leave.grantLeaveByEmployee);
   
   // leaveRoutes.post('/updateLeave', kra.postUpdateLeave);
 
@@ -359,7 +359,8 @@ let express  = require('express'),
 
    
 
-   
+
+
 
 
      //= ========================
@@ -374,7 +375,7 @@ let express  = require('express'),
 
     commonRoutes.get('/getDivision',ensureAuthenticated, common.getDivision);
 
-    commonRoutes.get('/getDepartment',ensureAuthenticated, common.getDepartment);
+    commonRoutes.get('/getDepartment', common.getDepartment);
 
     commonRoutes.get('/getVertical',ensureAuthenticated, common.getVertical);
 
