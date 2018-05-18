@@ -1771,62 +1771,147 @@ function getPositionInfoDetails(req, res) {
 function getPerformanceRatingInfoDetails(req, res) {
     let emp_id = req.query.emp_id;
     let masterDa=[];
-    PerformanceRatingMaster.find({isDeleted:false},function(err,masterData)
-    {
+    // PerformanceRatingMaster.find({isDeleted:false},function(err,masterData)
+    // {
+    //     if(err)
+    //     {
+    //         return res.status(403).json({
+    //             title: 'There was an error, please try again later',
+    //             error: err
+    //         });
+    //     }
+    //     else{
+    //         for (let j = 0; j < masterData.length; j++) {
+    //             PerformanceRatingInfo.findOne({performanceRating_id:masterData[j]._id,emp_id:parseInt(emp_id),isDeleted:false},function(err,employeeData)
+    //             {
+    //                 if(err)
+    //                 {
+    //                     return res.status(403).json({
+    //                         title: 'There was an error, please try again later',
+    //                         error: err
+    //                     });
+    //                 }
+    //                 else if(employeeData)
+    //                 {
+    //                     masterDa.push({
+    //                     "_id":employeeData._id,
+    //                     "performanceRatingName":masterData[j].performanceRatingName,
+    //                     "emp_id":employeeData.emp_id,
+    //                     "performanceRating_id":masterData[j]._id,
+    //                     "performanceRatingValue":employeeData.performanceRatingValue,
+    //                     "createdBy":employeeData.createdBy,
+    //                     "isCompleted":employeeData.isCompleted
+    //                 });
+    //                 if(j== (masterData.length-1))
+    //                 {
+    //                     return res.status(200).json(masterDa);
+    //                 }
+    //                 }
+    //                 else
+    //                 {
+    //                     masterDa.push({
+    //                         "_id":null,
+    //                         "performanceRatingName":masterData[j].performanceRatingName,
+    //                         "emp_id":parseInt(emp_id),
+    //                         "performanceRating_id":masterData[j]._id,
+    //                         "performanceRatingValue":null,
+    //                         "createdBy":null,
+    //                         "isCompleted":false
+    //                     });
+    //                     if(j== (masterData.length-1))
+    //                     {
+    //                         return res.status(200).json(masterDa);
+    //                     }
+    //                 }
+    //             });
+    //         }
+    //    }
+    // })
+
+    PerformanceRatingMaster.aggregate([
+        {
+            $unwind: "$_id"
+        },
+        {  
+          $lookup:
+            {
+              from: "employeeperformanceratingdetails",
+              localField: "_id",
+              foreignField: "performanceRating_id",
+              as: "employeeperformanceratingdetails"
+            }
+        },
+        {"$match": {"isDeleted":false }},
+        {"$project":{
+        "_id":"$_id",
+        "performanceRatingName":"$performanceRatingName",
+        "updatedBy":"$updatedBy",
+        "createdBy":"$createdBy",
+        "employeePerformanceRatingDetail":{
+            $filter:
+            {
+                input:"$employeeperformanceratingdetails",
+                as:"employeeperformanceratingdetails",
+                cond:
+                {
+                     $and: [ { $eq:["$$employeeperformanceratingdetails.emp_id",parseInt(emp_id) ] }, {  $eq:["$$employeeperformanceratingdetails.isDeleted",false ] } ]                  
+                }
+            },
+           
+          },
+        }},
+
+     ]).exec(function(err,result)
+     {
         if(err)
         {
-            return res.status(403).json({
-                title: 'There was an error, please try again later',
-                error: err
-            });
+             return res.status(403).json({
+                 title: 'There was an error, please try again later',
+                 error: err,
+                 result: {
+                     message: result
+                 }
+             });
         }
         else{
-            for (let j = 0; j < masterData.length; j++) {
-                PerformanceRatingInfo.findOne({performanceRating_id:masterData[j]._id,emp_id:parseInt(emp_id),isDeleted:false},function(err,employeeData)
-                {
-                    if(err)
+            let performanceResult=[];
+            for (let index = 0; index < result.length; index++) {
+                    if(result[index].employeePerformanceRatingDetail.length>0)
                     {
-                        return res.status(403).json({
-                            title: 'There was an error, please try again later',
-                            error: err
-                        });
-                    }
-                    else if(employeeData)
-                    {
-                        masterDa.push({
-                        "_id":employeeData._id,
-                        "performanceRatingName":masterData[j].performanceRatingName,
-                        "emp_id":employeeData.emp_id,
-                        "performanceRating_id":masterData[j]._id,
-                        "performanceRatingValue":employeeData.performanceRatingValue,
-                        "createdBy":employeeData.createdBy,
-                        "isCompleted":employeeData.isCompleted
-                    });
-                    if(j== (masterData.length-1))
-                    {
-                        return res.status(200).json(masterDa);
-                    }
-                    }
-                    else
-                    {
-                        masterDa.push({
-                            "_id":null,
-                            "performanceRatingName":masterData[j].performanceRatingName,
+                        performanceResult.push({
+                            "_id":result[index].employeePerformanceRatingDetail[0]._id,
+                            "performanceRatingName":result[index].performanceRatingName,
                             "emp_id":parseInt(emp_id),
-                            "performanceRating_id":masterData[j]._id,
+                            "performanceRating_id":result[index]._id,
+                            "performanceRatingValue":result[index].employeePerformanceRatingDetail[0].performanceRatingValue,
+                            "createdBy":result[index].employeePerformanceRatingDetail[0].createdBy,
+                            "isCompleted":result[index].employeePerformanceRatingDetail[0].isCompleted
+                        });
+                        if(index== (result.length-1))
+                        {
+                            return res.status(200).json(performanceResult);
+                        }
+                    }
+                    else{
+                        performanceResult.push({
+                            "_id":null,
+                            "performanceRatingName":result[index].performanceRatingName,
+                            "emp_id":parseInt(emp_id),
+                            "performanceRating_id":result[index]._id,
                             "performanceRatingValue":null,
                             "createdBy":null,
                             "isCompleted":false
                         });
-                        if(j== (masterData.length-1))
+                        
+                        if(index== (result.length-1))
                         {
-                            return res.status(200).json(masterDa);
+                            return res.status(200).json(performanceResult);
                         }
                     }
-                });
             }
-       }
-    })
+        }
+     });
+
 }
 
 function getBankInfoDetails(req, res) {
