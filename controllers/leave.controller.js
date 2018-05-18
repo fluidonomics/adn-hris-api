@@ -19,6 +19,7 @@ function applyLeave(req, res, done) {
     leavedetails.createdBy = parseInt(req.body.emp_id);
     leavedetails.fromDate = new Date(req.body.fromDate);
     leavedetails.toDate = new Date(req.body.toDate);
+    leavedetails.updatedBy = parseInt(req.body.updatedBy);
     leavedetails.save(function (err, leavesInfoData) {
         if (err) {
             return res.status(403).json({
@@ -27,7 +28,6 @@ function applyLeave(req, res, done) {
                     message: err
                 },
                 result: {
-
                     message: leavesInfoData
                 }
             });
@@ -479,24 +479,78 @@ let functions = {
         ])
     },
     getLeaveWorkflowDetails: (req, res) => {
-        let query = {
-            'isDeleted': false,
-            'appliedLeaveId': parseInt(req.query.id)
-        };
-        LeaveWorkflowHistory.find(query, function (err, workflowData) {
-            if (workflowData) {
-                return res.status(200).json({ "data": workflowData });
-            }
-            return res.status(403).json({
-                title: 'Error',
-                error: {
-                    message: err
-                },
-                result: {
-                    message: result
+        LeaveWorkflowHistory.aggregate([
+            {
+                "$lookup": {
+                    "from": "employeedetails",
+                    "localField": "emp_id",
+                    "foreignField": "_id",
+                    "as": "emp_name"
                 }
-            });
-        })
+            },
+            {
+                "$unwind": {
+                    path: "$emp_name",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "employeedetails",
+                    "localField": "Owner",
+                    "foreignField": "_id",
+                    "as": "Owner_name"
+                }
+            },
+            {
+                "$unwind": {
+                    path: "$Owner_name",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "leaveTypes",
+                    "localField": "appliedLeaveId",
+                    "foreignField": "_id",
+                    "as": "leavesDetail"
+                }
+            },
+            {
+                "$unwind": {
+                    path: "$leavesDetail",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            { "$match": { "isDeleted": false, "emp_id": parseInt(req.query.id) } },
+            {
+                "$project": {
+                    "_id": "$_id",
+                    "emp_id": "$emp_id",
+                    "emp_name": "$emp_name.fullName",
+                    "leave_type": "$leave_type",
+                    "leave_type_name": "$leavesDetail.type",
+                    "Owner":"$Owner",
+                    "Owner_name":"$Owner_name.fullName",
+                    "updatedAt": "$updatedAt",
+                    "Status":"$Status"
+                }
+            }
+
+        ]).exec(function (err, results) {
+            if (err) {
+                return res.status(403).json({
+                    title: 'There is a problem',
+                    error: {
+                        message: err
+                    },
+                    result: {
+                        message: results
+                    }
+                });
+            }
+            return res.status(200).json({ "data": results });
+        });
     }
 }
 
