@@ -186,38 +186,32 @@ function grantLeaveDepartment(req, res, done) {
         }
     }, function (err, departmentData) {
         if (departmentData) {
-            addLeaveBlance(departmentData, req);
+            addLeaveBlance(departmentData, req, res);
             // return done(err, departmentData);
         }
     });
 }
-function addLeaveBlance(empIdCollection, req) {
-    empIdCollection.forEach((x) => {
-        
-        let _leaveBalance = new LeaveBalance(req);
-        _leaveBalance.emp_id = x.emp_id;
-        _leaveBalance.leave_type = parseInt(req.body.leave_type);
-        _leaveBalance.lapseDate = new Date(req.body.lapseDate);
-        _leaveBalance.createdDate = new Date(req.body.createdDate);
-        _leaveBalance.updatedDate = new Date(req.body.updatedDate);
-        _leaveBalance.balance = parseInt(req.body.balance);
-        _leaveBalance.updatedBy = parseInt(req.body.updatedBy);
-        _leaveBalance.createdBy = parseInt(req.body.createdBy);
-        _leaveBalance.save(function (x, err) {
-            if (err) {
-                return res.status(403).json({
-                    title: 'There is a problem',
-                    error: {
-                        message: err
-                    },
-                    result: {
-                        message: x
-                    }
-                });
-            }
-            return done(err, x);
-        });
-    })
+function addLeaveBlance(empIdCollection, req, res) {
+
+    let saveEmployeeLeaveBalance = function(i){
+        if(i<empIdCollection.length){
+            new LeaveBalance({
+                emp_id : empIdCollection[i].emp_id,
+                leave_type : parseInt(req.body.leave_type),
+                lapseDate : new Date(req.body.lapseDate),
+                createdDate : new Date(req.body.createdDate),
+                updatedDate : new Date(req.body.updatedDate),
+                balance : parseInt(req.body.balance),
+                updatedBy : parseInt(req.body.updatedBy),
+                createdBy : parseInt(req.body.createdBy)
+            }).save( (x, err) => {
+                saveEmployeeLeaveBalance(i+1);
+            })
+        } else {
+            res.status(200).send();
+        }
+    }
+    saveEmployeeLeaveBalance(0);
 
 }
 let functions = {
