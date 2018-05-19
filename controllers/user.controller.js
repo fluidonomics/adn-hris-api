@@ -1875,40 +1875,72 @@ function getPerformanceRatingInfoDetails(req, res) {
         }
         else{
             let performanceResult=[];
-            for (let index = 0; index < result.length; index++) {
-                    if(result[index].employeePerformanceRatingDetail.length>0)
-                    {
-                        performanceResult.push({
-                            "_id":result[index].employeePerformanceRatingDetail[0]._id,
-                            "performanceRatingName":result[index].performanceRatingName,
-                            "emp_id":parseInt(emp_id),
-                            "performanceRating_id":result[index]._id,
-                            "performanceRatingValue":result[index].employeePerformanceRatingDetail[0].performanceRatingValue,
-                            "createdBy":result[index].employeePerformanceRatingDetail[0].createdBy,
-                            "isCompleted":result[index].employeePerformanceRatingDetail[0].isCompleted
-                        });
-                        if(index== (result.length-1))
-                        {
-                            return res.status(200).json(performanceResult);
-                        }
-                    }
-                    else{
-                        performanceResult.push({
-                            "_id":null,
-                            "performanceRatingName":result[index].performanceRatingName,
-                            "emp_id":parseInt(emp_id),
-                            "performanceRating_id":result[index]._id,
-                            "performanceRatingValue":null,
-                            "createdBy":null,
-                            "isCompleted":false
-                        });
+            let counter = 0;
+            result.forEach(function(item,index){
+              if(item.employeePerformanceRatingDetail.length>0)
+              {
+                performanceResult.push({
+                    "_id":item.employeePerformanceRatingDetail[0]._id,
+                    "performanceRatingName":item.performanceRatingName,
+                    "emp_id":parseInt(emp_id),
+                    "performanceRating_id":item._id,
+                    "performanceRatingValue":item.employeePerformanceRatingDetail[0].performanceRatingValue,
+                    "createdBy":item.employeePerformanceRatingDetail[0].createdBy,
+                    "isCompleted":item.employeePerformanceRatingDetail[0].isCompleted
+                });
+              }
+              else{
+                performanceResult.push({
+                    "_id":null,
+                    "performanceRatingName":item.performanceRatingName,
+                    "emp_id":parseInt(emp_id),
+                    "performanceRating_id":item._id,
+                    "performanceRatingValue":null,
+                    "createdBy":null,
+                    "isCompleted":false
+                });
+              }
+              counter ++;
+              if(counter == result.length)
+              {
+                return res.status(200).json(performanceResult);
+              }
+            });
+
+            // for (let index = 0; index < result.length; index++) {
+            //         if(result[index].employeePerformanceRatingDetail.length>0)
+            //         {
+            //             performanceResult.push({
+            //                 "_id":result[index].employeePerformanceRatingDetail[0]._id,
+            //                 "performanceRatingName":result[index].performanceRatingName,
+            //                 "emp_id":parseInt(emp_id),
+            //                 "performanceRating_id":result[index]._id,
+            //                 "performanceRatingValue":result[index].employeePerformanceRatingDetail[0].performanceRatingValue,
+            //                 "createdBy":result[index].employeePerformanceRatingDetail[0].createdBy,
+            //                 "isCompleted":result[index].employeePerformanceRatingDetail[0].isCompleted
+            //             });
+            //             if(index== (result.length-1))
+            //             {
+            //                 return res.status(200).json(performanceResult);
+            //             }
+            //         }
+            //         else{
+            //             performanceResult.push({
+            //                 "_id":null,
+            //                 "performanceRatingName":result[index].performanceRatingName,
+            //                 "emp_id":parseInt(emp_id),
+            //                 "performanceRating_id":result[index]._id,
+            //                 "performanceRatingValue":null,
+            //                 "createdBy":null,
+            //                 "isCompleted":false
+            //             });
                         
-                        if(index== (result.length-1))
-                        {
-                            return res.status(200).json(performanceResult);
-                        }
-                    }
-            }
+            //             if(index== (result.length-1))
+            //             {
+            //                 return res.status(200).json(performanceResult);
+            //             }
+            //         }
+            // }
         }
      });
 
