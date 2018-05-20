@@ -7,7 +7,8 @@ let express = require('express'),
     LeaveTypes = require('../models/leave/leaveTypes.model'),
     Department = require('../models/master/department.model'),
     OfficeDetails = require('../models/employee/employeeOfficeDetails.model'),
-    LeaveBalance = require('../models/leave/EmployeeLeaveBalance.model');
+    LeaveBalance = require('../models/leave/EmployeeLeaveBalance.model'),
+    Employee = require('../models/employee/employeeDetails.model');
 config = require('../config/config'),
     crypto = require('crypto'),
     async = require('async'),
@@ -186,26 +187,26 @@ function grantLeaveDepartment(req, res, done) {
         }
     }, function (err, departmentData) {
         if (departmentData) {
-            addLeaveBlance(departmentData, req, res);
+            addLeaveBlance(departmentData, req, res, "department");
             // return done(err, departmentData);
         }
     });
 }
-function addLeaveBlance(empIdCollection, req, res) {
+function addLeaveBlance(empIdCollection, req, res, appliedFor) {
 
-    let saveEmployeeLeaveBalance = function(i){
-        if(i<empIdCollection.length){
+    let saveEmployeeLeaveBalance = function (i) {
+        if (i < empIdCollection.length) {
             new LeaveBalance({
-                emp_id : empIdCollection[i].emp_id,
-                leave_type : parseInt(req.body.leave_type),
-                lapseDate : new Date(req.body.lapseDate),
-                createdDate : new Date(req.body.createdDate),
-                updatedDate : new Date(req.body.updatedDate),
-                balance : parseInt(req.body.balance),
-                updatedBy : parseInt(req.body.updatedBy),
-                createdBy : parseInt(req.body.createdBy)
-            }).save( (x, err) => {
-                saveEmployeeLeaveBalance(i+1);
+                emp_id: appliedFor === "employee" ? empIdCollection[i].id : empIdCollection[i].emp_id,
+                leave_type: parseInt(req.body.leave_type),
+                lapseDate: new Date(req.body.lapseDate),
+                createdDate: new Date(req.body.createdDate),
+                updatedDate: new Date(req.body.updatedDate),
+                balance: parseInt(req.body.balance),
+                updatedBy: parseInt(req.body.updatedBy),
+                createdBy: parseInt(req.body.createdBy)
+            }).save((x, err) => {
+                saveEmployeeLeaveBalance(i + 1);
             })
         } else {
             res.status(200).send();
@@ -213,6 +214,28 @@ function addLeaveBlance(empIdCollection, req, res) {
     }
     saveEmployeeLeaveBalance(0);
 
+}
+function grantLeaveAll(req, res, done) {
+    var query = {
+        isDeleted: false,
+    }
+    var allEmployeeProjection = {
+        createdAt: false,
+        updatedAt: false,
+        isDeleted: false,
+        updatedBy: false,
+        createdBy: false
+    };
+    Employee.find(query, allEmployeeProjection, {
+        sort: {
+            _id: 1
+        }
+    }, function (err, employeeData) {
+        if (employeeData) {
+            addLeaveBlance(employeeData, req, res, "employee");
+            // return done(err, departmentData);
+        }
+    });
 }
 let functions = {
     postApplyLeave: (req, res) => {
@@ -867,10 +890,39 @@ let functions = {
             function (done) {
                 grantLeaveDepartment(req, res, done);
             }, function (_leaveGrantedDepartment, done) {
-               
+
                 return res.status(200).json(_leaveGrantedDepartment);
             }
         ])
+    },
+    grantLeaveAllEmployee: (req, res) => {
+        async.waterfall([
+            function (done) {
+                grantLeaveAll(req, res, done);
+            }, function (_leaveGrantAll, done) {
+                return res.status(200).json(_leaveGrantAll);
+            }
+        ])
+    },
+    getEmployeeLeaveBalance: (req, res) => {
+        let query = {
+            'isDeleted': false,
+            'emp_id': parseInt(req.query.id)
+        };
+        LeaveBalance.find(query, function (err, leaveBalanceData) {
+            if (leaveBalanceData) {
+                return res.status(200).json(leaveBalanceData);
+            }
+            return res.status(403).json({
+                title: 'Error',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: result
+                }
+            });
+        })
     }
 }
 

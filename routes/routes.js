@@ -288,6 +288,8 @@ let express  = require('express'),
   leaveRoutes.get('/getHRLeaveDetails', leave.getHRLeaveDetails);
   leaveRoutes.post('/grantLeaveByEmployee', leave.grantLeaveByEmployee);
   leaveRoutes.post('/grantLeaveByDepartment', leave.grantLeaveByDepartment);
+  leaveRoutes.post('/grantLeaveAllEmployee', leave.grantLeaveAllEmployee);
+  leaveRoutes.get('/getEmployeeLeaveBalance', leave.getEmployeeLeaveBalance);
   
   // leaveRoutes.post('/updateLeave', kra.postUpdateLeave);
 
