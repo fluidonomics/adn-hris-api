@@ -2,6 +2,7 @@ let express = require('express'),
 
     LeaveWorkflowHistory = require('../models/leave/leaveWorkflowHistory.model'),
     LeaveApply = require('../models/leave/leaveApply.model'),
+    LeaveHoliday = require('../models/leave/leaveholiday.model'),    
     LeaveTransactionType = require('../models/leave/leaveTransactioType.model'),
     PersonalInfo = require('../models/employee/employeePersonalDetails.model'),
     LeaveTypes = require('../models/leave/leaveTypes.model'),
@@ -237,6 +238,24 @@ function grantLeaveAll(req, res, done) {
             // return done(err, departmentData);
         }
     });
+}
+function addHoliday(req, res, done) {
+    let holidaydetails = new LeaveHoliday(req.body);
+    holidaydetails.save(function (err, leaveHolidayData) {
+        if (err) {
+            return res.status(403).json({
+                title: 'There is a problem',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: leaveHolidayData
+                }
+            });
+        }
+        return done(err, leaveHolidayData);
+    });
+
 }
 let functions = {
     postApplyLeave: (req, res) => {
@@ -925,6 +944,7 @@ let functions = {
             });
         })
     },
+
     getLeaveDetailsByRole: (req, res) => {
         let query = {
             'isDeleted': false,
@@ -1162,6 +1182,42 @@ let functions = {
                     
                 }
             }
+        })
+    },        
+
+    postLeaveHoliday: (req, res) => {
+        async.waterfall([
+            function (done) {
+                addHoliday(req, res, done);
+            },
+            function (_holidayDetails, done) {
+                return res.status(200).json(_holidayDetails);
+            }
+        ])
+    },
+    getHolidays: (req, res) => {
+        let queryDate =  req.query.date;
+        LeaveHoliday.find({}, function (err, LeaveHolidaysData) {
+            if (LeaveHolidaysData) {
+                let respdata = [];
+                LeaveHolidaysData.forEach( (holiday) => {
+                    const holidayDate = new Date(holiday.date);
+                    if (holidayDate.getFullYear() == queryDate){
+                        respdata.push(holiday);
+                    }
+                });
+                return res.status(200).json(respdata);
+            }
+            return res.status(403).json({
+                title: 'Error',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: result
+                }
+            });
+
         })
     }
 }
