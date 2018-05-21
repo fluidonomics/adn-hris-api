@@ -249,6 +249,14 @@ let express  = require('express'),
 
     kraRoutes.get('/getKraDetailsData', kra.getKraDetailsData);
 
+    kraRoutes.post('/addKraCategoryInfo', kra.addKraCategoryInfo);
+
+    kraRoutes.get('/getKraCategoryInfo', kra.getKraCategoryInfo);
+
+    kraRoutes.post('/addKraWeightageInfo', kra.addKraWeightageInfo);
+
+    kraRoutes.get('/getKraWeightageInfo', kra.getKraWeightageInfo);
+
     kraRoutes.post('/addKraWorkFlowInfo', kra.addKraWorkFlowInfo);
 
     kraRoutes.get('/getKraWorkFlowInfo', kra.getKraWorkFlowInfo);

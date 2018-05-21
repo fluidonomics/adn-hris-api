@@ -50,50 +50,6 @@ batchDetails.save(function(err, batchInfoData) {
 });
 }
 
-
-function updateBatchInfoDetails(req, res, done) {
-  let batchInfo = new BatchInfo(req.body);
-  batchInfo.emp_id = req.body.emp_id || req.query.emp_id;
-  batchInfo.updatedBy = 1;
-
-  //batchInfo.updatedBy =req.headers[emp_id];
-  let _id = req.body._id;
-  var query = {
-      _id: _id,
-      isDeleted: false
-  }
-
-  var batchInfoProjection = {
-      createdAt: false,
-      updatedAt: false,
-      isDeleted: false,
-      updatedBy: false,
-      createdBy: false,
-  };
-
-
-BatchInfo.findOneAndUpdate(query, batchInfo, {
-  new: true,
-  projection: batchInfoProjection
-}, function(err, batchInfoData) {
-  if (err) {
-      return res.status(403).json({
-          title: 'There was a problem',
-          error: {
-              message: err
-          },
-          result: {
-              message: batchInfoData
-          }
-      });
-  } 
-  auditTrailEntry(batchInfo.emp_id, "batchInfo", batchInfo, "user", "batchInfo", "UPDATED");
-  return done(err, batchInfoData);        
-});
-}
-
-
-
 function getBatchInfoDetails(req, res) {
   let batchworkflow_id = req.query.batchworkflow_id;
   let query = {
@@ -136,16 +92,7 @@ let functions = {
         }
       ]);
     },
-    updateBatchInfo:(req,res )=> {
-      async.waterfall([
-        function(done) {
-          updateBatchInfoDetails(req,res,done);
-        },
-        function(batchInfoData,done) {
-          return res.status(200).json(batchInfoData);
-        }
-      ]);
-    },
+    
     getBatchInfo: (req, res) => {
         async.waterfall([
             function(done) {
