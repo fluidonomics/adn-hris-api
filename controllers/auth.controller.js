@@ -41,7 +41,7 @@ let functions = {
       else if(!user) {
         return res.status(403).json({
           title: 'Wrong Email or Password',
-          error: {message: 'Email or password is incorrect'}
+          error: {message: 'Username or Password is incorrect'}
         });
       }
       else
@@ -53,7 +53,7 @@ let functions = {
           {
               return res.status(403).json({
                 title: 'Wrong Email or Password',
-                error: {message: 'Password or email are correct'}
+                error: {message: 'Username or Password is incorrect'}
               });
           }
           Employee.aggregate([
