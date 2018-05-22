@@ -36,7 +36,7 @@ let mongoose                = require('mongoose'),
         next();
       }
     });
-  }
+   }
 });
 
 KraCategoryDetailsSchema.plugin(mongooseUniqueValidator);

@@ -6,7 +6,7 @@ let express           = require('express'),
     AuditTrail        = require('../models/common/auditTrail.model'),
     Notification      = require('../models/common/notification.model'),
     EmployeeRoles     = require('../models/employee/employeeRoleDetails.model'),
-    TimelineInfo         = require('../models/timeline/timelineDetails.model'),
+    TimelineInfo         = require('../models/workflow/timeline.model'),
     config            = require('../config/config'),
     crypto            = require('crypto'),
     async             = require('async'),
@@ -31,7 +31,6 @@ let express           = require('express'),
   
 function addTimelineInfoDetails(req, res, done) {
   let timelineDetails = new TimelineInfo(req.body);
-  timelineDetails.emp_id = req.body.emp_id || req.query.emp_id;
   timelineDetails.createdBy = 1;
 
 timelineDetails.save(function(err, timelineInfoData) {

@@ -260,6 +260,10 @@ let express  = require('express'),
     kraRoutes.post('/addKraWorkFlowInfo', kra.addKraWorkFlowInfo);
 
     kraRoutes.get('/getKraWorkFlowInfo', kra.getKraWorkFlowInfo);
+
+    kraRoutes.post('/addBulkKra', kra.addBulkKra);
+
+
   //= ========================
 
   // Master Data (Dropdowns) Routes 
