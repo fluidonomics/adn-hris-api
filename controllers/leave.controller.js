@@ -255,8 +255,49 @@ function addHoliday(req, res, done) {
         }
         return done(err, leaveHolidayData);
     });
-
 }
+function updateHoliday(req, res, done) {
+    let holidayDetails = new LeaveHoliday(req.body);
+    let query = {
+        _id: parseInt(req.body._id)
+    }
+    LeaveHoliday.findOneAndUpdate(query, holidayDetails, function(err, leaveHolidayDetails){
+        if (err) {
+            return res.status(403).json({
+                title: 'There was a problem',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: leaveHolidayDetails
+                }
+            });
+        }
+        return done(err, leaveHolidayDetails);
+    })
+}
+function removeHoliday(req, res, done) {
+    let holidayDetails = new LeaveHoliday(req.body);
+    let query = {
+        _id: parseInt(req.body._id)
+    }
+    LeaveHoliday.findOneAndRemove(query, holidayDetails, function(err, leaveHolidayDetails){
+        if (err) {
+            return res.status(403).json({
+                title: 'There was a problem',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: leaveHolidayDetails
+                }
+            });
+        }
+        return done(err, leaveHolidayDetails);
+    })
+}
+
+
 let functions = {
     postApplyLeave: (req, res) => {
         async.waterfall([
@@ -1219,6 +1260,26 @@ let functions = {
             });
 
         })
+    },
+    updateHoliday: (req, res) => {
+        async.waterfall([
+            function (done) {
+                updateHoliday(req, res, done);
+            },
+            function (_holidayDetails, done) {
+                return res.status(200).json(_holidayDetails);
+            }
+        ])
+    },
+    removeHoliday: (req, res) => {
+        async.waterfall([
+            function (done) {
+                removeHoliday(req, res, done);
+            },
+            function (_holidayDetails, done) {
+                return res.status(200).json(_holidayDetails);
+            }
+        ])
     }
 }
 
