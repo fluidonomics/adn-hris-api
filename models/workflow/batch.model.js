@@ -4,19 +4,14 @@ let mongoose                = require('mongoose'),
     bcrypt                  = require('bcrypt');
     autoIncrement           = require('mongoose-sequence')(mongoose);
 
-      let KraDetailsSchema = new Schema(
+      let BatchDetailsSchema = new Schema(
       {
         _id:{type:Number},
-          kraWorkflow_id:{type:Number,ref:'kraworkflowdetails', required: true},
-          kra:{type:String,default:null},
-          category_id:{type:String,default:null},
-          weightage_id:{type:Number,default:null},
-          unitOfSuccess:{type:String,default:null},
-          measureOfSuccess:{type:String,default:null},
-          supervisor_id:{type: Number,ref: 'employeedetails'},
-          isDeleted:{type:Boolean,default:false},
-          createdBy:{type:Number,default:null},
-          updatedBy:{type:Number,default:null},
+        type: {type:String, default:null},
+        endDate: {type:Date, default:null},
+        createdBy: {type: Number,default:null},
+        updatedBy: {type: Number,default:null},
+        isDeleted: {type: Boolean,default:false}, 
       },
       {
         timestamps: true,
@@ -25,11 +20,11 @@ let mongoose                = require('mongoose'),
       });
 
    // Update the Emp_id Hash user password when registering or when changing password
-   KraDetailsSchema.pre('save', function (next) {
+   BatchDetailsSchema.pre('save', function (next) {
     var _this=this;
     if (_this.isNew) {
     //Check the Count of Collection and add 1 to the Count and Assign it to Emp_id 
-    mongoose.model('kraDetails', KraDetailsSchema).find().sort({_id:-1}).limit(1)
+    mongoose.model('batchDetails', BatchDetailsSchema).find().sort({_id:-1}).limit(1)
     .exec(function(err, doc)
     {
       if(doc.length >0)
@@ -45,6 +40,6 @@ let mongoose                = require('mongoose'),
   }
 });
 
-KraDetailsSchema.plugin(mongooseUniqueValidator);
+BatchDetailsSchema.plugin(mongooseUniqueValidator);
 
-module.exports = mongoose.model('kraDetails',KraDetailsSchema);
+module.exports = mongoose.model('batchDetails',BatchDetailsSchema);
