@@ -2172,6 +2172,8 @@ let functions = {
         {"$project":{
           "_id":"$_id",
           "fullName":"$fullName",
+          "userName":"$userName",
+          "isAccountActive":"$isAccountActive",
           "profileImage":"$profileImage",
           "officeEmail":"$officeDetails.officeEmail",
           "designation":"$designations.designationName",
