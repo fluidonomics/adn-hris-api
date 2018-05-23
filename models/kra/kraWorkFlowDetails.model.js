@@ -7,7 +7,6 @@ let mongoose                = require('mongoose'),
       let KraWorkFlowDetailsSchema = new Schema(
       {
         _id:{type:Number},
-        type: {type: String,default:null},
         batch_id:{type: Number,ref: 'batchdetails'},
         timeline_id:{type: Number,ref: 'timelinedetails',default:null},
         emp_id:{type: Number,ref: 'employeedetails'},

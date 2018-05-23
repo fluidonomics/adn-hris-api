@@ -120,6 +120,88 @@ function getKraWorkFlowInfoDetails(req, res) {
 
 
 
+
+
+function getEmployeeKraWorkFlowInfoDetails(req, res) {
+    let emp_id = req.query.emp_id;
+    // let query = {
+    //     isDeleted: false
+    // };
+    // if (emp_id) {
+    //     query = {
+    //         emp_id: emp_id,
+    //         isDeleted: false
+    //     };
+    // }
+    // var kraWorkflowProjection = {
+    //     createdAt: false,
+    //     updatedAt: false,
+    //     isDeleted: false,
+    //     updatedBy: false,
+    //     createdBy: false,
+    // };
+
+    // KraWorkFlowInfo.findOne(query, kraWorkflowProjection, function(err, employeeKraWorkFlowInfoData) {
+    //     if (err) {
+    //         return res.status(403).json({
+    //             title: 'There was an error, please try again later',
+    //             error: err
+    //         });
+    //     }
+    //     return res.status(200).json(employeeKraWorkFlowInfoData);
+    // });
+
+    KraWorkFlowInfo.aggregate([
+        {
+              "$lookup": {
+                  "from": "batchdetails",
+                  "localField": "batch_id",
+                  "foreignField": "_id",
+                  "as": "batchdetails"
+              }
+        },
+        {
+            "$unwind": "$batchdetails"
+        },
+        {
+            "$lookup": {
+                "from": "employeedetails",
+                "localField": "createdBy",
+                "foreignField": "_id",
+                "as": "employeedetails"
+            }
+        },
+        {
+          "$unwind": "$employeedetails"
+        },
+        { "$match": { "emp_id":parseInt(emp_id),"isDeleted":false,"employeedetails.isDeleted":false,"batchdetails.isDeleted":false} },
+        {"$project":{
+            "_id":"$_id",
+            "status":"$status",
+            "createdAt":"$createdAt",
+            "updatedAt":"$updatedAt",
+            "createdBy":"$employeedetails.fullName",
+            "endDate":"$batchdetails.endDate"
+        }}
+      ]).exec(function(err, kraEmployeeWorkflowInfoData){
+        if (err) {
+            return res.status(403).json({
+                title: 'There was an error, please try again later',
+                error: err
+            });
+        }
+        return res.status(200).json(kraEmployeeWorkflowInfoData);
+      })
+  }
+
+
+
+
+
+
+
+
+
   
   function addKraWeightageInfoDetails(req, res, done) {
     let kraWeightageDetails = new KraWeightageInfo(req.body);
@@ -336,6 +418,21 @@ let functions = {
             }
         ]);
     },
+
+
+    getEmployeeKraWorkFlowInfo: (req, res) => {
+        async.waterfall([
+            function(done) {
+                getEmployeeKraWorkFlowInfoDetails(req, res, done);
+            },
+            function(employeeKraWorkFlowDetailsData, done) {
+                return res.status(200).json({
+                    "data": employeeKraWorkFlowDetailsData
+                });
+            }
+        ]);
+    },
+
 
     addKraWeightageInfo:(req,res )=> {
         async.waterfall([

@@ -226,6 +226,8 @@ let express  = require('express'),
       userRoutes.get('/getAllEmployee',ensureAuthenticated,ensureAuthenticated,user.getAllEmployee);
       
       userRoutes.get('/getCarInfo',ensureAuthenticated,user.getCarInfo);
+
+      userRoutes.get('/getSupervisorInfo',user.getSupervisorInfo);
   //= ========================
 
   // Administrator Routes
@@ -241,27 +243,29 @@ let express  = require('express'),
 
     apiRoutes.use('/kra', kraRoutes);
 
-    kraRoutes.post('/addKraInfo', kra.addKraInfo);
+    kraRoutes.post('/addKraInfo',ensureAuthenticated, kra.addKraInfo);
 
-    kraRoutes.post('/updateKraInfo', kra.updateKraInfo);
+    kraRoutes.post('/updateKraInfo',ensureAuthenticated, kra.updateKraInfo);
 
-    kraRoutes.get('/getKraInfo', kra.getKraInfo);
+    kraRoutes.get('/getKraInfo',ensureAuthenticated, kra.getKraInfo);
 
-    kraRoutes.get('/getKraDetailsData', kra.getKraDetailsData);
+    kraRoutes.get('/getKraDetailsData',ensureAuthenticated, kra.getKraDetailsData);
 
-    kraRoutes.post('/addKraCategoryInfo', kra.addKraCategoryInfo);
+    kraRoutes.post('/addKraCategoryInfo',ensureAuthenticated, kra.addKraCategoryInfo);
 
-    kraRoutes.get('/getKraCategoryInfo', kra.getKraCategoryInfo);
+    kraRoutes.get('/getKraCategoryInfo',ensureAuthenticated, kra.getKraCategoryInfo);
 
-    kraRoutes.post('/addKraWeightageInfo', kra.addKraWeightageInfo);
+    kraRoutes.post('/addKraWeightageInfo',ensureAuthenticated, kra.addKraWeightageInfo);
 
-    kraRoutes.get('/getKraWeightageInfo', kra.getKraWeightageInfo);
+    kraRoutes.get('/getKraWeightageInfo',ensureAuthenticated, kra.getKraWeightageInfo);
 
-    kraRoutes.post('/addKraWorkFlowInfo', kra.addKraWorkFlowInfo);
+    kraRoutes.post('/addKraWorkFlowInfo',ensureAuthenticated, kra.addKraWorkFlowInfo);
+    
+    kraRoutes.post('/addKraWorkFlowInfo',ensureAuthenticated, kra.addKraWorkFlowInfo);
 
-    kraRoutes.get('/getKraWorkFlowInfo', kra.getKraWorkFlowInfo);
+    kraRoutes.get('/getEmployeeKraWorkFlowInfo',ensureAuthenticated, kra.getEmployeeKraWorkFlowInfo);
 
-    kraRoutes.post('/addBulkKra', kra.addBulkKra);
+    kraRoutes.post('/addBulkKra',ensureAuthenticated, kra.addBulkKra);
 
 
   //= ========================
@@ -363,6 +367,8 @@ let express  = require('express'),
     commonRoutes.get('/getHr',ensureAuthenticated, common.getHr);
 
     commonRoutes.get('/getSupervisor',ensureAuthenticated, common.getSupervisor);
+
+    commonRoutes.get('/getKraSupervisor',ensureAuthenticated, common.getKraSupervisor);
 
     commonRoutes.get('/checkEmailExists',ensureAuthenticated, common.checkEmailExists);
 

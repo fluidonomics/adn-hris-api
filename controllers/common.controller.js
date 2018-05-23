@@ -17,7 +17,6 @@ let express           = require('express'),
     Education         = require('../models/master/education.model'),
     PerformanceRating = require('../models/master/performanceRating.model'),
     Relation          = require('../models/master/relation.model'), 
-
     Employee          = require('../models/employee/employeeDetails.model'),
     SupervisorDetails = require('../models/employee/employeeSupervisorDetails.model'),
     EmployeeRole      = require('../models/employee/employeeRoleDetails.model'),
@@ -822,6 +821,7 @@ let functions = {
 
         })
     },
+    
     getSupervisor: (req, res) => {
         var query = {
             isDeleted: false,
@@ -866,6 +866,101 @@ let functions = {
             })
         })
     },
+
+    getKraSupervisor: (req, res) => {
+        let emp_id = req.query.emp_id;
+        let query = {
+            isActive: true
+        };
+
+        if (emp_id) {
+            query = {
+                emp_id: emp_id,
+                isActive: true
+                };
+            }
+        var kraSupervisorProjection = {
+            _id: false,
+            leaveSupervisorEmp_id:false,
+            emp_id:false,
+            createdAt: false,
+            updatedAt: false,
+            isActive: false,
+            reason:false,
+            updatedBy: false,
+            createdBy: false,
+        };
+     
+        SupervisorDetails.aggregate([
+            {
+                  "$lookup": {
+                      "from": "employeedetails",
+                      "localField": "primarySupervisorEmp_id",
+                      "foreignField": "_id",
+                      "as": "primarySupervisor"
+                  }
+            },
+            {
+                "$unwind": "$primarySupervisor"
+            },
+            {
+                            "$lookup": {
+                                "from": "employeedetails",
+                                "localField": "secondarySupervisorEmp_id",
+                                "foreignField": "_id",
+                                "as": "secondarySupervisor"
+                              }
+            },
+            { "$match": { "emp_id":parseInt(emp_id),"isActive":true} },
+            {"$project":{
+                "primarySupervisor":"$primarySupervisor",
+                "secondarySupervisor":"$secondarySupervisor",
+              }}
+          ])
+          .exec(function(err, results){
+              if(err)
+              {
+                return res.status(403).json({
+                title: 'Error',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: results
+                }});
+              }
+
+              let supervisorData=[];
+              supervisorData.push({"_id":results[0].primarySupervisor._id,"fullName":results[0].primarySupervisor.fullName})
+              if(results[0].secondarySupervisor.length > 0)
+              {
+                supervisorData.push({"_id":results[0].secondarySupervisor[0]._id,"fullName":results[0].secondarySupervisor[0].fullName})
+              }
+              return res.status(200).json(supervisorData);
+
+
+          });
+
+        // SupervisorDetails.find(query, kraSupervisorProjection,function(err, kraSupervisorData) {
+        //     if (kraSupervisorData) {
+        //         let kraSupervisors=[];
+        //         kraSupervisors.push(kraSupervisorData[0].primarySupervisorEmp_id);
+        //         kraSupervisors.push(kraSupervisorData[1].secondarySupervisorEmp_id);
+        //         return res.status(200).json(kraSupervisorData);
+        //     }
+
+        //     return res.status(403).json({
+        //         title: 'Error',
+        //         error: {
+        //             message: err
+        //         },
+        //         result: {
+        //             message: result
+        //         }
+        //     });
+        // })
+    },
+
     
     checkEmailExists: (req, res) => {
       Promise.all([

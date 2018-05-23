@@ -1650,6 +1650,41 @@ function getFamilyInfoDetails(req, res) {
     });
 }
 
+function getSupervisorInfoDetails(req, res) {
+    let emp_id = req.query.emp_id;
+    let query = {
+        isActive: true
+    };
+
+    if (emp_id) {
+        query = {
+            emp_id: emp_id,
+            isActive: true
+        };
+    }
+    var supervisorInfoProjection = {
+        createdAt: false,
+        updatedAt: false,
+        isActive: false,
+        reason:false,
+        updatedBy: false,
+        createdBy: false,
+    };
+    SupervisorInfo.findOne(query, supervisorInfoProjection, function(err, supervisorInfoData) {
+        if (err) {
+            return res.status(403).json({
+                title: 'There was an error, please try again later',
+                error: err,
+                result: {
+                    message: supervisorInfoData
+                }
+            });
+        }
+
+        return res.status(200).json(supervisorInfoData);
+    });
+}
+
 function getOfficeInfoDetails(req, res) {
     let emp_id = req.query.emp_id;
     OfficeInfo.aggregate([
@@ -2250,6 +2285,9 @@ let functions = {
     },
     getCarInfo: (req, res) => {
         getCarInfoDetails(req, res);
+    },
+    getSupervisorInfo: (req, res) => {
+        getSupervisorInfoDetails(req, res);
     },
 
     addPersonalInfo: (req, res) => {
