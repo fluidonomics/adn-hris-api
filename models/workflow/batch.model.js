@@ -8,7 +8,7 @@ let mongoose                = require('mongoose'),
       {
         _id:{type:Number},
         type: {type:String, default:null},
-        endDate: {type:Date, default:null},
+        endDate: {type:Date, default:new Date()},
         createdBy: {type: Number,default:null},
         updatedBy: {type: Number,default:null},
         isDeleted: {type: Boolean,default:false}, 

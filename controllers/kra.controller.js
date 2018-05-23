@@ -17,6 +17,10 @@ let express           = require('express'),
     hbs               = require('nodemailer-express-handlebars'),
     sgTransport       = require('nodemailer-sendgrid-transport'),
     uuidV1            = require('uuid/v1');
+
+    BatchCtrl= require('./batch.controller'),
+    TimeLineCtrl= require('./timeline.controller'),
+
     require('dotenv').load()
 
 
@@ -33,7 +37,7 @@ let express           = require('express'),
   }
   
 
-  function addKraWorkFlowInfoDetails(req, res, done) {
+function addKraWorkFlowInfoDetails(req, res, done) {
     let kraWorkFlowDetails = new KraWorkFlowInfo(req.body);
     kraWorkFlowDetails.emp_id = req.body.emp_id || req.query.emp_id;
     kraWorkFlowDetails.timeline_id=1;
@@ -57,7 +61,33 @@ let express           = require('express'),
     });
 }
 
-
+function addBulkKraInfoDetails(req, res, done) {
+    let arr_emp_id=req.body.emp_id;
+    var insertData=[];
+    Promise.all([
+        KraWorkFlowInfo.find({}).count().exec(),   
+      ]).then(function(counts) {
+        arr_emp_id.forEach(function (element, index) {
+            insertData.push({batch_id:req.body.batch_id,emp_id:element,status:'Initiated',_id:counts[0]+(index + 1),createdBy:parseInt(req.headers.uid)});
+        });
+        KraWorkFlowInfo.insertMany(insertData,function(err,results)
+        {
+            if (err) {
+                return res.status(403).json({
+                    title: 'There was a problem',
+                    error: {
+                        message: err
+                    },
+                    result: {
+                        message: results
+                    }
+                });
+            }
+            auditTrailEntry(0, "kraWorkFlowDetails", insertData, "user", "kraWorkFlowDetails", "ADDED");
+            return res.status(200).json(true);
+        })
+    });
+}
 
 function getKraWorkFlowInfoDetails(req, res) {
     let _id = req.query._id;
@@ -115,8 +145,6 @@ function getKraWorkFlowInfoDetails(req, res) {
     });
 }
 
-
-
 function getKraWeightageInfoDetails(req, res) {
     let _id = req.query._id;
     let query = {
@@ -171,8 +199,6 @@ function getKraWeightageInfoDetails(req, res) {
         return done(err, kraCategoryInfoData);   
     });
 }
-
-
 
 function getKraCategoryInfoDetails(req, res) {
     let _id = req.query._id;
@@ -255,8 +281,6 @@ function getKraInfoDetailsData(req, res) {
      });
 }
 
-
-
 function getKraInfoDetails(req, res) {
   let kraworkflow_id = req.query.kraworkflow_id;
   let query = {
@@ -298,9 +322,9 @@ let functions = {
             return res.status(200).json(kraWorkFlowInfoData);
           }
         ]);
-      },
+    },
 
-      getKraWorkFlowInfo: (req, res) => {
+    getKraWorkFlowInfo: (req, res) => {
         async.waterfall([
             function(done) {
                 getKraWorkFlowInfoDetails(req, res, done);
@@ -313,8 +337,6 @@ let functions = {
         ]);
     },
 
-
-
     addKraWeightageInfo:(req,res )=> {
         async.waterfall([
           function(done) {
@@ -324,10 +346,11 @@ let functions = {
             return res.status(200).json(kraWeightageInfoData);
           }
         ]);
-      },
+    },
 
 
-      getKraWeightageInfo: (req, res) => {
+    
+    getKraWeightageInfo: (req, res) => {
         async.waterfall([
             function(done) {
                 getKraWeightageInfoDetails(req, res, done);
@@ -350,10 +373,10 @@ let functions = {
             return res.status(200).json(kraCategoryInfoData);
           }
         ]);
-      },
+    },
 
 
-      getKraCategoryInfo: (req, res) => {
+    getKraCategoryInfo: (req, res) => {
         async.waterfall([
             function(done) {
                 getKraCategoryInfoDetails(req, res, done);
@@ -414,7 +437,17 @@ let functions = {
         ]);
     },
 
-
+    addBulkKra:(req,res )=> {
+        async.waterfall([
+          function(done) {
+            BatchCtrl.addBatchInfoDetails(req,res,done)
+          },
+          function(batchData,done) {
+             req.body.batch_id=batchData._id;
+             addBulkKraInfoDetails(req,res,done);
+          }
+        ]);
+    }
 
 }
 module.exports = functions;
