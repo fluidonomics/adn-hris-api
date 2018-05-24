@@ -181,7 +181,8 @@ function getEmployeeKraWorkFlowInfoDetails(req, res) {
             "createdAt":"$createdAt",
             "updatedAt":"$updatedAt",
             "createdBy":"$employeedetails.fullName",
-            "endDate":"$batchdetails.endDate"
+            "batchEndDate":"$batchdetails.batchEndDate",
+            "batchName":"$batchdetails.batchName"
         }}
       ]).exec(function(err, kraEmployeeWorkflowInfoData){
         if (err) {
