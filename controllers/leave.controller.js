@@ -988,12 +988,12 @@ let functions = {
 
     getLeaveDetailsByRole: (req, res) => {
         let query = {
-            'isDeleted': false,
-            'id': parseInt(req.query.id)
+            'roleName': req.query.role
         };
-        EmployeeRoles.findById( parseInt(req.query.id), function (err, roleDetails) {
+        
+        EmployeeRoles.find(query, function (err, roleDetails) {
             if (roleDetails) {
-                if(roleDetails.roleName === 'HR'){
+                if(roleDetails[0].roleName == 'HR'){
                     LeaveApply.aggregate([
                         {
                             "$lookup": {
@@ -1102,10 +1102,10 @@ let functions = {
                                 }
                             });
                         }
-                        return res.status(200).json({ "data": results });
+                        return res.status(200).json(results);
                     });
                 }
-                else if(roleDetails.roleName === 'Supervisor'){
+                else if(roleDetails[0].roleName == 'Supervisor'){
                     LeaveApply.aggregate([
                         {
                             "$lookup": {
