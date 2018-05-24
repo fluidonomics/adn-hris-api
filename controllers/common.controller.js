@@ -967,7 +967,7 @@ let functions = {
         PersonalDetails.find({personalEmail:req.query.email}).count().exec(),
         OfficeDetails.find({officeEmail:req.query.email}).count().exec()
       ]).then(function(counts) {
-          if(counts[0] > 0 && counts[1] >0)
+          if(counts[0] > 0 || counts[1] > 0)
           {
             return res.status(200).json(true);
           }
