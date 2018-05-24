@@ -294,6 +294,9 @@ let express  = require('express'),
    // Register endpoint: http://localhost:3000/api/master/createCompany
    masterRoutes.post('/createFacility',ensureAuthenticated, master.createFacility);
 
+   // Register endpoint: http://localhost:3000/api/master/createCompany
+   masterRoutes.post('/createCompanyBusiness',ensureAuthenticated, master.createCompanyBusiness);
+
    // Register endpoint: http://localhost:3000/api/master/createDivision
    masterRoutes.post('/createDivision',ensureAuthenticated, master.createDivision);
 
@@ -353,6 +356,8 @@ let express  = require('express'),
     commonRoutes.get('/getCompany',ensureAuthenticated, common.getCompany);
 
     commonRoutes.get('/getFacility',ensureAuthenticated, common.getFacility);
+
+    commonRoutes.get('/getCompanyBusiness',ensureAuthenticated, common.getCompanyBusiness);
 
     commonRoutes.get('/getDivision',ensureAuthenticated, common.getDivision);
 

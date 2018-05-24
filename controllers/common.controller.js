@@ -6,6 +6,7 @@ let express           = require('express'),
     Vertical          = require('../models/master/vertical.model'),
     SubVertical       = require('../models/master/subVertical.model'),
     Facility          = require('../models/master/facility.model'),
+    CompanyBusiness    = require('../models/master/companyBusiness.model'),
     MaritalStatus     = require('../models/master/maritalStatus.model'),
     Currency          = require('../models/master/currency.model'),
     Grade             = require('../models/master/grade.model'),
@@ -233,6 +234,38 @@ let functions = {
       }, function(err, facilityData) {
             if (facilityData) {
                 return res.status(200).json(facilityData);
+            }
+
+            return res.status(403).json({
+                title: 'Error',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: result
+                }
+            });
+
+        })
+    },
+     getCompanyBusiness: (req, res) => {
+        var query = {
+            isDeleted: false
+        }
+        var companyBusinessProjection = {
+            createdAt: false,
+            updatedAt: false,
+            isDeleted: false,
+            updatedBy: false,
+            createdBy: false
+        };
+        CompanyBusiness.find({}, companyBusinessProjection, {
+          sort: {
+              _id: 1
+          }
+      }, function(err, companyBusinessData) {
+            if (companyBusinessData) {
+                return res.status(200).json(companyBusinessData);
             }
 
             return res.status(403).json({

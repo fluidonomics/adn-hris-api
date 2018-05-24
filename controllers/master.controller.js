@@ -1,7 +1,8 @@
 let express           = require('express'),
     Role              = require('../models/master/role.model'),
     Company           = require('../models/master/company.model'),
-    Facility           = require('../models/master/facility.model'),
+    Facility          = require('../models/master/facility.model'),
+    CompanyBusiness    = require('../models/master/companyBusiness.model'),
     Division          = require('../models/master/division.model'),
     Department        = require('../models/master/department.model'),
     Vertical          = require('../models/master/vertical.model'),
@@ -102,6 +103,27 @@ let functions = {
     });
   },
 
+  createCompanyBusiness: (req, res) => {
+    let companyBusiness=new CompanyBusiness();
+    //Fill CompanyBusiness Details
+    companyBusiness.companyBusinessName = req.body.companyBusinessName;
+    companyBusiness.createdBy = req.body.createdBy;
+    //grade.createdBy = req.headers['emp_id'];
+    companyBusiness.save(function (err, result) {
+      if(result)
+      {
+        return res.status(200).json({ status : '200',message: 'CompanyBusiness added Successfully',
+        });
+      }
+      else{
+        return res.status(403).json({
+          title: 'Add new CompanyBusiness failed!',
+          error: {message: err},
+          result: {message: result}
+        });
+      }
+    });
+  },
 
   createDivision: (req, res) => {
     let division=new Division();
