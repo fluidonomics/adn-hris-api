@@ -11,7 +11,7 @@ let express = require('express'),
     LeaveBalance = require('../models/leave/EmployeeLeaveBalance.model'),
     EmployeeRoles    = require('../models/master/role.model'),
     Employee = require('../models/employee/employeeDetails.model');
-config = require('../config/config'),
+    config = require('../config/config'),
     crypto = require('crypto'),
     async = require('async'),
     nodemailer = require('nodemailer'),
@@ -296,7 +296,40 @@ function removeHoliday(req, res, done) {
         return done(err, leaveHolidayDetails);
     })
 }
-
+function applyLeaveSupervisor(req, res, done) {
+    let leavedetails = new LeaveApply(req.body);
+    var query = {
+        _id: parseInt(req.body._id),
+        isDeleted: false
+    }
+    var leaveProjection = {
+        createdAt: false,
+        isDeleted: false,
+        updatedBy: false,
+        createdBy: false,
+    };
+    leavedetails.updatedDate = new Date();
+    leavedetails.updatedBy = parseInt(req.body.emp_id);
+    leavedetails.isApproved = req.body.isApproved;
+    LeaveApply.findOneAndUpdate(query, leavedetails, {
+        new: true,
+        projection: leaveProjection
+    }, function (err, _leaveDetails) {
+        if (err) {
+            return res.status(403).json({
+                title: 'There was a problem',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: _leaveDetails
+                }
+            });
+        }
+        leaveWorkflowDetails(_leaveDetails, req.body.updatedBy, 'cancelled');
+        return done(err, _leaveDetails);
+    })
+}
 
 let functions = {
     postApplyLeave: (req, res) => {
@@ -1278,6 +1311,16 @@ let functions = {
             },
             function (_holidayDetails, done) {
                 return res.status(200).json(_holidayDetails);
+            }
+        ])
+    },
+    postAcceptRejectLeave: (req, res) =>{
+        async.waterfall([
+            function (done) {
+                applyLeaveSupervisor(req, res, done);
+            },
+            function (_applyLeaveDetails, done) {
+                return res.status(200).json(_applyLeaveDetails);
             }
         ])
     }
