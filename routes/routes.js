@@ -370,7 +370,7 @@ let express  = require('express'),
 
     commonRoutes.get('/getKraSupervisor',ensureAuthenticated, common.getKraSupervisor);
 
-    commonRoutes.get('/checkEmailExists',ensureAuthenticated, common.checkEmailExists);
+    commonRoutes.get('/checkEmailExists', common.checkEmailExists);
 
     commonRoutes.get('/getEducation',ensureAuthenticated, common.getEducation);
 
