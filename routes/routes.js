@@ -372,7 +372,7 @@ let express  = require('express'),
 
     commonRoutes.get('/checkEmailExists', common.checkEmailExists);
 
-    commonRoutes.get('/getEducation',ensureAuthenticated, common.getEducation);
+    commonRoutes.get('/getEducation', common.getEducation);
 
     commonRoutes.get('/getPerformanceRating',ensureAuthenticated, common.getPerformanceRating);
 
