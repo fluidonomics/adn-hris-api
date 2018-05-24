@@ -1280,6 +1280,94 @@ let functions = {
                 return res.status(200).json(_holidayDetails);
             }
         ])
+    },
+    getLeaveBalance: (req, res) => {
+        let empId = parseInt(req.query.empId);
+        LeaveBalance.aggregate(
+            // Pipeline
+            [
+                // Stage 1
+                {
+                    $match: {
+                        "emp_id": empId
+                    }
+                },
+
+                // Stage 2
+                {
+                    $project: {
+                        leave_type : 1,
+                        balance: 1
+                    }
+                },
+
+            ]
+        ).exec(function(err, results1){
+            if(err){
+                return res.status(403).json({
+                    title: 'Error',
+                    error: {
+                        message: err
+                    },
+                    result: {
+                        message: results1
+                    }
+                });
+            }
+            LeaveApply.aggregate(// Pipeline
+                [
+                    // Stage 1
+                    {
+                        $match: {
+                            "emp_id": empId
+                        }
+                    },
+            
+                    // Stage 2
+                    {
+                        $addFields: {
+                            "diffDate": {$subtract: [ "$toDate", "$fromDate" ]}
+                        }
+                    },
+            
+                    // Stage 3
+                    {
+                        $addFields: {
+                            "intDate": {$divide: ["$diffDate", 86400000]}
+                        }
+                    },
+            
+                    // Stage 4
+                    {
+                        $group: {
+                            _id: "$leave_type",
+                            totalAppliedLeaves: {$sum: "$intDate" }
+                        }
+                    },
+            
+                ]).exec(function(err1, results2){
+                    if(err1){
+                        return res.status(403).json({
+                            title: 'Error',
+                            error: {
+                                message: err1
+                            },
+                            result: {
+                                message: results2
+                            }
+                        });
+                    }
+                    let response = [];
+                    results2.forEach( (result) => {
+                        const obj = {
+                            'leaveType': result._id,
+                            'leaveBalance': result.totalAppliedLeaves
+                        };
+                        response.push(obj);    
+                    });
+                    return res.status(200).json(response);
+                })
+        });
     }
 }
 
