@@ -1,6 +1,7 @@
 let express           = require('express'),
     Role              = require('../models/master/role.model'),
     Company           = require('../models/master/company.model'),
+    Facility           = require('../models/master/facility.model'),
     Division          = require('../models/master/division.model'),
     Department        = require('../models/master/department.model'),
     Vertical          = require('../models/master/vertical.model'),
@@ -78,6 +79,29 @@ let functions = {
       }
     });
   },
+
+  createFacility: (req, res) => {
+    let facility=new Facility();
+    //Fill Facility Details
+    facility.facilityName = req.body.facilityName;
+    facility.createdBy = req.body.createdBy;
+    //grade.createdBy = req.headers['emp_id'];
+    facility.save(function (err, result) {
+      if(result)
+      {
+        return res.status(200).json({ status : '200',message: 'Facility added Successfully',
+        });
+      }
+      else{
+        return res.status(403).json({
+          title: 'Add new Facility failed!',
+          error: {message: err},
+          result: {message: result}
+        });
+      }
+    });
+  },
+
 
   createDivision: (req, res) => {
     let division=new Division();

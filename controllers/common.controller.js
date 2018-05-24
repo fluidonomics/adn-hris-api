@@ -5,6 +5,7 @@ let express           = require('express'),
     Department        = require('../models/master/department.model'),
     Vertical          = require('../models/master/vertical.model'),
     SubVertical       = require('../models/master/subVertical.model'),
+    Facility          = require('../models/master/facility.model'),
     MaritalStatus     = require('../models/master/maritalStatus.model'),
     Currency          = require('../models/master/currency.model'),
     Grade             = require('../models/master/grade.model'),
@@ -200,6 +201,38 @@ let functions = {
       }, function(err, companyData) {
             if (companyData) {
                 return res.status(200).json(companyData);
+            }
+
+            return res.status(403).json({
+                title: 'Error',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: result
+                }
+            });
+
+        })
+    },
+    getFacility: (req, res) => {
+        var query = {
+            isDeleted: false
+        }
+        var facilityProjection = {
+            createdAt: false,
+            updatedAt: false,
+            isDeleted: false,
+            updatedBy: false,
+            createdBy: false
+        };
+        Facility.find({}, facilityProjection, {
+          sort: {
+              _id: 1
+          }
+      }, function(err, facilityData) {
+            if (facilityData) {
+                return res.status(200).json(facilityData);
             }
 
             return res.status(403).json({
