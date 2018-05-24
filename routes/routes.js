@@ -247,9 +247,13 @@ let express  = require('express'),
 
     kraRoutes.post('/updateKraInfo',ensureAuthenticated, kra.updateKraInfo);
 
-    kraRoutes.get('/getKraInfo',ensureAuthenticated, kra.getKraInfo);
 
-    kraRoutes.get('/getKraDetailsData',ensureAuthenticated, kra.getKraDetailsData);
+
+    // kraRoutes.get('/getKraInfo',ensureAuthenticated, kra.getKraInfo);
+
+    // kraRoutes.get('/getKraDetailsData',ensureAuthenticated, kra.getKraDetailsData);
+
+
 
     kraRoutes.post('/addKraCategoryInfo',ensureAuthenticated, kra.addKraCategoryInfo);
 
@@ -264,6 +268,11 @@ let express  = require('express'),
     kraRoutes.post('/addKraWorkFlowInfo',ensureAuthenticated, kra.addKraWorkFlowInfo);
 
     kraRoutes.get('/getEmployeeKraWorkFlowInfo',ensureAuthenticated, kra.getEmployeeKraWorkFlowInfo);
+
+    kraRoutes.get('/getKraWorkFlowInfo',ensureAuthenticated, kra.getKraWorkFlowInfo);
+    
+    kraRoutes.get('/getKraInfo',ensureAuthenticated, kra.getKraWorkFlowInfo);
+
 
     kraRoutes.post('/addBulkKra',ensureAuthenticated, kra.addBulkKra);
 
