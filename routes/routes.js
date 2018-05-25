@@ -6,6 +6,7 @@ let express  = require('express'),
     common   = require('../controllers/common.controller'),
     upload   = require('../controllers/upload.controller'),
     kra      = require('../controllers/kra.controller'),
+    externalDocument = require('../controllers/externalDocument.controller'),
     Employee = require('../models/employee/employeeDetails.model'),
     jwt = require('jsonwebtoken-refresh');
 
@@ -65,6 +66,7 @@ let express  = require('express'),
       commonRoutes= express.Router();
       uploadRoutes= express.Router(),
       kraRoutes   = express.Router(),
+      externalDocumentRoutes = express.Router(),
 
   
   //= ========================
@@ -228,6 +230,7 @@ let express  = require('express'),
       userRoutes.get('/getCarInfo',ensureAuthenticated,user.getCarInfo);
 
       userRoutes.get('/getSupervisorInfo', ensureAuthenticated, user.getSupervisorInfo);
+      
   //= ========================
 
   // Administrator Routes
@@ -404,6 +407,24 @@ let express  = require('express'),
     commonRoutes.get('/getTabStatus',ensureAuthenticated, common.getTabStatus);
 
     commonRoutes.post('/sendEmail',ensureAuthenticated, common.sendEmail);
+
+
+
+//=========================
+// External Documents Routes
+//=========================
+apiRoutes.use('/externalDocument', externalDocumentRoutes);
+
+externalDocumentRoutes.post('/addEmployeeExternalDocumentInfo', externalDocument.addEmployeeExternalDocumentInfo);
+
+externalDocumentRoutes.get('/getEmployeeExternalDocumentInfo', externalDocument.getEmployeeExternalDocumentInfo);
+  
+
+
+
+
+
+
     
   //= ========================
 
