@@ -55,6 +55,14 @@ function applyLeave(req, res, done) {
                     });
                 }
                 leaveWorkflowDetails(leavesInfoData, req.body.updatedBy, 'applied');
+                var ccToList = req.body.ccTo.split(',');
+                ccToList.forEach((x)=>{
+                    try{
+                    sendToCCEmail("1",x.trim);}
+                    catch(e){
+                        debugger;
+                    }
+                })
                 return done(err, leavesInfoData);
             });
         }else {
@@ -358,7 +366,39 @@ function applyLeaveSupervisor(req, res, done) {
         return done(err, _leaveDetails);
     })
 }
+function sendToCCEmail(emp, toemail) {
+    let options = {
+        viewPath: config.paths.emailPath,
+        extName: '.hbs'
+    };
+    let transporter = nodemailer.createTransport({
+        host: process.env.EmailHost,
+        secure: false,
+        auth: {
+            user: process.env.EmailUser,
+            pass: process.env.EmailPassword
+        },
+        tls: {
+            rejectUnauthorized: false
+        }
+    });
+    transporter.use('compile', hbs(options));
 
+    let mailOptions = {
+        from: config.email.LeaveApplied.from, // sender address
+        to: toemail,
+        subject: config.email.LeaveApplied.subject, // Subject line
+        template: 'email-notify-leave-applied',
+        context: {
+            fullName: emp.fullName,
+            userName: emp.userName,
+            redirectUrl:process.env.HostUrl +"/reset/" + emp.resetPasswordToken,
+            uid: uuidV1()
+        }
+    };
+    // send mail with defined transport object
+    transporter.sendMail(mailOptions);
+}
 let functions = {
     postApplyLeave: (req, res) => {
         async.waterfall([
@@ -1441,6 +1481,10 @@ let functions = {
                     return res.status(200).json(response);
                 })
         });
+    },
+    sendEmail: (req, res) =>{
+
+        
     }
 }
 
