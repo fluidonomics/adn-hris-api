@@ -4,16 +4,16 @@ let mongoose                = require('mongoose'),
     bcrypt                  = require('bcrypt');
     autoIncrement           = require('mongoose-sequence')(mongoose);
 
-      let KraWorkflowDetailsSchema = new Schema(
+      let KraWorkFlowDetailsSchema = new Schema(
       {
-         _id:{type:Number},
-         batch_id:{type: Number,ref: 'batchdetails'},
-         timeline_id:{type: Number,ref: 'timelinedetails'},
-         emp_id:{type: Number,ref: 'employeedetails'},
-         status: {type: String,default:null},
-         updatedBy: {type: Number, default:null},
-         createdBy: {type: Number, default:null},
-         isDeleted: {type: Boolean,default:false} 
+        _id:{type:Number},
+        batch_id:{type: Number,ref: 'batchdetails'},
+        timeline_id:{type: Number,ref: 'timelinedetails',default:null},
+        emp_id:{type: Number,ref: 'employeedetails'},
+        status: {type: String,default:null},
+        updatedBy: {type: Number, default:null},
+        createdBy: {type: Number, default:null},
+        isDeleted: {type: Boolean,default:false} 
       },
       {
         timestamps: true,
@@ -21,16 +21,28 @@ let mongoose                = require('mongoose'),
         _id:false
       });
 
-KraWorkflowDetailsSchema.plugin(mongooseUniqueValidator);
-
-  //Perform actions before saving the bank details
-  KraWorkflowDetailsSchema.pre('save', function (next) {
+   // Update the Emp_id Hash user password when registering or when changing password
+   KraWorkFlowDetailsSchema.pre('save', function (next) {
     var _this=this;
     if (_this.isNew) {
-        mongoose.model('kraWorkflowDetails', KraWorkflowDetailsSchema).count(function(err, c) {
-              _this._id = c + 1;
-              next();
-        });
-    }
-  });
-module.exports = mongoose.model('kraWorkflowDetails',KraWorkflowDetailsSchema);
+    //Check the Count of Collection and add 1 to the Count and Assign it to Emp_id 
+    mongoose.model('kraWorkFlowDetails', KraWorkFlowDetailsSchema).find().sort({_id:-1}).limit(1)
+    .exec(function(err, doc)
+    {
+      if(doc.length >0)
+      {
+        _this._id=doc[0]._id + 1;
+        next();
+      }
+      else{
+        _this._id = 1;
+        next();
+      }
+    });
+  }
+ });
+
+
+KraWorkFlowDetailsSchema.plugin(mongooseUniqueValidator);
+
+module.exports = mongoose.model('kraWorkFlowDetails',KraWorkFlowDetailsSchema);

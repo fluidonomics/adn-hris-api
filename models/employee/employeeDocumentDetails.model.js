@@ -32,9 +32,18 @@ let mongoose                = require('mongoose'),
     var _this=this;
     if (_this.isNew) {
     //Check the Count of Collection and add 1 to the Count and Assign it to Emp_id 
-    mongoose.model('employeeDocumentDetails', EmployeeDocumentDetailsSchema).count(function(err, c) {
-      _this._id = c + 1;
-      next();
+    mongoose.model('employeeDocumentDetails', EmployeeDocumentDetailsSchema).find().sort({_id:-1}).limit(1)
+    .exec(function(err, doc)
+    {
+      if(doc.length >0)
+      {
+        _this._id=doc[0]._id + 1;
+        next();
+      }
+      else{
+        _this._id = 1;
+        next();
+      }
     });
   }
 });

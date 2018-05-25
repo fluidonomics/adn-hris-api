@@ -4,13 +4,13 @@ let mongoose                = require('mongoose'),
     bcrypt                  = require('bcrypt');
     autoIncrement           = require('mongoose-sequence')(mongoose);
 
-      let KraCategorySchema = new Schema(
+      let KraCategoryDetailsSchema = new Schema(
       {
-         _id:{type:Number},
-         kraCategoryName:{type: String},
-         updatedBy: {type: Number, default:null},
-         createdBy: {type: Number, default:null},
-         isDeleted: {type: Boolean,default:false} 
+        _id:{type:Number},
+        kraCategoryName:{type: String},
+        updatedBy: {type: Number, default:null},
+        createdBy: {type: Number, default:null},
+        isDeleted: {type: Boolean,default:false} 
       },
       {
         timestamps: true,
@@ -18,16 +18,27 @@ let mongoose                = require('mongoose'),
         _id:false
       });
 
-KraCategorySchema.plugin(mongooseUniqueValidator);
-
-  //Perform actions before saving the bank details
-  KraCategorySchema.pre('save', function (next) {
+   // Update the Emp_id Hash user password when registering or when changing password
+   KraCategoryDetailsSchema.pre('save', function (next) {
     var _this=this;
     if (_this.isNew) {
-        mongoose.model('kraCategory', KraCategorySchema).count(function(err, c) {
-              _this._id = c + 1;
-              next();
-        });
-    }
-  });
-module.exports = mongoose.model('kraCategory',KraCategorySchema);
+    //Check the Count of Collection and add 1 to the Count and Assign it to Emp_id 
+    mongoose.model('kraCategoryDetails', KraCategoryDetailsSchema).find().sort({_id:-1}).limit(1)
+    .exec(function(err, doc)
+    {
+      if(doc.length >0)
+      {
+        _this._id=doc[0]._id + 1;
+        next();
+      }
+      else{
+        _this._id = 1;
+        next();
+      }
+    });
+   }
+});
+
+KraCategoryDetailsSchema.plugin(mongooseUniqueValidator);
+
+module.exports = mongoose.model('kraCategoryDetails',KraCategoryDetailsSchema);

@@ -17,6 +17,7 @@ let express           = require('express'),
     DocumentsInfo     = require('../models/employee/employeeDocumentDetails.model'),
     PerformanceRatingInfo = require('../models/employee/employeePerformanceRatingDetails.model'),
     ProfileProcessInfo = require('../models/employee/employeeProfileProcessDetails.model'),
+    PerformanceRatingMaster = require('../models/master/performanceRating.model'),
     config            = require('../config/config'),
     crypto            = require('crypto'),
     async             = require('async'),
@@ -33,6 +34,7 @@ function addPersonalInfoDetails(req, res, done) {
     personalDetails.emp_id = req.body.emp_id || req.query.emp_id;
     personalDetails.isCompleted = true;
     personalDetails.createdBy = parseInt(req.headers.uid);
+    //personalDetails.createdBy = 0;
     personalDetails.save(function(err, personalInfoData) {
         if (err) {
             return res.status(403).json({
@@ -46,7 +48,7 @@ function addPersonalInfoDetails(req, res, done) {
             });
         }
         auditTrailEntry(personalDetails.emp_id, "personalDetails", personalDetails, "user", "personalDetails", "ADDED");
-        return done(err, personalInfoData);   
+        return done(err, personalInfoData);
     });
 }
 
@@ -82,7 +84,7 @@ function updatePersonalInfoDetails(req, res, done) {
                 result: {
                     message: personalDetailsData
                 }
-            });            
+            });
         }
         auditTrailEntry(personalDetails.emp_id, "personalDetails", personalDetails, "user", "personalDetails", "UPDATED");
         return done(err, personalDetailsData);
@@ -106,7 +108,7 @@ function addAcademicInfoDetails(req, res, done) {
                     message: academicInfoData
                 }
             });
-        }           
+        }
         auditTrailEntry(academicInfo.emp_id, "academicInfo", academicInfo, "user", "academicInfo", "ADDED");
         return done(err, academicInfoData);
     });
@@ -146,17 +148,17 @@ function updateAcademicInfoDetails(req, res, done) {
                     message: academicInfoData
                 }
             });
-        } 
+        }
         auditTrailEntry(academicInfo.emp_id, "academicInfo", academicInfo, "user", "academicInfo", "UPDATED");
-        return done(err, academicInfoData);        
+        return done(err, academicInfoData);
     });
-} 
+}
 
 function addProfileProcessInfoDetails(req, res, done) {
     let profileProcessInfo = new ProfileProcessInfo(req.body);
     profileProcessInfo.emp_id = req.body.emp_id || req.query.emp_id;
     profileProcessInfo.createdBy = parseInt(req.headers.uid);
-
+    //profileProcessInfo.createdBy = 0;
     profileProcessInfo.save(function(err, profileProcessInfoData) {
         if (err) {
             return res.status(403).json({
@@ -168,7 +170,7 @@ function addProfileProcessInfoDetails(req, res, done) {
                     message: profileProcessInfoData
                 }
             });
-        }           
+        }
         auditTrailEntry(profileProcessInfo.emp_id, "profileProcessInfo", profileProcessInfo, "user", "profileProcessInfo", "ADDED");
         return done(err, profileProcessInfoData);
     });
@@ -178,11 +180,12 @@ function updateProfileProcessInfoDetails(req, res, done) {
     let profileProcessInfo = new ProfileProcessInfo(req.body);
     profileProcessInfo.emp_id = req.body.emp_id || req.query.emp_id;
     profileProcessInfo.updatedBy = parseInt(req.headers.uid);
+    
 
     let _id = req.body._id;
     var query = {
         _id: _id,
-        isDeleted: false
+        isActive: true
     }
 
     var profileProcessInfoProjection = {
@@ -190,13 +193,13 @@ function updateProfileProcessInfoDetails(req, res, done) {
         updatedAt: false,
         isDeleted: false,
         updatedBy: false,
-        createdBy: false,
+        //createdBy: true,
     };
 
     ProfileProcessInfo.findOneAndUpdate(query, profileProcessInfo, {
         new: true,
         projection: profileProcessInfoProjection
-    }, function(err, profileProcessInfoData) {
+    }, function(err, profileProcessData) {
         if (err) {
             return res.status(403).json({
                 title: 'There was a problem',
@@ -204,12 +207,31 @@ function updateProfileProcessInfoDetails(req, res, done) {
                     message: err
                 },
                 result: {
-                    message: profileProcessInfoData
+                    message: profileProcessData
                 }
             });
-        } 
+        }
         auditTrailEntry(profileProcessInfo.emp_id, "profileProcessInfo", profileProcessInfo, "user", "profileProcessInfo", "UPDATED");
-        return done(err, profileProcessInfoData);        
+        getProfileProcessInfoDetails(req,res);
+        // let profileProcess={
+        //     "_id":profileProcessData._id,
+        //     "emp_id":profileProcessData.emp_id,
+        //     "supervisorStatus": profileProcessData.supervisorStatus,
+        //     "hrStatus": profileProcessData.hrStatus,
+        //     "employeeStatus": profileProcessData.employeeStatus,
+        //     "hrSupervisorSendbackComment":profileProcessData.hrSupervisorSendbackComment,
+        //     "hrSendbackComment":profileProcessData.hrSendbackComment,
+        //     "isEmployeeSubmitted":profileProcessData.employeeStatus== 'Submitted'? true:false,
+        //     "isHrSubmitted":profileProcessData.hrStatus== 'Submitted'? true:false,
+        //     "isHrSendBack":profileProcessData.hrStatus== 'SendBack'? true:false,
+        //     "isSupervisorApproved":profileProcessData.supervisorStatus== 'Approved'? true:false,
+        //     "isSupervisorSendBack":profileProcessData.supervisorStatus== 'SendBack'? true:false,
+        //     "createdBy":profileProcessData.createdBy
+        // }
+       
+        //return done(err, profileProcess);
+
+        
     });
 }
 
@@ -221,7 +243,7 @@ function deleteAcademicInfoDetails(req, res, done) {
         _id: _id
     };
     AcademicInfo.deleteOne(query, function(err, academicInfoData) {
-        if (err) {            
+        if (err) {
             return res.status(403).json({
                 title: 'There was a problem',
                 error: {
@@ -231,10 +253,10 @@ function deleteAcademicInfoDetails(req, res, done) {
                     message: academicInfoData
                 }
             });
-        } 
+        }
         academicInfoData._id = _id;
         auditTrailEntry(1, "employeeacademicdetails", academicInfoData, "user", "deleteAcademicInfoDetails", "Deleted the Academic Info");
-        return done(err, success);        
+        return done(err, success);
     });
 }
 
@@ -255,7 +277,7 @@ function addPreviousEmploymentInfoDetails(req, res, done) {
                     message: previousEmploymentInfoData
                 }
             });
-        }           
+        }
         auditTrailEntry(previousEmploymentInfo.emp_id, "previousEmploymentInfo", previousEmploymentInfo, "user", "previousEmploymentInfo", "ADDED");
         return done(err, previousEmploymentInfoData);
     });
@@ -295,7 +317,7 @@ function updatePreviousEmploymentInfoDetails(req, res, done) {
                     message: previousEmploymentInfoData
                 }
             });
-        }          
+        }
         auditTrailEntry(previousEmploymentInfo.emp_id, "previousEmploymentInfo", previousEmploymentInfo, "user", "previousEmploymentInfo", "UPDATED");
         return done(err, previousEmploymentInfoData);
     });
@@ -309,7 +331,7 @@ function deletePreviousEmploymentInfoDetails(req, res, done) {
         _id: _id
     };
     PreviousEmploymentInfo.deleteOne(query, function(err, previousEmploymentInfoData) {
-        if (err) {            
+        if (err) {
             return res.status(403).json({
                 title: 'There was a problem',
                 error: {
@@ -319,10 +341,10 @@ function deletePreviousEmploymentInfoDetails(req, res, done) {
                     message: previousEmploymentInfoData
                 }
             });
-        } 
+        }
         previousEmploymentInfoData._id = _id;
         auditTrailEntry(1, "employeepreviousEmploymentdetails", previousEmploymentInfoData, "user", "deletePreviousEmploymentInfoDetails", "Deleted the PreviousEmployment Info");
-        return done(err, success);        
+        return done(err, success);
     });
 }
 
@@ -348,7 +370,7 @@ function deleteAndRenameDocument (req, res, done)
         uploadCtrl.copyAndMoveImage(req.body.passportNumberDocURL,'document/');
         req.body.passportNumberDocURL=req.body.passportNumberDocURL.replace('tmp','document')
     }
-    return done(null, req);     
+    return done(null, req);
 }
 
 function addDocumentsInfoDetails(req, res, done) {
@@ -375,7 +397,7 @@ function addDocumentsInfoDetails(req, res, done) {
                     });
                 }
                 auditTrailEntry(documents.emp_id, "documents", documents, "user", "documents", "ADDED");
-                return done(err, documentsData); 
+                return done(err, documentsData);
              });
         }
     ]);
@@ -391,13 +413,13 @@ function updateDocumentsInfoDetails(req, res, done) {
             documents.emp_id = req.body.emp_id || req.query.emp_id;
             documents.isCompleted = true;
             documents.updatedBy = parseInt(req.headers.uid);
-        
+
             let _id = req.body._id;
             var query = {
                 _id: _id,
                 isDeleted: false
             }
-        
+
             var documentsProjection = {
                 createdAt: false,
                 updatedAt: false,
@@ -405,7 +427,7 @@ function updateDocumentsInfoDetails(req, res, done) {
                 updatedBy: false,
                 createdBy: false,
             };
-        
+
             DocumentsInfo.findOneAndUpdate(query, documents, {
                 new: true,
                 projection: documentsProjection
@@ -423,7 +445,7 @@ function updateDocumentsInfoDetails(req, res, done) {
                 }
                     auditTrailEntry(documents.emp_id, "documents", documents, "user", "documents", "UPDATED");
                     return done(err, documentsData);
-            });  
+            });
         }
     ]);
 }
@@ -487,7 +509,7 @@ function updateFamilyInfoDetails(req, res, done) {
         }
             auditTrailEntry(familyInfo.emp_id, "familyInfo", familyInfo, "user", "familyInfo", "UPDATED");
             return done(err, familyInfoData);
-        
+
     });
 }
 
@@ -499,7 +521,7 @@ function deleteFamilyInfoDetails(req, res, done) {
         _id: _id
     };
     FamilyInfo.deleteOne(query, function(err, familyInfoData) {
-        if (err) {            
+        if (err) {
             return res.status(403).json({
                 title: 'There was a problem',
                 error: {
@@ -509,10 +531,10 @@ function deleteFamilyInfoDetails(req, res, done) {
                     message: familyInfoData
                 }
             });
-        } 
+        }
         familyInfoData._id = _id;
         auditTrailEntry(1, "employeefamilydetails", familyInfoData, "user", "deleteFamilyInfoDetails", "Deleted the Family Info");
-        return done(err, success);        
+        return done(err, success);
     });
 }
 
@@ -533,7 +555,7 @@ function addAddressInfoDetails(req, res, done) {
                     message: addressData
                 }
             });
-        }            
+        }
         auditTrailEntry(address.emp_id, "address", address, "user", "address", "ADDED");
         return done(err, addressData);
     });
@@ -573,7 +595,7 @@ function updateAddressInfoDetails(req, res, done) {
                     message: addressData
                 }
             });
-        }         
+        }
         auditTrailEntry(address.emp_id, "address", address, "user", "address", "UPDATED");
         return done(err, addressData);
     });
@@ -638,16 +660,16 @@ function updateBankInfoDetails(req, res, done) {
                     message: bankData
                 }
             });
-        } 
+        }
             auditTrailEntry(bank.emp_id, "bank", bank, "user", "bank", "UPDATED");
             return done(err, bankData);
         });
 }
 
-function addSalaryInfoDetails(req, res, done) {
-    let emp_id=req.body.emp_id || req.query.emp_id;
-    SalaryInfo.findAndUpdate({emp_id:emp_id}, { $set: { isActive: false } },function(err,salaryUpdate)
-    { 
+function addSalaryInfoDetailsWithUpdate(req, res, done) {
+    let emp_id=parseInt(req.body.emp_id || req.query.emp_id);
+    SalaryInfo.updateMany({emp_id:emp_id}, { $set: { isActive: false } },function(err,salaryUpdate)
+    {
         if(err)
         {
             return res.status(403).json({
@@ -661,7 +683,33 @@ function addSalaryInfoDetails(req, res, done) {
             });
         }
         else{
-            let salaryInfo = new SalaryInfo(req.body);
+            addSalaryInfoDetails(req, res, done);
+            // let salaryInfo = new SalaryInfo(req.body);
+            // salaryInfo.emp_id = req.body.emp_id || req.query.emp_id;
+            // salaryInfo.isCompleted = true;
+            // salaryInfo.createdBy = parseInt(req.headers.uid);
+            // salaryInfo.save(function(err, salaryInfoData) {
+            //     if (err) {
+            //         return res.status(403).json({
+            //             title: 'There was a problem',
+            //             error: {
+            //                 message: err
+            //             },
+            //             result: {
+            //                 message: salaryInfoData
+            //             }
+            //         });
+            //     }
+            //     auditTrailEntry(salaryInfo.emp_id, "salaryInfo", salaryInfo, "user", "salaryInfo", "ADDED");
+            //     return done(err, salaryInfoData);
+            // });
+       }
+    })
+}
+
+function addSalaryInfoDetails(req, res, done) {
+    let emp_id=parseInt(req.body.emp_id || req.query.emp_id);
+    let salaryInfo = new SalaryInfo(req.body);
             salaryInfo.emp_id = req.body.emp_id || req.query.emp_id;
             salaryInfo.isCompleted = true;
             salaryInfo.createdBy = parseInt(req.headers.uid);
@@ -676,12 +724,10 @@ function addSalaryInfoDetails(req, res, done) {
                             message: salaryInfoData
                         }
                     });
-                }            
+                }
                 auditTrailEntry(salaryInfo.emp_id, "salaryInfo", salaryInfo, "user", "salaryInfo", "ADDED");
                 return done(err, salaryInfoData);
             });
-       }
-    })
 }
 
 function updateSalaryInfoDetails(req, res, done) {
@@ -718,7 +764,7 @@ function updateSalaryInfoDetails(req, res, done) {
                 message: salaryInfoData
             }
         });
-        }        
+        }
         auditTrailEntry(salaryInfo.emp_id, "salaryInfo", salaryInfo, "user", "salaryInfo", "UPDATED");
         return done(err, salaryInfoData);
     });
@@ -741,7 +787,7 @@ function addCarInfoDetails(req, res, done) {
                     message: carInfoData
                 }
             });
-        }            
+        }
         auditTrailEntry(carInfo.emp_id, "carInfo", carInfo, "user", "carInfo", "ADDED");
          return done(err, carInfoData);
     });
@@ -752,7 +798,7 @@ function updateCarInfoDetails(req, res, done) {
     carInfo.emp_id = req.body.emp_id || req.query.emp_id;
     carInfo.isCompleted = true;
     carInfo.updatedBy = parseInt(req.headers.uid);
-    
+
     let _id = req.body._id;
     var query = {
         _id: _id,
@@ -781,7 +827,7 @@ function updateCarInfoDetails(req, res, done) {
                 message: carInfoData
             }
         });
-        }       
+        }
         auditTrailEntry(carInfo.emp_id, "carInfo", carInfo, "user", "carInfo", "UPDATED");
          return done(err, carInfoData);
     });
@@ -805,7 +851,7 @@ function addCertificationInfoDetails(req, res, done) {
                     message: certificationInfoData
                 }
             });
-        }            
+        }
         auditTrailEntry(certificationInfo.emp_id, "certificationInfo", certificationInfo, "user", "certificationInfo", "ADDED");
         return done(err, certificationInfoData);
     });
@@ -845,7 +891,7 @@ function updateCertificationInfoDetails(req, res, done) {
                 message: certificationInfoData
             }
         });
-        }        
+        }
         auditTrailEntry(certificationInfo.emp_id, "certificationInfo", certificationInfo, "user", "certificationInfo", "UPDATED");
         return done(err, certificationInfoData);
     });
@@ -859,7 +905,7 @@ function deleteCertificationInfoDetails(req, res, done) {
         _id: _id
     };
     CertificationInfo.deleteOne(query, function(err, certificationInfoData) {
-        if (err) {            
+        if (err) {
             return res.status(403).json({
                 title: 'There was a problem',
                 error: {
@@ -869,10 +915,10 @@ function deleteCertificationInfoDetails(req, res, done) {
                     message: certificationInfoData
                 }
             });
-        } 
+        }
         certificationInfoData._id = _id;
         auditTrailEntry(1, "employeecertificationdetails", certificationInfoData, "user", "deleteCertificationInfoDetails", "Deleted the Certification Info");
-        return done(err, success);        
+        return done(err, success);
     });
 }
 
@@ -895,7 +941,7 @@ function addPerformanceRatingInfoDetails(req, res, done) {
                     message: performanceRatingInfoData
                 }
             });
-        }           
+        }
         auditTrailEntry(performanceRatingInfo.emp_id, "performanceRatingInfo", performanceRatingInfo, "user", "performanceRatingInfo", "ADDED");
         return done(err, performanceRatingInfoData);
     });
@@ -936,9 +982,9 @@ function updatePerformanceRatingInfoDetails(req, res, done) {
                     message: performanceRatingInfoData
                 }
             });
-        } 
+        }
         auditTrailEntry(performanceRatingInfo.emp_id, "performanceRatingInfo", performanceRatingInfo, "user", "performanceRatingInfo", "UPDATED");
-        return done(err, performanceRatingInfoData);        
+        return done(err, performanceRatingInfoData);
     });
 }
 
@@ -1006,12 +1052,50 @@ function addEmpRoles(i, req, res, emp) {
     empRole.emp_id = emp._id;
     empRole.role_id = req.body.roles[i];
     empRole.createdBy = parseInt(req.headers.uid);
+    //empRole.createdBy = 0;
     empRole.save(function(err, roleDaata) {
         auditTrailEntry(emp._id, "user", empRole, "addEmpRole", "Role added for the Employee");
         if ((i + 1) < req.body.roles.length) {
             addEmpRoles(i + 1, req, res, emp);
         }
     });
+}
+
+function fnSaveBulkPerformanceRating(index,req,res)
+{
+    if(req.body.length > 0 && index < req.body.length)
+    {   
+                let requestObj={
+                }
+                requestObj.body=req.body[index];
+                requestObj.headers=req.headers;
+               
+                if(!requestObj.body._id)
+                {
+                    async.waterfall([
+                        function(done) {
+                            addPerformanceRatingInfoDetails(requestObj, res, done);
+                        },
+                        function(prerformanceInfo, done) {
+                            fnSaveBulkPerformanceRating(index+1,req,res);
+                        }
+                    ]);
+                }
+                else{
+                    async.waterfall([
+                        function(done) {
+                            updatePerformanceRatingInfoDetails(requestObj, res, done);
+                        },
+                        function(prerformanceInfo, done) {
+                            fnSaveBulkPerformanceRating(index+1,req,res);
+                        }
+                    ]);
+                }
+    } 
+    else{
+        req.query.emp_id=req.body[0].emp_id;
+        getPerformanceRatingInfoDetails(req,res);
+    }
 }
 
 function sendWelComeEmail(emp, toemail) {
@@ -1040,7 +1124,7 @@ function sendWelComeEmail(emp, toemail) {
         context: {
             fullName: emp.fullName,
             userName: emp.userName,
-            token: emp.resetPasswordToken,
+            redirectUrl:process.env.HostUrl +"/reset/" + emp.resetPasswordToken,
             uid: uuidV1()
         }
     };
@@ -1053,6 +1137,7 @@ function addOfficeInfoDetails(req, res, done) {
     let officeEmpDetails = new OfficeInfo(req.body);
     officeEmpDetails.emp_id = req.body.emp_id;
     officeEmpDetails.createdBy = parseInt(req.headers.uid);
+    //officeEmpDetails.createdBy = 0;
 
     officeEmpDetails.save(function(err, officeDetailsData) {
         if (officeDetailsData) {
@@ -1109,11 +1194,11 @@ function updateofficeInfoDetails(req, res) {
                 }};
                 OfficeInfo.findOneAndUpdate(query, queryUpdate, function(err, officeDetailsData) {
                     if (officeDetailsData)
-                    { 
+                    {
                         req.query.emp_id= req.body.emp_id;
                         return getOfficeInfoDetails(req,res);
-                    } 
-                    else 
+                    }
+                    else
                     {
                         return res.status(403).json({
                             title: 'There was a problem',
@@ -1171,7 +1256,7 @@ function updatepositionInfoDetails(req, res) {
                     "vertical_id" :req.body.vertical_id,
                     "subVertical_id" : req.body.subVertical_id,
                     "managementType_id" : req.body.managementType_id,
-                    "tenureOfContract" :req.body.tenureOfContract, 
+                    "tenureOfContract" :req.body.tenureOfContract,
                     "groupHrHead_id" : req.body.groupHrHead_id,
                     "businessHrHead_id" :req.body.businessHrHead_id,
                     "jobTitle" :req.body.jobTitle,
@@ -1179,14 +1264,14 @@ function updatepositionInfoDetails(req, res) {
                 }};
                 OfficeInfo.findOneAndUpdate(query, queryUpdate, function(err, officeDetailsData) {
                     if (officeDetailsData)
-                    { 
+                    {
                         query = {
                             _id:req.body.supervisor_id,
                             isActive: true
                         }
                         queryUpdate={$set:{
                             "emp_id" :req.body.emp_id,
-                            "primarySupervisorEmp_id" :req.body.primarySupervisorEmp_id,
+                            "primarySupervisorEmp_id" :req.body.primarySupervisorEmp_id
                         }}
                         SupervisorInfo.findOneAndUpdate(query, queryUpdate, function(err, supervisorData) {
                             if(supervisorData)
@@ -1194,7 +1279,7 @@ function updatepositionInfoDetails(req, res) {
                                req.query.emp_id=req.body.emp_id;
                                return getPositionInfoDetails(req,res);
                             }
-                            else 
+                            else
                             {
                                 return res.status(403).json({
                                     title: 'There was a problem',
@@ -1207,8 +1292,8 @@ function updatepositionInfoDetails(req, res) {
                                 });
                             }
                         });
-                    } 
-                    else 
+                    }
+                    else
                     {
                         return res.status(403).json({
                             title: 'There was a problem',
@@ -1241,6 +1326,7 @@ function addSupervisorDetails(req, res, done) {
     supervisorDetails.emp_id = req.body.emp_id;
     supervisorDetails.primarySupervisorEmp_id = req.body.primarySupervisorEmp_id;
     supervisorDetails.createdBy = parseInt(req.headers.uid);
+    //supervisorDetails.createdBy = 0;
 
     supervisorDetails.save(function(err, supervisorDetailsData) {
         if (supervisorDetailsData) {
@@ -1370,36 +1456,69 @@ function getDocumentsInfoDetails(req, res) {
     });
 }
 
-function getProfileProcessInfoDetails(req, res) {
-    let emp_id = req.query.emp_id;
-    let query = {
-        isDeleted: false
-    };
-    if (emp_id) {
-        query = {
-            emp_id: emp_id,
-            isDeleted: false
-        };
+function getProfileProcessInfoDetails(req,res)
+{
+    let emp_id=req.body.emp_id||req.query.emp_id;
+    let query={
+        isActive:true
     }
-    var documentProjection = {
-        createdAt: false,
-        updatedAt: false,
-        isDeleted: false,
-        updatedBy: false,
-        createdBy: false,
-    };
-    ProfileProcessInfo.findOne(query, documentProjection, function(err, profileProcessData) {
-        if (err) {
+    if(emp_id)
+    {
+        query={
+            emp_id:emp_id,
+            isActive:true
+        }
+    }
+    ProfileProcessInfo.aggregate([
+        {
+              "$lookup": {
+                  "from": "employeedetails",
+                  "localField": "emp_id",
+                  "foreignField": "_id",
+                  "as": "employees"
+              }
+        },
+        {
+            "$unwind": "$employees"
+        },
+        { "$match": { "emp_id":parseInt(emp_id),"isActive":true,"employees.isDeleted":false} },
+        {"$project":{
+            "_id":"$_id",
+            "emp_id":"$emp_id",
+            "hrSendbackComment":"$hrSendbackComment",
+            "hrSupervisorSendbackComment": "$hrSupervisorSendbackComment",
+            "supervisorStatus":"$supervisorStatus",
+            "hrStatus": "$hrStatus",
+            "employeeStatus": "$employeeStatus",
+            "hrSupervisorSendbackComment":"$hrSupervisorSendbackComment",
+            "hrSendbackComment":"$hrSendbackComment",
+            "createdBy":"$createdBy",
+            "updatedAt":"$updatedAt",
+            "createdAt":"$createdAt",
+            "fullName":"$employees.fullName",
+            "profileImage":"$employees.profileImage",
+            "isEmployeeSubmitted": {$cond: { if: { $eq: [ "$employeeStatus", "Submitted" ] }, then: true, else: false }},
+            "isHrSubmitted": {$cond: { if: { $eq: [ "$hrStatus", "Submitted" ] }, then: true, else: false }},
+            "isHrSendBack":{$cond: { if: { $eq: [ "$hrStatus", "SendBack" ] }, then: true, else: false }},
+            "isSupervisorApproved":{$cond: { if: { $eq: [ "$supervisorStatus", "Approved" ] }, then: true, else: false }},
+            "isSupervisorSendBack":{$cond: { if: { $eq: [ "$supervisorStatus", "SendBack" ] }, then: true, else: false }},
+        }},
+      ])
+      .exec(function(err, results){
+       if(err)
+       {
             return res.status(403).json({
                 title: 'There was an error, please try again later',
                 error: err,
                 result: {
-                    message: profileProcessData
+                    message: results
                 }
             });
-        }
-        return res.status(200).json(profileProcessData);
-    });
+       }
+       else{
+           return res.status(200).json(results[0]);
+       }
+      });
 }
 
 function getAcademicnfoDetails(req, res) {
@@ -1526,8 +1645,43 @@ function getFamilyInfoDetails(req, res) {
                 }
             });
         }
-        
+
         return res.status(200).json({"data":familyInfoData});
+    });
+}
+
+function getSupervisorInfoDetails(req, res) {
+    let emp_id = req.query.emp_id;
+    let query = {
+        isActive: true
+    };
+
+    if (emp_id) {
+        query = {
+            emp_id: emp_id,
+            isActive: true
+        };
+    }
+    var supervisorInfoProjection = {
+        createdAt: false,
+        updatedAt: false,
+        isActive: false,
+        reason:false,
+        updatedBy: false,
+        createdBy: false,
+    };
+    SupervisorInfo.findOne(query, supervisorInfoProjection, function(err, supervisorInfoData) {
+        if (err) {
+            return res.status(403).json({
+                title: 'There was an error, please try again later',
+                error: err,
+                result: {
+                    message: supervisorInfoData
+                }
+            });
+        }
+
+        return res.status(200).json(supervisorInfoData);
     });
 }
 
@@ -1542,7 +1696,7 @@ function getOfficeInfoDetails(req, res) {
                   "as": "employees"
               }
         },
-        { "$match": { "emp_id":parseInt(emp_id),"isDeleted":false,"employees.isDeleted":false} },  
+        { "$match": { "emp_id":parseInt(emp_id),"isDeleted":false,"employees.isDeleted":false} },
       ])
       .exec(function(err, results){
        if(err)
@@ -1577,7 +1731,7 @@ function getOfficeInfoDetails(req, res) {
                     workPermitNumber : results[0].workPermitNumber,
                     workPermitEffectiveDate :results[0].workPermitEffectiveDate ? new Date(results[0].workPermitEffectiveDate):null,
                     workPermitExpiryDate :results[0].workPermitExpiryDate ? new Date(results[0].workPermitExpiryDate):null,
-                }; 
+                };
            }
            return res.status(200).json(officeInfoData);
        }
@@ -1603,8 +1757,8 @@ function getPositionInfoDetails(req, res) {
                 "as": "supervisor"
             }
         },
-        {"$match": { "emp_id":parseInt(emp_id),"isDeleted":false,"employees.isDeleted":false,"supervisor.isActive":true} } 
-       
+        {"$match": { "emp_id":parseInt(emp_id),"isDeleted":false,"employees.isDeleted":false,"supervisor.isActive":true} }
+
       ])
       .exec(function(err, results){
         if(err)
@@ -1630,17 +1784,17 @@ function getPositionInfoDetails(req, res) {
                     vertical_id : results[0].vertical_id,
                     subVertical_id :  results[0].subVertical_id,
                     managementType_id :  results[0].managementType_id,
-                    tenureOfContract : results[0].tenureOfContract, 
+                    tenureOfContract : results[0].tenureOfContract,
                     groupHrHead_id :  results[0].groupHrHead_id,
                     businessHrHead_id : results[0].businessHrHead_id,
                     employmentType_id :  results[0].employees[0].employmentType_id,
-                    employmentStatus_id :results[0].employmentStatus_id, 
+                    employmentStatus_id :results[0].employmentStatus_id,
                     grade_id :  results[0].employees[0].grade_id,
                     designation_id : results[0].employees[0].designation_id,
                     jobTitle :results[0].jobTitle,
                     hrspoc_id : results[0].hrspoc_id,
                     primarySupervisorEmp_id:parseInt(results[0].supervisor[0].primarySupervisorEmp_id),
-                    supervisor_Id:parseInt(results[0].supervisor[0]._id),
+                    supervisor_id:parseInt(results[0].supervisor[0]._id),
                     isCompleted : results[0].isCompleted
                   }
             }
@@ -1651,34 +1805,180 @@ function getPositionInfoDetails(req, res) {
 
 function getPerformanceRatingInfoDetails(req, res) {
     let emp_id = req.query.emp_id;
-    let query = {
-        isDeleted: false
-    };
-    if (emp_id) {
-        query = {
-            emp_id: emp_id,
-            isDeleted: false
-        };
-    }
-    var performanceRatingProjection = {
-        createdAt: false,
-        updatedAt: false,
-        isDeleted: false,
-        updatedBy: false,
-        createdBy: false,
-    };
-    PerformanceRatingInfo.find(query, function(err, performanceRatingProjection) {
-        if (performanceRatingProjection) {
-            return res.status(200).json(performanceRatingProjection);
-        }
-        return res.status(403).json({
-            title: 'There was an error, please try again later',
-            error: err,
-            result: {
-                message: performanceRatingProjection
+    let masterDa=[];
+    // PerformanceRatingMaster.find({isDeleted:false},function(err,masterData)
+    // {
+    //     if(err)
+    //     {
+    //         return res.status(403).json({
+    //             title: 'There was an error, please try again later',
+    //             error: err
+    //         });
+    //     }
+    //     else{
+    //         for (let j = 0; j < masterData.length; j++) {
+    //             PerformanceRatingInfo.findOne({performanceRating_id:masterData[j]._id,emp_id:parseInt(emp_id),isDeleted:false},function(err,employeeData)
+    //             {
+    //                 if(err)
+    //                 {
+    //                     return res.status(403).json({
+    //                         title: 'There was an error, please try again later',
+    //                         error: err
+    //                     });
+    //                 }
+    //                 else if(employeeData)
+    //                 {
+    //                     masterDa.push({
+    //                     "_id":employeeData._id,
+    //                     "performanceRatingName":masterData[j].performanceRatingName,
+    //                     "emp_id":employeeData.emp_id,
+    //                     "performanceRating_id":masterData[j]._id,
+    //                     "performanceRatingValue":employeeData.performanceRatingValue,
+    //                     "createdBy":employeeData.createdBy,
+    //                     "isCompleted":employeeData.isCompleted
+    //                 });
+    //                 if(j== (masterData.length-1))
+    //                 {
+    //                     return res.status(200).json(masterDa);
+    //                 }
+    //                 }
+    //                 else
+    //                 {
+    //                     masterDa.push({
+    //                         "_id":null,
+    //                         "performanceRatingName":masterData[j].performanceRatingName,
+    //                         "emp_id":parseInt(emp_id),
+    //                         "performanceRating_id":masterData[j]._id,
+    //                         "performanceRatingValue":null,
+    //                         "createdBy":null,
+    //                         "isCompleted":false
+    //                     });
+    //                     if(j== (masterData.length-1))
+    //                     {
+    //                         return res.status(200).json(masterDa);
+    //                     }
+    //                 }
+    //             });
+    //         }
+    //    }
+    // })
+
+    PerformanceRatingMaster.aggregate([
+        {
+            $unwind: "$_id"
+        },
+        {  
+          $lookup:
+            {
+              from: "employeeperformanceratingdetails",
+              localField: "_id",
+              foreignField: "performanceRating_id",
+              as: "employeeperformanceratingdetails"
             }
-        });
-    });
+        },
+        {"$match": {"isDeleted":false }},
+        {"$project":{
+        "_id":"$_id",
+        "performanceRatingName":"$performanceRatingName",
+        "updatedBy":"$updatedBy",
+        "createdBy":"$createdBy",
+        "employeePerformanceRatingDetail":{
+            $filter:
+            {
+                input:"$employeeperformanceratingdetails",
+                as:"employeeperformanceratingdetails",
+                cond:
+                {
+                     $and: [ { $eq:["$$employeeperformanceratingdetails.emp_id",parseInt(emp_id) ] }, {  $eq:["$$employeeperformanceratingdetails.isDeleted",false ] } ]                  
+                }
+            },
+           
+          },
+        }},
+
+     ]).exec(function(err,result)
+     {
+        if(err)
+        {
+             return res.status(403).json({
+                 title: 'There was an error, please try again later',
+                 error: err,
+                 result: {
+                     message: result
+                 }
+             });
+        }
+        else{
+            let performanceResult=[];
+            let counter = 0;
+            result.forEach(function(item,index){
+              if(item.employeePerformanceRatingDetail.length>0)
+              {
+                performanceResult.push({
+                    "_id":item.employeePerformanceRatingDetail[0]._id,
+                    "performanceRatingName":item.performanceRatingName,
+                    "emp_id":parseInt(emp_id),
+                    "performanceRating_id":item._id,
+                    "performanceRatingValue":item.employeePerformanceRatingDetail[0].performanceRatingValue,
+                    "createdBy":item.employeePerformanceRatingDetail[0].createdBy,
+                    "isCompleted":item.employeePerformanceRatingDetail[0].isCompleted
+                });
+              }
+              else{
+                performanceResult.push({
+                    "_id":null,
+                    "performanceRatingName":item.performanceRatingName,
+                    "emp_id":parseInt(emp_id),
+                    "performanceRating_id":item._id,
+                    "performanceRatingValue":null,
+                    "createdBy":null,
+                    "isCompleted":false
+                });
+              }
+              counter ++;
+              if(counter == result.length)
+              {
+                return res.status(200).json(performanceResult);
+              }
+            });
+
+            // for (let index = 0; index < result.length; index++) {
+            //         if(result[index].employeePerformanceRatingDetail.length>0)
+            //         {
+            //             performanceResult.push({
+            //                 "_id":result[index].employeePerformanceRatingDetail[0]._id,
+            //                 "performanceRatingName":result[index].performanceRatingName,
+            //                 "emp_id":parseInt(emp_id),
+            //                 "performanceRating_id":result[index]._id,
+            //                 "performanceRatingValue":result[index].employeePerformanceRatingDetail[0].performanceRatingValue,
+            //                 "createdBy":result[index].employeePerformanceRatingDetail[0].createdBy,
+            //                 "isCompleted":result[index].employeePerformanceRatingDetail[0].isCompleted
+            //             });
+            //             if(index== (result.length-1))
+            //             {
+            //                 return res.status(200).json(performanceResult);
+            //             }
+            //         }
+            //         else{
+            //             performanceResult.push({
+            //                 "_id":null,
+            //                 "performanceRatingName":result[index].performanceRatingName,
+            //                 "emp_id":parseInt(emp_id),
+            //                 "performanceRating_id":result[index]._id,
+            //                 "performanceRatingValue":null,
+            //                 "createdBy":null,
+            //                 "isCompleted":false
+            //             });
+                        
+            //             if(index== (result.length-1))
+            //             {
+            //                 return res.status(200).json(performanceResult);
+            //             }
+            //         }
+            // }
+        }
+     });
+
 }
 
 function getBankInfoDetails(req, res) {
@@ -1710,7 +2010,7 @@ function getBankInfoDetails(req, res) {
             });
         }
         return res.status(200).json(bankDetailsData);
-     
+
     });
 }
 
@@ -1801,6 +2101,7 @@ let functions = {
                 emp.grade_id = req.body.grade_id;
                 emp.userName = req.body.userName;
                 emp.createdBy = parseInt(req.headers.uid);
+                //emp.createdBy = 0;
 
                 emp.save(req, function(err, result) {
                     if (result) {
@@ -1844,7 +2145,7 @@ let functions = {
             }
         ]);
     },
-    getAllEmployee(req, res)
+    getAllEmployee:(req, res)=>
     {
         EmployeeInfo.aggregate([
         {
@@ -1891,15 +2192,32 @@ let functions = {
         {
             "$unwind": "$employees"
         },
+        {
+            "$lookup": {
+                "from": "employeeprofileprocessdetails",
+                "localField": "_id",
+                "foreignField": "emp_id",
+                "as": "employeeprofileProcessDetails"
+            }
+        },
+        {
+            "$unwind": "$employeeprofileProcessDetails"
+        },
         {"$match": {"isDeleted":false,"designations.isActive":true,"officeDetails.isDeleted":false} },
         {"$project":{
           "_id":"$_id",
-          "FullName":"$fullName",
-          "ProfileImage":"$profileImage",
-          "OfficeEmail":"$officeDetails.officeEmail",
-          "Designation":"$designations.designationName",
-          "Supervisor":"$employees.fullName",
-          "HrScope_Id":'$officeDetails.hrspoc_id'
+          "fullName":"$fullName",
+          "userName":"$userName",
+          "isAccountActive":"$isAccountActive",
+          "profileImage":"$profileImage",
+          "officeEmail":"$officeDetails.officeEmail",
+          "designation":"$designations.designationName",
+          "supervisor":"$employees.fullName",
+          "hrScope_id":'$officeDetails.hrspoc_id',
+          "supervisor_id":"$employees._id",
+          "profileProcessDetails":"$employeeprofileProcessDetails",
+          "department_id":"$officeDetails.department_id",
+          "grade_id":"$grade_id"
         }}
         ]).exec(function(err, results){
         if(err)
@@ -1913,7 +2231,7 @@ let functions = {
                     message: results
                 }
             });
-        } 
+        }
         return res.status(200).json({"data":results});
      });
     },
@@ -1968,7 +2286,10 @@ let functions = {
     getCarInfo: (req, res) => {
         getCarInfoDetails(req, res);
     },
-    
+    getSupervisorInfo: (req, res) => {
+        getSupervisorInfoDetails(req, res);
+    },
+
     addPersonalInfo: (req, res) => {
         async.waterfall([
             function(done) {
@@ -2183,15 +2504,42 @@ let functions = {
     },
 
     addSalaryInfo: (req, res) => {
-        async.waterfall([
-            function(done) {
-                addSalaryInfoDetails(req, res, done);
-            },
-            function(salaryInfoData, done) {
-                return res.status(200).json(salaryInfoData);
-            }
-        ]);
+        let emp_id=req.body.emp_id || req.query.emp_id;
+        Promise.all([
+          SalaryInfo.find({emp_id:emp_id,isActive:true}).count().exec(),
+          ]).then(function(counts) {
+              if(counts[0]>0)
+              {
+                async.waterfall([
+                    function(done) {
+                        addSalaryInfoDetailsWithUpdate(req, res, done);
+                    },
+                    function(salaryInfoData, done) {
+                        return res.status(200).json(salaryInfoData);
+                    }
+                ]);
+              }
+              else{
+                async.waterfall([
+                    function(done) {
+                        addSalaryInfoDetails(req, res, done);
+                    },
+                    function(salaryInfoData, done) {
+                        return res.status(200).json(salaryInfoData);
+                    }
+                ]);
+              }
+          })
+          .catch(function(err) {
+            return res.status(403).json({
+                                title: 'Error',
+                                error: {
+                                    message: err
+                                }
+                });
+          });
     },
+
 
     updateSalaryInfo: (req, res) => {
         async.waterfall([
@@ -2270,7 +2618,6 @@ let functions = {
             }
         ]);
     },
-
     updatePerformanceRatingInfo: (req, res) => {
         async.waterfall([
             function(done) {
@@ -2281,7 +2628,6 @@ let functions = {
             }
         ]);
     },
-
     updateOfficeInfo:(req, res)=>
     {
         updateofficeInfoDetails(req,res);
@@ -2290,11 +2636,14 @@ let functions = {
     {
        updatepositionInfoDetails(req, res);
     },
-
+    saveBulkPerformanceRating:(req, res)=>
+    {
+      fnSaveBulkPerformanceRating(0,req,res);
+    },
     // Change User Password via Front End (not via email)
     changePassword: (req, res) => {
         let userId = req.user._id;
-        User.findById(userId, function(err, user) {
+        EmployeeInfo.findById(userId, function(err, user) {
             console.log(user);
             if (err) {
                 return res.status(500).json({
@@ -2332,7 +2681,6 @@ let functions = {
                         user.set('password', newPassword);
                         user.save((err) => {
                             if (err) {
-                                console.log(err);
                                 return res.status(500).json({
                                     err: {
                                         message: 'There was an error, please try again'

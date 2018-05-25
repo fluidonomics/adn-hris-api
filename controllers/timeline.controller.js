@@ -6,7 +6,7 @@ let express           = require('express'),
     AuditTrail        = require('../models/common/auditTrail.model'),
     Notification      = require('../models/common/notification.model'),
     EmployeeRoles     = require('../models/employee/employeeRoleDetails.model'),
-    TimelineInfo         = require('../models/timeline/timelineDetails.model'),
+    TimelineInfo         = require('../models/workflow/timeline.model'),
     config            = require('../config/config'),
     crypto            = require('crypto'),
     async             = require('async'),
@@ -31,7 +31,6 @@ let express           = require('express'),
   
 function addTimelineInfoDetails(req, res, done) {
   let timelineDetails = new TimelineInfo(req.body);
-  timelineDetails.emp_id = req.body.emp_id || req.query.emp_id;
   timelineDetails.createdBy = 1;
 
 timelineDetails.save(function(err, timelineInfoData) {
@@ -48,48 +47,6 @@ timelineDetails.save(function(err, timelineInfoData) {
     }
     auditTrailEntry(timelineDetails.emp_id, "timelineDetails", timelineDetails, "user", "timelineDetails", "ADDED");
     return done(err, timelineInfoData);   
-});
-}
-
-
-function updateTimelineInfoDetails(req, res, done) {
-  let timelineInfo = new TimelineInfo(req.body);
-  timelineInfo.emp_id = req.body.emp_id || req.query.emp_id;
-  timelineInfo.updatedBy = 1;
-
-  //timelineInfo.updatedBy =req.headers[emp_id];
-  let _id = req.body._id;
-  var query = {
-      _id: _id,
-      isDeleted: false
-  }
-
-  var timelineInfoProjection = {
-      createdAt: false,
-      updatedAt: false,
-      isDeleted: false,
-      updatedBy: false,
-      createdBy: false,
-  };
-
-
-TimelineInfo.findOneAndUpdate(query, timelineInfo, {
-  new: true,
-  projection: timelineInfoProjection
-}, function(err, timelineInfoData) {
-  if (err) {
-      return res.status(403).json({
-          title: 'There was a problem',
-          error: {
-              message: err
-          },
-          result: {
-              message: timelineInfoData
-          }
-      });
-  } 
-  auditTrailEntry(timelineInfo.emp_id, "timelineInfo", timelineInfo, "user", "timelineInfo", "UPDATED");
-  return done(err, timelineInfoData);        
 });
 }
 
@@ -137,16 +94,7 @@ let functions = {
         }
       ]);
     },
-    updateTimelineInfo:(req,res )=> {
-      async.waterfall([
-        function(done) {
-          updateTimelineInfoDetails(req,res,done);
-        },
-        function(timelineInfoData,done) {
-          return res.status(200).json(timelineInfoData);
-        }
-      ]);
-    },
+    
     getTimelineInfo: (req, res) => {
         async.waterfall([
             function(done) {

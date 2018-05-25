@@ -5,7 +5,7 @@ let express           = require('express'),
     SupervisorInfo    = require('../models/employee/employeeSupervisorDetails.model'),
     AuditTrail        = require('../models/common/auditTrail.model'),
     EmployeeRoles     = require('../models/employee/employeeRoleDetails.model'),
-    BatchInfo         = require('../models/batch/batchDetails.model'),
+    BatchInfo         = require('../models/workflow/batch.model'),
     config            = require('../config/config'),
     crypto            = require('crypto'),
     async             = require('async'),
@@ -30,69 +30,24 @@ let express           = require('express'),
   
 function addBatchInfoDetails(req, res, done) {
   let batchDetails = new BatchInfo(req.body);
-  batchDetails.emp_id = req.body.emp_id || req.query.emp_id;
-  batchDetails.createdBy = 1;
+  batchDetails.createdBy = parseInt(req.headers.uid);
 
-batchDetails.save(function(err, batchInfoData) {
-    if (err) {
-        return res.status(403).json({
-            title: 'There was a problem',
-            error: {
-                message: err
-            },
-            result: {
-                message: batchInfoData
-            }
-        });
-    }
-    auditTrailEntry(batchDetails.emp_id, "batchDetails", batchDetails, "user", "batchDetails", "ADDED");
-    return done(err, batchInfoData);   
-});
+    batchDetails.save(function(err, batchInfoData) {
+        if (err) {
+            return res.status(403).json({
+                title: 'There was a problem',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: batchInfoData
+                }
+            });
+        }
+        auditTrailEntry(0, "batchDetails", batchDetails, "user", "batchDetails", "ADDED");
+        return done(err, batchInfoData);   
+    });
 }
-
-
-function updateBatchInfoDetails(req, res, done) {
-  let batchInfo = new BatchInfo(req.body);
-  batchInfo.emp_id = req.body.emp_id || req.query.emp_id;
-  batchInfo.updatedBy = 1;
-
-  //batchInfo.updatedBy =req.headers[emp_id];
-  let _id = req.body._id;
-  var query = {
-      _id: _id,
-      isDeleted: false
-  }
-
-  var batchInfoProjection = {
-      createdAt: false,
-      updatedAt: false,
-      isDeleted: false,
-      updatedBy: false,
-      createdBy: false,
-  };
-
-
-BatchInfo.findOneAndUpdate(query, batchInfo, {
-  new: true,
-  projection: batchInfoProjection
-}, function(err, batchInfoData) {
-  if (err) {
-      return res.status(403).json({
-          title: 'There was a problem',
-          error: {
-              message: err
-          },
-          result: {
-              message: batchInfoData
-          }
-      });
-  } 
-  auditTrailEntry(batchInfo.emp_id, "batchInfo", batchInfo, "user", "batchInfo", "UPDATED");
-  return done(err, batchInfoData);        
-});
-}
-
-
 
 function getBatchInfoDetails(req, res) {
   let batchworkflow_id = req.query.batchworkflow_id;
@@ -136,16 +91,7 @@ let functions = {
         }
       ]);
     },
-    updateBatchInfo:(req,res )=> {
-      async.waterfall([
-        function(done) {
-          updateBatchInfoDetails(req,res,done);
-        },
-        function(batchInfoData,done) {
-          return res.status(200).json(batchInfoData);
-        }
-      ]);
-    },
+    
     getBatchInfo: (req, res) => {
         async.waterfall([
             function(done) {
@@ -160,4 +106,5 @@ let functions = {
     },
 
 }
-module.exports = functions;
+module.exports = {functions,addBatchInfoDetails};
+

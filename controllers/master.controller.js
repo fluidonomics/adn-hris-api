@@ -1,6 +1,9 @@
 let express           = require('express'),
     Role              = require('../models/master/role.model'),
     Company           = require('../models/master/company.model'),
+    Facility          = require('../models/master/facility.model'),
+    CompanyBusiness   = require('../models/master/companyBusiness.model'),
+    Document          = require('../models/master/document.model'),
     Division          = require('../models/master/division.model'),
     Department        = require('../models/master/department.model'),
     Vertical          = require('../models/master/vertical.model'),
@@ -72,6 +75,71 @@ let functions = {
       else{
         return res.status(403).json({
           title: 'Add new Company failed!',
+          error: {message: err},
+          result: {message: result}
+        });
+      }
+    });
+  },
+
+  
+  createDocument: (req, res) => {
+    let document=new Document(req.body);
+    //Fill Document Details
+    document.createdBy = req.body.createdBy;
+    document.save(function (err, result) {
+      if(result)
+      {
+        return res.status(200).json({ status : '200',message: 'Document added Successfully',
+        });
+      }
+      else{
+        return res.status(403).json({
+          title: 'Add new Document failed!',
+          error: {message: err},
+          result: {message: result}
+        });
+      }
+    });
+  },
+
+  createFacility: (req, res) => {
+    let facility=new Facility();
+    //Fill Facility Details
+    facility.facilityName = req.body.facilityName;
+    facility.createdBy = req.body.createdBy;
+    //grade.createdBy = req.headers['emp_id'];
+    facility.save(function (err, result) {
+      if(result)
+      {
+        return res.status(200).json({ status : '200',message: 'Facility added Successfully',
+        });
+      }
+      else{
+        return res.status(403).json({
+          title: 'Add new Facility failed!',
+          error: {message: err},
+          result: {message: result}
+        });
+      }
+    });
+  },
+
+  createCompanyBusiness: (req, res) => {
+    let companyBusiness=new CompanyBusiness();
+    //Fill CompanyBusiness Details
+    companyBusiness.companyBusinessName = req.body.companyBusinessName;
+    companyBusiness.createdBy = req.body.createdBy;
+    //grade.createdBy = req.headers['emp_id'];
+    companyBusiness.save(function (err, result) {
+      if(result)
+      {
+        return res.status(200).json({ status : '200',message: 'CompanyBusiness added Successfully',
+        });
+      }
+      else{
+        return res.status(403).json({
+          title: 'Add new CompanyBusiness failed!',
           error: {message: err},
           result: {message: result}
         });
