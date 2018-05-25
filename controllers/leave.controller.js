@@ -20,28 +20,56 @@ let express = require('express'),
     uuidV1 = require('uuid/v1');
 require('dotenv').load()
 function applyLeave(req, res, done) {
-    let leavedetails = new LeaveApply(req.body);
-    leavedetails.emp_id = req.body.emp_id || req.query.emp_id;
-    leavedetails.createdBy = parseInt(req.body.emp_id);
-    leavedetails.fromDate = new Date(req.body.fromDate);
-    leavedetails.toDate = new Date(req.body.toDate);
-    leavedetails.updatedBy = parseInt(req.body.updatedBy);
-    leavedetails.save(function (err, leavesInfoData) {
-        if (err) {
+    const query = {
+        emp_id: req.body.emp_id
+    };
+    LeaveApply.find(query,function(err, details){
+        const sd = new Date(req.body.fromDate),
+        ed = new Date(req.body.toDate);
+        let flag = true;
+        for(let i=0; i<details.length; i++){
+            if( (sd >= details[i].fromDate && ed <= details[i].toDate) ||
+             (sd <= details[i].fromDate && ed >= details[i].fromDate) ||
+              (sd <= details[i].toDate && ed >= details[i].toDate)) {
+               flag = false;
+            }
+        }
+
+        if(flag) {
+            let leavedetails = new LeaveApply(req.body);
+            leavedetails.emp_id = req.body.emp_id || req.query.emp_id;
+            leavedetails.createdBy = parseInt(req.body.emp_id);
+            leavedetails.fromDate = new Date(req.body.fromDate);
+            leavedetails.toDate = new Date(req.body.toDate);
+            leavedetails.updatedBy = parseInt(req.body.updatedBy);
+            leavedetails.save(function (err, leavesInfoData) {
+                if (err) {
+                    return res.status(403).json({
+                        title: 'There is a problem',
+                        error: {
+                            message: err
+                        },
+                        result: {
+                            message: leavesInfoData
+                        }
+                    });
+                }
+                leaveWorkflowDetails(leavesInfoData, req.body.updatedBy, 'applied');
+                return done(err, leavesInfoData);
+            });
+        }else {
             return res.status(403).json({
                 title: 'There is a problem',
                 error: {
-                    message: err
+                    message: 'Already applied'
                 },
                 result: {
-                    message: leavesInfoData
+                    message: 'Already applied'
                 }
             });
         }
-        leaveWorkflowDetails(leavesInfoData, req.body.updatedBy, 'applied');
-        return done(err, leavesInfoData);
-    });
 
+    });
 }
 function getAllEmployeeEmails(req, res) {
     let query = {
