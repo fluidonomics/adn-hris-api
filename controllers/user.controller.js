@@ -2145,7 +2145,7 @@ let functions = {
             }
         ]);
     },
-    getAllEmployee(req, res)
+    getAllEmployee:(req, res)=>
     {
         EmployeeInfo.aggregate([
         {

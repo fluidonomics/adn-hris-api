@@ -13,7 +13,7 @@ let express  = require('express'),
     function ensureAuthenticated(req, res, next) {
       if(req.headers && req.headers['access-token'])
       {
-         let token=req.headers['access-token'];
+        let token=req.headers['access-token'];
         // let token=req.headers.authorization.split(' ');
         jwt.verify(token, process.env.Secret, function(err, decoded) {
           if (err) {
@@ -94,7 +94,7 @@ let express  = require('express'),
   // User Routes
   //= ========================
 
-      apiRoutes.use('/user',ensureAuthenticated, userRoutes);
+      apiRoutes.use('/user', userRoutes);
 
       // Add Employee endpoint: http://localhost:3000/api/user/addEmployee
       userRoutes.post('/addEmployee',ensureAuthenticated, user.addEmployee);
@@ -225,7 +225,7 @@ let express  = require('express'),
 
       userRoutes.get('/getSalaryInfo',ensureAuthenticated,user.getSalaryInfo);
 
-      userRoutes.get('/getAllEmployee',ensureAuthenticated,ensureAuthenticated,user.getAllEmployee);
+      userRoutes.get('/getAllEmployee',ensureAuthenticated,user.getAllEmployee);
       
       userRoutes.get('/getCarInfo',ensureAuthenticated,user.getCarInfo);
 
@@ -244,7 +244,7 @@ let express  = require('express'),
   // Kra Routes 
   //= ========================
 
-    apiRoutes.use('/kra',ensureAuthenticated, kraRoutes);
+    apiRoutes.use('/kra', kraRoutes);
 
     kraRoutes.post('/addKraInfo',ensureAuthenticated, kra.addKraInfo);
 
@@ -285,7 +285,7 @@ let express  = require('express'),
   //= ========================
 
     // User Auth Routes endpoint: http://localhost:3000/api/auth
-   apiRoutes.use('/master', ensureAuthenticated, masterRoutes);
+   apiRoutes.use('/master', masterRoutes);
 
    // Register endpoint: http://localhost:3000/api/master/createGrade
    masterRoutes.post('/createRole',ensureAuthenticated, master.createRole);
@@ -354,7 +354,7 @@ let express  = require('express'),
   // Common Data For All (Dropdowns) Data Routes
   //= ========================
 
-    apiRoutes.use('/common',ensureAuthenticated, commonRoutes);
+    apiRoutes.use('/common', commonRoutes);
 
     commonRoutes.get('/getRole',ensureAuthenticated, common.getRole);
 
@@ -413,7 +413,7 @@ let express  = require('express'),
 //=========================
 // External Documents Routes
 //=========================
-apiRoutes.use('/externalDocument',ensureAuthenticated, externalDocumentRoutes);
+apiRoutes.use('/externalDocument', externalDocumentRoutes);
 
 externalDocumentRoutes.post('/addEmployeeExternalDocumentInfo',ensureAuthenticated, externalDocument.addEmployeeExternalDocumentInfo);
 
