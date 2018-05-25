@@ -413,11 +413,13 @@ let express  = require('express'),
 //=========================
 // External Documents Routes
 //=========================
-apiRoutes.use('/externalDocument', externalDocumentRoutes);
+apiRoutes.use('/externalDocument',ensureAuthenticated, externalDocumentRoutes);
 
-externalDocumentRoutes.post('/addEmployeeExternalDocumentInfo', externalDocument.addEmployeeExternalDocumentInfo);
+externalDocumentRoutes.post('/addEmployeeExternalDocumentInfo',ensureAuthenticated, externalDocument.addEmployeeExternalDocumentInfo);
 
-externalDocumentRoutes.get('/getEmployeeExternalDocumentInfo', externalDocument.getEmployeeExternalDocumentInfo);
+externalDocumentRoutes.post('/updateEmployeeExternalDocumentInfo',ensureAuthenticated, externalDocument.updateEmployeeExternalDocumentInfo);
+
+externalDocumentRoutes.get('/getEmployeeExternalDocumentInfo',ensureAuthenticated, externalDocument.getEmployeeExternalDocumentInfo);
   
 
 

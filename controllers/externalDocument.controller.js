@@ -49,6 +49,44 @@ employeeExternalDocumentDetails.save(function(err, employeeExternalDocumentInfoD
 
 
 
+function updateEmployeeExternalDocumentInfoDetails(req, res, done) {
+    let employeeExternalDocumentDetails = new EmployeeExternalDocumentInfo(req.body);
+    employeeExternalDocumentDetails.updatedBy =  parseInt(req.headers.uid);
+    employeeExternalDocumentDetails.isCompleted = true;
+
+    let _id = req.body._id;
+    var query = {
+        _id: _id,
+        isDeleted: false
+    }
+
+    var employeeExternalDocumentInfoProjection = {
+        createdAt: false,
+        updatedAt: false,
+        isDeleted: false,
+        updatedBy: false,
+        createdBy: false,
+    };
+
+    EmployeeExternalDocumentInfo.findOneAndUpdate(query, employeeExternalDocumentDetails, {
+        new: true,
+        projection: employeeExternalDocumentInfoProjection
+    }, function(err, employeeExternalDocumentDetailsData) {
+        if (err) {
+            return res.status(403).json({
+                title: 'There was a problem',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: employeeExternalDocumentDetailsData
+                }
+            });
+        }
+        auditTrailEntry(employeeExternalDocumentDetails.emp_id, "employeeExternalDocumentDetails", employeeExternalDocumentDetails, "user", "employeeExternalDocumentDetails", "UPDATED");
+        return done(err, employeeExternalDocumentDetailsData);
+    });
+}
 
 
 function getEmployeeExternalDocumentInfoDetails(req, res) {
@@ -70,7 +108,7 @@ function getEmployeeExternalDocumentInfoDetails(req, res) {
         {"$project":{
             "_id":"$_id",
             "emp_id":"$emp_id",
-            "employteeExternalDocumentUrl":"$externalDocumentUrl",
+            "employeeExternalDocumentUrl":"$externalDocumentUrl",
             "document_id":"$documents._id",
             "documentName":"$documents.documentName",
             "documentUrl":"$documents.documentUrl"
@@ -129,6 +167,18 @@ let functions = {
         }
       ]);
     },
+
+
+    updateEmployeeExternalDocumentInfo:(req,res )=> {
+        async.waterfall([
+          function(done) {
+            updateEmployeeExternalDocumentInfoDetails(req,res,done);
+          },
+          function(employeeExternalDocumentInfoData,done) {
+            return res.status(200).json(employeeExternalDocumentInfoData);
+          }
+        ]);
+      },
     
     getEmployeeExternalDocumentInfo: (req, res) => {
         async.waterfall([
