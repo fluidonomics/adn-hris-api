@@ -58,7 +58,8 @@ function applyLeave(req, res, done) {
                 var ccToList = req.body.ccTo.split(',');
                 ccToList.forEach((x)=>{
                     try{
-                    sendToCCEmail("1",x.trim);}
+                        var emailWithName = x.split('~');
+                    sendToCCEmail(emailWithName[1],emailWithName[0]);}
                     catch(e){
                         debugger;
                     }
@@ -80,40 +81,45 @@ function applyLeave(req, res, done) {
     });
 }
 function getAllEmployeeEmails(req, res) {
-    let query = {
-        isDeleted: false
-    };
-    var personalInfoProjection = {
-        createdAt: false,
-        updatedAt: false,
-        isDeleted: false,
-        updatedBy: false,
-        createdBy: false,
-        emergencyContactNumber: false,
-        emergencyContactPerson: false,
-        maritialStatus: false,
-        fatherName: false,
-        motherName: false,
-        homePhone: false,
-        nationality: false,
-        religion: false,
-        bloodGroup: false,
-        dob: false,
-        personalMobileNumber: false,
-        isCompleted: false
-    };
-    PersonalInfo.find(query, personalInfoProjection, function (err, personalEmpDetails) {
+
+    PersonalInfo.aggregate([
+        {
+            "$lookup": {
+                "from": "employeedetails",
+                "localField": "emp_id",
+                "foreignField": "_id",
+                "as": "emp_name"
+            }
+        },
+        {
+            "$unwind": {
+                path: "$emp_name",
+                "preserveNullAndEmptyArrays": true
+            }
+        },        
+        { "$match": { "isDeleted": false} },
+        {
+            "$project": {
+                "_id": "$_id",
+                "emp_id": "$emp_id",
+                "emp_name": "$emp_name.fullName",
+                "personalEmail": "$personalEmail"
+            }
+        }
+
+    ]).exec(function (err, results) {
         if (err) {
             return res.status(403).json({
-                title: 'There was an error, please try again later',
-                error: err
+                title: 'There is a problem',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: results
+                }
             });
         }
-        // var finalResponse;
-        // finalResponse._id = personalEmpDetails._id;
-        // finalResponse.emp_id = personalEmpDetails.emp_id;
-        // finalResponse.personalEmail = personalEmpDetails.personalEmail;
-        return res.status(200).json(personalEmpDetails);
+        return res.status(200).json({ "data": results });
     });
 }
 function cancelLeave(req, res, done) {
