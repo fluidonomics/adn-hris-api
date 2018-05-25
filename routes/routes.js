@@ -92,7 +92,7 @@ let express  = require('express'),
   // User Routes
   //= ========================
 
-      apiRoutes.use('/user', userRoutes);
+      apiRoutes.use('/user',ensureAuthenticated, userRoutes);
 
       // Add Employee endpoint: http://localhost:3000/api/user/addEmployee
       userRoutes.post('/addEmployee',ensureAuthenticated, user.addEmployee);
@@ -227,7 +227,7 @@ let express  = require('express'),
       
       userRoutes.get('/getCarInfo',ensureAuthenticated,user.getCarInfo);
 
-      userRoutes.get('/getSupervisorInfo',user.getSupervisorInfo);
+      userRoutes.get('/getSupervisorInfo', ensureAuthenticated, user.getSupervisorInfo);
   //= ========================
 
   // Administrator Routes
@@ -241,7 +241,7 @@ let express  = require('express'),
   // Kra Routes 
   //= ========================
 
-    apiRoutes.use('/kra', kraRoutes);
+    apiRoutes.use('/kra',ensureAuthenticated, kraRoutes);
 
     kraRoutes.post('/addKraInfo',ensureAuthenticated, kra.addKraInfo);
 
@@ -273,7 +273,6 @@ let express  = require('express'),
     
     kraRoutes.get('/getKraInfo',ensureAuthenticated, kra.getKraWorkFlowInfo);
 
-
     kraRoutes.post('/addBulkKra',ensureAuthenticated, kra.addBulkKra);
 
 
@@ -283,13 +282,16 @@ let express  = require('express'),
   //= ========================
 
     // User Auth Routes endpoint: http://localhost:3000/api/auth
-   apiRoutes.use('/master',ensureAuthenticated, masterRoutes);
+   apiRoutes.use('/master', ensureAuthenticated, masterRoutes);
 
    // Register endpoint: http://localhost:3000/api/master/createGrade
    masterRoutes.post('/createRole',ensureAuthenticated, master.createRole);
 
    // Register endpoint: http://localhost:3000/api/master/createCompany
    masterRoutes.post('/createCompany',ensureAuthenticated, master.createCompany);
+
+   // Register endpoint: http://localhost:3000/api/master/createDocument
+   masterRoutes.post('/createDocument',ensureAuthenticated,  master.createDocument);
 
    // Register endpoint: http://localhost:3000/api/master/createCompany
    masterRoutes.post('/createFacility',ensureAuthenticated, master.createFacility);
@@ -349,11 +351,13 @@ let express  = require('express'),
   // Common Data For All (Dropdowns) Data Routes
   //= ========================
 
-    apiRoutes.use('/common', commonRoutes);
+    apiRoutes.use('/common',ensureAuthenticated, commonRoutes);
 
     commonRoutes.get('/getRole',ensureAuthenticated, common.getRole);
 
     commonRoutes.get('/getCompany',ensureAuthenticated, common.getCompany);
+
+    commonRoutes.get('/getDocument',ensureAuthenticated, common.getDocument);
 
     commonRoutes.get('/getFacility',ensureAuthenticated, common.getFacility);
 

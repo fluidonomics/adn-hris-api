@@ -2,7 +2,8 @@ let express           = require('express'),
     Role              = require('../models/master/role.model'),
     Company           = require('../models/master/company.model'),
     Facility          = require('../models/master/facility.model'),
-    CompanyBusiness    = require('../models/master/companyBusiness.model'),
+    CompanyBusiness   = require('../models/master/companyBusiness.model'),
+    Document          = require('../models/master/document.model'),
     Division          = require('../models/master/division.model'),
     Department        = require('../models/master/department.model'),
     Vertical          = require('../models/master/vertical.model'),
@@ -74,6 +75,27 @@ let functions = {
       else{
         return res.status(403).json({
           title: 'Add new Company failed!',
+          error: {message: err},
+          result: {message: result}
+        });
+      }
+    });
+  },
+
+  
+  createDocument: (req, res) => {
+    let document=new Document(req.body);
+    //Fill Document Details
+    document.createdBy = req.body.createdBy;
+    document.save(function (err, result) {
+      if(result)
+      {
+        return res.status(200).json({ status : '200',message: 'Document added Successfully',
+        });
+      }
+      else{
+        return res.status(403).json({
+          title: 'Add new Document failed!',
           error: {message: err},
           result: {message: result}
         });
