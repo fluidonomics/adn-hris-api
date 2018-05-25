@@ -1362,7 +1362,8 @@ let functions = {
                     // Stage 1
                     {
                         $match: {
-                            "emp_id": empId
+                            "emp_id": empId,
+                            "isApproved": true
                         }
                     },
             
@@ -1402,9 +1403,10 @@ let functions = {
                     }
                     let response = [];
                     results2.forEach( (result) => {
-                        const obj = {
+                        const balLeaveObj = results1.find(x => x.leave_type===result._id),
+                        obj = {
                             'leaveType': result._id,
-                            'leaveBalance': result.totalAppliedLeaves
+                            'leaveBalance': (balLeaveObj.balance - result.totalAppliedLeaves)
                         };
                         response.push(obj);    
                     });
