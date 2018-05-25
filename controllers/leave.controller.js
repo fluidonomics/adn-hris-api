@@ -347,6 +347,7 @@ function applyLeaveSupervisor(req, res, done) {
     leavedetails.updatedDate = new Date();
     leavedetails.updatedBy = parseInt(req.body.emp_id);
     leavedetails.isApproved = req.body.isApproved;
+    leavedetails.remark = req.body.remark;
     LeaveApply.findOneAndUpdate(query, leavedetails, {
         new: true,
         projection: leaveProjection
