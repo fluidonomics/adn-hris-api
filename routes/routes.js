@@ -295,6 +295,7 @@ let express  = require('express'),
   leaveRoutes.get('/getLeaveWorkflowDetails', leave.getLeaveWorkflowDetails);
   leaveRoutes.get('/getSupervisorLeaveDetails', leave.getSupervisorLeaveDetails);
   leaveRoutes.get('/getHRLeaveDetails', leave.getHRLeaveDetails);
+  leaveRoutes.get('/getLeaveDetailsById', leave.getLeaveDetailsById);
   leaveRoutes.post('/grantLeaveByEmployee', leave.grantLeaveByEmployee);
   leaveRoutes.post('/grantLeaveByDepartment', leave.grantLeaveByDepartment);
   leaveRoutes.post('/grantLeaveAllEmployee', leave.grantLeaveAllEmployee);

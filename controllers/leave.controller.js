@@ -1489,8 +1489,118 @@ let functions = {
                 })
         });
     },
-    sendEmail: (req, res) =>{
+    getLeaveDetailsById: (req, res) =>{
+        LeaveApply.aggregate([
+            {
+                "$lookup": {
+                    "from": "employeedetails",
+                    "localField": "emp_id",
+                    "foreignField": "_id",
+                    "as": "emp_name"
+                }
+            },
+            {
+                "$unwind": {
+                    path: "$emp_name",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "employeedetails",
+                    "localField": "forwardTo",
+                    "foreignField": "_id",
+                    "as": "forwardTo_name"
+                }
+            },
+            {
+                "$unwind": {
+                    path: "$forwardTo_name",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "employeedetails",
+                    "localField": "applyTo",
+                    "foreignField": "_id",
+                    "as": "sup_name"
+                }
+            },
+            {
+                "$unwind": {
+                    path: "$sup_name",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "employeedetails",
+                    "localField": "cancelLeaveApplyTo",
+                    "foreignField": "_id",
+                    "as": "cancelLeave_ApplyTo"
+                }
+            },
+            {
+                "$unwind": {
+                    path: "$cancelLeave_ApplyTo",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "leaveTypes",
+                    "localField": "leave_type",
+                    "foreignField": "_id",
+                    "as": "leaveTypes"
+                }
+            },
+            {
+                "$unwind": {
+                    path: "$leaveTypes",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            { "$match": { "isDeleted": false, "_id": parseInt(req.query.id) } },
+            {
+                "$project": {
+                    "_id": "$_id",
+                    "emp_id": "$emp_id",
+                    "emp_name": "$emp_name.fullName",
+                    "leave_type": "$leave_type",
+                    "leave_type_name": "$leaveTypes.type",
+                    "forwardTo": "$forwardTo",
+                    "forwardTo_FullName": "$forwardTo_name.fullName",
+                    "remark": "$remark",
+                    "cancelLeaveApplyTo": "$cancelLeaveApplyTo",
+                    "cancelLeaveApplyTo_name": "$cancelLeave_ApplyTo.fullName",
+                    "cancelReason": "$cancelReason",
+                    "isCancelled": "$isCancelled",
+                    "isApproved": "$isApproved",
+                    "ccTo": "$ccTo",
+                    "contactDetails": "$contactDetails",
+                    "applyTo": "$applyTo",
+                    "applyTo_name": "$sup_name.fullName",
+                    "toDate": "$toDate",
+                    "fromDate": "$fromDate"
 
+                }
+            }
+
+        ]).exec(function (err, results) {
+            if (err) {
+                return res.status(403).json({
+                    title: 'There is a problem',
+                    error: {
+                        message: err
+                    },
+                    result: {
+                        message: results
+                    }
+                });
+            }
+            return res.status(200).json({ "data": results });
+        });
         
     }
 }
