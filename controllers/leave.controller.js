@@ -406,6 +406,41 @@ function sendToCCEmail(emp, toemail) {
     // send mail with defined transport object
     transporter.sendMail(mailOptions);
 }
+function getApprovedLeavesByMonth(appliedLeaves, res) {
+    let monthlyLeaves = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    appliedLeaves.forEach( (leave) => {
+        const fromDtMonth = getMonthFromDate(leave.fromDate),
+        toDtMonth = getMonthFromDate(leave.toDate);
+        if(fromDtMonth === toDtMonth){
+            let noOfLeaves = (getDayFromDate(leave.toDate) - getDayFromDate(leave.fromDate)) + 1,
+            d = new Date(leave.fromDate);
+            monthlyLeaves[d.getUTCMonth()] += noOfLeaves;
+        } else {
+            const monthDiff = toDtMonth - fromDtMonth;
+            const d = new Date(leave.fromDate),
+                lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0);
+                monthlyLeaves[d.getUTCMonth()] += (lastDay.getDate() - getDayFromDate(leave.fromDate) + 1);
+                monthlyLeaves[new Date(leave.toDate).getUTCMonth()] += getDayFromDate(leave.toDate);
+            for(let i=1; i<monthDiff; i++) { 
+                const str = fromDtMonth + i + '/01/' + d.getFullYear(),
+                dt = new Date(str),
+                lstDy = new Date(dt.getFullYear(), dt.getMonth() + 1, 0);
+                monthlyLeaves[new Date(leave.fromDate).getUTCMonth()+i]  += lstDy.getDate();
+            }
+        }
+    });
+    return res.status(200).json(monthlyLeaves);
+}
+function getMonthFromDate(date) {
+    let d = new Date(date);
+    return (d.getUTCMonth()+1);
+}
+function getDayFromDate(date) {
+    let d = new Date(date);
+    return d.getUTCDate();
+}
+
+
 let functions = {
     postApplyLeave: (req, res) => {
         async.waterfall([
@@ -1602,6 +1637,25 @@ let functions = {
             return res.status(200).json({ "data": results });
         });
         
+    },
+    getLeavesByMonth: (req, res) => {
+        const query = {
+            "isApproved": null
+        };
+        LeaveApply.find(query, function(err, appliedLeaves){
+            if(err){
+                return res.status(403).json({
+                    title: 'Error',
+                    error: {
+                        message: err
+                    },
+                    result: {
+                        message: appliedLeaves
+                    }
+                });
+            }
+            getApprovedLeavesByMonth(appliedLeaves, res);
+        });
     }
 }
 

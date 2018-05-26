@@ -306,7 +306,7 @@ let express  = require('express'),
   leaveRoutes.post('/updateLeaveHoliday', leave.updateHoliday);
   leaveRoutes.post('/removeLeaveHoliday', leave.removeHoliday);
   leaveRoutes.post('/postAcceptRejectLeave', leave.postAcceptRejectLeave);
-  leaveRoutes.post('/postAcceptRejectLeave', leave.postAcceptRejectLeave);
+  leaveRoutes.get('/getLeavesByMonth', leave.getLeavesByMonth);
   
   // leaveRoutes.post('/updateLeave', kra.postUpdateLeave);
 
