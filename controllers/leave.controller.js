@@ -439,7 +439,17 @@ function getDayFromDate(date) {
     let d = new Date(date);
     return d.getUTCDate();
 }
-
+function getLeavesByType(leaveTypesData, appliedLeaves, res) {
+    let response = [];
+    leaveTypesData.forEach( (type) => {
+        const leaves = appliedLeaves.filter( leave => (leave.leave_type == type.id));
+        response.push({
+            "types": type.type,
+            "leaves": leaves
+        })
+    });
+    return res.status(200).json(response);
+}
 
 let functions = {
     postApplyLeave: (req, res) => {
@@ -1656,6 +1666,44 @@ let functions = {
             }
             getApprovedLeavesByMonth(appliedLeaves, res);
         });
+    },
+    getLeavesByLeaveType: (req, res) => {
+        let query = {
+            'isDeleted': false
+        };
+        LeaveTypes.find(query, function (err, leaveTypesData) {
+            if (leaveTypesData) {
+                const query = {
+                    "isApproved": null
+                };
+                LeaveApply.find(query, function(err1, appliedLeaves){
+                    if(err1){
+                        return res.status(403).json({
+                            title: 'Error',
+                            error: {
+                                message: err
+                            },
+                            result: {
+                                message: appliedLeaves
+                            }
+                        });
+                    }
+                    getLeavesByType(leaveTypesData, appliedLeaves, res);
+                });
+            }
+            if(err){
+                return res.status(403).json({
+                    title: 'Error',
+                    error: {
+                        message: err
+                    },
+                    result: {
+                        message: leaveTypesData
+                    }
+                });
+            }
+           
+        })
     }
 }
 
