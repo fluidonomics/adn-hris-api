@@ -18,6 +18,7 @@ let express           = require('express'),
     PerformanceRatingInfo = require('../models/employee/employeePerformanceRatingDetails.model'),
     ProfileProcessInfo = require('../models/employee/employeeProfileProcessDetails.model'),
     PerformanceRatingMaster = require('../models/master/performanceRating.model'),
+    ExternalDocument= require('../models/employee/employeeExternalDocumentDetails.model'),
     config            = require('../config/config'),
     crypto            = require('crypto'),
     async             = require('async'),
@@ -1060,6 +1061,20 @@ function addEmpRoles(i, req, res, emp) {
         }
     });
 }
+
+function addDocuments(i, req, emp_id) {
+    let externalDocument = new ExternalDocument();
+    externalDocument.emp_id = emp_id;
+    externalDocument.externalDocument_id = parseInt(req.body.documents[i]);
+    externalDocument.createdBy = parseInt(req.headers.uid);
+    externalDocument.save(function(err, documentData) {
+        auditTrailEntry(emp_id, "user", externalDocument, "addDocuments", "Documents added for the Employee");
+        if ((i + 1) < req.body.documents.length) {
+            addDocuments(i + 1, req, emp_id);
+        }
+    });
+}
+
 
 function fnSaveBulkPerformanceRating(index,req,res)
 {
@@ -2108,6 +2123,10 @@ let functions = {
                         req.body.roles=[5];
                         auditTrailEntry(emp._id, "employee", emp, "user", "addEmployee", "Employee Added");
                         addEmpRoles(0, req, res, emp);
+                        if(req.body.documents.length>0)
+                        {
+                          addDocuments(0,req,emp._id);
+                        }
                         req.body.emp_id = emp._id;
                         sendWelComeEmail(emp, req.body.personalEmail);
                         async.parallel([
