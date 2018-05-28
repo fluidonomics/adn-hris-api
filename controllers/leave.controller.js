@@ -2,7 +2,7 @@ let express = require('express'),
 
     LeaveWorkflowHistory = require('../models/leave/leaveWorkflowHistory.model'),
     LeaveApply = require('../models/leave/leaveApply.model'),
-    LeaveHoliday = require('../models/leave/leaveholiday.model'),    
+    LeaveHoliday = require('../models/leave/leaveHoliday.model'),    
     LeaveTransactionType = require('../models/leave/leaveTransactioType.model'),
     PersonalInfo = require('../models/employee/employeePersonalDetails.model'),
     LeaveTypes = require('../models/leave/leaveTypes.model'),
@@ -192,25 +192,59 @@ function grantLeaveEmployee(req, res, done) {
     _leaveBalance.emp_id = parseInt(req.body.emp_id);
     _leaveBalance.leave_type = parseInt(req.body.leave_type);
     _leaveBalance.lapseDate = new Date(req.body.lapseDate);
-    _leaveBalance.createdDate = new Date(req.body.createdDate);
-    _leaveBalance.updatedDate = new Date(req.body.updatedDate);
+    _leaveBalance.createdDate = new Date();
+    _leaveBalance.updatedDate = new Date();
     _leaveBalance.balance = parseInt(req.body.balance);
     _leaveBalance.updatedBy = parseInt(req.body.updatedBy);
     _leaveBalance.createdBy = parseInt(req.body.emp_id);
-    _leaveBalance.save(function (err, _leaveBalanceResponse) {
-        if (err) {
-            return res.status(403).json({
-                title: 'There is a problem',
-                error: {
-                    message: err
-                },
-                result: {
-                    message: _leaveBalanceResponse
-                }
-            });
+    var query = {
+        isDeleted: false, 
+        leave_type: parseInt(req.body.leave_type),
+        emp_id: parseInt(req.body.emp_id)
+    };
+    var leaveGrantProjection = {
+        createdAt: false
+    };
+    LeaveBalance.find(query, leaveGrantProjection, {
+        sort: {
+            _id: 1
         }
-        return done(err, _leaveBalanceResponse);
+    }, function(err, leaveData){
+        if(leaveData) {
+            let validationFailed = false;
+            leaveData.forEach((x) => {
+                if(x.leave_type == 1 || x.leave_type == 0){
+                        validationFailed = true;
+                }
+            })
+            if(validationFailed){
+                return res.status(403).json({
+                    title: leaveData.leave_type == 1 ?  'Annual leave can be granted only once in a year' : 'Annual leave can be granted only once in a year',
+                    error: {
+                        message: leaveData.leave_type == 1 ?  'Annual leave can be granted only once in a year' : 'Annual leave can be granted only once in a year'
+                    },
+                    result: {
+                        message: leaveData.leave_type == 1 ?  'Annual leave can be granted only once in a year' : 'Annual leave can be granted only once in a year'
+                    }
+                })
+            }
+        }
+        _leaveBalance.save(function (err, _leaveBalanceResponse) {
+            if (err) {
+                return res.status(403).json({
+                    title: 'There is a problem',
+                    error: {
+                        message: err
+                    },
+                    result: {
+                        message: _leaveBalanceResponse
+                    }
+                });
+            }
+            return done(err, _leaveBalanceResponse);
+        });
     });
+    
 }
 function grantLeaveDepartment(req, res, done) {
     let departmentId = parseInt(req.body.department_id);
