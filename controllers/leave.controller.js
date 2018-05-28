@@ -221,7 +221,7 @@ function grantLeaveEmployee(req, res, done) {
                 }
             })
             if (validationFailed) {
-                return res.status(403).json({
+                return res.status(500).json({
                     title: leaveData.leave_type == 1 ? 'Annual leave can be granted only once in a year' : 'Annual leave can be granted only once in a year',
                     error: {
                         message: leaveData.leave_type == 1 ? 'Annual leave can be granted only once in a year' : 'Annual leave can be granted only once in a year'
