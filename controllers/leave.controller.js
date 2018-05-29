@@ -1613,8 +1613,8 @@ let functions = {
                     // Stage 1
                     {
                         $match: {
-                            "emp_id": empId,
-                            "isApproved": true
+                            "emp_id": empId
+                            // "isApproved": true
                         }
                     },
 
@@ -1628,7 +1628,7 @@ let functions = {
                     // Stage 3
                     {
                         $addFields: {
-                            "intDate": { $divide: ["$diffDate", 86400000] }
+                            "intDate": { $add: [{ $divide: ["$diffDate", 86400000] }, 1]}
                         }
                     },
 
