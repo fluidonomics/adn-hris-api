@@ -9,9 +9,9 @@ let express = require('express'),
     Department = require('../models/master/department.model'),
     OfficeDetails = require('../models/employee/employeeOfficeDetails.model'),
     LeaveBalance = require('../models/leave/EmployeeLeaveBalance.model'),
-    EmployeeRoles    = require('../models/master/role.model'),
+    EmployeeRoles = require('../models/master/role.model'),
     Employee = require('../models/employee/employeeDetails.model');
-    config = require('../config/config'),
+config = require('../config/config'),
     crypto = require('crypto'),
     async = require('async'),
     nodemailer = require('nodemailer'),
@@ -23,19 +23,19 @@ function applyLeave(req, res, done) {
     const query = {
         emp_id: req.body.emp_id
     };
-    LeaveApply.find(query,function(err, details){
+    LeaveApply.find(query, function (err, details) {
         const sd = new Date(req.body.fromDate),
-        ed = new Date(req.body.toDate);
+            ed = new Date(req.body.toDate);
         let flag = true;
-        for(let i=0; i<details.length; i++){
-            if( (sd >= details[i].fromDate && ed <= details[i].toDate) ||
-             (sd <= details[i].fromDate && ed >= details[i].fromDate) ||
-              (sd <= details[i].toDate && ed >= details[i].toDate)) {
-               flag = false;
+        for (let i = 0; i < details.length; i++) {
+            if ((sd >= details[i].fromDate && ed <= details[i].toDate) ||
+                (sd <= details[i].fromDate && ed >= details[i].fromDate) ||
+                (sd <= details[i].toDate && ed >= details[i].toDate)) {
+                flag = false;
             }
         }
 
-        if(flag) {
+        if (flag) {
             let leavedetails = new LeaveApply(req.body);
             leavedetails.emp_id = req.body.emp_id || req.query.emp_id;
             leavedetails.createdBy = parseInt(req.body.emp_id);
@@ -55,18 +55,21 @@ function applyLeave(req, res, done) {
                     });
                 }
                 leaveWorkflowDetails(leavesInfoData, req.body.updatedBy, 'applied');
-                var ccToList = req.body.ccTo.split(',');
-                ccToList.forEach((x)=>{
-                    try{
-                        var emailWithName = x.split('~');
-                    sendToCCEmail(emailWithName[1],emailWithName[0]);}
-                    catch(e){
-                        debugger;
-                    }
-                })
+                if (req.body.ccTo != "") {
+                    var ccToList = req.body.ccTo.split(',');
+                    ccToList.forEach((x) => {
+                        try {
+                            var emailWithName = x.split('~');
+                            sendToCCEmail(emailWithName[1], emailWithName[0]);
+                        }
+                        catch (e) {
+
+                        }
+                    })
+                }
                 return done(err, leavesInfoData);
             });
-        }else {
+        } else {
             return res.status(403).json({
                 title: 'There is a problem',
                 error: {
@@ -96,8 +99,8 @@ function getAllEmployeeEmails(req, res) {
                 path: "$emp_name",
                 "preserveNullAndEmptyArrays": true
             }
-        },        
-        { "$match": { "isDeleted": false} },
+        },
+        { "$match": { "isDeleted": false } },
         {
             "$project": {
                 "_id": "$_id",
@@ -192,25 +195,59 @@ function grantLeaveEmployee(req, res, done) {
     _leaveBalance.emp_id = parseInt(req.body.emp_id);
     _leaveBalance.leave_type = parseInt(req.body.leave_type);
     _leaveBalance.lapseDate = new Date(req.body.lapseDate);
-    _leaveBalance.createdDate = new Date(req.body.createdDate);
-    _leaveBalance.updatedDate = new Date(req.body.updatedDate);
+    _leaveBalance.createdDate = new Date();
+    _leaveBalance.updatedDate = new Date();
     _leaveBalance.balance = parseInt(req.body.balance);
     _leaveBalance.updatedBy = parseInt(req.body.updatedBy);
     _leaveBalance.createdBy = parseInt(req.body.emp_id);
-    _leaveBalance.save(function (err, _leaveBalanceResponse) {
-        if (err) {
-            return res.status(403).json({
-                title: 'There is a problem',
-                error: {
-                    message: err
-                },
-                result: {
-                    message: _leaveBalanceResponse
-                }
-            });
+    var query = {
+        isDeleted: false,
+        leave_type: parseInt(req.body.leave_type),
+        emp_id: parseInt(req.body.emp_id)
+    };
+    var leaveGrantProjection = {
+        createdAt: false
+    };
+    LeaveBalance.find(query, leaveGrantProjection, {
+        sort: {
+            _id: 1
         }
-        return done(err, _leaveBalanceResponse);
+    }, function (err, leaveData) {
+        if (leaveData) {
+            let validationFailed = false;
+            leaveData.forEach((x) => {
+                if (x.leave_type == 1 || x.leave_type == 0) {
+                    validationFailed = true;
+                }
+            })
+            if (validationFailed) {
+                return res.status(500).json({
+                    title: leaveData.leave_type == 1 ? 'Annual leave can be granted only once in a year' : 'Annual leave can be granted only once in a year',
+                    error: {
+                        message: leaveData.leave_type == 1 ? 'Annual leave can be granted only once in a year' : 'Annual leave can be granted only once in a year'
+                    },
+                    result: {
+                        message: leaveData.leave_type == 1 ? 'Annual leave can be granted only once in a year' : 'Annual leave can be granted only once in a year'
+                    }
+                })
+            }
+        }
+        _leaveBalance.save(function (err, _leaveBalanceResponse) {
+            if (err) {
+                return res.status(403).json({
+                    title: 'There is a problem',
+                    error: {
+                        message: err
+                    },
+                    result: {
+                        message: _leaveBalanceResponse
+                    }
+                });
+            }
+            return done(err, _leaveBalanceResponse);
+        });
     });
+
 }
 function grantLeaveDepartment(req, res, done) {
     let departmentId = parseInt(req.body.department_id);
@@ -237,21 +274,47 @@ function grantLeaveDepartment(req, res, done) {
     });
 }
 function addLeaveBlance(empIdCollection, req, res, appliedFor) {
-
     let saveEmployeeLeaveBalance = function (i) {
         if (i < empIdCollection.length) {
-            new LeaveBalance({
-                emp_id: appliedFor === "employee" ? empIdCollection[i].id : empIdCollection[i].emp_id,
+            var query = {
+                isDeleted: false,
                 leave_type: parseInt(req.body.leave_type),
-                lapseDate: new Date(req.body.lapseDate),
-                createdDate: new Date(req.body.createdDate),
-                updatedDate: new Date(req.body.updatedDate),
-                balance: parseInt(req.body.balance),
-                updatedBy: parseInt(req.body.updatedBy),
-                createdBy: parseInt(req.body.createdBy)
-            }).save((x, err) => {
-                saveEmployeeLeaveBalance(i + 1);
-            })
+                emp_id: parseInt(appliedFor === "employee" ? empIdCollection[i].id : empIdCollection[i].emp_id)
+            };
+            var leaveGrantProjection = {
+                createdAt: false
+            };
+            LeaveBalance.find(query, leaveGrantProjection, {
+                sort: {
+                    _id: 1
+                }
+            }, function (err, leaveData) {
+                if (leaveData) {
+                    let validationFailed = false;
+                    leaveData.forEach((x) => {
+                        if (x.leave_type == 1 || x.leave_type == 0) {
+                            validationFailed = true;
+                        }
+                    })
+                    if (validationFailed) {
+                        saveEmployeeLeaveBalance(i + 1);
+                    }
+                }
+                new LeaveBalance({
+                    emp_id: appliedFor === "employee" ? empIdCollection[i].id : empIdCollection[i].emp_id,
+                    leave_type: parseInt(req.body.leave_type),
+                    lapseDate: new Date(req.body.lapseDate),
+                    createdDate: new Date(req.body.createdDate),
+                    updatedDate: new Date(req.body.updatedDate),
+                    balance: parseInt(req.body.balance),
+                    updatedBy: parseInt(req.body.updatedBy),
+                    createdBy: parseInt(req.body.createdBy)
+                }).save((x, err) => {
+                    saveEmployeeLeaveBalance(i + 1);
+                })
+            });
+
+            
         } else {
             res.status(200).send();
         }
@@ -303,7 +366,7 @@ function updateHoliday(req, res, done) {
     let query = {
         _id: parseInt(req.body._id)
     }
-    LeaveHoliday.findOneAndUpdate(query, holidayDetails, function(err, leaveHolidayDetails){
+    LeaveHoliday.findOneAndUpdate(query, holidayDetails, function (err, leaveHolidayDetails) {
         if (err) {
             return res.status(403).json({
                 title: 'There was a problem',
@@ -323,7 +386,7 @@ function removeHoliday(req, res, done) {
     let query = {
         _id: parseInt(req.body._id)
     }
-    LeaveHoliday.findOneAndRemove(query, holidayDetails, function(err, leaveHolidayDetails){
+    LeaveHoliday.findOneAndRemove(query, holidayDetails, function (err, leaveHolidayDetails) {
         if (err) {
             return res.status(403).json({
                 title: 'There was a problem',
@@ -399,7 +462,7 @@ function sendToCCEmail(emp, toemail) {
         context: {
             fullName: emp.fullName,
             userName: emp.userName,
-            redirectUrl:process.env.HostUrl +"/reset/" + emp.resetPasswordToken,
+            redirectUrl: process.env.HostUrl + "/reset/" + emp.resetPasswordToken,
             uid: uuidV1()
         }
     };
@@ -408,24 +471,24 @@ function sendToCCEmail(emp, toemail) {
 }
 function getApprovedLeavesByMonth(appliedLeaves, res) {
     let monthlyLeaves = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-    appliedLeaves.forEach( (leave) => {
+    appliedLeaves.forEach((leave) => {
         const fromDtMonth = getMonthFromDate(leave.fromDate),
-        toDtMonth = getMonthFromDate(leave.toDate);
-        if(fromDtMonth === toDtMonth){
+            toDtMonth = getMonthFromDate(leave.toDate);
+        if (fromDtMonth === toDtMonth) {
             let noOfLeaves = (getDayFromDate(leave.toDate) - getDayFromDate(leave.fromDate)) + 1,
-            d = new Date(leave.fromDate);
+                d = new Date(leave.fromDate);
             monthlyLeaves[d.getUTCMonth()] += noOfLeaves;
         } else {
             const monthDiff = toDtMonth - fromDtMonth;
             const d = new Date(leave.fromDate),
                 lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0);
-                monthlyLeaves[d.getUTCMonth()] += (lastDay.getDate() - getDayFromDate(leave.fromDate) + 1);
-                monthlyLeaves[new Date(leave.toDate).getUTCMonth()] += getDayFromDate(leave.toDate);
-            for(let i=1; i<monthDiff; i++) { 
+            monthlyLeaves[d.getUTCMonth()] += (lastDay.getDate() - getDayFromDate(leave.fromDate) + 1);
+            monthlyLeaves[new Date(leave.toDate).getUTCMonth()] += getDayFromDate(leave.toDate);
+            for (let i = 1; i < monthDiff; i++) {
                 const str = fromDtMonth + i + '/01/' + d.getFullYear(),
-                dt = new Date(str),
-                lstDy = new Date(dt.getFullYear(), dt.getMonth() + 1, 0);
-                monthlyLeaves[new Date(leave.fromDate).getUTCMonth()+i]  += lstDy.getDate();
+                    dt = new Date(str),
+                    lstDy = new Date(dt.getFullYear(), dt.getMonth() + 1, 0);
+                monthlyLeaves[new Date(leave.fromDate).getUTCMonth() + i] += lstDy.getDate();
             }
         }
     });
@@ -433,7 +496,7 @@ function getApprovedLeavesByMonth(appliedLeaves, res) {
 }
 function getMonthFromDate(date) {
     let d = new Date(date);
-    return (d.getUTCMonth()+1);
+    return (d.getUTCMonth() + 1);
 }
 function getDayFromDate(date) {
     let d = new Date(date);
@@ -441,8 +504,8 @@ function getDayFromDate(date) {
 }
 function getLeavesByType(leaveTypesData, appliedLeaves, res) {
     let response = [];
-    leaveTypesData.forEach( (type) => {
-        const leaves = appliedLeaves.filter( leave => (leave.leave_type == type.id));
+    leaveTypesData.forEach((type) => {
+        const leaves = appliedLeaves.filter(leave => (leave.leave_type == type.id));
         response.push({
             "types": type.type,
             "leaves": leaves
@@ -604,7 +667,8 @@ let functions = {
                     "applyTo": "$applyTo",
                     "applyTo_name": "$sup_name.fullName",
                     "toDate": "$toDate",
-                    "fromDate": "$fromDate"
+                    "fromDate": "$fromDate",
+                    "reason": "$reason"
 
                 }
             }
@@ -738,7 +802,8 @@ let functions = {
                     "applyTo": "$applyTo",
                     "applyTo_name": "$sup_name.fullName",
                     "toDate": "$toDate",
-                    "fromDate": "$fromDate"
+                    "fromDate": "$fromDate",
+                    "reason": "$reason"
 
                 }
             }
@@ -957,7 +1022,8 @@ let functions = {
                     "applyTo": "$applyTo",
                     "applyTo_name": "$sup_name.fullName",
                     "toDate": "$toDate",
-                    "fromDate": "$fromDate"
+                    "fromDate": "$fromDate",
+                    "reason": "$reason"
 
                 }
             }
@@ -1070,7 +1136,8 @@ let functions = {
                     "applyTo": "$applyTo",
                     "applyTo_name": "$sup_name.fullName",
                     "toDate": "$toDate",
-                    "fromDate": "$fromDate"
+                    "fromDate": "$fromDate",
+                    "reason": "$reason"
 
                 }
             }
@@ -1143,10 +1210,10 @@ let functions = {
         let query = {
             'roleName': req.query.role
         };
-        
+
         EmployeeRoles.find(query, function (err, roleDetails) {
             if (roleDetails) {
-                if(roleDetails[0].roleName == 'HR'){
+                if (roleDetails[0].roleName == 'HR') {
                     LeaveApply.aggregate([
                         {
                             "$lookup": {
@@ -1238,11 +1305,11 @@ let functions = {
                                 "applyTo": "$applyTo",
                                 "applyTo_name": "$sup_name.fullName",
                                 "toDate": "$toDate",
-                                "fromDate": "$fromDate"
-            
+                                "fromDate": "$fromDate",
+                                "reason": "$reason"
                             }
                         }
-            
+
                     ]).exec(function (err, results) {
                         if (err) {
                             return res.status(403).json({
@@ -1258,7 +1325,7 @@ let functions = {
                         return res.status(200).json(results);
                     });
                 }
-                else if(roleDetails[0].roleName == 'Supervisor'){
+                else if (roleDetails[0].roleName == 'Supervisor') {
                     LeaveApply.aggregate([
                         {
                             "$lookup": {
@@ -1351,11 +1418,12 @@ let functions = {
                                 "applyTo": "$applyTo",
                                 "applyTo_name": "$sup_name.fullName",
                                 "toDate": "$toDate",
-                                "fromDate": "$fromDate"
-            
+                                "fromDate": "$fromDate",
+                                "reason": "$reason"
+
                             }
                         }
-            
+
                     ]).exec(function (err, results) {
                         if (err) {
                             return res.status(403).json({
@@ -1371,13 +1439,13 @@ let functions = {
                         return res.status(200).json({ "data": results });
                     });
                 }
-                else{
-                 return res.status(403).send('you are not authorised to perform this action');
-                    
+                else {
+                    return res.status(403).send('you are not authorised to perform this action');
+
                 }
             }
         })
-    },        
+    },
 
     postLeaveHoliday: (req, res) => {
         async.waterfall([
@@ -1390,13 +1458,13 @@ let functions = {
         ])
     },
     getHolidays: (req, res) => {
-        let queryDate =  req.query.date;
+        let queryDate = req.query.date;
         LeaveHoliday.find({}, function (err, LeaveHolidaysData) {
             if (LeaveHolidaysData) {
                 let respdata = [];
-                LeaveHolidaysData.forEach( (holiday) => {
+                LeaveHolidaysData.forEach((holiday) => {
                     const holidayDate = new Date(holiday.date);
-                    if (holidayDate.getFullYear() == queryDate){
+                    if (holidayDate.getFullYear() == queryDate) {
                         respdata.push(holiday);
                     }
                 });
@@ -1434,7 +1502,7 @@ let functions = {
             }
         ])
     },
-    postAcceptRejectLeave: (req, res) =>{
+    postAcceptRejectLeave: (req, res) => {
         async.waterfall([
             function (done) {
                 applyLeaveSupervisor(req, res, done);
@@ -1459,14 +1527,14 @@ let functions = {
                 // Stage 2
                 {
                     $project: {
-                        leave_type : 1,
+                        leave_type: 1,
                         balance: 1
                     }
                 },
 
             ]
-        ).exec(function(err, results1){
-            if(err){
+        ).exec(function (err, results1) {
+            if (err) {
                 return res.status(403).json({
                     title: 'Error',
                     error: {
@@ -1486,31 +1554,31 @@ let functions = {
                             "isApproved": true
                         }
                     },
-            
+
                     // Stage 2
                     {
                         $addFields: {
-                            "diffDate": {$subtract: [ "$toDate", "$fromDate" ]}
+                            "diffDate": { $subtract: ["$toDate", "$fromDate"] }
                         }
                     },
-            
+
                     // Stage 3
                     {
                         $addFields: {
-                            "intDate": {$divide: ["$diffDate", 86400000]}
+                            "intDate": { $divide: ["$diffDate", 86400000] }
                         }
                     },
-            
+
                     // Stage 4
                     {
                         $group: {
                             _id: "$leave_type",
-                            totalAppliedLeaves: {$sum: "$intDate" }
+                            totalAppliedLeaves: { $sum: "$intDate" }
                         }
                     },
-            
-                ]).exec(function(err1, results2){
-                    if(err1){
+
+                ]).exec(function (err1, results2) {
+                    if (err1) {
                         return res.status(403).json({
                             title: 'Error',
                             error: {
@@ -1522,19 +1590,19 @@ let functions = {
                         });
                     }
                     let response = [];
-                    results2.forEach( (result) => {
-                        const balLeaveObj = results1.find(x => x.leave_type===result._id),
-                        obj = {
-                            'leaveType': result._id,
-                            'leaveBalance': (balLeaveObj.balance - result.totalAppliedLeaves)
-                        };
-                        response.push(obj);    
+                    results2.forEach((result) => {
+                        const balLeaveObj = results1.find(x => x.leave_type === result._id),
+                            obj = {
+                                'leaveType': result._id,
+                                'leaveBalance': (balLeaveObj.balance - result.totalAppliedLeaves)
+                            };
+                        response.push(obj);
                     });
                     return res.status(200).json(response);
                 })
         });
     },
-    getLeaveDetailsById: (req, res) =>{
+    getLeaveDetailsById: (req, res) => {
         LeaveApply.aggregate([
             {
                 "$lookup": {
@@ -1627,7 +1695,8 @@ let functions = {
                     "applyTo": "$applyTo",
                     "applyTo_name": "$sup_name.fullName",
                     "toDate": "$toDate",
-                    "fromDate": "$fromDate"
+                    "fromDate": "$fromDate",
+                    "reason": "$reason"
 
                 }
             }
@@ -1646,14 +1715,14 @@ let functions = {
             }
             return res.status(200).json({ "data": results });
         });
-        
+
     },
     getLeavesByMonth: (req, res) => {
         const query = {
             "isApproved": null
         };
-        LeaveApply.find(query, function(err, appliedLeaves){
-            if(err){
+        LeaveApply.find(query, function (err, appliedLeaves) {
+            if (err) {
                 return res.status(403).json({
                     title: 'Error',
                     error: {
@@ -1676,8 +1745,8 @@ let functions = {
                 const query = {
                     "isApproved": null
                 };
-                LeaveApply.find(query, function(err1, appliedLeaves){
-                    if(err1){
+                LeaveApply.find(query, function (err1, appliedLeaves) {
+                    if (err1) {
                         return res.status(403).json({
                             title: 'Error',
                             error: {
@@ -1691,7 +1760,7 @@ let functions = {
                     getLeavesByType(leaveTypesData, appliedLeaves, res);
                 });
             }
-            if(err){
+            if (err) {
                 return res.status(403).json({
                     title: 'Error',
                     error: {
@@ -1702,7 +1771,7 @@ let functions = {
                     }
                 });
             }
-           
+
         })
     }
 }
