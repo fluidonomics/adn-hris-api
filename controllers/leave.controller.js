@@ -641,7 +641,8 @@ let functions = {
                     "applyTo": "$applyTo",
                     "applyTo_name": "$sup_name.fullName",
                     "toDate": "$toDate",
-                    "fromDate": "$fromDate"
+                    "fromDate": "$fromDate",
+                    "reason": "$reason"
 
                 }
             }
@@ -775,7 +776,8 @@ let functions = {
                     "applyTo": "$applyTo",
                     "applyTo_name": "$sup_name.fullName",
                     "toDate": "$toDate",
-                    "fromDate": "$fromDate"
+                    "fromDate": "$fromDate",
+                    "reason": "$reason"
 
                 }
             }
@@ -994,7 +996,8 @@ let functions = {
                     "applyTo": "$applyTo",
                     "applyTo_name": "$sup_name.fullName",
                     "toDate": "$toDate",
-                    "fromDate": "$fromDate"
+                    "fromDate": "$fromDate",
+                    "reason": "$reason"
 
                 }
             }
@@ -1107,7 +1110,8 @@ let functions = {
                     "applyTo": "$applyTo",
                     "applyTo_name": "$sup_name.fullName",
                     "toDate": "$toDate",
-                    "fromDate": "$fromDate"
+                    "fromDate": "$fromDate",
+                    "reason": "$reason"
 
                 }
             }
@@ -1275,8 +1279,8 @@ let functions = {
                                 "applyTo": "$applyTo",
                                 "applyTo_name": "$sup_name.fullName",
                                 "toDate": "$toDate",
-                                "fromDate": "$fromDate"
-
+                                "fromDate": "$fromDate",
+                                "reason": "$reason"
                             }
                         }
 
@@ -1388,7 +1392,8 @@ let functions = {
                                 "applyTo": "$applyTo",
                                 "applyTo_name": "$sup_name.fullName",
                                 "toDate": "$toDate",
-                                "fromDate": "$fromDate"
+                                "fromDate": "$fromDate",
+                                "reason": "$reason"
 
                             }
                         }
@@ -1664,7 +1669,8 @@ let functions = {
                     "applyTo": "$applyTo",
                     "applyTo_name": "$sup_name.fullName",
                     "toDate": "$toDate",
-                    "fromDate": "$fromDate"
+                    "fromDate": "$fromDate",
+                    "reason": "$reason"
 
                 }
             }
