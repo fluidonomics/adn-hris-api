@@ -2,7 +2,7 @@ let express = require('express'),
 
     LeaveWorkflowHistory = require('../models/leave/leaveWorkflowHistory.model'),
     LeaveApply = require('../models/leave/leaveApply.model'),
-    LeaveHoliday = require('../models/leave/leaveHoliday.model'),    
+    LeaveHoliday = require('../models/leave/leaveHoliday.model'),
     LeaveTransactionType = require('../models/leave/leaveTransactioType.model'),
     PersonalInfo = require('../models/employee/employeePersonalDetails.model'),
     LeaveTypes = require('../models/leave/leaveTypes.model'),
@@ -192,7 +192,7 @@ function leaveWorkflowDetails(req, applied_by_id, step) {
 }
 function grantLeaveEmployee(req, res, done) {
     let leaveAlreadyExists = false,
-    _leaveBalance = new LeaveBalance(req.body);
+        _leaveBalance = new LeaveBalance(req.body);
     _leaveBalance.emp_id = parseInt(req.body.emp_id);
     _leaveBalance.leave_type = parseInt(req.body.leave_type);
     _leaveBalance.lapseDate = new Date(req.body.lapseDate);
@@ -220,7 +220,7 @@ function grantLeaveEmployee(req, res, done) {
                 if (x.leave_type == 1 || x.leave_type == 0) {
                     validationFailed = true;
                 }
-                if(x.leave_type == 3 || x.leave_type == 4) {
+                if (x.leave_type == 3 || x.leave_type == 4) {
                     leaveAlreadyExists = true;
                     _leaveBalance.balance = _leaveBalance.balance + x.balance;
                 }
@@ -236,10 +236,10 @@ function grantLeaveEmployee(req, res, done) {
                     }
                 })
             }
-            
+
         }
-        if(leaveAlreadyExists){
-            LeaveBalance.findOneAndUpdate(query, _leaveBalance, function(err, _leaveBalanceResponse){
+        if (leaveAlreadyExists) {
+            LeaveBalance.findOneAndUpdate(query, _leaveBalance, function (err, _leaveBalanceResponse) {
                 if (err) {
                     return res.status(403).json({
                         title: 'There is a problem',
@@ -269,7 +269,7 @@ function grantLeaveEmployee(req, res, done) {
                 return done(err, _leaveBalanceResponse);
             });
         }
-        
+
     });
 
 }
@@ -321,7 +321,7 @@ function addLeaveBlance(empIdCollection, req, res, appliedFor) {
                         if (x.leave_type == 1 || x.leave_type == 0) {
                             validationFailed = true;
                         }
-                        if(x.leave_type == 3 || x.leave_type == 4){
+                        if (x.leave_type == 3 || x.leave_type == 4) {
                             alreadyExists = true;
                             balance = parseInt(req.body.balance) + x.balance;
                         }
@@ -342,9 +342,9 @@ function addLeaveBlance(empIdCollection, req, res, appliedFor) {
                     createdBy: parseInt(req.body.createdBy)
                 });
 
-                if(alreadyExists) {
-                    LeaveBalance.findOneAndUpdate(query, _leaveBalance, function(err, data){
-                        if(err){
+                if (alreadyExists) {
+                    LeaveBalance.findOneAndUpdate(query, _leaveBalance, function (err, data) {
+                        if (err) {
                             return res.status(403).json({
                                 title: 'There is a problem',
                                 error: {
@@ -359,7 +359,7 @@ function addLeaveBlance(empIdCollection, req, res, appliedFor) {
                     })
                 } else {
                     _leaveBalance.save((err, data) => {
-                        if(err){
+                        if (err) {
                             return res.status(403).json({
                                 title: 'There is a problem',
                                 error: {
@@ -374,10 +374,10 @@ function addLeaveBlance(empIdCollection, req, res, appliedFor) {
                     });
                 }
 
-                
+
             });
 
-            
+
         } else {
             res.status(200).send();
         }
@@ -1499,7 +1499,7 @@ let functions = {
                                 }
                             });
                         }
-                        return res.status(200).json({ "data": results });
+                        return res.status(200).json(results);
                     });
                 }
                 else {
@@ -1628,7 +1628,7 @@ let functions = {
                     // Stage 3
                     {
                         $addFields: {
-                            "intDate": { $add: [{ $divide: ["$diffDate", 86400000] }, 1]}
+                            "intDate": { $add: [{ $divide: ["$diffDate", 86400000] }, 1] }
                         }
                     },
 
