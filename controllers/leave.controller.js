@@ -217,7 +217,7 @@ function grantLeaveEmployee(req, res, done) {
         if (leaveData) {
             let validationFailed = false;
             leaveData.forEach((x) => {
-                if (x.leave_type == 1 || x.leave_type == 0) {
+                if (x.leave_type == 1 || x.leave_type == 2) {
                     validationFailed = true;
                 }
                 if (x.leave_type == 3 || x.leave_type == 4) {
@@ -314,11 +314,11 @@ function addLeaveBlance(empIdCollection, req, res, appliedFor) {
                     _id: 1
                 }
             }, function (err, leaveData) {
-                let alreadyExists = false;
+                let alreadyExists = false,
+                validationFailed = false;
                 if (leaveData) {
-                    let validationFailed = false;
                     leaveData.forEach((x) => {
-                        if (x.leave_type == 1 || x.leave_type == 0) {
+                        if (x.leave_type == 1 || x.leave_type == 2) {
                             validationFailed = true;
                         }
                         if (x.leave_type == 3 || x.leave_type == 4) {
@@ -326,9 +326,6 @@ function addLeaveBlance(empIdCollection, req, res, appliedFor) {
                             balance = parseInt(req.body.balance) + x.balance;
                         }
                     })
-                    if (validationFailed) {
-                        saveEmployeeLeaveBalance(i + 1);
-                    }
                 }
 
                 let _leaveBalance = new LeaveBalance({
@@ -357,7 +354,7 @@ function addLeaveBlance(empIdCollection, req, res, appliedFor) {
                         }
                         saveEmployeeLeaveBalance(i + 1);
                     })
-                } else {
+                } else if(!validationFailed){
                     _leaveBalance.save((err, data) => {
                         if (err) {
                             return res.status(403).json({
@@ -372,6 +369,8 @@ function addLeaveBlance(empIdCollection, req, res, appliedFor) {
                         }
                         saveEmployeeLeaveBalance(i + 1);
                     });
+                } else {
+                    saveEmployeeLeaveBalance(i + 1);
                 }
 
 
