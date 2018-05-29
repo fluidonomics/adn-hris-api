@@ -191,7 +191,8 @@ function leaveWorkflowDetails(req, applied_by_id, step) {
 
 }
 function grantLeaveEmployee(req, res, done) {
-    let _leaveBalance = new LeaveBalance(req.body);
+    let leaveAlreadyExists = false,
+    _leaveBalance = new LeaveBalance(req.body);
     _leaveBalance.emp_id = parseInt(req.body.emp_id);
     _leaveBalance.leave_type = parseInt(req.body.leave_type);
     _leaveBalance.lapseDate = new Date(req.body.lapseDate);
@@ -219,6 +220,10 @@ function grantLeaveEmployee(req, res, done) {
                 if (x.leave_type == 1 || x.leave_type == 0) {
                     validationFailed = true;
                 }
+                if(x.leave_type == 3 || x.leave_type == 4) {
+                    leaveAlreadyExists = true;
+                    _leaveBalance.balance = _leaveBalance.balance + x.balance;
+                }
             })
             if (validationFailed) {
                 return res.status(500).json({
@@ -231,21 +236,40 @@ function grantLeaveEmployee(req, res, done) {
                     }
                 })
             }
+            
         }
-        _leaveBalance.save(function (err, _leaveBalanceResponse) {
-            if (err) {
-                return res.status(403).json({
-                    title: 'There is a problem',
-                    error: {
-                        message: err
-                    },
-                    result: {
-                        message: _leaveBalanceResponse
-                    }
-                });
-            }
-            return done(err, _leaveBalanceResponse);
-        });
+        if(leaveAlreadyExists){
+            LeaveBalance.findOneAndUpdate(query, _leaveBalance, function(err, _leaveBalanceResponse){
+                if (err) {
+                    return res.status(403).json({
+                        title: 'There is a problem',
+                        error: {
+                            message: err
+                        },
+                        result: {
+                            message: _leaveBalanceResponse
+                        }
+                    });
+                }
+                return done(err, _leaveBalanceResponse);
+            });
+        } else {
+            _leaveBalance.save(function (err, _leaveBalanceResponse) {
+                if (err) {
+                    return res.status(403).json({
+                        title: 'There is a problem',
+                        error: {
+                            message: err
+                        },
+                        result: {
+                            message: _leaveBalanceResponse
+                        }
+                    });
+                }
+                return done(err, _leaveBalanceResponse);
+            });
+        }
+        
     });
 
 }
@@ -275,6 +299,7 @@ function grantLeaveDepartment(req, res, done) {
 }
 function addLeaveBlance(empIdCollection, req, res, appliedFor) {
     let saveEmployeeLeaveBalance = function (i) {
+        let balance = parseInt(req.body.balance);
         if (i < empIdCollection.length) {
             var query = {
                 isDeleted: false,
@@ -289,29 +314,67 @@ function addLeaveBlance(empIdCollection, req, res, appliedFor) {
                     _id: 1
                 }
             }, function (err, leaveData) {
+                let alreadyExists = false;
                 if (leaveData) {
                     let validationFailed = false;
                     leaveData.forEach((x) => {
                         if (x.leave_type == 1 || x.leave_type == 0) {
                             validationFailed = true;
                         }
+                        if(x.leave_type == 3 || x.leave_type == 4){
+                            alreadyExists = true;
+                            balance = parseInt(req.body.balance) + x.balance;
+                        }
                     })
                     if (validationFailed) {
                         saveEmployeeLeaveBalance(i + 1);
                     }
                 }
-                new LeaveBalance({
+
+                let _leaveBalance = new LeaveBalance({
                     emp_id: appliedFor === "employee" ? empIdCollection[i].id : empIdCollection[i].emp_id,
                     leave_type: parseInt(req.body.leave_type),
                     lapseDate: new Date(req.body.lapseDate),
                     createdDate: new Date(req.body.createdDate),
                     updatedDate: new Date(req.body.updatedDate),
-                    balance: parseInt(req.body.balance),
+                    balance: balance,
                     updatedBy: parseInt(req.body.updatedBy),
                     createdBy: parseInt(req.body.createdBy)
-                }).save((x, err) => {
-                    saveEmployeeLeaveBalance(i + 1);
-                })
+                });
+
+                if(alreadyExists) {
+                    LeaveBalance.findOneAndUpdate(query, _leaveBalance, function(err, data){
+                        if(err){
+                            return res.status(403).json({
+                                title: 'There is a problem',
+                                error: {
+                                    message: err
+                                },
+                                result: {
+                                    message: data
+                                }
+                            });
+                        }
+                        saveEmployeeLeaveBalance(i + 1);
+                    })
+                } else {
+                    _leaveBalance.save((err, data) => {
+                        if(err){
+                            return res.status(403).json({
+                                title: 'There is a problem',
+                                error: {
+                                    message: err
+                                },
+                                result: {
+                                    message: data
+                                }
+                            });
+                        }
+                        saveEmployeeLeaveBalance(i + 1);
+                    });
+                }
+
+                
             });
 
             
