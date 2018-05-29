@@ -42,7 +42,7 @@ function addKraWorkFlowInfoDetails(req, res, done) {
     kraWorkFlowDetails.emp_id = req.body.emp_id || req.query.emp_id;
     kraWorkFlowDetails.timeline_id = 1;
     kraWorkFlowDetails.batch_id = 1;
-    kraWorkFlowDetails.createdBy = 1;
+    kraWorkFlowDetails.createdBy = parseInt(req.headers.uid);
 
     kraWorkFlowDetails.save(function (err, kraWorkFlowInfoData) {
         if (err) {
@@ -169,7 +169,7 @@ function addKraWeightageInfoDetails(req, res, done) {
     kraWeightageDetails.emp_id = req.body.emp_id || req.query.emp_id;
     kraWeightageDetails.timeline_id=1;
     kraWeightageDetails.batch_id=1;
-    kraWeightageDetails.createdBy = 1;
+    kraWeightageDetails.createdBy = parseInt(req.headers.uid);;
 
     kraWeightageDetails.save(function(err, kraWeightageInfoData) {
         if (err) {
@@ -271,10 +271,11 @@ function getKraCategoryInfoDetails(req, res) {
 }
 
 function addKraInfoDetails(i,req, res, done) {
-    let kraDetails = new KraInfo(req.body[i]);
+    let kraDetails = new KraInfo(req.body.kraInfo[i]);
+    kraDetails.kraWorkflow_id=parseInt(req.body.kraInfo[i].kraWorkflow_id);
     kraDetails.save(function(err, krasData) {
         auditTrailEntry(kraDetails.emp_id, "kraDetails", kraDetails, "user", "kraDetails", "ADDED");
-        if ((i + 1) < req.body.length) {
+        if ((i + 1) < req.body.kraInfo.length) {
             addKraInfoDetails(i + 1, req, res, done);
         }
         else{
@@ -283,6 +284,25 @@ function addKraInfoDetails(i,req, res, done) {
     });
 }
 
+
+function deleteAllKraDetailsByEmpId(req,res,done)
+{
+    KraInfo.remove({kraWorkflow_id:parseInt(req.body.kraWorkflow_id)},function(err,data)
+    {
+        if (err) {
+            return res.status(403).json({
+                title: 'There was a problem',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: data
+                }
+            });
+        }
+        return done(err,true);
+    })
+}
 // function getKraInfoDetailsData(req, res) {
 //     let emp_id=req.query.emp_id;
 //     KraWorkFlowInfo.aggregate([
@@ -321,14 +341,14 @@ function addKraInfoDetails(i,req, res, done) {
 // }
 
 function getKraInfoDetails(req, res) {
-  let kraworkflow_id = req.query.kraworkflow_id;
+  let kraWorkflow_id = req.query.kraWorkflow_id;
   let emp_id = req.query.emp_id;
   let query = {
       isDeleted: false
   };
-  if (kraworkflow_id && emp_id) {
+  if (kraWorkflow_id && emp_id) {
       query = {
-          kraWorkflow_id: kraworkflow_id,
+          kraWorkflow_id: parseInt(kraWorkflow_id),
           isDeleted: false
       };
   }
@@ -346,9 +366,20 @@ function getKraInfoDetails(req, res) {
               error: err
           });
       }
-      return res.status(200).json({
-          'data': kraInfoData
-      });
+      else{
+         KraWorkFlowInfo.findOne({_id:parseInt(kraWorkflow_id),isDeleted:false}).select('status').exec(function(err,kraWorkFlow){
+            if (err) {
+                return res.status(403).json({
+                    title: 'There was an error, please try again later',
+                    error: err
+                });
+            }
+            return res.status(200).json({
+                'data': kraInfoData,'status':kraWorkFlow.status
+            });
+            
+         })
+      }
   });
 }
 
@@ -444,11 +475,35 @@ let functions = {
         ]);
     },
 
+    
+
 
     addKraInfo:(req,res )=> {
       async.waterfall([
         function(done) {
-          addKraInfoDetails(0,req,res,done);
+           deleteAllKraDetailsByEmpId(req,res,done)
+        },
+        function(deleteStatus,done) {
+           addKraInfoDetails(0,req,res,done);
+        },
+        function(addKraData,done)
+        {
+          if(!req.body.isSaveDraft)
+          {
+            KraWorkFlowInfo.findOneAndUpdate({_id:parseInt(req.body.kraWorkflow_id)},{$set:{'status':'Submitted'}},function(err,kraWorkflowData)
+            {
+                if (err) {
+                    return res.status(403).json({
+                        title: 'There was an error, please try again later',
+                        error: err
+                    });
+                }
+                return done(err,true);
+            });
+          } 
+          else{
+              done(null,true);
+          }
         },
         function(kraInfoData,done) {
           return res.status(200).json(kraInfoData);
