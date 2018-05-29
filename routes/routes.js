@@ -270,13 +270,11 @@ let express  = require('express'),
 
     kraRoutes.post('/addKraWorkFlowInfo',ensureAuthenticated, kra.addKraWorkFlowInfo);
     
-    kraRoutes.post('/addKraWorkFlowInfo',ensureAuthenticated, kra.addKraWorkFlowInfo);
-
     kraRoutes.get('/getEmployeeKraWorkFlowInfo',ensureAuthenticated, kra.getEmployeeKraWorkFlowInfo);
     
     kraRoutes.get('/getKraWorkFlowInfo',ensureAuthenticated, kra.getKraWorkFlowInfo);
     
-    kraRoutes.get('/getKraInfo',ensureAuthenticated, kra.getKraWorkFlowInfo);
+    kraRoutes.get('/getKraInfo',ensureAuthenticated, kra.getKraInfo);
 
     kraRoutes.post('/addBulkKra',ensureAuthenticated, kra.addBulkKra);
 //= ========================
@@ -400,7 +398,7 @@ let express  = require('express'),
 
     commonRoutes.get('/getCompany',ensureAuthenticated, common.getCompany);
 
-    commonRoutes.get('/getDocument',ensureAuthenticated, common.getDocument);
+    commonRoutes.get('/getDocuments',ensureAuthenticated, common.getDocuments);
 
     commonRoutes.get('/getFacility',ensureAuthenticated, common.getFacility);
 
@@ -408,7 +406,7 @@ let express  = require('express'),
 
     commonRoutes.get('/getDivision',ensureAuthenticated, common.getDivision);
 
-    commonRoutes.get('/getDepartment', common.getDepartment);
+    commonRoutes.get('/getDepartment',ensureAuthenticated, common.getDepartment);
 
     commonRoutes.get('/getVertical',ensureAuthenticated, common.getVertical);
 
@@ -432,7 +430,7 @@ let express  = require('express'),
 
     commonRoutes.get('/getHr',ensureAuthenticated, common.getHr);
 
-    commonRoutes.get('/getSupervisor', common.getSupervisor);
+    commonRoutes.get('/getSupervisor',ensureAuthenticated, common.getSupervisor);
 
     commonRoutes.get('/getKraSupervisor',ensureAuthenticated, common.getKraSupervisor);
 

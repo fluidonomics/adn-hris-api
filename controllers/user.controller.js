@@ -18,6 +18,7 @@ let express           = require('express'),
     PerformanceRatingInfo = require('../models/employee/employeePerformanceRatingDetails.model'),
     ProfileProcessInfo = require('../models/employee/employeeProfileProcessDetails.model'),
     PerformanceRatingMaster = require('../models/master/performanceRating.model'),
+    ExternalDocument= require('../models/employee/employeeExternalDocumentDetails.model'),
     config            = require('../config/config'),
     crypto            = require('crypto'),
     async             = require('async'),
@@ -1061,6 +1062,20 @@ function addEmpRoles(i, req, res, emp) {
     });
 }
 
+function addDocuments(i, req, emp_id) {
+    let externalDocument = new ExternalDocument();
+    externalDocument.emp_id = emp_id;
+    externalDocument.externalDocument_id = parseInt(req.body.documents[i]);
+    externalDocument.createdBy = parseInt(req.headers.uid);
+    externalDocument.save(function(err, documentData) {
+        auditTrailEntry(emp_id, "user", externalDocument, "addDocuments", "Documents added for the Employee");
+        if ((i + 1) < req.body.documents.length) {
+            addDocuments(i + 1, req, emp_id);
+        }
+    });
+}
+
+
 function fnSaveBulkPerformanceRating(index,req,res)
 {
     if(req.body.length > 0 && index < req.body.length)
@@ -1180,7 +1195,7 @@ function updateofficeInfoDetails(req, res) {
                         "officeEmail": req.body.officeEmail,
                         "officePhone" : req.body.officePhone,
                         "officeMobile" : req.body.officeMobile,
-                        "facility" : req.body.facility,
+                        "facility_id" : req.body.facility_id,
                         "city" : req.body.city,
                         "country" : req.body.country,
                         "costCentre" : req.body.costCentre,
@@ -1722,7 +1737,7 @@ function getOfficeInfoDetails(req, res) {
                     officeEmail: results[0].officeEmail,
                     officePhone : results[0].officePhone,
                     officeMobile : results[0].officeMobile,
-                    facility : results[0].facility,
+                    facility_id : results[0].facility_id,
                     city : results[0].city,
                     country : results[0].country,
                     costCentre : results[0].costCentre,
@@ -2108,6 +2123,10 @@ let functions = {
                         req.body.roles=[5];
                         auditTrailEntry(emp._id, "employee", emp, "user", "addEmployee", "Employee Added");
                         addEmpRoles(0, req, res, emp);
+                        if(req.body.documents.length>0)
+                        {
+                          addDocuments(0,req,emp._id);
+                        }
                         req.body.emp_id = emp._id;
                         sendWelComeEmail(emp, req.body.personalEmail);
                         async.parallel([

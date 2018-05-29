@@ -218,7 +218,7 @@ let functions = {
         })
     },
     
-    getDocument: (req, res) => {
+    getDocuments: (req, res) => {
         var query = {
             isDeleted: false
         }
