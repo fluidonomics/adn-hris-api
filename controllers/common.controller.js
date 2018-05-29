@@ -42,6 +42,7 @@ let express           = require('express'),
     uuidV1            = require('uuid/v1'),
     async             = require('async')
     awaitEach         = require('await-each');
+    sendEmailInfo     =require('../class/sendEmail');
     require('dotenv').load()
 
 function getDesignationByGrade(req, res) {
@@ -146,6 +147,26 @@ function sendEmailMail(req,res)
         }
         res.status(200).json(true);
      });
+}
+
+function sendResetPasswordLink(token,emp_id,email_id,done)
+{
+    let queryUpdate={ $set: {resetPasswordToken:token, resetPasswordExpires: Date.now() + 3600000 }};
+    Employee.findOneAndUpdate({_id:emp_id,isDeleted:false},queryUpdate,function(err,user)
+    {
+    if (err) {
+        return res.status(403).json({
+        title: 'There was an error',
+        error: err
+        });
+    }
+    if(user)
+    {
+        if(email_id)
+        sendEmailInfo.sendEmailResetPassword(email_id, process.env.HostUrl+"/reset/"+token)
+    }
+    done(err, user);
+    });
 }
 
 
@@ -1403,7 +1424,50 @@ let functions = {
         sendEmailMail(req, res);
     },
 
-   
+    resetPasswordByHr: (req, res) => {
+        let emailId;
+        async.waterfall([
+            function(done){
+              crypto.randomBytes(20, function (err, buf) {
+                let token = buf.toString('hex');
+                done(err, token);
+              });
+            },
+            function(token, done){
+                OfficeDetails.findOne({emp_id: req.body.emp_id,isDeleted:false}, function (err, office) {
+                    if (err) {
+                      return res.status(403).json({
+                        title: 'There was an error',
+                        error: err
+                      });
+                    }
+                    else{
+                        if (!office.officeEmail) {
+                            PersonalDetails.findOne({emp_id:req.body.emp_id},function(err, personalData){
+                                if (err) {
+                                    return res.status(403).json({
+                                    title: 'There was an error',
+                                    error: err
+                                    });
+                                }
+                                else{
+                                    if(personalData && personalData.personalEmail)
+                                    sendResetPasswordLink(token,req.body.emp_id,personalData.personalEmail,done);
+                                }
+                            });
+                        }
+                        else{
+                            if(office && office.officeEmail)
+                            sendResetPasswordLink(token,req.body.emp_id,office.officeEmail,done);
+                        }
+                    }
+                  })
+            },
+            function(result) {
+              return res.status(200).json({"message":"Reset Password Link Send to Your Email Address"}); 
+            }
+          ]);
+    },
 };
 
 module.exports = functions;

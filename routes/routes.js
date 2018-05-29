@@ -446,6 +446,8 @@ let express  = require('express'),
 
     commonRoutes.post('/sendEmail',ensureAuthenticated, common.sendEmail);
 
+    commonRoutes.post('/resetPasswordByHr',ensureAuthenticated, common.resetPasswordByHr);
+
 
 
     //=========================

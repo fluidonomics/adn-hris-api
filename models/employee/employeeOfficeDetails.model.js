@@ -8,7 +8,7 @@ let mongoose                = require('mongoose'),
       {
          _id:{type:Number},
          emp_id:{type: Number,ref: 'employeedetails', required: true, unique: true,},
-         idCardNumber :{type: Number,default:null},
+         idCardNumber :{type: String,default:null},
          officeEmail: {type: String, default:null, lowercase: true,uniqueCaseInsensitive:true},
          officePhone : {type: Number,default:null},
          officeMobile :  {type: Number,default:null},
