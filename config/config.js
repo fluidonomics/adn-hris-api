@@ -32,6 +32,7 @@ module.exports = {
     fileSize        : 5000000,
     documentPath    : 'document/',
     profilePath     : 'profile/',
-    tmpImagePath    : 'tmp/'
+    tmpImagePath    : 'tmp/',
+    externalDocument: 'externalDocuemnt/'
   }
 };

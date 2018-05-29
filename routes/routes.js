@@ -448,28 +448,20 @@ let express  = require('express'),
 
 
 
-//=========================
-// External Documents Routes
-//=========================
-apiRoutes.use('/externalDocument', externalDocumentRoutes);
+    //=========================
+    // External Documents Routes
+    //=========================
+    apiRoutes.use('/externalDocument', externalDocumentRoutes);
 
-externalDocumentRoutes.post('/addEmployeeExternalDocumentInfo',ensureAuthenticated, externalDocument.addEmployeeExternalDocumentInfo);
+    externalDocumentRoutes.post('/addEmployeeExternalDocumentInfo',ensureAuthenticated, externalDocument.addEmployeeExternalDocumentInfo);
 
-externalDocumentRoutes.post('/updateEmployeeExternalDocumentInfo',ensureAuthenticated, externalDocument.updateEmployeeExternalDocumentInfo);
+    externalDocumentRoutes.post('/updateEmployeeExternalDocumentInfo',ensureAuthenticated, externalDocument.updateEmployeeExternalDocumentInfo);
 
-externalDocumentRoutes.get('/getEmployeeExternalDocumentInfo',ensureAuthenticated, externalDocument.getEmployeeExternalDocumentInfo);
-  
-
-
-
-
-
-
+    externalDocumentRoutes.get('/getEmployeeExternalDocumentInfo',ensureAuthenticated, externalDocument.getEmployeeExternalDocumentInfo);
     
-  //= ========================
-
-  // Upload Routes
-  //= ========================
+      //= ========================
+      // Upload Routes
+      //= ========================
       apiRoutes.use('/upload', uploadRoutes);
 
       // upload document
@@ -480,9 +472,9 @@ externalDocumentRoutes.get('/getEmployeeExternalDocumentInfo',ensureAuthenticate
   
       //delete  Image
       uploadRoutes.post('/deleteImage',upload.deleteImage);
-  //= ========================
+    //= ========================
 
-  // Set url for API group routes, all endpoints start with /api/ eg http://localhost:3000/api/admin  || http://localhost:3000/api/auth
-  app.use('/api', apiRoutes);
+    // Set url for API group routes, all endpoints start with /api/ eg http://localhost:3000/api/admin  || http://localhost:3000/api/auth
+    app.use('/api', apiRoutes);
 };
 

@@ -10,10 +10,11 @@ let express           = require('express'),
     hbs               = require('nodemailer-express-handlebars'),
     sgTransport       = require('nodemailer-sendgrid-transport'),
     uuidV1            = require('uuid/v1');
+    uploadClass= require('../class/upload');
     require('dotenv').load()
 
 
-    function auditTrailEntry(emp_id, collectionName, collectionDocument, controllerName, action, comments) {
+function auditTrailEntry(emp_id, collectionName, collectionDocument, controllerName, action, comments) {
       let auditTrail = new AuditTrail();
       auditTrail.emp_id = emp_id;
       auditTrail.collectionName = collectionName;
@@ -23,55 +24,44 @@ let express           = require('express'),
       auditTrail.action = action;
       auditTrail.comments = comments;
       auditTrail.save();
-  }
+}
   
 function addEmployeeExternalDocumentInfoDetails(req, res, done) {
-  let employeeExternalDocumentDetails = new EmployeeExternalDocumentInfo(req.body);
-  employeeExternalDocumentDetails.createdBy = 1;
+    let employeeExternalDocumentDetails = new EmployeeExternalDocumentInfo(req.body);
+    employeeExternalDocumentDetails.createdBy = 1;
 
-employeeExternalDocumentDetails.save(function(err, employeeExternalDocumentInfoData) {
-    if (err) {
-        return res.status(403).json({
-            title: 'There was a problem',
-            error: {
-                message: err
-            },
-            result: {
-                message: employeeExternalDocumentInfoData
-            }
-        });
-    }
-    auditTrailEntry(employeeExternalDocumentDetails.emp_id, "employeeExternalDocumentDetails", employeeExternalDocumentDetails, "user", "employeeExternalDocumentDetails", "ADDED");
-    return done(err, employeeExternalDocumentInfoData);   
-});
+    employeeExternalDocumentDetails.save(function(err, employeeExternalDocumentInfoData) {
+        if (err) {
+            return res.status(403).json({
+                title: 'There was a problem',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: employeeExternalDocumentInfoData
+                }
+            });
+        }
+        auditTrailEntry(employeeExternalDocumentDetails.emp_id, "employeeExternalDocumentDetails", employeeExternalDocumentDetails, "user", "employeeExternalDocumentDetails", "ADDED");
+        return done(err, employeeExternalDocumentInfoData);   
+    });
 }
 
-
-
-
 function updateEmployeeExternalDocumentInfoDetails(req, res, done) {
-    let employeeExternalDocumentDetails = new EmployeeExternalDocumentInfo(req.body);
-    employeeExternalDocumentDetails.updatedBy =  parseInt(req.headers.uid);
-    employeeExternalDocumentDetails.isCompleted = true;
 
     let _id = req.body._id;
     var query = {
-        _id: _id,
+        _id: parseInt(req.body._id),
         isDeleted: false
     }
 
-    var employeeExternalDocumentInfoProjection = {
-        createdAt: false,
-        updatedAt: false,
-        isDeleted: false,
-        updatedBy: false,
-        createdBy: false,
-    };
+    let updateQuery={
+        $set:{
+            externalDocumentUrl:req.body.employeeExternalDocumentUrl
+        }
+    }
 
-    EmployeeExternalDocumentInfo.findOneAndUpdate(query, employeeExternalDocumentDetails, {
-        new: true,
-        projection: employeeExternalDocumentInfoProjection
-    }, function(err, employeeExternalDocumentDetailsData) {
+    EmployeeExternalDocumentInfo.findOneAndUpdate(query, updateQuery, {new: true}, function(err, employeeExternalDocumentDetailsData){
         if (err) {
             return res.status(403).json({
                 title: 'There was a problem',
@@ -83,11 +73,10 @@ function updateEmployeeExternalDocumentInfoDetails(req, res, done) {
                 }
             });
         }
-        auditTrailEntry(employeeExternalDocumentDetails.emp_id, "employeeExternalDocumentDetails", employeeExternalDocumentDetails, "user", "employeeExternalDocumentDetails", "UPDATED");
-        return done(err, employeeExternalDocumentDetailsData);
+        auditTrailEntry(employeeExternalDocumentDetailsData.emp_id, "employeeExternalDocumentDetails", employeeExternalDocumentDetailsData, "user", "employeeExternalDocumentDetails", "UPDATED");
+        return done(err, req);
     });
 }
-
 
 function getEmployeeExternalDocumentInfoDetails(req, res) {
     let emp_id = req.query.emp_id;
@@ -109,7 +98,7 @@ function getEmployeeExternalDocumentInfoDetails(req, res) {
             "_id":"$_id",
             "emp_id":"$emp_id",
             "employeeExternalDocumentUrl":"$externalDocumentUrl",
-            "document_id":"$documents._id",
+            "externalDocument_id":"$externalDocument_id",
             "documentName":"$documents.documentName",
             "documentUrl":"$documents.documentUrl"
         }}
@@ -123,9 +112,6 @@ function getEmployeeExternalDocumentInfoDetails(req, res) {
         return res.status(200).json(employeeExternalDocumentInfoData);
       })
 }
-
-
-
 
 // function getEmployeeExternalDocumentInfoDetails(req, res) {
 //   let emp_id = req.query.emp_id;
@@ -168,17 +154,36 @@ let functions = {
       ]);
     },
 
-
     updateEmployeeExternalDocumentInfo:(req,res )=> {
         async.waterfall([
           function(done) {
+            uploadClass.pdfDocuments(req, res, (err) => {
+                if (err) {
+                  return res.status(403).json({
+                    title: 'Error',
+                    error: {
+                        message: err
+                    }
+                  
+                  });
+                }
+                else if (req.file !== undefined) {
+                    req.body.employeeExternalDocumentUrl=req.file.key;
+                    done(err,true)
+                }
+            });
+          },
+          function(data,done)
+          {
             updateEmployeeExternalDocumentInfoDetails(req,res,done);
           },
-          function(employeeExternalDocumentInfoData,done) {
-            return res.status(200).json(employeeExternalDocumentInfoData);
+          function(req,done) {
+            return res.status(200).json({
+                message: 'Document Image uploaded successfully!',key:req.file.key
+              });
           }
         ]);
-      },
+    },
     
     getEmployeeExternalDocumentInfo: (req, res) => {
         async.waterfall([
