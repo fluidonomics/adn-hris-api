@@ -274,21 +274,47 @@ function grantLeaveDepartment(req, res, done) {
     });
 }
 function addLeaveBlance(empIdCollection, req, res, appliedFor) {
-
     let saveEmployeeLeaveBalance = function (i) {
         if (i < empIdCollection.length) {
-            new LeaveBalance({
-                emp_id: appliedFor === "employee" ? empIdCollection[i].id : empIdCollection[i].emp_id,
+            var query = {
+                isDeleted: false,
                 leave_type: parseInt(req.body.leave_type),
-                lapseDate: new Date(req.body.lapseDate),
-                createdDate: new Date(req.body.createdDate),
-                updatedDate: new Date(req.body.updatedDate),
-                balance: parseInt(req.body.balance),
-                updatedBy: parseInt(req.body.updatedBy),
-                createdBy: parseInt(req.body.createdBy)
-            }).save((x, err) => {
-                saveEmployeeLeaveBalance(i + 1);
-            })
+                emp_id: parseInt(appliedFor === "employee" ? empIdCollection[i].id : empIdCollection[i].emp_id)
+            };
+            var leaveGrantProjection = {
+                createdAt: false
+            };
+            LeaveBalance.find(query, leaveGrantProjection, {
+                sort: {
+                    _id: 1
+                }
+            }, function (err, leaveData) {
+                if (leaveData) {
+                    let validationFailed = false;
+                    leaveData.forEach((x) => {
+                        if (x.leave_type == 1 || x.leave_type == 0) {
+                            validationFailed = true;
+                        }
+                    })
+                    if (validationFailed) {
+                        saveEmployeeLeaveBalance(i + 1);
+                    }
+                }
+                new LeaveBalance({
+                    emp_id: appliedFor === "employee" ? empIdCollection[i].id : empIdCollection[i].emp_id,
+                    leave_type: parseInt(req.body.leave_type),
+                    lapseDate: new Date(req.body.lapseDate),
+                    createdDate: new Date(req.body.createdDate),
+                    updatedDate: new Date(req.body.updatedDate),
+                    balance: parseInt(req.body.balance),
+                    updatedBy: parseInt(req.body.updatedBy),
+                    createdBy: parseInt(req.body.createdBy)
+                }).save((x, err) => {
+                    saveEmployeeLeaveBalance(i + 1);
+                })
+            });
+
+            
         } else {
             res.status(200).send();
         }
