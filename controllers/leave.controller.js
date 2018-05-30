@@ -293,7 +293,8 @@ function grantLeaveDepartment(req, res, done) {
     });
 }
 function addLeaveBlance(empIdCollection, req, res, appliedFor) {
-    let saveEmployeeLeaveBalance = function (i) {
+        let isDetailskipped = false;
+        let saveEmployeeLeaveBalance = function (i) {
         let balance = parseInt(req.body.balance);
         if (i < empIdCollection.length) {
             var query = {
@@ -350,6 +351,7 @@ function addLeaveBlance(empIdCollection, req, res, appliedFor) {
                         saveEmployeeLeaveBalance(i + 1);
                     })
                 } else if(!validationFailed){
+                    
                     _leaveBalance.save((err, data) => {
                         if (err) {
                             return res.status(403).json({
@@ -365,15 +367,17 @@ function addLeaveBlance(empIdCollection, req, res, appliedFor) {
                         saveEmployeeLeaveBalance(i + 1);
                     });
                 } else {
+                    isDetailskipped = true;
                     saveEmployeeLeaveBalance(i + 1);
                 }
-
-
             });
-
-
         } else {
-            res.status(200).send();
+            if(isDetailskipped){
+                res.status(300).send();
+            }
+            else{
+                res.status(200).send();
+            }
         }
     }
     saveEmployeeLeaveBalance(0);
