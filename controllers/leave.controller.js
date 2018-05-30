@@ -1960,8 +1960,8 @@ let functions = {
             return res.status(200).json({ "data": results });
         });
     },
-    getEmployeeProbitionDetails: (req, res) => {
-        let query = {
+    getEmployeeProbationDetails: (req, res) => {
+        let query = { 
             'isDeleted': false,
             'emp_id': parseInt(req.query.id)
         };
