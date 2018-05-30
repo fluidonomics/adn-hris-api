@@ -126,26 +126,20 @@ function getAllEmployeeEmails(req, res) {
     });
 }
 function cancelLeave(req, res, done) {
-    let cancelLeaveDetals = new LeaveApply(req.body);
-    // LeaveApply._id = req.body.id;
-    cancelLeaveDetals.updatedBy = req.body.emp_id;
-    cancelLeaveDetals.cancelReason = req.body.reason;
-    cancelLeaveDetals.ccTo = req.body.CCto;
+    let cancelLeaveDetals = {$set: {
+    cancelLeaveApplyTo: req.body.cancelLeaveApplyTo,
+    updatedBy : req.body.updatedBy,
+    cancelReason : req.body.cancelReason,
+    ccTo : req.body.ccTo,
+    isCancelled : false}};
     var query = {
         _id: parseInt(req.body.id),
         isDeleted: false
     }
 
-    var leaveProjection = {
-        createdAt: false,
-        isDeleted: false,
-        updatedBy: false,
-        createdBy: false,
-    };
 
     LeaveApply.findOneAndUpdate(query, cancelLeaveDetals, {
-        new: true,
-        projection: leaveProjection
+        new: true
     }, function (err, _leaveDetails) {
         if (err) {
             return res.status(403).json({
@@ -464,24 +458,22 @@ function removeHoliday(req, res, done) {
     })
 }
 function applyLeaveSupervisor(req, res, done) {
-    let leavedetails = new LeaveApply(req.body);
+    // let leavedetails = new LeaveApply(req.body);
     var query = {
         _id: parseInt(req.body._id),
         isDeleted: false
     }
-    var leaveProjection = {
-        createdAt: false,
-        isDeleted: false,
-        updatedBy: false,
-        createdBy: false,
+    let updateQuery = {
+        $set: {
+            updatedDate: new Date(),
+            updatedBy: parseInt(req.body.emp_id),
+            isApproved: req.body.isApproved,
+            remark: req.body.remark
+            // emp_id: parseInt(req.body.emp_id)
+        }
     };
-    leavedetails.updatedDate = new Date();
-    leavedetails.updatedBy = parseInt(req.body.emp_id);
-    leavedetails.isApproved = req.body.isApproved;
-    leavedetails.remark = req.body.remark;
-    LeaveApply.findOneAndUpdate(query, leavedetails, {
-        new: true,
-        projection: leaveProjection
+    LeaveApply.findOneAndUpdate(query, updateQuery, {
+        new: true
     }, function (err, _leaveDetails) {
         if (err) {
             return res.status(403).json({
