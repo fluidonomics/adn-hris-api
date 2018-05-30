@@ -468,7 +468,7 @@ function applyLeaveSupervisor(req, res, done) {
             updatedDate: new Date(),
             updatedBy: parseInt(req.body.emp_id),
             isApproved: req.body.isApproved,
-            remark: req.body.remark
+            remark: req.body.remarks
             // emp_id: parseInt(req.body.emp_id)
         }
     };
