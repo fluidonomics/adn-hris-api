@@ -11,8 +11,8 @@ let express = require('express'),
     LeaveBalance = require('../models/leave/EmployeeLeaveBalance.model'),
     EmployeeRoles = require('../models/master/role.model'),
     Employee = require('../models/employee/employeeDetails.model');
-    EmployeeInfo      = require('../models/employee/employeeDetails.model'),
-config = require('../config/config'),
+EmployeeInfo = require('../models/employee/employeeDetails.model'),
+    config = require('../config/config'),
     crypto = require('crypto'),
     async = require('async'),
     nodemailer = require('nodemailer'),
@@ -127,12 +127,15 @@ function getAllEmployeeEmails(req, res) {
     });
 }
 function cancelLeave(req, res, done) {
-    let cancelLeaveDetals = {$set: {
-    cancelLeaveApplyTo: req.body.cancelLeaveApplyTo,
-    updatedBy : req.body.updatedBy,
-    cancelReason : req.body.cancelReason,
-    ccTo : req.body.ccTo,
-    isCancelled : false}};
+    let cancelLeaveDetals = {
+        $set: {
+            cancelLeaveApplyTo: req.body.cancelLeaveApplyTo,
+            updatedBy: req.body.updatedBy,
+            cancelReason: req.body.cancelReason,
+            ccTo: req.body.ccTo,
+            isCancelled: false
+        }
+    };
     var query = {
         _id: parseInt(req.body.id),
         isDeleted: false
@@ -293,8 +296,8 @@ function grantLeaveDepartment(req, res, done) {
     });
 }
 function addLeaveBlance(empIdCollection, req, res, appliedFor) {
-        let isDetailskipped = false;
-        let saveEmployeeLeaveBalance = function (i) {
+    let isDetailskipped = false;
+    let saveEmployeeLeaveBalance = function (i) {
         let balance = parseInt(req.body.balance);
         if (i < empIdCollection.length) {
             var query = {
@@ -311,7 +314,7 @@ function addLeaveBlance(empIdCollection, req, res, appliedFor) {
                 }
             }, function (err, leaveData) {
                 let alreadyExists = false,
-                validationFailed = false;
+                    validationFailed = false;
                 if (leaveData) {
                     leaveData.forEach((x) => {
                         if (x.leave_type == 1 || x.leave_type == 2) {
@@ -350,8 +353,8 @@ function addLeaveBlance(empIdCollection, req, res, appliedFor) {
                         }
                         saveEmployeeLeaveBalance(i + 1);
                     })
-                } else if(!validationFailed){
-                    
+                } else if (!validationFailed) {
+
                     _leaveBalance.save((err, data) => {
                         if (err) {
                             return res.status(403).json({
@@ -372,10 +375,10 @@ function addLeaveBlance(empIdCollection, req, res, appliedFor) {
                 }
             });
         } else {
-            if(isDetailskipped){
+            if (isDetailskipped) {
                 res.status(300).send();
             }
-            else{
+            else {
                 res.status(200).send();
             }
         }
@@ -1629,14 +1632,18 @@ let functions = {
                         }
                     },
 
-                    { "$match": { $or:[ 
-                        { "isApproved": true, "isCancelled": null }, //leave approved
-                        { "isApproved": true, "isCancelled": false }, //leave approved and pending to approve cancellation
-                        { "isApproved": null, "isCancelled": null} //when leave applied
-                        //{ "isApproved": true, "isCancelled": true} //leave approved and cancel approved --not counted
-                        //{ "isApproved": null, "isCancelled": true} //leave applied and cancel approved  --not counted
-                        //{ "isApproved": false } //leave applied and rejected  --not counted
-                    ]} },
+                    {
+                        "$match": {
+                            $or: [
+                                { "isApproved": true, "isCancelled": null }, //leave approved
+                                { "isApproved": true, "isCancelled": false }, //leave approved and pending to approve cancellation
+                                { "isApproved": null, "isCancelled": null } //when leave applied
+                                //{ "isApproved": true, "isCancelled": true} //leave approved and cancel approved --not counted
+                                //{ "isApproved": null, "isCancelled": true} //leave applied and cancel approved  --not counted
+                                //{ "isApproved": false } //leave applied and rejected  --not counted
+                            ]
+                        }
+                    },
                     // Stage 4
                     {
                         $group: {
@@ -1662,11 +1669,11 @@ let functions = {
                         const balLeaveObj = results2.find(p => p._id === x.leave_type);
                         obj = {
                             'leaveType': x.leave_type,
-                            'leaveBalance': Math.round ((x.balance - ( balLeaveObj === undefined? 0 : balLeaveObj.totalAppliedLeaves )) )
+                            'leaveBalance': Math.round((x.balance - (balLeaveObj === undefined ? 0 : balLeaveObj.totalAppliedLeaves)))
                         };
-                    response.push(obj);
+                        response.push(obj);
                     })
-                    
+
                     return res.status(200).json(response);
                 })
         });
@@ -1843,116 +1850,140 @@ let functions = {
 
         })
     },
-    getAllEmployee:(req, res)=>
-    {
+    getAllEmployee: (req, res) => {
         EmployeeInfo.aggregate([
-        {
-            "$lookup": {
-                "from": "designations",
-                "localField": "designation_id",
-                "foreignField": "_id",
-                "as": "designations"
+            {
+                "$lookup": {
+                    "from": "designations",
+                    "localField": "designation_id",
+                    "foreignField": "_id",
+                    "as": "designations"
+                }
+            },
+            {
+                "$unwind": "$designations"
+            },
+            {
+                "$lookup": {
+                    "from": "employeeofficedetails",
+                    "localField": "_id",
+                    "foreignField": "emp_id",
+                    "as": "officeDetails"
+                }
+            },
+            {
+                "$unwind": "$officeDetails"
+            },
+            {
+                "$lookup": {
+                    "from": "employeesupervisordetails",
+                    "localField": "_id",
+                    "foreignField": "emp_id",
+                    "as": "supervisor"
+                }
+            },
+            {
+                "$unwind": "$supervisor"
+            },
+            {
+                "$lookup": {
+                    "from": "employeedetails",
+                    "localField": "supervisor.primarySupervisorEmp_id",
+                    "foreignField": "_id",
+                    "as": "employees"
+                }
+            },
+            {
+                "$unwind": "$employees"
+            },
+            {
+                "$lookup": {
+                    "from": "employeeprofileprocessdetails",
+                    "localField": "_id",
+                    "foreignField": "emp_id",
+                    "as": "employeeprofileProcessDetails"
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "employeeprofileprocessdetails",
+                    "localField": "_id",
+                    "foreignField": "emp_id",
+                    "as": "employeeprofileProcessDetails"
+                }
+            },
+            {
+                "$unwind": "$employeeprofileProcessDetails"
+            },
+            {
+                "$lookup": {
+                    "from": "employeepersonaldetails",
+                    "localField": "_id",
+                    "foreignField": "emp_id",
+                    "as": "employeePersonalDetails"
+                }
+            },
+            {
+                "$unwind": "$employeePersonalDetails"
+            },
+            { "$match": { "isDeleted": false, "designations.isActive": true, "officeDetails.isDeleted": false } },
+            {
+                "$project": {
+                    "_id": "$_id",
+                    "fullName": "$fullName",
+                    "userName": "$userName",
+                    "isAccountActive": "$isAccountActive",
+                    "profileImage": "$profileImage",
+                    "officeEmail": "$officeDetails.officeEmail",
+                    "designation": "$designations.designationName",
+                    "supervisor": "$employees.fullName",
+                    "hrScope_id": '$officeDetails.hrspoc_id',
+                    "supervisor_id": "$employees._id",
+                    "profileProcessDetails": "$employeeprofileProcessDetails",
+                    "department_id": "$officeDetails.department_id",
+                    "grade_id": "$grade_id",
+                    "gender": "$employeePersonalDetails.gender"
+                }
             }
-        },
-        {
-          "$unwind": "$designations"
-        },
-        {
-          "$lookup": {
-              "from": "employeeofficedetails",
-              "localField": "_id",
-              "foreignField": "emp_id",
-              "as": "officeDetails"
-          }
-        },
-        {
-          "$unwind": "$officeDetails"
-        },
-        {
-            "$lookup": {
-                "from": "employeesupervisordetails",
-                "localField": "_id",
-                "foreignField": "emp_id",
-                "as": "supervisor"
+        ]).exec(function (err, results) {
+            if (err) {
+                return res.status(403).json({
+                    title: 'There was a problem',
+                    error: {
+                        message: err
+                    },
+                    result: {
+                        message: results
+                    }
+                });
             }
-        },
-        {
-            "$unwind": "$supervisor"
-        },
-        {
-            "$lookup": {
-                "from": "employeedetails",
-                "localField": "supervisor.primarySupervisorEmp_id",
-                "foreignField": "_id",
-                "as": "employees"
+            return res.status(200).json({ "data": results });
+        });
+    },
+    getEmployeeProbitionDetails: (req, res) => {
+        let query = {
+            'isDeleted': false,
+            'emp_id': parseInt(req.query.id)
+        };
+        OfficeDetails.find(query, function (err, OfficeDetailsData) {
+            if (OfficeDetailsData) {
+                var employementStatusId = OfficeDetailsData[0].employmentStatus_id;
+                if (employementStatusId == 2 || employementStatusId == 3)
+                    return res.status(200).json({"result": true});
+                else
+                    return res.status(200).json({"result": false});
             }
-        },
-        {
-            "$unwind": "$employees"
-        },
-        {
-            "$lookup": {
-                "from": "employeeprofileprocessdetails",
-                "localField": "_id",
-                "foreignField": "emp_id",
-                "as": "employeeprofileProcessDetails"
-            }
-        },
-        {
-            "$lookup": {
-                "from": "employeeprofileprocessdetails",
-                "localField": "_id",
-                "foreignField": "emp_id",
-                "as": "employeeprofileProcessDetails"
-            }
-        },
-        {
-            "$unwind": "$employeeprofileProcessDetails"
-        },
-        {
-            "$lookup": {
-                "from": "employeepersonaldetails",
-                "localField": "_id",
-                "foreignField": "emp_id",
-                "as": "employeePersonalDetails"
-            }
-        },
-        {
-            "$unwind": "$employeePersonalDetails"
-        },
-        {"$match": {"isDeleted":false,"designations.isActive":true,"officeDetails.isDeleted":false} },
-        {"$project":{
-          "_id":"$_id",
-          "fullName":"$fullName",
-          "userName":"$userName",
-          "isAccountActive":"$isAccountActive",
-          "profileImage":"$profileImage",
-          "officeEmail":"$officeDetails.officeEmail",
-          "designation":"$designations.designationName",
-          "supervisor":"$employees.fullName",
-          "hrScope_id":'$officeDetails.hrspoc_id',
-          "supervisor_id":"$employees._id",
-          "profileProcessDetails":"$employeeprofileProcessDetails",
-          "department_id":"$officeDetails.department_id",
-          "grade_id":"$grade_id",
-          "gender": "$employeePersonalDetails.gender"
-        }}
-        ]).exec(function(err, results){
-        if(err)
-        {
             return res.status(403).json({
-                title: 'There was a problem',
+                title: 'Error',
                 error: {
                     message: err
                 },
                 result: {
-                    message: results
+                    message: result
                 }
             });
-        }
-        return res.status(200).json({"data":results});
-     });
-    },
+        })
+    }
 }
 
 module.exports = functions;

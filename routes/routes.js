@@ -307,7 +307,8 @@ let express  = require('express'),
   leaveRoutes.get('/getLeavesByMonth', leave.getLeavesByMonth);
   leaveRoutes.get('/getLeavesByLeaveType', leave.getLeavesByLeaveType);
   leaveRoutes.get('/getAllEmployee', leave.getAllEmployee);
-
+  leaveRoutes.get('/getEmployeeProbitionDetails', leave.getEmployeeProbitionDetails);
+  
   // leaveRoutes.post('/updateLeave', kra.postUpdateLeave);
 
   // leaveRoutes.get('/userLeaveDashboard', kra.getUserLeaveDashboardDetails);
