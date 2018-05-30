@@ -5,6 +5,7 @@ let express = require('express'),
     multer  = require('multer'),
     crypto  = require('crypto'),
     config  = require('../config/config');
+    Employee     = require('../models/employee/employeeDetails.model'),
     require('dotenv').load()
 
 
@@ -73,11 +74,20 @@ let documentsTemp = multer({
 
 
 //  upload profile Image
-let profileTemp = multer({
-    storage   : tempStorage,
+let avatarTemp = multer({
+    storage: multerS3({
+      s3: s3,
+      bucket: process.env.BucketName,
+      acl: 'public-read',
+      key: function (req, file, cb) {
+            crypto.pseudoRandomBytes(4, (err, raw) => {
+              let filename = file.originalname.replace(/_/gi, '');
+               cb(null, config.aws.profilePath + raw.toString('hex') + '.' + filename.toLowerCase());
+            });
+      }
+    }),
     limits    : {
       fileSize: config.aws.fileSize, // 5MB filesize limit
-      parts   : 1
     },
     fileFilter: (req, file, cb) => {
       let filetypes = /jpe?g|png/;
@@ -88,7 +98,7 @@ let profileTemp = multer({
       }
       cb('Error: File upload only supports the following filetypes - ' + filetypes);
     }
-}).single('profile');
+}).single('avatar');
 
 let functions = {
   //delete image from S3
@@ -98,13 +108,20 @@ let functions = {
 
   // Upload profile Image to S3 tmp Folder
   uploadProfile: (req, res) => {
-    profileTemp(req, res, (err) => {
+    avatarTemp(req, res, (err) => {
       if (err) {
         return res.status(500).json(err);
       }
       if (req.file !== undefined) {
-        res.status(200).json({
-          message: 'Profile Image uploaded successfully!',key:req.file.key
+        if(req.body.avatarUrl!="null")
+        {
+          s3.deleteObject({Bucket: process.env.BucketName,Key: req.body.avatarUrl});
+        }
+        Employee.findOneAndUpdate({_id:parseInt(req.headers.uid)},{$set:{profileImage:req.file.key}}).exec(function(err,data)
+        {
+          res.status(200).json({
+            message: 'Profile Image uploaded successfully!',key:req.file.key
+          });
         });
       }
     });

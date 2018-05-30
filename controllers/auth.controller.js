@@ -250,23 +250,84 @@ let functions = {
               {
                 if(err)
                 {
-                return res.status(500).json({
+                  return res.status(500).json({
                     status: 'error'
                   });
                 }
-      
-                var originalDecoded = jwt.decode(token, {complete: true});
-                var refreshedToken = jwt.refresh(originalDecoded, 3600, process.env.Secret);
-              
-                res.setHeader('access-token', refreshedToken);
-                res.setHeader('client', "application_id");
-                res.setHeader('expiry', '');
-                res.setHeader('token-type', 'Bearer');
-                res.setHeader('uid', "");
                 
-                delete originalDecoded.payload.iat;
-                delete originalDecoded.payload.exp;
-                return res.status(200).json(originalDecoded.payload);
+                else{
+                  Employee.aggregate([
+                    {
+                      "$lookup": {
+                          "from": "employeeroledetails",
+                          "localField": "_id",
+                          "foreignField": "emp_id",
+                          "as": "employeeroles"
+                      }
+                    },
+                    {
+                          "$lookup": {
+                              "from": "roles",
+                              "localField": "employeeroles.role_id",
+                              "foreignField": "_id",
+                              "as": "roles"
+                          }
+                    },
+                    {
+                        "$lookup": {
+                            "from": "employeepersonaldetails",
+                            "localField": "_id",
+                            "foreignField": "emp_id",
+                            "as": "employeepersonaldetails"
+                          }
+                    },
+                    {
+                      "$unwind": "$employeepersonaldetails"
+                    },
+                    {
+                        "$lookup": {
+                            "from": "employeeofficedetails",
+                            "localField": "_id",
+                            "foreignField": "emp_id",
+                            "as": "employeeofficedetails"
+                          }
+                    },
+                    {
+                      "$unwind": "$employeeofficedetails"
+                    },
+                    { "$match": {"_id":parseInt(decoded._id),"isDeleted":false,"roles.isActive":true,"employeepersonaldetails.isDeleted":false,"employeeofficedetails.isDeleted":false,"employeeroles.isDeleted":false} },
+                    {"$project":{
+                      "_id": "$_id",
+                      "officeEmail"      :"$employeeofficedetails.officeEmail",
+                      "personalEmail"    :"$employeepersonaldetails.personalEmail",
+                      "profileImage"     :"$profileImage",
+                      "fullName"         :"$fullName",
+                      "designation_id"   :"$designation_id",
+                      "roles"            :"$roles.roleName",
+                      "userName"         :"$userName"
+                    }}
+                  ]).exec(function(err, employeeDetailsData){
+                    res.setHeader('access-token', jwt.sign(employeeDetailsData[0], process.env.Secret, {expiresIn: process.env.JwtExpire}));
+                    res.setHeader('client', "application_id");
+                    res.setHeader('expiry', '');
+                    res.setHeader('token-type', 'Bearer');
+                    res.setHeader('uid', employeeDetailsData[0]._id);
+                    return res.status(200).json(employeeDetailsData[0]);
+                   }); 
+                }
+                //Only Refresh Token
+                // var originalDecoded = jwt.decode(token, {complete: true});
+                // var refreshedToken = jwt.refresh(originalDecoded, 3600, process.env.Secret);
+              
+                // res.setHeader('access-token', refreshedToken);
+                // res.setHeader('client', "application_id");
+                // res.setHeader('expiry', '');
+                // res.setHeader('token-type', 'Bearer');
+                // res.setHeader('uid', "");
+                
+                // delete originalDecoded.payload.iat;
+                // delete originalDecoded.payload.exp;
+                // return res.status(200).json(originalDecoded.payload);
               })
             }
           });
