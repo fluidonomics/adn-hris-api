@@ -11,6 +11,7 @@ let express = require('express'),
     LeaveBalance = require('../models/leave/EmployeeLeaveBalance.model'),
     EmployeeRoles = require('../models/master/role.model'),
     Employee = require('../models/employee/employeeDetails.model');
+    EmployeeInfo      = require('../models/employee/employeeDetails.model'),
 config = require('../config/config'),
     crypto = require('crypto'),
     async = require('async'),
@@ -1837,7 +1838,117 @@ let functions = {
             }
 
         })
-    }
+    },
+    getAllEmployee:(req, res)=>
+    {
+        EmployeeInfo.aggregate([
+        {
+            "$lookup": {
+                "from": "designations",
+                "localField": "designation_id",
+                "foreignField": "_id",
+                "as": "designations"
+            }
+        },
+        {
+          "$unwind": "$designations"
+        },
+        {
+          "$lookup": {
+              "from": "employeeofficedetails",
+              "localField": "_id",
+              "foreignField": "emp_id",
+              "as": "officeDetails"
+          }
+        },
+        {
+          "$unwind": "$officeDetails"
+        },
+        {
+            "$lookup": {
+                "from": "employeesupervisordetails",
+                "localField": "_id",
+                "foreignField": "emp_id",
+                "as": "supervisor"
+            }
+        },
+        {
+            "$unwind": "$supervisor"
+        },
+        {
+            "$lookup": {
+                "from": "employeedetails",
+                "localField": "supervisor.primarySupervisorEmp_id",
+                "foreignField": "_id",
+                "as": "employees"
+            }
+        },
+        {
+            "$unwind": "$employees"
+        },
+        {
+            "$lookup": {
+                "from": "employeeprofileprocessdetails",
+                "localField": "_id",
+                "foreignField": "emp_id",
+                "as": "employeeprofileProcessDetails"
+            }
+        },
+        {
+            "$lookup": {
+                "from": "employeeprofileprocessdetails",
+                "localField": "_id",
+                "foreignField": "emp_id",
+                "as": "employeeprofileProcessDetails"
+            }
+        },
+        {
+            "$unwind": "$employeeprofileProcessDetails"
+        },
+        {
+            "$lookup": {
+                "from": "employeepersonaldetails",
+                "localField": "_id",
+                "foreignField": "emp_id",
+                "as": "employeePersonalDetails"
+            }
+        },
+        {
+            "$unwind": "$employeePersonalDetails"
+        },
+        {"$match": {"isDeleted":false,"designations.isActive":true,"officeDetails.isDeleted":false} },
+        {"$project":{
+          "_id":"$_id",
+          "fullName":"$fullName",
+          "userName":"$userName",
+          "isAccountActive":"$isAccountActive",
+          "profileImage":"$profileImage",
+          "officeEmail":"$officeDetails.officeEmail",
+          "designation":"$designations.designationName",
+          "supervisor":"$employees.fullName",
+          "hrScope_id":'$officeDetails.hrspoc_id',
+          "supervisor_id":"$employees._id",
+          "profileProcessDetails":"$employeeprofileProcessDetails",
+          "department_id":"$officeDetails.department_id",
+          "grade_id":"$grade_id",
+          "gender": "$employeePersonalDetails.gender"
+        }}
+        ]).exec(function(err, results){
+        if(err)
+        {
+            return res.status(403).json({
+                title: 'There was a problem',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: results
+                }
+            });
+        }
+        return res.status(200).json({"data":results});
+     });
+    },
 }
 
 module.exports = functions;

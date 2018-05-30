@@ -306,7 +306,8 @@ let express  = require('express'),
   leaveRoutes.post('/postAcceptRejectLeave', leave.postAcceptRejectLeave);
   leaveRoutes.get('/getLeavesByMonth', leave.getLeavesByMonth);
   leaveRoutes.get('/getLeavesByLeaveType', leave.getLeavesByLeaveType);
-  
+  leaveRoutes.get('/getAllEmployee', leave.getAllEmployee);
+
   // leaveRoutes.post('/updateLeave', kra.postUpdateLeave);
 
   // leaveRoutes.get('/userLeaveDashboard', kra.getUserLeaveDashboardDetails);
