@@ -1239,6 +1239,7 @@ let functions = {
             }
         ])
     },
+    //no use
     getEmployeeLeaveBalance: (req, res) => {
         let query = {
             'isDeleted': false,
@@ -1623,6 +1624,14 @@ let functions = {
                         }
                     },
 
+                    { "$match": { $or:[ 
+                        { "isApproved": true, "isCancelled": null }, //leave approved
+                        { "isApproved": true, "isCancelled": false }, //leave approved and pending to approve cancellation
+                        { "isApproved": null, "isCancelled": null} //when leave applied
+                        //{ "isApproved": true, "isCancelled": true} //leave approved and cancel approved --not counted
+                        //{ "isApproved": null, "isCancelled": true} //leave applied and cancel approved  --not counted
+                        //{ "isApproved": false } //leave applied and rejected  --not counted
+                    ]} },
                     // Stage 4
                     {
                         $group: {
@@ -1648,18 +1657,11 @@ let functions = {
                         const balLeaveObj = results2.find(p => p._id === x.leave_type);
                         obj = {
                             'leaveType': x.leave_type,
-                            'leaveBalance': (x.balance - ( balLeaveObj === undefined? 0 : balLeaveObj.totalAppliedLeaves ) )
+                            'leaveBalance': Math.round ((x.balance - ( balLeaveObj === undefined? 0 : balLeaveObj.totalAppliedLeaves )) )
                         };
                     response.push(obj);
                     })
-                    // results2.forEach((result) => {
-                    //     const balLeaveObj = results1.find(x => x.leave_type === result._id),
-                    //         obj = {
-                    //             'leaveType': result._id,
-                    //             'leaveBalance': (balLeaveObj.balance - result.totalAppliedLeaves)
-                    //         };
-                    //     response.push(obj);
-                    // });
+                    
                     return res.status(200).json(response);
                 })
         });
