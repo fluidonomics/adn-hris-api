@@ -1780,7 +1780,8 @@ let functions = {
                     "applyTo_name": "$sup_name.fullName",
                     "toDate": "$toDate",
                     "fromDate": "$fromDate",
-                    "reason": "$reason"
+                    "reason": "$reason",
+                    "status": '$status'
 
                 }
             }
