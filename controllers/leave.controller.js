@@ -478,6 +478,7 @@ function applyLeaveSupervisor(req, res, done) {
             updatedDate: new Date(),
             updatedBy: parseInt(req.body.emp_id),
             isApproved: req.body.isApproved,
+            isCancelled: req.body.isCancelled,
             remark: req.body.remarks,
             status: req.body.status
             // emp_id: parseInt(req.body.emp_id)
@@ -734,7 +735,7 @@ let functions = {
                     "toDate": "$toDate",
                     "fromDate": "$fromDate",
                     "reason": "$reason",
-                    "status" : "$status"
+                    "status": "$status"
 
                 }
             }
@@ -833,9 +834,9 @@ let functions = {
                         { "emp_id": parseInt(req.query.emp_id) },
                         {
                             //skip records where isCancelled is true
-                            $or: [{ "isCancelled": null, "isApproved": true  },
-                            { "isCancelled": false , "isApproved": true },
-                            { "isCancelled": null , "isApproved": null },],
+                            $or: [{ "isCancelled": null, "isApproved": true },
+                            { "isCancelled": false, "isApproved": true },
+                            { "isCancelled": null, "isApproved": null },],
 
                         }
                         // {
@@ -1968,7 +1969,7 @@ let functions = {
         });
     },
     getEmployeeProbationDetails: (req, res) => {
-        let query = { 
+        let query = {
             'isDeleted': false,
             'emp_id': parseInt(req.query.id)
         };
@@ -1976,9 +1977,9 @@ let functions = {
             if (OfficeDetailsData) {
                 var employementStatusId = OfficeDetailsData[0].employmentStatus_id;
                 if (employementStatusId == 2 || employementStatusId == 3)
-                    return res.status(200).json({"result": true});
+                    return res.status(200).json({ "result": true });
                 else
-                    return res.status(200).json({"result": false});
+                    return res.status(200).json({ "result": false });
             }
             return res.status(403).json({
                 title: 'Error',
