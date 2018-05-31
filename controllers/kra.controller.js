@@ -342,11 +342,10 @@ function deleteAllKraDetailsByEmpId(req,res,done)
 
 function getKraInfoDetails(req, res) {
   let kraWorkflow_id = req.query.kraWorkflow_id;
-  let emp_id = req.query.emp_id;
   let query = {
       isDeleted: false
   };
-  if (kraWorkflow_id && emp_id) {
+  if (kraWorkflow_id) {
       query = {
           kraWorkflow_id: parseInt(kraWorkflow_id),
           isDeleted: false

@@ -2222,6 +2222,17 @@ let functions = {
         {
             "$unwind": "$employeeprofileProcessDetails"
         },
+        {
+            "$lookup": {
+                "from": "kraworkflowdetails",
+                "localField": "_id",
+                "foreignField": "emp_id",
+                "as": "kraworkflowdetails"
+            }
+        },
+        {"$unwind": {
+            "path": "$kraworkflowdetails","preserveNullAndEmptyArrays": true
+        }},
         {"$match": {"isDeleted":false,"designations.isActive":true,"officeDetails.isDeleted":false} },
         {"$project":{
           "_id":"$_id",
@@ -2236,7 +2247,8 @@ let functions = {
           "supervisor_id":"$employees._id",
           "profileProcessDetails":"$employeeprofileProcessDetails",
           "department_id":"$officeDetails.department_id",
-          "grade_id":"$grade_id"
+          "grade_id":"$grade_id",
+          "kraWorkflow":"$kraworkflowdetails"
         }}
         ]).exec(function(err, results){
         if(err)
