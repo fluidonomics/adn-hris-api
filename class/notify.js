@@ -49,15 +49,16 @@ let functions = {
         // socket.on('initData', function(data) {
         //   socket.emit('getData', 'Return form server');
         // });
-        //console.log('a user connected');
-        socket.on('disconnect', () => {
-          //console.log('user disconnected');
-        });
+        // console.log('a user connected');
+        // socket.on('disconnect', () => {
+        //   //console.log('user disconnected');
+        // });
     });
   },
 
   getNotificaton:(id)=>
   {
+    // io.emit('sendBack',"send notification");
     // Notify.find({id:id})
     // limit(10).
     // sort({ createdAt: -1 }).exec();
