@@ -46,10 +46,10 @@ let functions = {
   {
     io = io.listen(server);
     io.on("connection", function(socket){
-        // socket.on('initData', function(data) {
-        //   socket.emit('getData', 'Return form server');
-        // });
-        //console.log('a user connected');
+        socket.on('initData', function(data) {
+          socket.emit('getData', 'Return form server');
+        });
+        console.log('a user connected');
         socket.on('disconnect', () => {
           //console.log('user disconnected');
         });
@@ -58,6 +58,7 @@ let functions = {
 
   getNotificaton:(id)=>
   {
+    io.emit('sendBack',"send notification");
     // Notify.find({id:id})
     // limit(10).
     // sort({ createdAt: -1 }).exec();

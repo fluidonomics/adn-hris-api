@@ -43,6 +43,7 @@ let express           = require('express'),
     async             = require('async')
     awaitEach         = require('await-each');
     sendEmailInfo     =require('../class/sendEmail');
+    Notify     =require('../class/notify');
     require('dotenv').load()
 
 function getDesignationByGrade(req, res) {
@@ -898,7 +899,7 @@ let functions = {
                                 isDeleted: false,
                                 company_id: company_id
                             }
-                            Employee.find(subQuery).where('_id').in(supervisorEmpArray).select('fullName').exec(function(err, empSupervisorData) {
+                            Employee.find(subQuery).where('_id').in(supervisorEmpArray).select('fullName userName').exec(function(err, empSupervisorData) {
                                 if (empSupervisorData) {
                                     return res.status(200).json(empSupervisorData);
                                 }
@@ -923,7 +924,7 @@ let functions = {
                         company_id: company_id
                     }
                 }
-                Employee.find(subQuery).where('_id').in(empArray).select('fullName').exec(function(err, empData) {
+                Employee.find(subQuery).where('_id').in(empArray).select('fullName userName').exec(function(err, empData) {
                     if (empData) {
                         return res.status(200).json(empData);
                     }
@@ -970,7 +971,7 @@ let functions = {
             for (let i = 0; i < empRoleData.length; i++) { 
                 arrRoles.push(empRoleData[i].emp_id);
             }
-            Employee.find(subQuery).where('_id').in(arrRoles).select('_id, fullName').exec(function(err, empData) {
+            Employee.find(subQuery).where('_id').in(arrRoles).select('_id, fullName userName').exec(function(err, empData) {
                 if (empData) {
                     return res.status(200).json(empData);
                 }
@@ -1468,6 +1469,12 @@ let functions = {
             }
           ]);
     },
+
+    sendNotification: (req, res) => {
+        Notify.getNotificaton(1);
+        return res.status().json(true);
+    },
+
 };
 
 module.exports = functions;
