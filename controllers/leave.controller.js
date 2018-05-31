@@ -133,6 +133,7 @@ function cancelLeave(req, res, done) {
             cancelLeaveApplyTo: req.body.cancelLeaveApplyTo,
             updatedBy: req.body.updatedBy,
             cancelReason: req.body.cancelReason,
+            reason: req.body.reason,
             ccTo: req.body.ccTo,
             isCancelled: req.body.isCancelled,
             status: req.body.status
@@ -480,7 +481,8 @@ function applyLeaveSupervisor(req, res, done) {
             isApproved: req.body.isApproved,
             isCancelled: req.body.isCancelled,
             remark: req.body.remarks,
-            status: req.body.status
+            status: req.body.status,
+            reason: req.body.reason
             // emp_id: parseInt(req.body.emp_id)
         }
     };
