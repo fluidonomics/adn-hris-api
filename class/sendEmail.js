@@ -1,8 +1,9 @@
 let express          = require('express'),
     nodemailer       = require('nodemailer'),
     hbs              = require('nodemailer-express-handlebars'),
-    uuidV1           = require('uuid/v1');
-
+    uuidV1           = require('uuid/v1'),
+    config            = require('../config/config');
+    require('dotenv').load()
 let options = {
     viewPath: config.paths.emailPath,
     extName: '.hbs'
@@ -65,10 +66,11 @@ let functions =
             context: {
                 fullName: employeeData.fullName,
                 userName: employeeData.userName,
-                token: employeeData.resetPasswordToken,
+                redirectUrl:process.env.HostUrl +"/reset/" + employeeData.resetPasswordToken,
                 uid: uuidV1()
             }
         };
+        transporter.sendMail(mailOptions);
     },
 
     sendEmailResetPassword:(toEmail,redirectUrl)=>{

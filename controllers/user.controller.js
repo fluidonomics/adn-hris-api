@@ -4,7 +4,6 @@ let express           = require('express'),
     OfficeInfo        = require('../models/employee/employeeOfficeDetails.model'),
     SupervisorInfo    = require('../models/employee/employeeSupervisorDetails.model'),
     AddressInfo       = require('../models/employee/employeeAddressDetails.model'),
-    AuditTrail        = require('../models/common/auditTrail.model'),
     Notification      = require('../models/common/notification.model'),
     EmployeeRoles     = require('../models/employee/employeeRoleDetails.model'),
     AcademicInfo      = require('../models/employee/employeeAcademicDetails.model'),
@@ -19,14 +18,17 @@ let express           = require('express'),
     ProfileProcessInfo = require('../models/employee/employeeProfileProcessDetails.model'),
     PerformanceRatingMaster = require('../models/master/performanceRating.model'),
     ExternalDocument= require('../models/employee/employeeExternalDocumentDetails.model'),
+
+    AuditTrail        = require('../class/auditTrail'),
+    SendEmail        = require('../class/sendEmail'),
     config            = require('../config/config'),
     crypto            = require('crypto'),
     async             = require('async'),
-    nodemailer        = require('nodemailer'),
-    hbs               = require('nodemailer-express-handlebars'),
-    sgTransport       = require('nodemailer-sendgrid-transport'),
-    uploadCtrl=         require('./upload.controller'),
-    uuidV1            = require('uuid/v1');
+    // nodemailer        = require('nodemailer'),
+    // hbs               = require('nodemailer-express-handlebars'),
+    // sgTransport       = require('nodemailer-sendgrid-transport'),
+    uploadCtrl=         require('./upload.controller');
+    // uuidV1            = require('uuid/v1');
     require('dotenv').load()
 
 
@@ -48,7 +50,7 @@ function addPersonalInfoDetails(req, res, done) {
                 }
             });
         }
-        auditTrailEntry(personalDetails.emp_id, "personalDetails", personalDetails, "user", "personalDetails", "ADDED");
+        AuditTrail.auditTrailEntry(personalDetails.emp_id, "personalDetails", personalDetails, "user", "personalDetails", "ADDED");
         return done(err, personalInfoData);
     });
 }
@@ -87,7 +89,7 @@ function updatePersonalInfoDetails(req, res, done) {
                 }
             });
         }
-        auditTrailEntry(personalDetails.emp_id, "personalDetails", personalDetails, "user", "personalDetails", "UPDATED");
+        AuditTrail.auditTrailEntry(personalDetails.emp_id, "personalDetails", personalDetails, "user", "personalDetails", "UPDATED");
         return done(err, personalDetailsData);
     });
 }
@@ -110,7 +112,7 @@ function addAcademicInfoDetails(req, res, done) {
                 }
             });
         }
-        auditTrailEntry(academicInfo.emp_id, "academicInfo", academicInfo, "user", "academicInfo", "ADDED");
+        AuditTrail.auditTrailEntry(academicInfo.emp_id, "academicInfo", academicInfo, "user", "academicInfo", "ADDED");
         return done(err, academicInfoData);
     });
 }
@@ -150,7 +152,7 @@ function updateAcademicInfoDetails(req, res, done) {
                 }
             });
         }
-        auditTrailEntry(academicInfo.emp_id, "academicInfo", academicInfo, "user", "academicInfo", "UPDATED");
+        AuditTrail.auditTrailEntry(academicInfo.emp_id, "academicInfo", academicInfo, "user", "academicInfo", "UPDATED");
         return done(err, academicInfoData);
     });
 }
@@ -172,7 +174,7 @@ function addProfileProcessInfoDetails(req, res, done) {
                 }
             });
         }
-        auditTrailEntry(profileProcessInfo.emp_id, "profileProcessInfo", profileProcessInfo, "user", "profileProcessInfo", "ADDED");
+        AuditTrail.auditTrailEntry(profileProcessInfo.emp_id, "profileProcessInfo", profileProcessInfo, "user", "profileProcessInfo", "ADDED");
         return done(err, profileProcessInfoData);
     });
 }
@@ -212,7 +214,7 @@ function updateProfileProcessInfoDetails(req, res, done) {
                 }
             });
         }
-        auditTrailEntry(profileProcessInfo.emp_id, "profileProcessInfo", profileProcessInfo, "user", "profileProcessInfo", "UPDATED");
+        AuditTrail.auditTrailEntry(profileProcessInfo.emp_id, "profileProcessInfo", profileProcessInfo, "user", "profileProcessInfo", "UPDATED");
         getProfileProcessInfoDetails(req,res);
         // let profileProcess={
         //     "_id":profileProcessData._id,
@@ -256,7 +258,7 @@ function deleteAcademicInfoDetails(req, res, done) {
             });
         }
         academicInfoData._id = _id;
-        auditTrailEntry(1, "employeeacademicdetails", academicInfoData, "user", "deleteAcademicInfoDetails", "Deleted the Academic Info");
+        AuditTrail.auditTrailEntry(1, "employeeacademicdetails", academicInfoData, "user", "deleteAcademicInfoDetails", "Deleted the Academic Info");
         return done(err, success);
     });
 }
@@ -279,7 +281,7 @@ function addPreviousEmploymentInfoDetails(req, res, done) {
                 }
             });
         }
-        auditTrailEntry(previousEmploymentInfo.emp_id, "previousEmploymentInfo", previousEmploymentInfo, "user", "previousEmploymentInfo", "ADDED");
+        AuditTrail.auditTrailEntry(previousEmploymentInfo.emp_id, "previousEmploymentInfo", previousEmploymentInfo, "user", "previousEmploymentInfo", "ADDED");
         return done(err, previousEmploymentInfoData);
     });
 }
@@ -319,7 +321,7 @@ function updatePreviousEmploymentInfoDetails(req, res, done) {
                 }
             });
         }
-        auditTrailEntry(previousEmploymentInfo.emp_id, "previousEmploymentInfo", previousEmploymentInfo, "user", "previousEmploymentInfo", "UPDATED");
+        AuditTrail.auditTrailEntry(previousEmploymentInfo.emp_id, "previousEmploymentInfo", previousEmploymentInfo, "user", "previousEmploymentInfo", "UPDATED");
         return done(err, previousEmploymentInfoData);
     });
 }
@@ -344,7 +346,7 @@ function deletePreviousEmploymentInfoDetails(req, res, done) {
             });
         }
         previousEmploymentInfoData._id = _id;
-        auditTrailEntry(1, "employeepreviousEmploymentdetails", previousEmploymentInfoData, "user", "deletePreviousEmploymentInfoDetails", "Deleted the PreviousEmployment Info");
+        AuditTrail.auditTrailEntry(1, "employeepreviousEmploymentdetails", previousEmploymentInfoData, "user", "deletePreviousEmploymentInfoDetails", "Deleted the PreviousEmployment Info");
         return done(err, success);
     });
 }
@@ -397,7 +399,7 @@ function addDocumentsInfoDetails(req, res, done) {
                         }
                     });
                 }
-                auditTrailEntry(documents.emp_id, "documents", documents, "user", "documents", "ADDED");
+                AuditTrail.auditTrailEntry(documents.emp_id, "documents", documents, "user", "documents", "ADDED");
                 return done(err, documentsData);
              });
         }
@@ -444,7 +446,7 @@ function updateDocumentsInfoDetails(req, res, done) {
                         }
                     });
                 }
-                    auditTrailEntry(documents.emp_id, "documents", documents, "user", "documents", "UPDATED");
+                AuditTrail.auditTrailEntry(documents.emp_id, "documents", documents, "user", "documents", "UPDATED");
                     return done(err, documentsData);
             });
         }
@@ -468,7 +470,7 @@ function addFamilyInfoDetails(req, res, done) {
                 }
             });
         }
-            auditTrailEntry(familyInfo.emp_id, "familyInfo", familyInfo, "user", "familyInfo", "ADDED");
+        AuditTrail.auditTrailEntry(familyInfo.emp_id, "familyInfo", familyInfo, "user", "familyInfo", "ADDED");
             return done(err, familyInfoData);
     });
 }
@@ -508,7 +510,7 @@ function updateFamilyInfoDetails(req, res, done) {
                 }
             });
         }
-            auditTrailEntry(familyInfo.emp_id, "familyInfo", familyInfo, "user", "familyInfo", "UPDATED");
+        AuditTrail.auditTrailEntry(familyInfo.emp_id, "familyInfo", familyInfo, "user", "familyInfo", "UPDATED");
             return done(err, familyInfoData);
 
     });
@@ -534,7 +536,7 @@ function deleteFamilyInfoDetails(req, res, done) {
             });
         }
         familyInfoData._id = _id;
-        auditTrailEntry(1, "employeefamilydetails", familyInfoData, "user", "deleteFamilyInfoDetails", "Deleted the Family Info");
+        AuditTrail.auditTrailEntry(1, "employeefamilydetails", familyInfoData, "user", "deleteFamilyInfoDetails", "Deleted the Family Info");
         return done(err, success);
     });
 }
@@ -557,7 +559,7 @@ function addAddressInfoDetails(req, res, done) {
                 }
             });
         }
-        auditTrailEntry(address.emp_id, "address", address, "user", "address", "ADDED");
+        AuditTrail.auditTrailEntry(address.emp_id, "address", address, "user", "address", "ADDED");
         return done(err, addressData);
     });
 }
@@ -597,7 +599,7 @@ function updateAddressInfoDetails(req, res, done) {
                 }
             });
         }
-        auditTrailEntry(address.emp_id, "address", address, "user", "address", "UPDATED");
+        AuditTrail.auditTrailEntry(address.emp_id, "address", address, "user", "address", "UPDATED");
         return done(err, addressData);
     });
 }
@@ -622,7 +624,7 @@ function addBankInfoDetails(req, res, done) {
             });
         }
 
-        auditTrailEntry(bank.emp_id, "bank", bank, "user", "bank", "ADDED");
+        AuditTrail.auditTrailEntry(bank.emp_id, "bank", bank, "user", "bank", "ADDED");
          return done(err, bankData);
     });
 }
@@ -662,7 +664,7 @@ function updateBankInfoDetails(req, res, done) {
                 }
             });
         }
-            auditTrailEntry(bank.emp_id, "bank", bank, "user", "bank", "UPDATED");
+        AuditTrail.auditTrailEntry(bank.emp_id, "bank", bank, "user", "bank", "UPDATED");
             return done(err, bankData);
         });
 }
@@ -726,7 +728,7 @@ function addSalaryInfoDetails(req, res, done) {
                         }
                     });
                 }
-                auditTrailEntry(salaryInfo.emp_id, "salaryInfo", salaryInfo, "user", "salaryInfo", "ADDED");
+                AuditTrail.auditTrailEntry(salaryInfo.emp_id, "salaryInfo", salaryInfo, "user", "salaryInfo", "ADDED");
                 return done(err, salaryInfoData);
             });
 }
@@ -766,7 +768,7 @@ function updateSalaryInfoDetails(req, res, done) {
             }
         });
         }
-        auditTrailEntry(salaryInfo.emp_id, "salaryInfo", salaryInfo, "user", "salaryInfo", "UPDATED");
+        AuditTrail.auditTrailEntry(salaryInfo.emp_id, "salaryInfo", salaryInfo, "user", "salaryInfo", "UPDATED");
         return done(err, salaryInfoData);
     });
 }
@@ -789,7 +791,7 @@ function addCarInfoDetails(req, res, done) {
                 }
             });
         }
-        auditTrailEntry(carInfo.emp_id, "carInfo", carInfo, "user", "carInfo", "ADDED");
+        AuditTrail.auditTrailEntry(carInfo.emp_id, "carInfo", carInfo, "user", "carInfo", "ADDED");
          return done(err, carInfoData);
     });
 }
@@ -829,7 +831,7 @@ function updateCarInfoDetails(req, res, done) {
             }
         });
         }
-        auditTrailEntry(carInfo.emp_id, "carInfo", carInfo, "user", "carInfo", "UPDATED");
+        AuditTrail.auditTrailEntry(carInfo.emp_id, "carInfo", carInfo, "user", "carInfo", "UPDATED");
          return done(err, carInfoData);
     });
 }
@@ -853,7 +855,7 @@ function addCertificationInfoDetails(req, res, done) {
                 }
             });
         }
-        auditTrailEntry(certificationInfo.emp_id, "certificationInfo", certificationInfo, "user", "certificationInfo", "ADDED");
+        AuditTrail.auditTrailEntry(certificationInfo.emp_id, "certificationInfo", certificationInfo, "user", "certificationInfo", "ADDED");
         return done(err, certificationInfoData);
     });
 }
@@ -893,7 +895,7 @@ function updateCertificationInfoDetails(req, res, done) {
             }
         });
         }
-        auditTrailEntry(certificationInfo.emp_id, "certificationInfo", certificationInfo, "user", "certificationInfo", "UPDATED");
+        AuditTrail.auditTrailEntry(certificationInfo.emp_id, "certificationInfo", certificationInfo, "user", "certificationInfo", "UPDATED");
         return done(err, certificationInfoData);
     });
 }
@@ -918,7 +920,7 @@ function deleteCertificationInfoDetails(req, res, done) {
             });
         }
         certificationInfoData._id = _id;
-        auditTrailEntry(1, "employeecertificationdetails", certificationInfoData, "user", "deleteCertificationInfoDetails", "Deleted the Certification Info");
+        AuditTrail.auditTrailEntry(1, "employeecertificationdetails", certificationInfoData, "user", "deleteCertificationInfoDetails", "Deleted the Certification Info");
         return done(err, success);
     });
 }
@@ -943,7 +945,7 @@ function addPerformanceRatingInfoDetails(req, res, done) {
                 }
             });
         }
-        auditTrailEntry(performanceRatingInfo.emp_id, "performanceRatingInfo", performanceRatingInfo, "user", "performanceRatingInfo", "ADDED");
+        AuditTrail.auditTrailEntry(performanceRatingInfo.emp_id, "performanceRatingInfo", performanceRatingInfo, "user", "performanceRatingInfo", "ADDED");
         return done(err, performanceRatingInfoData);
     });
 }
@@ -984,69 +986,11 @@ function updatePerformanceRatingInfoDetails(req, res, done) {
                 }
             });
         }
-        auditTrailEntry(performanceRatingInfo.emp_id, "performanceRatingInfo", performanceRatingInfo, "user", "performanceRatingInfo", "UPDATED");
+        AuditTrail.auditTrailEntry(performanceRatingInfo.emp_id, "performanceRatingInfo", performanceRatingInfo, "user", "performanceRatingInfo", "UPDATED");
         return done(err, performanceRatingInfoData);
     });
 }
 
-
-let notificationFlag = 0;
-
-function sendNotifications(emp, title, message, senderEmp_id, recipientEmp_id, type_id, linkUrl) {
-    //emp.hrspoc -> super (bussHrHead) -> revi(GroupHrHEad)
-    //emp._id ->
-    //Send Notification to Supervisor
-    let notification = new Notification();
-    notification.emp_id = emp._id;
-    notification.title = title;
-    notification.message = message;
-    notification.linkUrl = linkUrl;
-    notification.senderEmp_id = 1;
-    notification.recipientEmp_id = recipientEmp_id;
-    notification.type_id = type_id;
-    notification.createdBy = parseInt(req.headers.uid);
-    notification.save(function(err, result) {
-        if (result) {
-            //Send Bussiness Hr Head
-            if (notificationFlag == 0) {
-                sendNotifications(emp, title, message, senderEmp_id, emp.businessHrHead_id, type_id, linkUrl);
-                notificationFlag++;
-            } else if (notificationFlag == 1) {
-                sendNotifications(emp, title, message, senderEmp_id, emp.groupHrHead_id, type_id, linkUrl);
-                notificationFlag++;
-            } else if (notificationFlag == 2) {
-                sendNotifications(emp, title, message, senderEmp_id, emp.groupHrHead_id, type_id, linkUrl);
-                notificationFlag++;
-            } else {
-                return res.status(200).json({
-                    message: "Success"
-                });
-            }
-        } else {
-            return res.status(403).json({
-                title: 'There was a problem',
-                error: {
-                    message: err
-                },
-                result: {
-                    message: result
-                }
-            });
-        }
-    });
-}
-
-function auditTrailEntry(emp_id, collectionName, collectionDocument, controllerName, action, comments) {
-    let auditTrail = new AuditTrail();
-    auditTrail.emp_id = emp_id;
-    auditTrail.collectionName = collectionName;
-    auditTrail.document_id = collectionDocument._id;
-    auditTrail.document_values = JSON.stringify(collectionDocument);
-    auditTrail.controllerName = controllerName;
-    auditTrail.action = action;
-    auditTrail.comments = comments;
-    auditTrail.save();
-}
 //Save Embeded array of Employee Roles
 function addEmpRoles(i, req, res, emp) {
     let empRole = new EmployeeRoles();
@@ -1055,7 +999,7 @@ function addEmpRoles(i, req, res, emp) {
     empRole.createdBy = parseInt(req.headers.uid);
     //empRole.createdBy = 0;
     empRole.save(function(err, roleDaata) {
-        auditTrailEntry(emp._id, "user", empRole, "addEmpRole", "Role added for the Employee");
+        AuditTrail.auditTrailEntry(emp._id, "user", empRole, "addEmpRole", "Role added for the Employee");
         if ((i + 1) < req.body.roles.length) {
             addEmpRoles(i + 1, req, res, emp);
         }
@@ -1068,7 +1012,7 @@ function addDocuments(i, req, emp_id) {
     externalDocument.externalDocument_id = parseInt(req.body.documents[i]);
     externalDocument.createdBy = parseInt(req.headers.uid);
     externalDocument.save(function(err, documentData) {
-        auditTrailEntry(emp_id, "user", externalDocument, "addDocuments", "Documents added for the Employee");
+        AuditTrail.auditTrailEntry(emp_id, "user", externalDocument, "addDocuments", "Documents added for the Employee");
         if ((i + 1) < req.body.documents.length) {
             addDocuments(i + 1, req, emp_id);
         }
@@ -1113,39 +1057,39 @@ function fnSaveBulkPerformanceRating(index,req,res)
     }
 }
 
-function sendWelComeEmail(emp, toemail) {
-    let options = {
-        viewPath: config.paths.emailPath,
-        extName: '.hbs'
-    };
-    let transporter = nodemailer.createTransport({
-        host: process.env.EmailHost,
-        secure: false,
-        auth: {
-            user: process.env.EmailUser,
-            pass: process.env.EmailPassword
-        },
-        tls: {
-            rejectUnauthorized: false
-        }
-    });
-    transporter.use('compile', hbs(options));
+// function sendWelComeEmail(emp, toemail) {
+//     let options = {
+//         viewPath: config.paths.emailPath,
+//         extName: '.hbs'
+//     };
+//     let transporter = nodemailer.createTransport({
+//         host: process.env.EmailHost,
+//         secure: false,
+//         auth: {
+//             user: process.env.EmailUser,
+//             pass: process.env.EmailPassword
+//         },
+//         tls: {
+//             rejectUnauthorized: false
+//         }
+//     });
+//     transporter.use('compile', hbs(options));
 
-    let mailOptions = {
-        from: config.email.welcome.from, // sender address
-        to: toemail,
-        subject: config.email.welcome.subject, // Subject line
-        template: 'email-welcome',
-        context: {
-            fullName: emp.fullName,
-            userName: emp.userName,
-            redirectUrl:process.env.HostUrl +"/reset/" + emp.resetPasswordToken,
-            uid: uuidV1()
-        }
-    };
-    // send mail with defined transport object
-    transporter.sendMail(mailOptions);
-}
+//     let mailOptions = {
+//         from: config.email.welcome.from, // sender address
+//         to: toemail,
+//         subject: config.email.welcome.subject, // Subject line
+//         template: 'email-welcome',
+//         context: {
+//             fullName: emp.fullName,
+//             userName: emp.userName,
+//             redirectUrl:process.env.HostUrl +"/reset/" + emp.resetPasswordToken,
+//             uid: uuidV1()
+//         }
+//     };
+//     // send mail with defined transport object
+//     transporter.sendMail(mailOptions);
+// }
 
 function addOfficeInfoDetails(req, res, done) {
 
@@ -1156,7 +1100,7 @@ function addOfficeInfoDetails(req, res, done) {
 
     officeEmpDetails.save(function(err, officeDetailsData) {
         if (officeDetailsData) {
-            auditTrailEntry(officeEmpDetails.emp_id, "officeDetails", officeEmpDetails, "user", "addOfficeDetails", "Office ");
+            AuditTrail.auditTrailEntry(officeEmpDetails.emp_id, "officeDetails", officeEmpDetails, "user", "addOfficeDetails", "Office ");
             return done(err, officeDetailsData);
         }
         return res.status(403).json({
@@ -1345,7 +1289,7 @@ function addSupervisorDetails(req, res, done) {
 
     supervisorDetails.save(function(err, supervisorDetailsData) {
         if (supervisorDetailsData) {
-            auditTrailEntry(supervisorDetails.emp_id, "supervisorDetails", supervisorDetails, "user", "addsupervisorDetails", "ADDED");
+            AuditTrail.auditTrailEntry(supervisorDetails.emp_id, "supervisorDetails", supervisorDetails, "user", "addsupervisorDetails", "ADDED");
             return done(err, supervisorDetailsData);
         }
         return res.status(403).json({
@@ -2121,14 +2065,15 @@ let functions = {
                 emp.save(req, function(err, result) {
                     if (result) {
                         req.body.roles=[5];
-                        auditTrailEntry(emp._id, "employee", emp, "user", "addEmployee", "Employee Added");
+                        AuditTrail.auditTrailEntry(emp._id, "employee", emp, "user", "addEmployee", "Employee Added");
                         addEmpRoles(0, req, res, emp);
-                        if(req.body.documents.length>0)
+                        if(req.body.documents && req.body.documents.length>0)
                         {
                           addDocuments(0,req,emp._id);
                         }
                         req.body.emp_id = emp._id;
-                        sendWelComeEmail(emp, req.body.personalEmail);
+                        //sendWelComeEmail(emp, req.body.personalEmail);
+                        SendEmail.sendEmailWelcomeUser(req.body.personalEmail,emp);
                         async.parallel([
                                 function(done) {
                                     addOfficeInfoDetails(req, res, done)
