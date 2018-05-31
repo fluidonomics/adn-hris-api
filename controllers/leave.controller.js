@@ -1395,7 +1395,9 @@ let functions = {
                                 }
                             });
                         }
-                        return res.status(200).json(results);
+                        return res.status(200).json(results.sort(function(a, b){
+                            return b._id - a._id ;
+                        }));
                     });
                 }
                 else if (roleDetails[0].roleName == 'Supervisor') {
@@ -1509,7 +1511,9 @@ let functions = {
                                 }
                             });
                         }
-                        return res.status(200).json(results);
+                        return res.status(200).json(results.sort(function(a, b){
+                            return  b._id - a._id ;
+                        }));
                     });
                 }
                 else {
