@@ -134,7 +134,7 @@ function cancelLeave(req, res, done) {
             updatedBy: req.body.updatedBy,
             cancelReason: req.body.cancelReason,
             ccTo: req.body.ccTo,
-            isCancelled: false,
+            isCancelled: req.body.isCancelled,
             status: req.body.status
         }
     };
