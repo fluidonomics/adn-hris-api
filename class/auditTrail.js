@@ -3,7 +3,7 @@ AuditTrail        = require('../models/common/auditTrail.model')
 
 let functions =
 {
-    addAuditTrailEntry: (emp_id, collectionName,collectionDocument,controllerName,action,comments) => {
+    auditTrailEntry: (emp_id, collectionName,collectionDocument,controllerName,action,comments) => {
         let auditTrail = new AuditTrail();
         auditTrail.emp_id = emp_id;
         auditTrail.collectionName = collectionName;
