@@ -134,7 +134,8 @@ function cancelLeave(req, res, done) {
             updatedBy: req.body.updatedBy,
             cancelReason: req.body.cancelReason,
             ccTo: req.body.ccTo,
-            isCancelled: false
+            isCancelled: false,
+            status: req.body.status
         }
     };
     var query = {
@@ -477,7 +478,8 @@ function applyLeaveSupervisor(req, res, done) {
             updatedDate: new Date(),
             updatedBy: parseInt(req.body.emp_id),
             isApproved: req.body.isApproved,
-            remark: req.body.remarks
+            remark: req.body.remarks,
+            status: req.body.status
             // emp_id: parseInt(req.body.emp_id)
         }
     };
@@ -831,15 +833,15 @@ let functions = {
                         { "emp_id": parseInt(req.query.emp_id) },
                         {
                             //skip records where isCancelled is true
-                            $or: [{ "isCancelled": null },
-                            { "isCancelled": false }],
+                            $or: [{ "isCancelled": null, "isApproved": true  },
+                            { "isCancelled": false , "isApproved": true },
+                            { "isCancelled": null , "isApproved": null },],
 
-                        },
-                        {
-                            //skip records where isRejected is true
-                            $or: [{ "isRejected": null },
-                            { "isRejected": false }]
                         }
+                        // {
+                        //     //skip records where isRejected is true
+                        //     $or: [ { "isApproved": true }]
+                        // }
                     ]
                 }
             },
@@ -860,14 +862,14 @@ let functions = {
                     "isCancelled": "$isCancelled",
                     "isApproved": "$isApproved",
                     "isForwarded": "$isForwarded",
-                    "status": '',
                     "ccTo": "$ccTo",
                     "contactDetails": "$contactDetails",
                     "applyTo": "$applyTo",
                     "applyTo_name": "$sup_name.fullName",
                     "toDate": "$toDate",
                     "fromDate": "$fromDate",
-                    "reason": "$reason"
+                    "reason": "$reason",
+                    "status": "$status"
 
                 }
             }
@@ -884,17 +886,17 @@ let functions = {
                     }
                 });
             }
-            results.forEach((x) => {
-                if ((x.isForwarded === null || x.isForwarded === undefined) && (x.isCancelled === null || x.isCancelled === undefined) && (x.isApproved === null || x.isApproved === undefined)) {
-                    x.status = "pending"
-                }
-                else if (x.isForwarded === true && (x.isCancelled === null || x.isCancelled === undefined) && (x.isApproved === null || x.isApproved === undefined)) {
-                    x.status = "forwarded"
-                }
-                else if ((x.isForwarded === null || x.isForwarded === undefined) && (x.isCancelled === null || x.isCancelled === undefined) && x.isApproved === true) {
-                    x.status = "approved"
-                }
-            })
+            // results.forEach((x) => {
+            //     if ((x.isForwarded === null || x.isForwarded === undefined) && (x.isCancelled === null || x.isCancelled === undefined) && (x.isApproved === null || x.isApproved === undefined)) {
+            //         x.status = "pending"
+            //     }
+            //     else if (x.isForwarded === true && (x.isCancelled === null || x.isCancelled === undefined) && (x.isApproved === null || x.isApproved === undefined)) {
+            //         x.status = "forwarded"
+            //     }
+            //     else if ((x.isForwarded === null || x.isForwarded === undefined) && (x.isCancelled === null || x.isCancelled === undefined) && x.isApproved === true) {
+            //         x.status = "approved"
+            //     }
+            // })
             return res.status(200).json({ "data": results });
         });
     },
