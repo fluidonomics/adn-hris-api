@@ -58,7 +58,7 @@ let functions = {
 
   getNotificaton:(id)=>
   {
-    io.emit('sendBack',"send notification");
+    // io.emit('sendBack',"send notification");
     // Notify.find({id:id})
     // limit(10).
     // sort({ createdAt: -1 }).exec();

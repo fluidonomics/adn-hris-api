@@ -450,7 +450,7 @@ let express  = require('express'),
 
     commonRoutes.post('/resetPasswordByHr',ensureAuthenticated, common.resetPasswordByHr);
 
-    commonRoutes.get('/sendNotification',ensureAuthenticated, common.sendNotification);
+    // commonRoutes.get('/sendNotification',ensureAuthenticated, common.sendNotification);
     
 
 

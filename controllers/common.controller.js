@@ -1470,10 +1470,10 @@ let functions = {
           ]);
     },
 
-    sendNotification: (req, res) => {
-        Notify.getNotificaton(1);
-        return res.status().json(true);
-    },
+    // sendNotification: (req, res) => {
+    //     Notify.getNotificaton(1);
+    //     return res.status().json(true);
+    // },
 
 };
 
