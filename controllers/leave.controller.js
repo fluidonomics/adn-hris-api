@@ -39,6 +39,7 @@ function applyLeave(req, res, done) {
         if (flag) {
             let leavedetails = new LeaveApply(req.body);
             leavedetails.emp_id = req.body.emp_id || req.query.emp_id;
+            leavedetails.status = req.body.status;
             leavedetails.createdBy = parseInt(req.body.emp_id);
             leavedetails.fromDate = new Date(req.body.fromDate);
             leavedetails.toDate = new Date(req.body.toDate);
@@ -730,7 +731,8 @@ let functions = {
                     "applyTo_name": "$sup_name.fullName",
                     "toDate": "$toDate",
                     "fromDate": "$fromDate",
-                    "reason": "$reason"
+                    "reason": "$reason",
+                    "status" : "$status"
 
                 }
             }
@@ -1085,7 +1087,8 @@ let functions = {
                     "applyTo_name": "$sup_name.fullName",
                     "toDate": "$toDate",
                     "fromDate": "$fromDate",
-                    "reason": "$reason"
+                    "reason": "$reason",
+                    "status": "$status"
 
                 }
             }
@@ -1199,7 +1202,8 @@ let functions = {
                     "applyTo_name": "$sup_name.fullName",
                     "toDate": "$toDate",
                     "fromDate": "$fromDate",
-                    "reason": "$reason"
+                    "reason": "$reason",
+                    "status": "$status"
 
                 }
             }
@@ -1369,7 +1373,8 @@ let functions = {
                                 "applyTo_name": "$sup_name.fullName",
                                 "toDate": "$toDate",
                                 "fromDate": "$fromDate",
-                                "reason": "$reason"
+                                "reason": "$reason",
+                                "status": "$status"
                             }
                         }
 
@@ -1482,8 +1487,8 @@ let functions = {
                                 "applyTo_name": "$sup_name.fullName",
                                 "toDate": "$toDate",
                                 "fromDate": "$fromDate",
-                                "reason": "$reason"
-
+                                "reason": "$reason",
+                                "status": "$status"
                             }
                         }
 
