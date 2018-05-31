@@ -46,13 +46,13 @@ let functions = {
   {
     io = io.listen(server);
     io.on("connection", function(socket){
-        socket.on('initData', function(data) {
-          socket.emit('getData', 'Return form server');
-        });
-        console.log('a user connected');
-        socket.on('disconnect', () => {
-          //console.log('user disconnected');
-        });
+        // socket.on('initData', function(data) {
+        //   socket.emit('getData', 'Return form server');
+        // });
+        // console.log('a user connected');
+        // socket.on('disconnect', () => {
+        //   //console.log('user disconnected');
+        // });
     });
   },
 
