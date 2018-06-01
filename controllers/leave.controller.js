@@ -1358,6 +1358,20 @@ let functions = {
                             }
                         },
                         {
+                            "$lookup": {
+                                "from": "employeeofficedetails",
+                                "localField": "emp_id",
+                                "foreignField": "emp_id",
+                                "as": "employeeofficedetails"
+                            }
+                        },
+                        {
+                            "$unwind": {
+                                path: "$employeeofficedetails",
+                                "preserveNullAndEmptyArrays": true
+                            }
+                        },
+                        {
                             "$project": {
                                 "_id": "$_id",
                                 "emp_id": "$emp_id",
@@ -1379,7 +1393,8 @@ let functions = {
                                 "toDate": "$toDate",
                                 "fromDate": "$fromDate",
                                 "reason": "$reason",
-                                "status": "$status"
+                                "status": "$status",
+                                "employmentStatus": "$employeeofficedetails.employmentStatus_id"
                             }
                         }
 
@@ -1395,8 +1410,8 @@ let functions = {
                                 }
                             });
                         }
-                        return res.status(200).json(results.sort(function(a, b){
-                            return b._id - a._id ;
+                        return res.status(200).json(results.sort(function (a, b) {
+                            return b._id - a._id;
                         }));
                     });
                 }
@@ -1472,6 +1487,20 @@ let functions = {
                                 "preserveNullAndEmptyArrays": true
                             }
                         },
+                        {
+                            "$lookup": {
+                                "from": "employeeofficedetails",
+                                "localField": "emp_id",
+                                "foreignField": "emp_id",
+                                "as": "employeeofficedetails"
+                            }
+                        },
+                        {
+                            "$unwind": {
+                                path: "$employeeofficedetails",
+                                "preserveNullAndEmptyArrays": true
+                            }
+                        },
                         { "$match": { "isDeleted": false, "applyTo": parseInt(req.query.emp_id) } },
                         {
                             "$project": {
@@ -1495,7 +1524,8 @@ let functions = {
                                 "toDate": "$toDate",
                                 "fromDate": "$fromDate",
                                 "reason": "$reason",
-                                "status": "$status"
+                                "status": "$status",
+                                "employmentStatus": "$employeeofficedetails.employmentStatus_id"
                             }
                         }
 
@@ -1511,8 +1541,8 @@ let functions = {
                                 }
                             });
                         }
-                        return res.status(200).json(results.sort(function(a, b){
-                            return  b._id - a._id ;
+                        return res.status(200).json(results.sort(function (a, b) {
+                            return b._id - a._id;
                         }));
                     });
                 }
@@ -1764,6 +1794,20 @@ let functions = {
                     "preserveNullAndEmptyArrays": true
                 }
             },
+            {
+                "$lookup": {
+                    "from": "employeeofficedetails",
+                    "localField": "emp_id",
+                    "foreignField": "emp_id",
+                    "as": "employeeofficedetails"
+                }
+            },
+            {
+                "$unwind": {
+                    path: "$employeeofficedetails",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
             { "$match": { "isDeleted": false, "_id": parseInt(req.query.id) } },
             {
                 "$project": {
@@ -1787,8 +1831,8 @@ let functions = {
                     "toDate": "$toDate",
                     "fromDate": "$fromDate",
                     "reason": "$reason",
-                    "status": '$status'
-
+                    "status": '$status',
+                    "employmentStatus": "$employeeofficedetails.employmentStatus_id"
                 }
             }
 
