@@ -35,15 +35,35 @@ let mongoose                = require('mongoose'),
 );
 LeaveAppliedDetailsSchema.plugin(mongooseUniqueValidator);
 
-  //Perform actions before saving the bank details
+//   //Perform actions before saving the bank details
+//   LeaveAppliedDetailsSchema.pre('save', function (next) {
+//     var _this=this;
+//     if (_this.isNew) {
+//         mongoose.model('leaveapplieddetails', LeaveAppliedDetailsSchema).count(function(err, c) {
+//               _this._id = c + 1;
+//               next();
+//         });
+//     }
+//   });
+
   LeaveAppliedDetailsSchema.pre('save', function (next) {
     var _this=this;
     if (_this.isNew) {
-        mongoose.model('leaveapplieddetails', LeaveAppliedDetailsSchema).count(function(err, c) {
-              _this._id = c + 1;
-              next();
-        });
-    }
+    //Check the Count of Collection and add 1 to the Count and Assign it to Emp_id 
+    mongoose.model('leaveapplieddetails', LeaveAppliedDetailsSchema).find().sort({_id:-1}).limit(1)
+    .exec(function(err, doc)
+    {
+      if(doc.length >0)
+      {
+        _this._id=doc[0]._id + 1;
+        next();
+      }
+      else{
+        _this._id = 1;
+        next();
+      }
+    });
+  }
   });
 
 module.exports = mongoose.model('leaveapplieddetails',LeaveAppliedDetailsSchema);
