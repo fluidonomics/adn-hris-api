@@ -21,6 +21,7 @@ let express           = require('express'),
 
     AuditTrail        = require('../class/auditTrail'),
     SendEmail        = require('../class/sendEmail'),
+    Notify        = require('../class/notify'),
     config            = require('../config/config'),
     crypto            = require('crypto'),
     async             = require('async'),
@@ -215,6 +216,8 @@ function updateProfileProcessInfoDetails(req, res, done) {
             });
         }
         AuditTrail.auditTrailEntry(profileProcessInfo.emp_id, "profileProcessInfo", profileProcessInfo, "user", "profileProcessInfo", "UPDATED");
+        //Write a conitions.
+        //Notify.sendNotifications(req.body.emp_id,'Employee Submitted Profile','Employee Submit Profile',parseInt(req.headers.uid),req.body._id,1,null,parseInt(req.headers.uid));
         getProfileProcessInfoDetails(req,res);
         // let profileProcess={
         //     "_id":profileProcessData._id,
@@ -2076,17 +2079,21 @@ let functions = {
                         SendEmail.sendEmailWelcomeUser(req.body.personalEmail,emp);
                         async.parallel([
                                 function(done) {
-                                    addOfficeInfoDetails(req, res, done)
+                                    addOfficeInfoDetails(req, res, done);
+                                    Notify.sendNotifications(req.body.emp_id,'Add Employee','Epmloyee is created',parseInt(req.headers.uid),req.body.businessHrHead_id,1,null,parseInt(req.headers.uid))
+                                    Notify.sendNotifications(req.body.emp_id,'Add Employee','Epmloyee is created',parseInt(req.headers.uid),req.body.groupHrHead_id,1,null,parseInt(req.headers.uid))
                                 },
                                 function(done) {
-                                    addSupervisorDetails(req, res, done)
+                                    addSupervisorDetails(req, res, done);
+                                    Notify.sendNotifications(req.body.emp_id,'Add Employee','Epmloyee is created',parseInt(req.headers.uid),req.body.primarySupervisorEmp_id,1,null,parseInt(req.headers.uid))
                                 },
                                 function(done) {
-                                    addPersonalInfoDetails(req, res, done)
+                                    addPersonalInfoDetails(req, res, done);
                                 },
                                 function(done)
                                 {
-                                    addProfileProcessInfoDetails(req, res, done)
+                                    addProfileProcessInfoDetails(req, res, done);
+                                    Notify.sendNotifications(req.body.emp_id,'Please Fill Profile','Submit your profile',parseInt(req.headers.uid),req.body._id,1,null,parseInt(req.headers.uid));
                                 }
                             ],
                             function(done) {
