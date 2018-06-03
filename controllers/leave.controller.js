@@ -29,10 +29,12 @@ function applyLeave(req, res, done) {
             ed = new Date(req.body.toDate);
         let flag = true;
         for (let i = 0; i < details.length; i++) {
-            if ((sd >= details[i].fromDate && ed <= details[i].toDate) ||
-                (sd <= details[i].fromDate && ed >= details[i].fromDate) ||
-                (sd <= details[i].toDate && ed >= details[i].toDate)) {
-                flag = false;
+            if(details[i].isCancelled == false || details[i].isCancelled == null || details[i].isCancelled == undefined) {
+                if ((sd >= details[i].fromDate && ed <= details[i].toDate) ||
+                    (sd <= details[i].fromDate && ed >= details[i].fromDate) ||
+                    (sd <= details[i].toDate && ed >= details[i].toDate)) {
+                    flag = false;
+                }
             }
         }
 
