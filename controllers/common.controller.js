@@ -883,7 +883,8 @@ let functions = {
             };
             var company_id = req.body.company_id || req.params.company_id || req.query.company_id;
             var emp_id = req.body.emp_id || req.params.emp_id || req.query.emp_id;
-            if (company_id && emp_id) {
+            //if (company_id && emp_id) { //change for ver hr
+            if (emp_id) {
                 let supervisorQuery = {
                     isActive: true,
                     emp_id: emp_id
@@ -897,7 +898,8 @@ let functions = {
                             });
                             subQuery = {
                                 isDeleted: false,
-                                company_id: company_id
+                                //change for ver hr
+                                //company_id: company_id
                             }
                             Employee.find(subQuery).where('_id').in(supervisorEmpArray).select('fullName userName').exec(function(err, empSupervisorData) {
                                 if (empSupervisorData) {
@@ -1474,7 +1476,74 @@ let functions = {
     //     Notify.getNotificaton(1);
     //     return res.status().json(true);
     // },
+    
+    getEmployeeRoles:(req,res)=>
+    {
+        let emp_id=req.query.emp_id;
+        Role.aggregate([
+            {
+                  "$lookup": {
+                      "from": "employeeroledetails",
+                      "localField": "_id",
+                      "foreignField": "role_id",
+                      "as": "employeeroles"
+                  }
+            },
+            {"$match": {"roleName": {$ne: 'Admin'}}}
+        ]).exec(function(err,data)
+        {
+          if(err)
+          {
+            return res.status(403).json(false);
+          }
+          else{
+             let empRoleData=[];
+             for (let i = 0; i < data.length; i++) {
+                var empCount=data[i].employeeroles.filter(function (item){
+                   return item.emp_id== 5
+                });
+                empRoleData.push({"_id":empCount && empCount._id  ? empCount._id: null,"roleName":data[i].roleName,"checked": empCount && empCount.length != 0 ? true : false})
+                if(i==(data.length-1))
+                {
+                    return res.status(200).json(empRoleData);
+                }
+             }
+          }
+        });
+    },
 
+    getEmployeeDocument:(req,res)=>
+    {
+        Document.aggregate([
+            {
+                  "$lookup": {
+                      "from": "employeeexternaldocumentdetails",
+                      "localField": "_id",
+                      "foreignField": "externalDocument_id",
+                      "as": "employeeexternaldocumentdetails"
+                  }
+            },
+        ]).exec(function(err,data)
+        {
+            if(err)
+            {
+              return res.status(403).json(false);
+            }
+            else{
+               let empDocumentData=[];
+               for (let i = 0; i < data.length; i++) {
+                  var empCount=data[i].employeeexternaldocumentdetails.filter(function (item){
+                     return item.emp_id== 5
+                  });
+                  empDocumentData.push({"_id":empCount && empCount._id  ? empCount._id: null,"documentName":data[i].documentName,"externalDocumentUrl":empCount ? empCount.externalDocumentUrl :null, "checked": empCount && empCount.length != 0 ? true : false})
+                  if(i==(data.length-1))
+                  {
+                      return res.status(200).json(empDocumentData);
+                  }
+               }
+            }
+          });
+    }
 };
 
 module.exports = functions;
