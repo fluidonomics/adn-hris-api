@@ -554,15 +554,15 @@ let functions = {
         }
         if( managementType_id && employmentType_id)
         {
-          if(managementType_id==1 && (employmentType_id==1||employmentType_id==2))
+          if(managementType_id==1 && (employmentType_id==1||employmentType_id==2||employmentType_id==4))
           {
             query = {isDeleted: false, _id: { $lte: 13 } }
           }
-          else if((managementType_id==1 && employmentType_id==3)||(managementType_id==2 && employmentType_id==5))
+          else if((managementType_id==1 && employmentType_id==3)||(managementType_id==2 && employmentType_id==6))
           {
             query = {isDeleted: false,_id:1001}
           }
-          else if(managementType_id==2 && employmentType_id==4)
+          else if(managementType_id==2 && (employmentType_id==5||employmentType_id==7))
           {
               query = {isDeleted: false,_id:{$in:[14,15,16]}}
           }
