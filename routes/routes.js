@@ -428,7 +428,7 @@ let express  = require('express'),
 
     commonRoutes.get('/getEmploymentStatus',ensureAuthenticated, common.getEmploymentStatus);
 
-    commonRoutes.get('/getEmployee',ensureAuthenticated, common.getEmployee);
+    commonRoutes.get('/getEmployee', common.getEmployee);
 
     commonRoutes.get('/getHr',ensureAuthenticated, common.getHr);
 
@@ -467,6 +467,8 @@ let express  = require('express'),
     externalDocumentRoutes.post('/addEmployeeExternalDocumentInfo',ensureAuthenticated, externalDocument.addEmployeeExternalDocumentInfo);
 
     externalDocumentRoutes.post('/updateEmployeeExternalDocumentInfo',ensureAuthenticated, externalDocument.updateEmployeeExternalDocumentInfo);
+
+    externalDocumentRoutes.post('/deleteEmployeeExternalDocumentInfo',ensureAuthenticated, externalDocument.deleteEmployeeExternalDocumentInfo);
 
     externalDocumentRoutes.get('/getEmployeeExternalDocumentInfo',ensureAuthenticated, externalDocument.getEmployeeExternalDocumentInfo);
     
