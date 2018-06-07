@@ -28,6 +28,7 @@ let express           = require('express'),
     BankInfo          = require('../models/employee/employeeBankDetails.model'),
     SalaryInfo        = require('../models/employee/employeeSalaryDetails.model'),
     CarInfo           = require('../models/employee/employeeCarDetails.model'),
+    PersonalInfo = require('../models/employee/employeePersonalDetails.model'),
 
     PersonalDetails   = require('../models/employee/employeePersonalDetails.model'),
     AddressInfo       = require('../models/employee/employeeAddressDetails.model'),
@@ -169,7 +170,48 @@ function sendResetPasswordLink(token,emp_id,email_id,done)
     done(err, user);
     });
 }
+function getAllEmployeeEmails(req, res) {
 
+    PersonalInfo.aggregate([
+        {
+            "$lookup": {
+                "from": "employeedetails",
+                "localField": "emp_id",
+                "foreignField": "_id",
+                "as": "emp_name"
+            }
+        },
+        {
+            "$unwind": {
+                path: "$emp_name",
+                "preserveNullAndEmptyArrays": true
+            }
+        },
+        { "$match": { "isDeleted": false } },
+        {
+            "$project": {
+                "_id": "$_id",
+                "emp_id": "$emp_id",
+                "emp_name": "$emp_name.fullName",
+                "personalEmail": "$personalEmail"
+            }
+        }
+
+    ]).exec(function (err, results) {
+        if (err) {
+            return res.status(403).json({
+                title: 'There is a problem',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: results
+                }
+            });
+        }
+        return res.status(200).json({ "data": results });
+    });
+}
 
 let functions = {
     getRole: (req, res) => {
@@ -239,7 +281,9 @@ let functions = {
 
         })
     },
-    
+    getAllEmployeeEmails: (req, res) => {
+        getAllEmployeeEmails(req, res);
+    },
     getDocuments: (req, res) => {
         var query = {
             isDeleted: false

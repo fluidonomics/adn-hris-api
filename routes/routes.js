@@ -286,7 +286,6 @@ let express  = require('express'),
   leaveRoutes.post('/applyLeave', leave.postApplyLeave);
   leaveRoutes.get('/leaveTransactionDetails', leave.getLeaveTransaction);
   leaveRoutes.get('/getEmployeeLeaveDetails', leave.getEmployeeLeaveDetails);
-  leaveRoutes.get('/getEmployeEmailDetails', leave.getAllEmployeeEmails);
   leaveRoutes.get('/getLeaveTypes', leave.getLeaveTypes);
   leaveRoutes.post('/cancelLeave', leave.postCancelLeave);
   leaveRoutes.get('/getCancelEmployeeLeaveDetails', leave.getCancelEmployeeLeaveDetails);
@@ -397,6 +396,8 @@ let express  = require('express'),
     apiRoutes.use('/common', commonRoutes);
 
     commonRoutes.get('/getRole',ensureAuthenticated, common.getRole);
+    commonRoutes.get('/getEmployeEmailDetails', common.getAllEmployeeEmails);
+    
 
     commonRoutes.get('/getCompany',ensureAuthenticated, common.getCompany);
 

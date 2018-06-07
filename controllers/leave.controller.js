@@ -87,48 +87,7 @@ function applyLeave(req, res, done) {
 
     });
 }
-function getAllEmployeeEmails(req, res) {
 
-    PersonalInfo.aggregate([
-        {
-            "$lookup": {
-                "from": "employeedetails",
-                "localField": "emp_id",
-                "foreignField": "_id",
-                "as": "emp_name"
-            }
-        },
-        {
-            "$unwind": {
-                path: "$emp_name",
-                "preserveNullAndEmptyArrays": true
-            }
-        },
-        { "$match": { "isDeleted": false } },
-        {
-            "$project": {
-                "_id": "$_id",
-                "emp_id": "$emp_id",
-                "emp_name": "$emp_name.fullName",
-                "personalEmail": "$personalEmail"
-            }
-        }
-
-    ]).exec(function (err, results) {
-        if (err) {
-            return res.status(403).json({
-                title: 'There is a problem',
-                error: {
-                    message: err
-                },
-                result: {
-                    message: results
-                }
-            });
-        }
-        return res.status(200).json({ "data": results });
-    });
-}
 function cancelLeave(req, res, done) {
     let cancelLeaveDetals = {
         $set: {
@@ -905,9 +864,7 @@ let functions = {
             return res.status(200).json({ "data": results });
         });
     },
-    getAllEmployeeEmails: (req, res) => {
-        getAllEmployeeEmails(req, res);
-    },
+    
     postCancelLeave: (req, res) => {
         async.waterfall([
             function (done) {
