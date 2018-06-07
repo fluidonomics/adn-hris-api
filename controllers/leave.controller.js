@@ -11,6 +11,7 @@ let express = require('express'),
     LeaveBalance = require('../models/leave/EmployeeLeaveBalance.model'),
     EmployeeRoles = require('../models/master/role.model'),
     Employee = require('../models/employee/employeeDetails.model');
+    EmailDetails: require('../class/sendEmail'),
     commonService = require('../controllers/common.controller');
     EmployeeInfo = require('../models/employee/employeeDetails.model'),
     config = require('../config/config'),
@@ -65,7 +66,7 @@ function applyLeave(req, res, done) {
                     ccToList.forEach((x) => {
                         try {
                             var emailWithName = x.split('~');
-                            sendToCCEmail(emailWithName[1], emailWithName[0]);
+                            EmailDetails.sendToCCEmail(emailWithName[1], emailWithName[0]);
                         }
                         catch (e) {
 
@@ -465,39 +466,6 @@ function applyLeaveSupervisor(req, res, done) {
         leaveWorkflowDetails(_leaveDetails, req.body.updatedBy, 'cancelled');
         return done(err, _leaveDetails);
     })
-}
-function sendToCCEmail(emp, toemail) {
-    let options = {
-        viewPath: config.paths.emailPath,
-        extName: '.hbs'
-    };
-    let transporter = nodemailer.createTransport({
-        host: process.env.EmailHost,
-        secure: false,
-        auth: {
-            user: process.env.EmailUser,
-            pass: process.env.EmailPassword
-        },
-        tls: {
-            rejectUnauthorized: false
-        }
-    });
-    transporter.use('compile', hbs(options));
-
-    let mailOptions = {
-        from: config.email.LeaveApplied.from, // sender address
-        to: toemail,
-        subject: config.email.LeaveApplied.subject, // Subject line
-        template: 'email-notify-leave-applied',
-        context: {
-            fullName: emp.fullName,
-            userName: emp.userName,
-            redirectUrl: process.env.HostUrl + "/reset/" + emp.resetPasswordToken,
-            uid: uuidV1()
-        }
-    };
-    // send mail with defined transport object
-    transporter.sendMail(mailOptions);
 }
 function getApprovedLeavesByMonth(appliedLeaves, res) {
     let monthlyLeaves = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
