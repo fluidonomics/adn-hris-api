@@ -212,7 +212,14 @@ function getAllEmployeeEmails(req, res) {
         return res.status(200).json({ "data": results });
     });
 }
-
+function getMonthFromDate(date) {
+    let d = new Date(date);
+    return (d.getUTCMonth() + 1);
+}
+function getDayFromDate(date) {
+    let d = new Date(date);
+    return d.getUTCDate();
+}
 let functions = {
     getRole: (req, res) => {
         var query = {
@@ -1677,6 +1684,12 @@ let functions = {
                }
             }
           });
+    },
+    getMonthFromDate: (req, res) => {
+        getMonthFromDate(req);
+    },
+    getDayFromDate: (req, res) => {
+        getDayFromDate(req);
     }
 };
 
