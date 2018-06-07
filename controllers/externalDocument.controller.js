@@ -1,7 +1,7 @@
 let express           = require('express'),
     EmployeeInfo      = require('../models/employee/employeeDetails.model'),
     EmployeeExternalDocumentInfo     = require('../models/employee/employeeExternalDocumentDetails.model'),
-    AuditTrail        = require('../models/common/auditTrail.model'),
+    // AuditTrail        = require('../models/common/auditTrail.model'),
     Notification      = require('../models/common/notification.model'),
     config            = require('../config/config'),
     crypto            = require('crypto'),
@@ -10,25 +10,14 @@ let express           = require('express'),
     hbs               = require('nodemailer-express-handlebars'),
     sgTransport       = require('nodemailer-sendgrid-transport'),
     uuidV1            = require('uuid/v1');
-    uploadClass= require('../class/upload');
+    uploadClass       = require('../class/upload');
+    AuditTrail        = require('../class/auditTrail'),
     require('dotenv').load()
 
 
-function auditTrailEntry(emp_id, collectionName, collectionDocument, controllerName, action, comments) {
-      let auditTrail = new AuditTrail();
-      auditTrail.emp_id = emp_id;
-      auditTrail.collectionName = collectionName;
-      auditTrail.document_id = collectionDocument._id;
-      auditTrail.document_values = JSON.stringify(collectionDocument);
-      auditTrail.controllerName = controllerName;
-      auditTrail.action = action;
-      auditTrail.comments = comments;
-      auditTrail.save();
-}
-  
 function addEmployeeExternalDocumentInfoDetails(req, res, done) {
     let employeeExternalDocumentDetails = new EmployeeExternalDocumentInfo(req.body);
-    employeeExternalDocumentDetails.createdBy = 1;
+    employeeExternalDocumentDetails.createdBy = parseInt(req.headers.uid);
 
     employeeExternalDocumentDetails.save(function(err, employeeExternalDocumentInfoData) {
         if (err) {
@@ -42,7 +31,7 @@ function addEmployeeExternalDocumentInfoDetails(req, res, done) {
                 }
             });
         }
-        auditTrailEntry(employeeExternalDocumentDetails.emp_id, "employeeExternalDocumentDetails", employeeExternalDocumentDetails, "user", "employeeExternalDocumentDetails", "ADDED");
+        AuditTrail.auditTrailEntry(employeeExternalDocumentDetails.emp_id, "employeeExternalDocumentDetails", employeeExternalDocumentDetails, "user", "employeeExternalDocumentDetails", "ADDED");
         return done(err, employeeExternalDocumentInfoData);   
     });
 }
@@ -73,8 +62,30 @@ function updateEmployeeExternalDocumentInfoDetails(req, res, done) {
                 }
             });
         }
-        auditTrailEntry(employeeExternalDocumentDetailsData.emp_id, "employeeExternalDocumentDetails", employeeExternalDocumentDetailsData, "user", "employeeExternalDocumentDetails", "UPDATED");
+        AuditTrail.auditTrailEntry(employeeExternalDocumentDetailsData.emp_id, "employeeExternalDocumentDetails", employeeExternalDocumentDetailsData, "user", "employeeExternalDocumentDetails", "UPDATED");
         return done(err, req);
+    });
+}
+
+function deleteEmployeeExternalDocumentInfoDetails(req, res, done) {
+    let _id = req.body._id;
+    var query = {
+        _id: parseInt(req.body._id),
+    }
+    EmployeeExternalDocumentInfo.remove(query,function(err, employeeExternalDocumentDetailsData){
+        if (err) {
+            return res.status(403).json({
+                title: 'There was a problem',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: employeeExternalDocumentDetailsData
+                }
+            });
+        }
+        AuditTrail.auditTrailEntry(employeeExternalDocumentDetailsData.emp_id, "employeeExternalDocumentDetails", employeeExternalDocumentDetailsData, "user", "employeeExternalDocumentDetails", "Remove");
+        return done(err, employeeExternalDocumentDetailsData);   
     });
 }
 
@@ -112,35 +123,6 @@ function getEmployeeExternalDocumentInfoDetails(req, res) {
         return res.status(200).json(employeeExternalDocumentInfoData);
       })
 }
-
-// function getEmployeeExternalDocumentInfoDetails(req, res) {
-//   let emp_id = req.query.emp_id;
-//   let query = {
-//       isDeleted: false
-//   };
-//   if (emp_id) {
-//       query = {
-//         emp_id: emp_id,
-//           isDeleted: false
-//       };
-//   }
-//   var employeeExternalDocumentProjection = {
-//       createdAt: false,
-//       updatedAt: false,
-//       isDeleted: false,
-//       updatedBy: false,
-//       createdBy: false,
-//   };
-//   EmployeeExternalDocumentInfo.find(query, employeeExternalDocumentProjection, function(err, employeeExternalDocumentInfoData) {
-//       if (err) {
-//           return res.status(403).json({
-//               title: 'There was an error, please try again later',
-//               error: err
-//           });
-//       }
-//       return res.status(200).json(employeeExternalDocumentInfoData);
-//   });
-// }
 
 let functions = {
     addEmployeeExternalDocumentInfo:(req,res )=> {
@@ -184,6 +166,17 @@ let functions = {
           }
         ]);
     },
+
+    deleteEmployeeExternalDocumentInfo:(req,res )=> {
+        async.waterfall([
+            function(done) {
+                deleteEmployeeExternalDocumentInfoDetails(req,res,done);
+            },
+            function(employeeExternalDocumentInfoData,done) {
+              return res.status(200).json("Removed");
+            }
+          ]);
+    },
     
     getEmployeeExternalDocumentInfo: (req, res) => {
         async.waterfall([
@@ -195,6 +188,6 @@ let functions = {
             }
         ]);
     },
-
 }
+
 module.exports = functions;

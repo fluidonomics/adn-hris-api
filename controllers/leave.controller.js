@@ -11,7 +11,9 @@ let express = require('express'),
     LeaveBalance = require('../models/leave/EmployeeLeaveBalance.model'),
     EmployeeRoles = require('../models/master/role.model'),
     Employee = require('../models/employee/employeeDetails.model');
-EmployeeInfo = require('../models/employee/employeeDetails.model'),
+    EmailDetails: require('../class/sendEmail'),
+    commonService = require('../controllers/common.controller');
+    EmployeeInfo = require('../models/employee/employeeDetails.model'),
     config = require('../config/config'),
     crypto = require('crypto'),
     async = require('async'),
@@ -29,7 +31,7 @@ function applyLeave(req, res, done) {
             ed = new Date(req.body.toDate);
         let flag = true;
         for (let i = 0; i < details.length; i++) {
-            if(details[i].isCancelled == false || details[i].isCancelled == null || details[i].isCancelled == undefined) {
+            if (details[i].isCancelled == false || details[i].isCancelled == null || details[i].isCancelled == undefined) {
                 if ((sd >= details[i].fromDate && ed <= details[i].toDate) ||
                     (sd <= details[i].fromDate && ed >= details[i].fromDate) ||
                     (sd <= details[i].toDate && ed >= details[i].toDate)) {
@@ -59,12 +61,12 @@ function applyLeave(req, res, done) {
                     });
                 }
                 leaveWorkflowDetails(leavesInfoData, req.body.updatedBy, 'applied');
-                if (req.body.ccTo != "") {
+                if (req.body.ccTo && req.body.ccTo != "") {
                     var ccToList = req.body.ccTo.split(',');
                     ccToList.forEach((x) => {
                         try {
                             var emailWithName = x.split('~');
-                            sendToCCEmail(emailWithName[1], emailWithName[0]);
+                            EmailDetails.sendToCCEmail(emailWithName[1], emailWithName[0]);
                         }
                         catch (e) {
 
@@ -87,48 +89,7 @@ function applyLeave(req, res, done) {
 
     });
 }
-function getAllEmployeeEmails(req, res) {
 
-    PersonalInfo.aggregate([
-        {
-            "$lookup": {
-                "from": "employeedetails",
-                "localField": "emp_id",
-                "foreignField": "_id",
-                "as": "emp_name"
-            }
-        },
-        {
-            "$unwind": {
-                path: "$emp_name",
-                "preserveNullAndEmptyArrays": true
-            }
-        },
-        { "$match": { "isDeleted": false } },
-        {
-            "$project": {
-                "_id": "$_id",
-                "emp_id": "$emp_id",
-                "emp_name": "$emp_name.fullName",
-                "personalEmail": "$personalEmail"
-            }
-        }
-
-    ]).exec(function (err, results) {
-        if (err) {
-            return res.status(403).json({
-                title: 'There is a problem',
-                error: {
-                    message: err
-                },
-                result: {
-                    message: results
-                }
-            });
-        }
-        return res.status(200).json({ "data": results });
-    });
-}
 function cancelLeave(req, res, done) {
     let cancelLeaveDetals = {
         $set: {
@@ -506,54 +467,21 @@ function applyLeaveSupervisor(req, res, done) {
         return done(err, _leaveDetails);
     })
 }
-function sendToCCEmail(emp, toemail) {
-    let options = {
-        viewPath: config.paths.emailPath,
-        extName: '.hbs'
-    };
-    let transporter = nodemailer.createTransport({
-        host: process.env.EmailHost,
-        secure: false,
-        auth: {
-            user: process.env.EmailUser,
-            pass: process.env.EmailPassword
-        },
-        tls: {
-            rejectUnauthorized: false
-        }
-    });
-    transporter.use('compile', hbs(options));
-
-    let mailOptions = {
-        from: config.email.LeaveApplied.from, // sender address
-        to: toemail,
-        subject: config.email.LeaveApplied.subject, // Subject line
-        template: 'email-notify-leave-applied',
-        context: {
-            fullName: emp.fullName,
-            userName: emp.userName,
-            redirectUrl: process.env.HostUrl + "/reset/" + emp.resetPasswordToken,
-            uid: uuidV1()
-        }
-    };
-    // send mail with defined transport object
-    transporter.sendMail(mailOptions);
-}
 function getApprovedLeavesByMonth(appliedLeaves, res) {
     let monthlyLeaves = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
     appliedLeaves.forEach((leave) => {
-        const fromDtMonth = getMonthFromDate(leave.fromDate),
-            toDtMonth = getMonthFromDate(leave.toDate);
+        const fromDtMonth = commonService.getMonthFromDate(leave.fromDate),
+            toDtMonth = commonService.getMonthFromDate(leave.toDate);
         if (fromDtMonth === toDtMonth) {
-            let noOfLeaves = (getDayFromDate(leave.toDate) - getDayFromDate(leave.fromDate)) + 1,
+            let noOfLeaves = (commonService.getDayFromDate(leave.toDate) - commonService.getDayFromDate(leave.fromDate)) + 1,
                 d = new Date(leave.fromDate);
             monthlyLeaves[d.getUTCMonth()] += noOfLeaves;
         } else {
             const monthDiff = toDtMonth - fromDtMonth;
             const d = new Date(leave.fromDate),
                 lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0);
-            monthlyLeaves[d.getUTCMonth()] += (lastDay.getDate() - getDayFromDate(leave.fromDate) + 1);
-            monthlyLeaves[new Date(leave.toDate).getUTCMonth()] += getDayFromDate(leave.toDate);
+            monthlyLeaves[d.getUTCMonth()] += (lastDay.getDate() - commonService.getDayFromDate(leave.fromDate) + 1);
+            monthlyLeaves[new Date(leave.toDate).getUTCMonth()] += commonService.getDayFromDate(leave.toDate);
             for (let i = 1; i < monthDiff; i++) {
                 const str = fromDtMonth + i + '/01/' + d.getFullYear(),
                     dt = new Date(str),
@@ -564,14 +492,7 @@ function getApprovedLeavesByMonth(appliedLeaves, res) {
     });
     return res.status(200).json(monthlyLeaves);
 }
-function getMonthFromDate(date) {
-    let d = new Date(date);
-    return (d.getUTCMonth() + 1);
-}
-function getDayFromDate(date) {
-    let d = new Date(date);
-    return d.getUTCDate();
-}
+
 function getLeavesByType(leaveTypesData, appliedLeaves, res) {
     let response = [];
     leaveTypesData.forEach((type) => {
@@ -904,9 +825,6 @@ let functions = {
             // })
             return res.status(200).json({ "data": results });
         });
-    },
-    getAllEmployeeEmails: (req, res) => {
-        getAllEmployeeEmails(req, res);
     },
     postCancelLeave: (req, res) => {
         async.waterfall([

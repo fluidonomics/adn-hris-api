@@ -286,7 +286,6 @@ let express  = require('express'),
   leaveRoutes.post('/applyLeave', leave.postApplyLeave);
   leaveRoutes.get('/leaveTransactionDetails', leave.getLeaveTransaction);
   leaveRoutes.get('/getEmployeeLeaveDetails', leave.getEmployeeLeaveDetails);
-  leaveRoutes.get('/getEmployeEmailDetails', leave.getAllEmployeeEmails);
   leaveRoutes.get('/getLeaveTypes', leave.getLeaveTypes);
   leaveRoutes.post('/cancelLeave', leave.postCancelLeave);
   leaveRoutes.get('/getCancelEmployeeLeaveDetails', leave.getCancelEmployeeLeaveDetails);
@@ -397,6 +396,8 @@ let express  = require('express'),
     apiRoutes.use('/common', commonRoutes);
 
     commonRoutes.get('/getRole',ensureAuthenticated, common.getRole);
+    commonRoutes.get('/getEmployeEmailDetails', common.getAllEmployeeEmails);
+    
 
     commonRoutes.get('/getCompany',ensureAuthenticated, common.getCompany);
 
@@ -428,7 +429,7 @@ let express  = require('express'),
 
     commonRoutes.get('/getEmploymentStatus',ensureAuthenticated, common.getEmploymentStatus);
 
-    commonRoutes.get('/getEmployee',ensureAuthenticated, common.getEmployee);
+    commonRoutes.get('/getEmployee', common.getEmployee);
 
     commonRoutes.get('/getHr',ensureAuthenticated, common.getHr);
 
@@ -450,6 +451,11 @@ let express  = require('express'),
 
     commonRoutes.post('/resetPasswordByHr',ensureAuthenticated, common.resetPasswordByHr);
 
+
+    commonRoutes.get('/getEmployeeRoles',ensureAuthenticated,common.getEmployeeRoles);
+    
+    commonRoutes.get('/getEmployeeDocument',ensureAuthenticated, common.getEmployeeDocument);
+    
     // commonRoutes.get('/sendNotification',ensureAuthenticated, common.sendNotification);
     
 
@@ -462,6 +468,8 @@ let express  = require('express'),
     externalDocumentRoutes.post('/addEmployeeExternalDocumentInfo',ensureAuthenticated, externalDocument.addEmployeeExternalDocumentInfo);
 
     externalDocumentRoutes.post('/updateEmployeeExternalDocumentInfo',ensureAuthenticated, externalDocument.updateEmployeeExternalDocumentInfo);
+
+    externalDocumentRoutes.post('/deleteEmployeeExternalDocumentInfo',ensureAuthenticated, externalDocument.deleteEmployeeExternalDocumentInfo);
 
     externalDocumentRoutes.get('/getEmployeeExternalDocumentInfo',ensureAuthenticated, externalDocument.getEmployeeExternalDocumentInfo);
     

@@ -2118,6 +2118,7 @@ let functions = {
     },
     getAllEmployee:(req, res)=>
     {
+
         EmployeeInfo.aggregate([
         {
             "$lookup": {
@@ -2185,7 +2186,7 @@ let functions = {
         {"$unwind": {
             "path": "$kraworkflowdetails","preserveNullAndEmptyArrays": true
         }},
-        {"$match": {"isDeleted":false,"designations.isActive":true,"officeDetails.isDeleted":false} },
+        {"$match": {"isDeleted":false,"designations.isActive":true,"officeDetails.isDeleted":false}},
         {"$project":{
           "_id":"$_id",
           "fullName":"$fullName",

@@ -28,6 +28,7 @@ let express           = require('express'),
     BankInfo          = require('../models/employee/employeeBankDetails.model'),
     SalaryInfo        = require('../models/employee/employeeSalaryDetails.model'),
     CarInfo           = require('../models/employee/employeeCarDetails.model'),
+    PersonalInfo = require('../models/employee/employeePersonalDetails.model'),
 
     PersonalDetails   = require('../models/employee/employeePersonalDetails.model'),
     AddressInfo       = require('../models/employee/employeeAddressDetails.model'),
@@ -169,8 +170,56 @@ function sendResetPasswordLink(token,emp_id,email_id,done)
     done(err, user);
     });
 }
+function getAllEmployeeEmails(req, res) {
 
+    PersonalInfo.aggregate([
+        {
+            "$lookup": {
+                "from": "employeedetails",
+                "localField": "emp_id",
+                "foreignField": "_id",
+                "as": "emp_name"
+            }
+        },
+        {
+            "$unwind": {
+                path: "$emp_name",
+                "preserveNullAndEmptyArrays": true
+            }
+        },
+        { "$match": { "isDeleted": false } },
+        {
+            "$project": {
+                "_id": "$_id",
+                "emp_id": "$emp_id",
+                "emp_name": "$emp_name.fullName",
+                "personalEmail": "$personalEmail"
+            }
+        }
 
+    ]).exec(function (err, results) {
+        if (err) {
+            return res.status(403).json({
+                title: 'There is a problem',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: results
+                }
+            });
+        }
+        return res.status(200).json({ "data": results });
+    });
+}
+function getMonthFromDate(date) {
+    let d = new Date(date);
+    return (d.getUTCMonth() + 1);
+}
+function getDayFromDate(date) {
+    let d = new Date(date);
+    return d.getUTCDate();
+}
 let functions = {
     getRole: (req, res) => {
         var query = {
@@ -239,7 +288,9 @@ let functions = {
 
         })
     },
-    
+    getAllEmployeeEmails: (req, res) => {
+        getAllEmployeeEmails(req, res);
+    },
     getDocuments: (req, res) => {
         var query = {
             isDeleted: false
@@ -554,15 +605,15 @@ let functions = {
         }
         if( managementType_id && employmentType_id)
         {
-          if(managementType_id==1 && (employmentType_id==1||employmentType_id==2))
+          if(managementType_id==1 && (employmentType_id==1||employmentType_id==2||employmentType_id==4))
           {
             query = {isDeleted: false, _id: { $lte: 13 } }
           }
-          else if((managementType_id==1 && employmentType_id==3)||(managementType_id==2 && employmentType_id==5))
+          else if((managementType_id==1 && employmentType_id==3)||(managementType_id==2 && employmentType_id==6))
           {
             query = {isDeleted: false,_id:1001}
           }
-          else if(managementType_id==2 && employmentType_id==4)
+          else if(managementType_id==2 && (employmentType_id==5||employmentType_id==7))
           {
               query = {isDeleted: false,_id:{$in:[14,15,16]}}
           }
@@ -798,37 +849,119 @@ let functions = {
             });
         })
     },
-    getEmployee: (req, res) => {
-        var query = {
-            isDeleted: false
-        }
-        var employeeProjection = {
-            createdAt: false,
-            updatedAt: false,
-            isDeleted: false,
-            updatedBy: false,
-            createdBy: false
-        };
-        Employee.find({}, employeeProjection, {
-          sort: {
-              _id: 1
-          }
-      }, function(err, employeeData) {
-            if (employeeData) {
-                return res.status(200).json(employeeData);
-            }
 
+    getEmployee:(req, res)=>
+    {
+        Employee.aggregate([
+        {
+            "$lookup": {
+                "from": "designations",
+                "localField": "designation_id",
+                "foreignField": "_id",
+                "as": "designations"
+            }
+        },
+        {
+          "$unwind": "$designations"
+        },
+        {
+          "$lookup": {
+              "from": "employeeofficedetails",
+              "localField": "_id",
+              "foreignField": "emp_id",
+              "as": "officeDetails"
+          }
+        },
+        {
+          "$unwind": "$officeDetails"
+        },
+        {
+            "$lookup": {
+                "from": "employeesupervisordetails",
+                "localField": "_id",
+                "foreignField": "emp_id",
+                "as": "supervisor"
+            }
+        },
+        {
+            "$unwind": "$supervisor"
+        },
+        {
+            "$lookup": {
+                "from": "employeedetails",
+                "localField": "supervisor.primarySupervisorEmp_id",
+                "foreignField": "_id",
+                "as": "employees"
+            }
+        },
+        {
+            "$unwind": "$employees"
+        },
+        {
+            "$lookup": {
+                "from": "employeepersonaldetails",
+                "localField": "_id",
+                "foreignField": "emp_id",
+                "as": "personalDetails"
+            }
+        },
+        {
+            "$unwind": "$personalDetails"
+        },
+        {
+            "$lookup": {
+                "from": "employeeprofileprocessdetails",
+                "localField": "_id",
+                "foreignField": "emp_id",
+                "as": "employeeprofileProcessDetails"
+            }
+        },
+        {
+            "$unwind": "$employeeprofileProcessDetails"
+        },
+        {
+            "$lookup": {
+                "from": "kraworkflowdetails",
+                "localField": "_id",
+                "foreignField": "emp_id",
+                "as": "kraworkflowdetails"
+            }
+        },
+        {"$unwind": {
+            "path": "$kraworkflowdetails","preserveNullAndEmptyArrays": true
+        }},
+        {"$match": {"isDeleted":false,"designations.isActive":true,"officeDetails.isDeleted":false,"_id":parseInt(req.query.emp_id)} },
+        {"$project":{
+          "_id":"$_id",
+          "fullName":"$fullName",
+          "userName":"$userName",
+          "isAccountActive":"$isAccountActive",
+          "profileImage":"$profileImage",
+          "grade_id":"$grade_id",
+          "supervisorDetails":"$employees",
+          "profileProcessDetails":"$employeeprofileProcessDetails",
+          "personalDetails":"$personalDetails",
+          "officeDetails":"$officeDetails",
+          "designationDetails":"$designations",
+          "kraWorkflow":"$kraworkflowdetails"
+        }}
+        ]).exec(function(err, results){
+        if(err)
+        {
             return res.status(403).json({
-                title: 'Error',
+                title: 'There was a problem',
                 error: {
                     message: err
                 },
                 result: {
-                    message: result
+                    message: results
                 }
             });
-        })
+        }
+        return res.status(200).json(results[0]);
+     });
     },
+
     getEducation: (req, res) => {
         var query = {parent_id:null};
         var parent_id = req.body.parent_id || req.params.parent_id || req.query.parent_id;
@@ -883,7 +1016,8 @@ let functions = {
             };
             var company_id = req.body.company_id || req.params.company_id || req.query.company_id;
             var emp_id = req.body.emp_id || req.params.emp_id || req.query.emp_id;
-            if (company_id && emp_id) {
+            //if (company_id && emp_id) { //change for ver hr
+            if (emp_id) {
                 let supervisorQuery = {
                     isActive: true,
                     emp_id: emp_id
@@ -897,7 +1031,8 @@ let functions = {
                             });
                             subQuery = {
                                 isDeleted: false,
-                                company_id: company_id
+                                //change for ver hr
+                                //company_id: company_id
                             }
                             Employee.find(subQuery).where('_id').in(supervisorEmpArray).select('fullName userName').exec(function(err, empSupervisorData) {
                                 if (empSupervisorData) {
@@ -1474,7 +1609,88 @@ let functions = {
     //     Notify.getNotificaton(1);
     //     return res.status().json(true);
     // },
+    
+    getEmployeeRoles:(req,res)=>
+    {
+        let emp_id=req.query.emp_id;
+        Role.aggregate([
+            {
+                  "$lookup": {
+                      "from": "employeeroledetails",
+                      "localField": "_id",
+                      "foreignField": "role_id",
+                      "as": "employeeroles"
+                  }
+            },
+            {"$match": {"roleName": {$nin: ['Admin','HR2']}}}
+        ]).sort('-_id').exec(function(err,data)
+        {
+          if(err)
+          {
+            return res.status(403).json(false);
+          }
+          else{
+             let empRoleData=[];
+             for (let i = 0; i < data.length; i++) {
+                var empCount=data[i].employeeroles.filter(function (item){
+                   return item.emp_id== parseInt(emp_id)
+                });
+                empRoleData.push({"_id":empCount && empCount._id  ? empCount._id: null,"roleName":data[i].roleName,"checked": empCount && empCount.length != 0 ? true : false})
+                if(i==(data.length-1))
+                {
+                    return res.status(200).json({"data":empRoleData});
+                }
+             }
+          }
+        });
+    },
 
+    getEmployeeDocument:(req,res)=>
+    {
+        let emp_id=req.query.emp_id;
+        Document.aggregate([
+            {
+                  "$lookup": {
+                      "from": "employeeexternaldocumentdetails",
+                      "localField": "_id",
+                      "foreignField": "externalDocument_id",
+                      "as": "employeeexternaldocumentdetails"
+                  },
+            }
+        ]).exec(function(err,data)
+        {
+            if(err)
+            {
+              return res.status(403).json(false);
+            }
+            else{
+               let empDocumentData=[];
+               for (let i = 0; i < data.length; i++) {
+                  var empCount=data[i].employeeexternaldocumentdetails.filter(function (item){
+                     return item.emp_id== parseInt(emp_id)
+                  });
+                  empDocumentData.push(
+                      { "_id":empCount && empCount.length > 0  ? empCount[0]._id: null,
+                        "emp_id":parseInt(req.query.emp_id),
+                        "externalDocument_id":data[i]._id,
+                        "documentName":data[i].documentName,
+                        "externalDocumentUrl":empCount && empCount.length > 0 ? empCount[0].externalDocumentUrl :null, 
+                        "checked": empCount && empCount.length != 0 ? true : false
+                    })
+                  if(i==(data.length-1))
+                  {
+                      return res.status(200).json({"data":empDocumentData});
+                  }
+               }
+            }
+          });
+    },
+    getMonthFromDate: (req, res) => {
+        getMonthFromDate(req);
+    },
+    getDayFromDate: (req, res) => {
+        getDayFromDate(req);
+    }
 };
 
 module.exports = functions;
