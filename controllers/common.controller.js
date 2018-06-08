@@ -1786,7 +1786,77 @@ let functions = {
           });
     },
 
-   
+    getEmployeeSupervisor:(req,res)=>
+    {
+            var query = {
+                isActive: true,
+                emp_id: parseInt(req.query.emp_id) || parseInt(req.body.emp_id) 
+            }
+            SupervisorDetails.findOne(query,function(err, supervisorData) {
+                if(err)
+                {
+                    return res.status(403).json({
+                        title: 'Error',
+                        error: {
+                            message: err
+                        },
+                        result: {
+                            message: supervisorData
+                        }
+                    });
+               }
+               return res.status(200).json(supervisorData);
+            })
+    },
+    
+    addEmployeeSupervisor:(req,res)=>
+    {
+      let supervisorDetails=new SupervisorDetails(req.body);
+      supervisorDetails.createdBy=parseInt(req.headers.uid);
+      supervisorDetails.save(function(err, supervisorData) {
+        if (err) {
+            return res.status(403).json({
+                title: 'There was a problem',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: supervisorData
+                }
+            });
+        }
+      AuditTrail.auditTrailEntry(req.body.emp_id, "employeeSupervisorDetails", supervisorDetails, "common", "employeeSupervisorDetails", "ADDED");
+      return res.status(200).json({message:'Added'});
+      });
+    },
+
+    updateEmployeeSupervisor:(req,res)=>
+    {
+        let _id = req.body._id;
+        var query = {
+            _id: parseInt(req.body._id),
+            isActive: true
+        }
+     
+        let supervisorDetails=new SupervisorDetails(req.body);
+        supervisorDetails.updatedBy=parseInt(req.headers.uid);
+
+        SupervisorDetails.findOneAndUpdate(query, supervisorDetails, {new: true}, function(err, employeeSupervisorData){
+            if (err) {
+                return res.status(403).json({
+                    title: 'There was a problem',
+                    error: {
+                        message: err
+                    },
+                    result: {
+                        message: employeeSupervisorData
+                    }
+                });
+            }
+            AuditTrail.auditTrailEntry(employeeSupervisorData.emp_id, "employeeSupervisorDetails", employeeSupervisorData, "user", "employeeSupervisorDetails", "UPDATED");
+            return res.status(200).json(employeeSupervisorData);
+        });
+    },
 
     getMonthFromDate: (req, res) => {
         getMonthFromDate(req);
