@@ -1632,10 +1632,14 @@ let functions = {
           else{
              let empRoleData=[];
              for (let i = 0; i < data.length; i++) {
-                var empCount=data[i].employeeroles.filter(function (item){
-                   return item.emp_id== parseInt(emp_id)
+                var empRoleCount=data[i].employeeroles.filter(function (item){
+                   return item.emp_id== parseInt(emp_id) && item.isDeleted==false;
                 });
-                empRoleData.push({"_id":empCount && empCount._id  ? empCount._id: null,"roleName":data[i].roleName,"checked": empCount && empCount.length != 0 ? true : false})
+                empRoleData.push({"_id":empRoleCount && empRoleCount.length > 0  ? empRoleCount[0]._id: null,
+                                  "roleName":data[i].roleName,
+                                  "role_id":data[i]._id,
+                                  "emp_id":parseInt(emp_id),
+                                  "checked": empRoleCount && empRoleCount.length > 0 ? true : false})
                 if(i==(data.length-1))
                 {
                     return res.status(200).json({"data":empRoleData});
@@ -1643,6 +1647,102 @@ let functions = {
              }
           }
         });
+    },
+
+    addEmployeeRole:(req,res)=>
+    {
+        let employeeRole = new EmployeeRole(req.body);
+        employeeRole.createdBy = parseInt(req.headers.uid);
+        employeeRole.save(function(err, employeeRole) {
+                      if (err) {
+                          return res.status(403).json({
+                              title: 'There was a problem',
+                              error: {
+                                  message: err
+                              },
+                              result: {
+                                  message: personalInfoData
+                              }
+                          });
+                      }
+            AuditTrail.auditTrailEntry(req.body.emp_id, "employeeRoleDetails", employeeRole, "common", "employeeRoleDetails", "ADDED");
+            return res.status(200).json({message:'Added'});
+        });
+    },
+
+    deleteEmployeeRole:(req,res)=>
+    {
+        if(parseInt(req.body.role_id)==3 || parseInt(req.body.role_id)==4)
+        {
+            Promise.all([
+                SupervisorDetails.find({ 
+                    $and :[
+                    {
+                        $or: [ { primarySupervisorEmp_id: parseInt(req.body.emp_id) }, { secondarySupervisorEmp_id: parseInt(req.body.emp_id) },{ leaveSupervisorEmp_id: parseInt(req.body.emp_id) } ]
+                    },
+                    { 
+                        isActive:true
+                    }     
+                ]
+                }).count().exec(),
+              ]).then(function(counts) {
+                  if(counts[0] > 0)
+                  {
+                    return res.status(200).json({error:"Can not remove role has dependency."});
+                  }
+                  var query = {
+                     _id: parseInt(req.body._id),
+                     isDeleted:false
+                  }
+                  EmployeeRole.findOneAndUpdate(query, {$set:{isDeleted:true}}, {new: true}, function(err, employeeRole){
+                    if(err){
+                        return res.status(403).json({
+                            title: 'There was a problem',
+                            error: {
+                                message: err
+                            },
+                            result: {
+                                message: employeeRole
+                            }
+                        });
+                    }
+                    AuditTrail.auditTrailEntry(parseInt(req.body.emp_id), "employeeRoleDetails", {isDeleted:true}, "common", "employeeRoleDetails", "Role Deleted");
+                    return res.status(200).json("Removed");
+                });
+            });
+        }
+        if(parseInt(req.body.role_id==1))
+        {
+            Promise.all([
+            OfficeDetails.find({
+                hrspoc_id:parseInt(req.body.emp_id)
+            }).count().exec(),
+        ]).then(function(counts) {
+            if(counts[0] > 0)
+            {
+              return res.status(200).json({error:"Can not delete role has dependency."});
+            }
+            var query = {
+               _id: parseInt(req.body._id),
+               isDeleted:false
+            }
+            EmployeeRole.findOneAndUpdate(query, {$set:{isDeleted:true}}, {new: true}, function(err, employeeRole){
+              if(err){
+                  return res.status(403).json({
+                      title: 'There was a problem',
+                      error: {
+                          message: err
+                      },
+                      result: {
+                          message: employeeRole
+                      }
+                  });
+              }
+              AuditTrail.auditTrailEntry(parseInt(req.body.emp_id), "employeeRoleDetails", {isDeleted:true}, "common", "employeeRoleDetails", "Role Deleted");
+              return res.status(200).json({data:employeeRole});
+            });
+          });
+        }
     },
 
     getEmployeeDocument:(req,res)=>
@@ -1685,6 +1785,9 @@ let functions = {
             }
           });
     },
+
+   
+
     getMonthFromDate: (req, res) => {
         getMonthFromDate(req);
     },

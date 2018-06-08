@@ -451,9 +451,12 @@ let express  = require('express'),
 
     commonRoutes.post('/resetPasswordByHr',ensureAuthenticated, common.resetPasswordByHr);
 
-
     commonRoutes.get('/getEmployeeRoles',ensureAuthenticated,common.getEmployeeRoles);
-    
+
+    commonRoutes.post('/addEmployeeRole',ensureAuthenticated,common.addEmployeeRole);
+
+    commonRoutes.post('/deleteEmployeeRole',ensureAuthenticated,common.deleteEmployeeRole);
+
     commonRoutes.get('/getEmployeeDocument',ensureAuthenticated, common.getEmployeeDocument);
     
     // commonRoutes.get('/sendNotification',ensureAuthenticated, common.sendNotification);
