@@ -33,6 +33,6 @@ module.exports = {
     documentPath    : 'document/',
     profilePath     : 'profile/',
     tmpImagePath    : 'tmp/',
-    externalDocument: 'externalDocuemnt/'
+    externalDocument: 'externalDocument/'
   }
 };
