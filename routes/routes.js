@@ -232,6 +232,10 @@ let express  = require('express'),
       userRoutes.get('/getCarInfo',ensureAuthenticated,user.getCarInfo);
 
       userRoutes.get('/getSupervisorInfo', ensureAuthenticated, user.getSupervisorInfo);
+
+      userRoutes.post('/changePassword', ensureAuthenticated, user.changePassword);
+
+      
       
   //= ========================
 
