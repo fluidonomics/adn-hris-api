@@ -20,9 +20,14 @@ let express           = require('express'),
     Education         = require('../models/master/education.model'),
     PerformanceRating = require('../models/master/performanceRating.model'),
     Relation          = require('../models/master/relation.model'), 
+    
+    KraWeightageInfo   = require('../models/kra/kraWeightage.model'),
+    KraCategoryInfo   = require('../models/kra/kraCategory.model'),
+
     Employee          = require('../models/employee/employeeDetails.model'),
     SupervisorDetails = require('../models/employee/employeeSupervisorDetails.model'),
     EmployeeRole      = require('../models/employee/employeeRoleDetails.model'),
+
 
     OfficeDetails     = require('../models/employee/employeeOfficeDetails.model'),
     BankInfo          = require('../models/employee/employeeBankDetails.model'),
@@ -170,6 +175,66 @@ function sendResetPasswordLink(token,emp_id,email_id,done)
     done(err, user);
     });
 }
+
+function getKraCategoryInfoDetails(req, res) {
+    let _id = req.query._id;
+    let query = {
+        isDeleted: false
+    };
+    if (_id) {
+        query = {
+            _id: _id,
+            isDeleted: false
+        };
+    }
+    var kraCategoryProjection = {
+        createdAt: false,
+        updatedAt: false,
+        isDeleted: false,
+        updatedBy: false,
+        createdBy: false,
+    };
+    KraCategoryInfo.find(query, kraCategoryProjection, function(err, kraCategoryInfoData) {
+        if (err) {
+            return res.status(403).json({
+                title: 'There was an error, please try again later',
+                error: err
+            });
+        }
+        return res.status(200).json(kraCategoryInfoData);
+    });
+}
+
+function getKraWeightageInfoDetails(req, res) {
+    let _id = req.query._id;
+    let query = {
+        isDeleted: false
+    };
+    if (_id) {
+        query = {
+            _id: _id,
+            isDeleted: false
+        };
+    }
+    var kraWeightageProjection = {
+        createdAt: false,
+        updatedAt: false,
+        isDeleted: false,
+        updatedBy: false,
+        createdBy: false,
+    };
+    KraWeightageInfo.find(query, kraWeightageProjection, function(err, kraWeightageInfoData) {
+        if (err) {
+            return res.status(403).json({
+                title: 'There was an error, please try again later',
+                error: err
+            });
+        }
+        return res.status(200).json(kraWeightageInfoData);
+    });
+}
+ 
+
 function getAllEmployeeEmails(req, res) {
 
     PersonalInfo.aggregate([
@@ -212,6 +277,7 @@ function getAllEmployeeEmails(req, res) {
         return res.status(200).json({ "data": results });
     });
 }
+
 function getMonthFromDate(date) {
     let d = new Date(date);
     return (d.getUTCMonth() + 1);
@@ -220,6 +286,7 @@ function getDayFromDate(date) {
     let d = new Date(date);
     return d.getUTCDate();
 }
+
 let functions = {
     getRole: (req, res) => {
         var query = {
@@ -355,7 +422,7 @@ let functions = {
 
         })
     },
-     getCompanyBusiness: (req, res) => {
+    getCompanyBusiness: (req, res) => {
         var query = {
             isDeleted: false
         }
@@ -1857,6 +1924,33 @@ let functions = {
             return res.status(200).json(employeeSupervisorData);
         });
     },
+
+    getKraCategoryInfo: (req, res) => {
+        async.waterfall([
+            function(done) {
+                getKraCategoryInfoDetails(req, res, done);
+            },
+            function(kraCategoryDetailsData, done) {
+                return res.status(200).json({
+                    "data": kraCategoryDetailsData
+                });
+            }
+        ]);
+    },
+
+    getKraWeightageInfo: (req, res) => {
+        async.waterfall([
+            function(done) {
+                getKraWeightageInfoDetails(req, res, done);
+            },
+            function(kraWeightageDetailsData, done) {
+                return res.status(200).json({
+                    "data": kraWeightageDetailsData
+                });
+            }
+        ]);
+    },
+    
 
     getMonthFromDate: (req, res) => {
         getMonthFromDate(req);
