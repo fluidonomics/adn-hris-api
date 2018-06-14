@@ -232,6 +232,10 @@ let express  = require('express'),
       userRoutes.get('/getCarInfo',ensureAuthenticated,user.getCarInfo);
 
       userRoutes.get('/getSupervisorInfo', ensureAuthenticated, user.getSupervisorInfo);
+
+      userRoutes.post('/changePassword', ensureAuthenticated, user.changePassword);
+
+      
       
   //= ========================
 
@@ -252,7 +256,9 @@ let express  = require('express'),
 
     kraRoutes.post('/updateKraInfo',ensureAuthenticated, kra.updateKraInfo);
 
+    kraRoutes.delete('/deleteKraInfo',ensureAuthenticated, kra.deleteKraInfo);
 
+    
 
     // kraRoutes.get('/getKraInfo',ensureAuthenticated, kra.getKraInfo);
 
@@ -262,13 +268,15 @@ let express  = require('express'),
 
     kraRoutes.post('/addKraCategoryInfo',ensureAuthenticated, kra.addKraCategoryInfo);
 
-    kraRoutes.get('/getKraCategoryInfo',ensureAuthenticated, kra.getKraCategoryInfo);
+
 
     kraRoutes.post('/addKraWeightageInfo',ensureAuthenticated, kra.addKraWeightageInfo);
 
-    kraRoutes.get('/getKraWeightageInfo',ensureAuthenticated, kra.getKraWeightageInfo);
+
 
     kraRoutes.post('/addKraWorkFlowInfo',ensureAuthenticated, kra.addKraWorkFlowInfo);
+
+    kraRoutes.post('/updateKraWorkFlowInfo',ensureAuthenticated, kra.updateKraWorkFlowInfo);
     
     kraRoutes.get('/getEmployeeKraWorkFlowInfo',ensureAuthenticated, kra.getEmployeeKraWorkFlowInfo);
     
@@ -464,6 +472,10 @@ let express  = require('express'),
     commonRoutes.post('/addEmployeeSupervisor',ensureAuthenticated, common.addEmployeeSupervisor);
 
     commonRoutes.post('/updateEmployeeSupervisor',ensureAuthenticated, common.updateEmployeeSupervisor);
+
+    commonRoutes.get('/getKraCategoryInfo',ensureAuthenticated, common.getKraCategoryInfo);
+
+    commonRoutes.get('/getKraWeightageInfo',ensureAuthenticated, common.getKraWeightageInfo);
     
     // commonRoutes.get('/sendNotification',ensureAuthenticated, common.sendNotification);
     

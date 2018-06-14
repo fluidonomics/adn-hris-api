@@ -2626,9 +2626,7 @@ let functions = {
     },
     // Change User Password via Front End (not via email)
     changePassword: (req, res) => {
-        let userId = req.user._id;
-        EmployeeInfo.findById(userId, function(err, user) {
-            console.log(user);
+        EmployeeInfo.findOne({_id:parseInt(req.headers.uid),isDeleted:false,isAccountActive:true}, function(err, user) {
             if (err) {
                 return res.status(500).json({
                     title: 'There was a problem',
@@ -2671,7 +2669,7 @@ let functions = {
                                     }
                                 });
                             }
-                            res.status(201).json({
+                            return res.status(200).json({
                                 message: 'Your password has changed successfully!'
                             });
                         });
