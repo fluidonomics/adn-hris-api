@@ -3,7 +3,8 @@ let express = require('express'),
     hbs = require('nodemailer-express-handlebars'),
     uuidV1 = require('uuid/v1'),
     config = require('../config/config');
-require('dotenv').load()
+    require('dotenv').load()
+
 let options = {
     viewPath: config.paths.emailPath,
     extName: '.hbs'
@@ -21,7 +22,6 @@ let transporter = nodemailer.createTransport({
     }
 });
 transporter.use('compile', hbs(options));
-
 
 let functions =
     {
