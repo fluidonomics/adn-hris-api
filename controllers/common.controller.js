@@ -1728,12 +1728,12 @@ let functions = {
                                   message: err
                               },
                               result: {
-                                  message: personalInfoData
+                                  message: employeeRole
                               }
                           });
                       }
             AuditTrail.auditTrailEntry(req.body.emp_id, "employeeRoleDetails", employeeRole, "common", "employeeRoleDetails", "ADDED");
-            return res.status(200).json({message:'Added'});
+            return res.status(200).json({data:employeeRole});
         });
     },
 
@@ -1774,7 +1774,7 @@ let functions = {
                         });
                     }
                     AuditTrail.auditTrailEntry(parseInt(req.body.emp_id), "employeeRoleDetails", {isDeleted:true}, "common", "employeeRoleDetails", "Role Deleted");
-                    return res.status(200).json("Removed");
+                    return res.status(200).json({data:'Removed'});
                 });
             });
         }
