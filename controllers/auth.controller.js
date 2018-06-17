@@ -65,6 +65,20 @@ let functions = {
                       "as": "employeeroles"
                   }
                 },
+                {"$project": {
+                  "fullName":"$fullName",
+                  "designation_id":"$designation_id",
+                  "userName":"$userName",
+                  "profileImage":"$profileImage",
+                  "isDeleted":"$isDeleted",
+                  "employeeroles": {
+                     $filter: {
+                        input: "$employeeroles",
+                        as: "employeeroles",
+                        cond: { $eq: [ "$$employeeroles.isDeleted", false ] }
+                     }
+                  }
+                }},
                 {
                       "$lookup": {
                           "from": "roles",
@@ -265,6 +279,20 @@ let functions = {
                           "as": "employeeroles"
                       }
                     },
+                    {"$project": {
+                      "fullName":"$fullName",
+                      "designation_id":"$designation_id",
+                      "userName":"$userName",
+                      "profileImage":"$profileImage",
+                      "isDeleted":"$isDeleted",
+                      "employeeroles": {
+                         $filter: {
+                            input: "$employeeroles",
+                            as: "employeeroles",
+                            cond: { $eq: [ "$$employeeroles.isDeleted", false ] }
+                         }
+                      }
+                    }},
                     {
                           "$lookup": {
                               "from": "roles",
@@ -295,7 +323,7 @@ let functions = {
                     {
                       "$unwind": "$employeeofficedetails"
                     },
-                    { "$match": {"_id":parseInt(decoded._id),"isDeleted":false,"roles.isActive":true,"employeepersonaldetails.isDeleted":false,"employeeofficedetails.isDeleted":false,"employeeroles.isDeleted":false} },
+                    { "$match": {"_id":parseInt(decoded._id),"isDeleted":false,"roles.isActive":true,"employeepersonaldetails.isDeleted":false,"employeeofficedetails.isDeleted":false} },
                     {"$project":{
                       "_id": "$_id",
                       "officeEmail"      :"$employeeofficedetails.officeEmail",

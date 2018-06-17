@@ -456,7 +456,7 @@ let express  = require('express'),
 
           commonRoutes.post('/addEmployeeRole',ensureAuthenticated,common.addEmployeeRole);
 
-          commonRoutes.post('/deleteEmployeeRole',ensureAuthenticated,common.deleteEmployeeRole);
+          commonRoutes.post('/updateEmployeeRole',ensureAuthenticated,common.updateEmployeeRole);
 
           commonRoutes.get('/getEmployeeDocument',ensureAuthenticated, common.getEmployeeDocument);
 

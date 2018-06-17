@@ -1700,13 +1700,14 @@ let functions = {
              let empRoleData=[];
              for (let i = 0; i < data.length; i++) {
                 var empRoleCount=data[i].employeeroles.filter(function (item){
-                   return item.emp_id== parseInt(emp_id) && item.isDeleted==false;
+                   //return item.emp_id== parseInt(emp_id) && item.isDeleted==false;
+                   return item.emp_id== parseInt(emp_id);
                 });
                 empRoleData.push({"_id":empRoleCount && empRoleCount.length > 0  ? empRoleCount[0]._id: null,
                                   "roleName":data[i].roleName,
                                   "role_id":data[i]._id,
                                   "emp_id":parseInt(emp_id),
-                                  "checked": empRoleCount && empRoleCount.length > 0 ? true : false})
+                                  "checked": empRoleCount && empRoleCount.length > 0 && !empRoleCount[0].isDeleted ? true : false})
                 if(i==(data.length-1))
                 {
                     return res.status(200).json({"data":empRoleData});
@@ -1737,7 +1738,7 @@ let functions = {
         });
     },
 
-    deleteEmployeeRole:(req,res)=>
+    updateEmployeeRole:(req,res)=>
     {
         if(parseInt(req.body.role_id)==3 || parseInt(req.body.role_id)==4)
         {
@@ -1758,10 +1759,9 @@ let functions = {
                     return res.status(200).json({error:"Can not remove role has dependency."});
                   }
                   var query = {
-                     _id: parseInt(req.body._id),
-                     isDeleted:false
+                     _id: parseInt(req.body._id)
                   }
-                  EmployeeRole.findOneAndUpdate(query, {$set:{isDeleted:true}}, {new: true}, function(err, employeeRole){
+                  EmployeeRole.findOneAndUpdate(query, {$set:{isDeleted:!req.body.checked}}, {new: true}, function(err, employeeRole){
                     if(err){
                         return res.status(403).json({
                             title: 'There was a problem',
@@ -1773,8 +1773,8 @@ let functions = {
                             }
                         });
                     }
-                    AuditTrail.auditTrailEntry(parseInt(req.body.emp_id), "employeeRoleDetails", {isDeleted:true}, "common", "employeeRoleDetails", "Role Deleted");
-                    return res.status(200).json({data:'Removed'});
+                    AuditTrail.auditTrailEntry(parseInt(req.body.emp_id), "employeeRoleDetails", {isDeleted:!req.body.checked}, "common", "employeeRoleDetails", "Role Updated");
+                    return res.status(200).json({data:employeeRole});
                 });
             });
         }
@@ -1790,10 +1790,9 @@ let functions = {
               return res.status(200).json({error:"Can not delete role has dependency."});
             }
             var query = {
-               _id: parseInt(req.body._id),
-               isDeleted:false
+               _id: parseInt(req.body._id)
             }
-            EmployeeRole.findOneAndUpdate(query, {$set:{isDeleted:true}}, {new: true}, function(err, employeeRole){
+            EmployeeRole.findOneAndUpdate(query, {$set:{isDeleted:!req.body.checked}}, {new: true}, function(err, employeeRole){
               if(err){
                   return res.status(403).json({
                       title: 'There was a problem',
@@ -1805,7 +1804,7 @@ let functions = {
                       }
                   });
               }
-              AuditTrail.auditTrailEntry(parseInt(req.body.emp_id), "employeeRoleDetails", {isDeleted:true}, "common", "employeeRoleDetails", "Role Deleted");
+              AuditTrail.auditTrailEntry(parseInt(req.body.emp_id), "employeeRoleDetails", {isDeleted:!req.body.checked}, "common", "employeeRoleDetails", "Role Updated");
               return res.status(200).json({data:employeeRole});
             });
           });
