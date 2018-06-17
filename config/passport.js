@@ -1,24 +1,24 @@
-let JwtStrategy = require('passport-jwt').Strategy,
-    ExtractJwt  = require('passport-jwt').ExtractJwt,
-    User        = require('../models/user.model'),
-    config      = require('../config/config');
-    require('dotenv').load()
+// let JwtStrategy = require('passport-jwt').Strategy,
+//     ExtractJwt  = require('passport-jwt').ExtractJwt,
+//     User        = require('../models/user.model'),
+//     config      = require('../config/config');
+//     require('dotenv').load()
 
-module.exports = function (passport) {
-  let opts = {};
-  opts.jwtFromRequest = ExtractJwt.fromAuthHeader();
-  //opts.secretOrKey = config.secret;
-  opts.secretOrKey = process.env.Secret;
-  passport.use(new JwtStrategy(opts, function (jwt_payload, done) {
-    User.findOne({_id: jwt_payload._id}, function (err, user) {
-      if (err) {
-        return done(err, false);
-      }
-      if (user) {
-        done(null, user);
-      } else {
-        done(null, false);
-      }
-    });
-  }));
-};
+// module.exports = function (passport) {
+//   let opts = {};
+//   opts.jwtFromRequest = ExtractJwt.fromAuthHeader();
+//   //opts.secretOrKey = config.secret;
+//   opts.secretOrKey = process.env.Secret;
+//   passport.use(new JwtStrategy(opts, function (jwt_payload, done) {
+//     User.findOne({_id: jwt_payload._id}, function (err, user) {
+//       if (err) {
+//         return done(err, false);
+//       }
+//       if (user) {
+//         done(null, user);
+//       } else {
+//         done(null, false);
+//       }
+//     });
+//   }));
+// };

@@ -4,13 +4,13 @@ let express          = require('express'),
     EmployeeRoles    = require('../models/employee/employeeRoleDetails.model'),
     OfficeInfo        = require('../models/employee/employeeOfficeDetails.model'),
     Roles            = require('../models/master/role.model'),
-    jwt              = require('jsonwebtoken-refresh');
-    config           = require('../config/config'),
-    path             = require('path'),
-    crypto           = require('crypto'),
-    nodemailer       = require('nodemailer'),
-    hbs              = require('nodemailer-express-handlebars'),
-    uuidV1           = require('uuid/v1'),
+    jwt              = require('jsonwebtoken-refresh'),
+    // config           = require('../config/config'),
+    // path             = require('path'),
+    // crypto           = require('crypto'),
+    // nodemailer       = require('nodemailer'),
+    // hbs              = require('nodemailer-express-handlebars'),
+    // uuidV1           = require('uuid/v1'),
     async            = require('async'),
     awaitEach        =require('await-each');
     sendEmailInfo     =require('../class/sendEmail');
@@ -65,6 +65,20 @@ let functions = {
                       "as": "employeeroles"
                   }
                 },
+                {"$project": {
+                  "fullName":"$fullName",
+                  "designation_id":"$designation_id",
+                  "userName":"$userName",
+                  "profileImage":"$profileImage",
+                  "isDeleted":"$isDeleted",
+                  "employeeroles": {
+                     $filter: {
+                        input: "$employeeroles",
+                        as: "employeeroles",
+                        cond: { $eq: [ "$$employeeroles.isDeleted", false ] }
+                     }
+                  }
+                }},
                 {
                       "$lookup": {
                           "from": "roles",
@@ -265,6 +279,20 @@ let functions = {
                           "as": "employeeroles"
                       }
                     },
+                    {"$project": {
+                      "fullName":"$fullName",
+                      "designation_id":"$designation_id",
+                      "userName":"$userName",
+                      "profileImage":"$profileImage",
+                      "isDeleted":"$isDeleted",
+                      "employeeroles": {
+                         $filter: {
+                            input: "$employeeroles",
+                            as: "employeeroles",
+                            cond: { $eq: [ "$$employeeroles.isDeleted", false ] }
+                         }
+                      }
+                    }},
                     {
                           "$lookup": {
                               "from": "roles",
@@ -295,7 +323,7 @@ let functions = {
                     {
                       "$unwind": "$employeeofficedetails"
                     },
-                    { "$match": {"_id":parseInt(decoded._id),"isDeleted":false,"roles.isActive":true,"employeepersonaldetails.isDeleted":false,"employeeofficedetails.isDeleted":false,"employeeroles.isDeleted":false} },
+                    { "$match": {"_id":parseInt(decoded._id),"isDeleted":false,"roles.isActive":true,"employeepersonaldetails.isDeleted":false,"employeeofficedetails.isDeleted":false} },
                     {"$project":{
                       "_id": "$_id",
                       "officeEmail"      :"$employeeofficedetails.officeEmail",

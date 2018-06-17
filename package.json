@@ -15,22 +15,7 @@
     "url": "https://github.com/fluidonomics/adn-hris-api"
   },
   "keywords": [
-    "MEAN2",
-    "MEA2N",
-    "Angular2",
-    "Angular 2",
-    "ng2",
-    "ng2-",
-    "Angular 2 Forms",
-    "Angular2 Forms",
-    "multer",
-    "mongoose",
-    "express",
-    "node",
-    "file upload",
-    "file-upload",
-    "ng2-file-upload",
-    "MEAN Stack 2"
+    "Angular 5"
   ],
   "author": "Sumit Mahajan",
   "private": false,

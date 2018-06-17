@@ -6,13 +6,13 @@ let express           = require('express'),
     AuditTrail        = require('../models/common/auditTrail.model'),
     EmployeeRoles     = require('../models/employee/employeeRoleDetails.model'),
     BatchInfo         = require('../models/workflow/batch.model'),
-    config            = require('../config/config'),
-    crypto            = require('crypto'),
-    async             = require('async'),
-    nodemailer        = require('nodemailer'),
-    hbs               = require('nodemailer-express-handlebars'),
-    sgTransport       = require('nodemailer-sendgrid-transport'),
-    uuidV1            = require('uuid/v1');
+    // config            = require('../config/config'),
+    // crypto            = require('crypto'),
+    async             = require('async');
+    // nodemailer        = require('nodemailer'),
+    // hbs               = require('nodemailer-express-handlebars'),
+    // sgTransport       = require('nodemailer-sendgrid-transport'),
+    // uuidV1            = require('uuid/v1');
     require('dotenv').load()
 
 
