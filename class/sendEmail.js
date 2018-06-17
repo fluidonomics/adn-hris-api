@@ -129,7 +129,7 @@ let functions =
                 context: {
                     fullName: emp.fullName,
                     userName: emp.userName,
-                    redirectUrl: process.env.HostUrl + "/reset/" + emp.resetPasswordToken,
+                    redirectUrl: process.env.HostUrl + "/reset/",
                     uid: uuidV1()
                 }
             };

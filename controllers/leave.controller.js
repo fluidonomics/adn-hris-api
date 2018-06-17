@@ -13,14 +13,7 @@ let express = require('express'),
     Employee = require('../models/employee/employeeDetails.model');
     EmailDetails: require('../class/sendEmail'),
     commonService = require('../controllers/common.controller');
-    EmployeeInfo = require('../models/employee/employeeDetails.model'),
-    config = require('../config/config'),
-    crypto = require('crypto'),
     async = require('async'),
-    nodemailer = require('nodemailer'),
-    hbs = require('nodemailer-express-handlebars'),
-    sgTransport = require('nodemailer-sendgrid-transport'),
-    uuidV1 = require('uuid/v1');
 require('dotenv').load()
 function applyLeave(req, res, done) {
     const query = {
@@ -1830,7 +1823,7 @@ let functions = {
         })
     },
     getAllEmployee: (req, res) => {
-        EmployeeInfo.aggregate([
+        Employee.aggregate([
             {
                 "$lookup": {
                     "from": "designations",
