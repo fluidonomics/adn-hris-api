@@ -1,10 +1,11 @@
 let express = require('express'), 
     fs      = require('fs'),
-    aws = require('aws-sdk'),
+    aws     = require('aws-sdk'),
     multerS3 = require('multer-s3'),
     multer  = require('multer'),
     crypto  = require('crypto'),
     config  = require('../config/config');
+    path    = require("path");
     require('dotenv').load()
 
     aws.config.update({
