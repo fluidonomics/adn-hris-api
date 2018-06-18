@@ -9,7 +9,6 @@ let LeaveWorkflowHistorySchema = new Schema({
     appliedLeaveId: { type: Number },
     emp_id: { type: Number, default: null },
     Owner: { type: Number, default: null },
-    updatedAt: { type: Date, default: null },
     Step: { type: String, default: null }, //(Type of transaction or action done on leave eg - applied, canceled, Accepted, Review, Rejected, Forwarded)
     Status: { type: String, default: null },
     isDeleted: { type: Boolean, default: null },

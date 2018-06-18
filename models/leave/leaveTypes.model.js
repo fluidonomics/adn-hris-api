@@ -7,8 +7,6 @@ autoIncrement = require('mongoose-sequence')(mongoose);
 let LeaveTypesSchema = new Schema({
     _id: { type: Number },
     type: { type: String },
-    updatedAt: { type: Date, default: null },
-    createdAt: { type: Date, default: null },
     updatedBy: { type: Number, default: null },
     createdBy: { type: Number, default: null },
     isDeleted: { type: Boolean, default: null }

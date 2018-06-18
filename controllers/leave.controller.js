@@ -37,10 +37,10 @@ function applyLeave(req, res, done) {
             let leavedetails = new LeaveApply(req.body);
             leavedetails.emp_id = req.body.emp_id || req.query.emp_id;
             leavedetails.status = req.body.status;
-            leavedetails.createdBy = parseInt(req.body.emp_id);
+            leavedetails.createdBy = parseInt(req.headers.uid);
             leavedetails.fromDate = new Date(req.body.fromDate);
             leavedetails.toDate = new Date(req.body.toDate);
-            leavedetails.updatedBy = parseInt(req.body.updatedBy);
+            leavedetails.updatedBy = parseInt(req.headers.uid);
             leavedetails.save(function (err, leavesInfoData) {
                 if (err) {
                     return res.status(403).json({
@@ -53,7 +53,7 @@ function applyLeave(req, res, done) {
                         }
                     });
                 }
-                leaveWorkflowDetails(leavesInfoData, req.body.updatedBy, 'applied');
+                leaveWorkflowDetails(leavesInfoData, req.headers.uid, 'applied');
                 if (req.body.ccTo && req.body.ccTo != "") {
                     var ccToList = req.body.ccTo.split(',');
                     ccToList.forEach((x) => {
@@ -87,7 +87,7 @@ function cancelLeave(req, res, done) {
     let cancelLeaveDetals = {
         $set: {
             cancelLeaveApplyTo: req.body.cancelLeaveApplyTo,
-            updatedBy: req.body.updatedBy,
+            updatedBy: req.headers.uid,
             cancelReason: req.body.cancelReason,
             reason: req.body.reason,
             ccTo: req.body.ccTo,
@@ -115,7 +115,7 @@ function cancelLeave(req, res, done) {
                 }
             });
         }
-        leaveWorkflowDetails(_leaveDetails, req.body.updatedBy, 'cancelled');
+        leaveWorkflowDetails(_leaveDetails, req.headers.uid, 'cancelled');
         return done(err, _leaveDetails);
     })
 
@@ -153,11 +153,9 @@ function grantLeaveEmployee(req, res, done) {
     _leaveBalance.emp_id = parseInt(req.body.emp_id);
     _leaveBalance.leave_type = parseInt(req.body.leave_type);
     _leaveBalance.lapseDate = new Date(req.body.lapseDate);
-    _leaveBalance.createdDate = new Date();
-    _leaveBalance.updatedDate = new Date();
     _leaveBalance.balance = parseInt(req.body.balance);
-    _leaveBalance.updatedBy = parseInt(req.body.updatedBy);
-    _leaveBalance.createdBy = parseInt(req.body.emp_id);
+    _leaveBalance.updatedBy = parseInt(req.headers.uid);
+    _leaveBalance.createdBy = parseInt(req.headers.uid);
     var query = {
         isDeleted: false,
         leave_type: parseInt(req.body.leave_type),
@@ -290,11 +288,9 @@ function addLeaveBlance(empIdCollection, req, res, appliedFor) {
                     emp_id: appliedFor === "employee" ? empIdCollection[i].id : empIdCollection[i].emp_id,
                     leave_type: parseInt(req.body.leave_type),
                     lapseDate: new Date(req.body.lapseDate),
-                    createdDate: new Date(req.body.createdDate),
-                    updatedDate: new Date(req.body.updatedDate),
                     balance: balance,
-                    updatedBy: parseInt(req.body.updatedBy),
-                    createdBy: parseInt(req.body.createdBy)
+                    updatedBy: parseInt(req.headers.uid),
+                    createdBy: parseInt(req.headers.uid)
                 });
 
                 if (alreadyExists) {
@@ -433,7 +429,7 @@ function applyLeaveSupervisor(req, res, done) {
     let updateQuery = {
         $set: {
             updatedDate: new Date(),
-            updatedBy: parseInt(req.body.emp_id),
+            updatedBy: parseInt(req.headers.uid),
             isApproved: req.body.isApproved,
             isCancelled: req.body.isCancelled,
             remark: req.body.remarks,
@@ -456,7 +452,7 @@ function applyLeaveSupervisor(req, res, done) {
                 }
             });
         }
-        leaveWorkflowDetails(_leaveDetails, req.body.updatedBy, 'cancelled');
+        leaveWorkflowDetails(_leaveDetails, req.headers.uid, 'cancelled');
         return done(err, _leaveDetails);
     })
 }

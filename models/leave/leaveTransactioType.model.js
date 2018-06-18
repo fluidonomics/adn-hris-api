@@ -7,8 +7,6 @@ let mongoose                = require('mongoose'),
     let LeaveTransactionTypeSchema = new Schema({
         _id: {type:Number},
         transaction_type: {type:String},
-        updatedAt: {type: Date, default: null},
-        createdAt: {type: Date, default: null},
         // updatedBy:{type:Number,default:null},
         createdBy:{type:Number,default:null},
         isDeleted:{type:Boolean,default:null}
