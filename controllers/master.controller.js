@@ -20,6 +20,7 @@ let express           = require('express'),
     Education         = require('../models/master/education.model'),
     Relation          = require('../models/master/relation.model'),
     PerformanceRating = require('../models/master/performanceRating.model'),
+    FinancialYear     = require('../models/master/financialYear.model')
     //jwt                = require('jsonwebtoken'),
     // config            = require('../config/config'),
     // fs                = require('fs'),
@@ -513,6 +514,51 @@ let functions = {
       }
     });
   }, 
+  getFinincialYear: (req, res) => {
+    let query = {
+      'isDeleted': false
+  };
+    FinancialYear.find(query, function (err, financialYearData) {
+      if (financialYearData) {
+          return res.status(200).json(financialYearData);
+      }
+      return res.status(403).json({
+          title: 'Error',
+          error: {
+              message: err
+          },
+          result: {
+              message: result
+          }
+      });
+  })
+},
+createFinancialYear: (req, res) => {
+  let financialYear =new FinancialYear();
+  financialYear.FinancialYearName = req.body.FinancialYearName;
+  financialYear.StarDate = new Date(req.body.StarDate);
+  financialYear.EndDate = new Date(req.body.EndDate);
+  financialYear.isYearActive = req.body.isYearActive;
+  financialYear.companyId = Number(req.body.companyId);
+  financialYear.updatedBy = Number(req.body.updatedBy);
+  financialYear.createdBy = Number(req.body.createdBy);
+  financialYear.isDeleted = false;
+    
+  financialYear.save(function (err, result) {
+      if(result)
+      {
+        return res.status(200).json({ status : '200',message: 'Financial year added Successfully',
+        });
+      }
+      else{
+        return res.status(403).json({
+          title: 'Financial year add failed!',
+          error: {message: err},
+          result: {message: result}
+        });
+      }
+    });
+}
 };
 
 module.exports = functions;

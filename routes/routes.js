@@ -388,6 +388,14 @@ let express  = require('express'),
 
       // Register endpoint: http://localhost:3000/api/master/createPerformanceRating
       masterRoutes.post('/createPerformanceRating',ensureAuthenticated, master.createPerformanceRating);
+
+      // Register endpoint: http://localhost:3000/api/master/createFinancialYear
+      masterRoutes.post('/createFinancialYear', master.createFinancialYear);
+      
+      // Register endpoint: http://localhost:3000/api/master/getFinincialYear
+      masterRoutes.get('/getFinincialYear', master.getFinincialYear);
+
+      
       //= ========================
 
       //= ========================
