@@ -112,6 +112,7 @@ function getEmployeeKraWorkFlowInfoDetails(req, res) {
           "$unwind": "$employeedetails"
         },
         { "$match": { "emp_id":parseInt(emp_id),"isDeleted":false,"employeedetails.isDeleted":false,"batchdetails.isDeleted":false} },
+        { "$sort": { "createdAt":-1,"updatedAt": -1 } },
         {"$project":{
             "_id":"$_id",
             "status":"$status",
