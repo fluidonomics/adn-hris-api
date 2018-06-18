@@ -43,7 +43,7 @@ let express           = require('express'),
     PreviousEmploymentInfo = require('../models/employee/employeePreviousEmploymentDetails.model'),
     FamilyInfo        = require('../models/employee/employeeFamilyDetails.model'),
 
-
+    FinancialYear     = require('../models/master/financialYear.model')
     ProfileProcessStatus= require('../models/employee/employeeProfileProcessDetails.model'),
     uuidV1            = require('uuid/v1'),
     async             = require('async')
@@ -1956,7 +1956,26 @@ let functions = {
     },
     getDayFromDate: (req, res) => {
         getDayFromDate(req);
-    }
+    },
+    getFinincialYear: (req, res) => {
+        let query = {
+          'isDeleted': false
+      };
+        FinancialYear.find(query, function (err, financialYearData) {
+          if (financialYearData) {
+              return res.status(200).json(financialYearData);
+          }
+          return res.status(403).json({
+              title: 'Error',
+              error: {
+                  message: err
+              },
+              result: {
+                  message: result
+              }
+          });
+      })
+    },
 };
 
 module.exports = functions;

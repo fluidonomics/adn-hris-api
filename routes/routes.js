@@ -392,8 +392,7 @@ let express  = require('express'),
       // Register endpoint: http://localhost:3000/api/master/createFinancialYear
       masterRoutes.post('/createFinancialYear', ensureAuthenticated, master.createFinancialYear);
       
-      // Register endpoint: http://localhost:3000/api/master/getFinincialYear
-      masterRoutes.get('/getFinincialYear', ensureAuthenticated, master.getFinincialYear);
+     
 
       
       //= ========================
@@ -477,7 +476,8 @@ let express  = require('express'),
           commonRoutes.get('/getKraCategoryInfo',ensureAuthenticated, common.getKraCategoryInfo);
 
           commonRoutes.get('/getKraWeightageInfo',ensureAuthenticated, common.getKraWeightageInfo);
-          
+           
+          commonRoutes.get('/getFinincialYear', ensureAuthenticated,  common.getFinincialYear);
           // commonRoutes.get('/sendNotification',ensureAuthenticated, common.sendNotification);
         
       //= ========================
