@@ -1264,25 +1264,6 @@ let functions = {
 
 
           });
-
-        // SupervisorDetails.find(query, kraSupervisorProjection,function(err, kraSupervisorData) {
-        //     if (kraSupervisorData) {
-        //         let kraSupervisors=[];
-        //         kraSupervisors.push(kraSupervisorData[0].primarySupervisorEmp_id);
-        //         kraSupervisors.push(kraSupervisorData[1].secondarySupervisorEmp_id);
-        //         return res.status(200).json(kraSupervisorData);
-        //     }
-
-        //     return res.status(403).json({
-        //         title: 'Error',
-        //         error: {
-        //             message: err
-        //         },
-        //         result: {
-        //             message: result
-        //         }
-        //     });
-        // })
     },
 
     

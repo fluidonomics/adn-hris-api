@@ -314,13 +314,6 @@ function getKraWorkFlowInfoDetails(req, res) {
             isDeleted: false
         };
     }
-    var kraWorkflowProjection = {
-        createdAt: false,
-        updatedAt: false,
-        isDeleted: false,
-        updatedBy: false,
-        createdBy: false,
-    };
     KraWorkFlowInfo.findOne(query, kraWorkflowProjection, function (err, kraWorkflowInfoData) {
         if (err) {
             return res.status(403).json({
@@ -331,6 +324,55 @@ function getKraWorkFlowInfoDetails(req, res) {
         return res.status(200).json(kraWorkflowInfoData);
     });
 }
+
+function getKraWorkFlowInfoDetailsByBatch(req, res)
+{
+    let batch_id = req.query.batch_id;
+    KraWorkFlowInfo.aggregate([
+        {
+            "$lookup": {
+                "from": "employeedetails",
+                "localField": "createdBy",
+                "foreignField": "_id",
+                "as": "employeedetails"
+            }
+        },
+        {
+          "$unwind": "$employeedetails"
+        },
+        {
+            "$lookup": {
+                "from": "employeedetails",
+                "localField": "emp_id",
+                "foreignField": "_id",
+                "as": "employeeUserDetails"
+            }
+        },
+        {
+          "$unwind": "$employeeUserDetails"
+        },
+        { "$match": { "batch_id":22,"isDeleted":false,"employeeUserDetails.isDeleted":false,"employeeUserDetails.isDeleted":false} },
+        { "$sort": { "createdAt":-1,"updatedAt": -1 } },
+        {"$project":{
+            "_id":"$_id",
+            "status":"$status",
+            "createdAt":"$createdAt",
+            "updatedAt":"$updatedAt",
+            "createdBy":"$employeedetails.fullName",
+            "userName" :"$employeeUserDetails.fullName",
+            "timeline_id":"$timeline_id"
+        }}
+      ]).exec(function(err, kraflowInfoDataByBatch){
+        if (err) {
+            return res.status(403).json({
+                title: 'There was an error, please try again later',
+                error: err
+            });
+        }
+        return res.status(200).json({data:kraflowInfoDataByBatch});
+      }) 
+}
+
 
 let functions = {
     addKraWeightageInfo:(req,res )=> {
@@ -402,6 +444,20 @@ let functions = {
             }
         ]);
     },
+
+    getKraWorkFlowInfoByBatch: (req, res) => {
+        async.waterfall([
+            function(done) {
+                getKraWorkFlowInfoDetailsByBatch(req, res, done);
+            },
+            function(kraflowInfoDataByBatch, done) {
+                return res.status(200).json({
+                    "data": kraflowInfoDataByBatch
+                });
+            }
+        ]);
+    },
+
 
     addBulkKra:(req,res )=> {
         async.waterfall([

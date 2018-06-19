@@ -49,7 +49,7 @@ function addBatchInfoDetails(req, res, done) {
     });
 }
 
-function getBatchInfoDetails(req, res) {
+function getBatchInfoDetails(req, res,done) {
   let batchworkflow_id = req.query.batchworkflow_id;
   let query = {
       isDeleted: false
@@ -60,23 +60,15 @@ function getBatchInfoDetails(req, res) {
           isDeleted: false
       };
   }
-  var batchProjection = {
-      createdAt: false,
-      updatedAt: false,
-      isDeleted: false,
-      updatedBy: false,
-      createdBy: false,
-  };
-  BatchInfo.find(query, batchProjection, function(err, batchInfoData) {
+  BatchInfo.find(query, function(err, batchInfoData) {
       if (err) {
           return res.status(403).json({
               title: 'There was an error, please try again later',
               error: err
           });
       }
-      return res.status(200).json({
-          'data': batchInfoData
-      });
+      return done(err, batchInfoData);   
+     
   });
 }
 
@@ -98,7 +90,7 @@ let functions = {
                 getBatchInfoDetails(req, res, done);
             },
             function(batchDetailsData, done) {
-                return res.status(200).json({
+            return res.status(200).json({
                     "data": batchDetailsData
                 });
             }

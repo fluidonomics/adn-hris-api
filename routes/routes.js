@@ -9,6 +9,7 @@ let express  = require('express'),
     leave    = require('../controllers/leave.controller'),
     externalDocument = require('../controllers/externalDocument.controller'),
     Employee = require('../models/employee/employeeDetails.model'),
+    batch = require('../controllers/batch.controller'),
     jwt = require('jsonwebtoken-refresh');
 
     function ensureAuthenticated(req, res, next) {
@@ -69,6 +70,7 @@ let express  = require('express'),
           kraRoutes   = express.Router(),
           leaveRoutes = express.Router(),
           externalDocumentRoutes = express.Router(),
+          batchRoutes=express.Router(),
 
       //= ========================
       
@@ -278,6 +280,9 @@ let express  = require('express'),
         kraRoutes.get('/getKraInfo',ensureAuthenticated, kra.getKraInfo);
 
         kraRoutes.post('/addBulkKra',ensureAuthenticated, kra.addBulkKra);
+
+        kraRoutes.get('/getKraWorkFlowInfoByBatch',ensureAuthenticated, kra.getKraWorkFlowInfoByBatch);
+        
 
       //= ========================
 
@@ -496,7 +501,19 @@ let express  = require('express'),
 
         externalDocumentRoutes.get('/getEmployeeExternalDocumentInfo',ensureAuthenticated, externalDocument.getEmployeeExternalDocumentInfo);
       
-      //= ========================  
+      //= ======================== 
+      
+      
+      
+      //=========================
+      // External Documents Routes
+      //=========================
+      apiRoutes.use('/batch', batchRoutes);
+
+      batchRoutes.get('/getBatchInfo',ensureAuthenticated, batch.functions.getBatchInfo);
+
+    //= ======================== 
+      
           
       //= ========================
       // Upload Routes
