@@ -1,6 +1,7 @@
 let express = require('express'),
 
     LeaveWorkflowHistory = require('../models/leave/leaveWorkflowHistory.model'),
+    LeaveDetailsCarryForward=require('../models/master/LeaveDetailsCarryForward.model');
     LeaveApply = require('../models/leave/leaveApply.model'),
     LeaveHoliday = require('../models/leave/leaveHoliday.model'),
     LeaveTransactionType = require('../models/leave/leaveTransactioType.model'),
@@ -13,7 +14,14 @@ let express = require('express'),
     Employee = require('../models/employee/employeeDetails.model');
     EmailDetails: require('../class/sendEmail'),
     commonService = require('../controllers/common.controller');
+    EmployeeInfo = require('../models/employee/employeeDetails.model'),
+    config = require('../config/config'),
+    crypto = require('crypto'),
     async = require('async'),
+    nodemailer = require('nodemailer'),
+    hbs = require('nodemailer-express-handlebars'),
+    sgTransport = require('nodemailer-sendgrid-transport'),
+    uuidV1 = require('uuid/v1');
 require('dotenv').load()
 function applyLeave(req, res, done) {
     const query = {
@@ -37,10 +45,10 @@ function applyLeave(req, res, done) {
             let leavedetails = new LeaveApply(req.body);
             leavedetails.emp_id = req.body.emp_id || req.query.emp_id;
             leavedetails.status = req.body.status;
-            leavedetails.createdBy = parseInt(req.headers.uid);
+            leavedetails.createdBy = parseInt(req.body.emp_id);
             leavedetails.fromDate = new Date(req.body.fromDate);
             leavedetails.toDate = new Date(req.body.toDate);
-            leavedetails.updatedBy = parseInt(req.headers.uid);
+            leavedetails.updatedBy = parseInt(req.body.updatedBy);
             leavedetails.save(function (err, leavesInfoData) {
                 if (err) {
                     return res.status(403).json({
@@ -53,7 +61,7 @@ function applyLeave(req, res, done) {
                         }
                     });
                 }
-                leaveWorkflowDetails(leavesInfoData, req.headers.uid, 'applied');
+                leaveWorkflowDetails(leavesInfoData, req.body.updatedBy, 'applied');
                 if (req.body.ccTo && req.body.ccTo != "") {
                     var ccToList = req.body.ccTo.split(',');
                     ccToList.forEach((x) => {
@@ -87,7 +95,7 @@ function cancelLeave(req, res, done) {
     let cancelLeaveDetals = {
         $set: {
             cancelLeaveApplyTo: req.body.cancelLeaveApplyTo,
-            updatedBy: req.headers.uid,
+            updatedBy: req.body.updatedBy,
             cancelReason: req.body.cancelReason,
             reason: req.body.reason,
             ccTo: req.body.ccTo,
@@ -115,7 +123,7 @@ function cancelLeave(req, res, done) {
                 }
             });
         }
-        leaveWorkflowDetails(_leaveDetails, req.headers.uid, 'cancelled');
+        leaveWorkflowDetails(_leaveDetails, req.body.updatedBy, 'cancelled');
         return done(err, _leaveDetails);
     })
 
@@ -153,9 +161,11 @@ function grantLeaveEmployee(req, res, done) {
     _leaveBalance.emp_id = parseInt(req.body.emp_id);
     _leaveBalance.leave_type = parseInt(req.body.leave_type);
     _leaveBalance.lapseDate = new Date(req.body.lapseDate);
+    _leaveBalance.createdDate = new Date();
+    _leaveBalance.updatedDate = new Date();
     _leaveBalance.balance = parseInt(req.body.balance);
-    _leaveBalance.updatedBy = parseInt(req.headers.uid);
-    _leaveBalance.createdBy = parseInt(req.headers.uid);
+    _leaveBalance.updatedBy = parseInt(req.body.updatedBy);
+    _leaveBalance.createdBy = parseInt(req.body.emp_id);
     var query = {
         isDeleted: false,
         leave_type: parseInt(req.body.leave_type),
@@ -288,9 +298,11 @@ function addLeaveBlance(empIdCollection, req, res, appliedFor) {
                     emp_id: appliedFor === "employee" ? empIdCollection[i].id : empIdCollection[i].emp_id,
                     leave_type: parseInt(req.body.leave_type),
                     lapseDate: new Date(req.body.lapseDate),
+                    createdDate: new Date(req.body.createdDate),
+                    updatedDate: new Date(req.body.updatedDate),
                     balance: balance,
-                    updatedBy: parseInt(req.headers.uid),
-                    createdBy: parseInt(req.headers.uid)
+                    updatedBy: parseInt(req.body.updatedBy),
+                    createdBy: parseInt(req.body.createdBy)
                 });
 
                 if (alreadyExists) {
@@ -380,6 +392,23 @@ function addHoliday(req, res, done) {
         return done(err, leaveHolidayData);
     });
 }
+function addleaveCarryForward(req, res, done) {
+    let leaveCarryForward = new LeaveDetailsCarryForward(req.body);
+    leaveCarryForward.save(function (err, leaveCarryForwardData) {
+        if (err) {
+            return res.status(403).json({
+                title: 'There is a problem',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: leaveCarryForwardData
+                }
+            });
+        }
+        return done(err, leaveCarryForwardData);
+    });
+}
 function updateHoliday(req, res, done) {
     let holidayDetails = new LeaveHoliday(req.body);
     let query = {
@@ -426,18 +455,33 @@ function applyLeaveSupervisor(req, res, done) {
         _id: parseInt(req.body._id),
         isDeleted: false
     }
-    let updateQuery = {
-        $set: {
-            updatedDate: new Date(),
-            updatedBy: parseInt(req.headers.uid),
-            isApproved: req.body.isApproved,
-            isCancelled: req.body.isCancelled,
-            remark: req.body.remarks,
-            status: req.body.status,
-            reason: req.body.reason
-            // emp_id: parseInt(req.body.emp_id)
-        }
-    };
+    let updateQuery;
+    if(req.body.isApproved){
+        updateQuery = {
+            $set: {
+                updatedDate: new Date(),
+                updatedBy: parseInt(req.body.emp_id),
+                isApproved: req.body.isApproved,
+                isCancelled: req.body.isCancelled,
+                remark: req.body.remarks,
+                status: req.body.status,
+                reason: req.body.reason               
+            }
+        };
+    }else{
+        updateQuery = {
+            $set: {
+                updatedDate: new Date(),
+                updatedBy: parseInt(req.body.emp_id),
+                isApproved: req.body.isApproved,
+                isCancelled: req.body.isCancelled,
+                cancelReason: req.body.remarks,
+                status: req.body.status,
+                reason: req.body.reason                
+            }
+        }; 
+    }
+    
     LeaveApply.findOneAndUpdate(query, updateQuery, {
         new: true
     }, function (err, _leaveDetails) {
@@ -452,7 +496,7 @@ function applyLeaveSupervisor(req, res, done) {
                 }
             });
         }
-        leaveWorkflowDetails(_leaveDetails, req.headers.uid, 'cancelled');
+        leaveWorkflowDetails(_leaveDetails, req.body.updatedBy, 'cancelled');
         return done(err, _leaveDetails);
     })
 }
@@ -1416,6 +1460,7 @@ let functions = {
                                 "_id": "$_id",
                                 "emp_id": "$emp_id",
                                 "emp_name": "$emp_name.fullName",
+                                "url":"$emp_name.profileImage",
                                 "leave_type": "$leave_type",
                                 "leave_type_name": "$leaveTypes.type",
                                 "forwardTo": "$forwardTo",
@@ -1461,8 +1506,7 @@ let functions = {
                 }
             }
         })
-    },
-
+    },    
     postLeaveHoliday: (req, res) => {
         async.waterfall([
             function (done) {
@@ -1471,6 +1515,17 @@ let functions = {
             function (_holidayDetails, done) {
                 return res.status(200).json(_holidayDetails);
             }
+        ])
+    },
+    postLeaveCarry: (req, res) => {
+        async.waterfall([
+            function (done) {
+                addleaveCarryForward(req, res, done);
+            },
+            function (_leaveCarryForward, done) {
+                return res.status(200).json(_leaveCarryForward);
+            }
+            
         ])
     },
     getHolidays: (req, res) => {
@@ -1819,7 +1874,7 @@ let functions = {
         })
     },
     getAllEmployee: (req, res) => {
-        Employee.aggregate([
+        EmployeeInfo.aggregate([
             {
                 "$lookup": {
                     "from": "designations",
