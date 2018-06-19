@@ -1778,36 +1778,36 @@ let functions = {
                 });
             });
         }
-        if(parseInt(req.body.role_id==1))
+        if(parseInt(req.body.role_id)==2)
         {
             Promise.all([
             OfficeDetails.find({
                 hrspoc_id:parseInt(req.body.emp_id)
-            }).count().exec(),
-        ]).then(function(counts) {
-            if(counts[0] > 0)
-            {
-              return res.status(200).json({error:"Can not delete role has dependency."});
-            }
-            var query = {
-               _id: parseInt(req.body._id)
-            }
-            EmployeeRole.findOneAndUpdate(query, {$set:{isDeleted:!req.body.checked}}, {new: true}, function(err, employeeRole){
-              if(err){
-                  return res.status(403).json({
-                      title: 'There was a problem',
-                      error: {
-                          message: err
-                      },
-                      result: {
-                          message: employeeRole
-                      }
-                  });
-              }
-              AuditTrail.auditTrailEntry(parseInt(req.body.emp_id), "employeeRoleDetails", {isDeleted:!req.body.checked}, "common", "employeeRoleDetails", "Role Updated");
-              return res.status(200).json({data:employeeRole});
+            }).count().exec()
+            ]).then(function(counts) {
+                if(counts[0] > 0)
+                {
+                return res.status(200).json({error:"Can not delete role has dependency."});
+                }
+                var query = {
+                _id: parseInt(req.body._id)
+                }
+                EmployeeRole.findOneAndUpdate(query, {$set:{isDeleted:!req.body.checked}}, {new: true}, function(err, employeeRole){
+                if(err){
+                    return res.status(403).json({
+                        title: 'There was a problem',
+                        error: {
+                            message: err
+                        },
+                        result: {
+                            message: employeeRole
+                        }
+                    });
+                }
+                AuditTrail.auditTrailEntry(parseInt(req.body.emp_id), "employeeRoleDetails", {isDeleted:!req.body.checked}, "common", "employeeRoleDetails", "Role Updated");
+                return res.status(200).json({data:employeeRole});
+                });
             });
-          });
         }
     },
 

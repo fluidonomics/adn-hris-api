@@ -2442,7 +2442,7 @@ let functions = {
                         });
                     }
                     if (!isMatch) {
-                        return res.status(403).json({
+                        return res.status(201).json({
                             title: 'There was a problem',
                             error: {
                                 message: 'Your current password is wrong!'
