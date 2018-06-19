@@ -388,6 +388,13 @@ let express  = require('express'),
 
       // Register endpoint: http://localhost:3000/api/master/createPerformanceRating
       masterRoutes.post('/createPerformanceRating',ensureAuthenticated, master.createPerformanceRating);
+
+      // Register endpoint: http://localhost:3000/api/master/createFinancialYear
+      masterRoutes.post('/createFinancialYear', ensureAuthenticated, master.createFinancialYear);
+      
+     
+
+      
       //= ========================
 
       //= ========================
@@ -469,7 +476,8 @@ let express  = require('express'),
           commonRoutes.get('/getKraCategoryInfo',ensureAuthenticated, common.getKraCategoryInfo);
 
           commonRoutes.get('/getKraWeightageInfo',ensureAuthenticated, common.getKraWeightageInfo);
-          
+           
+          commonRoutes.get('/getFinincialYear', ensureAuthenticated,  common.getFinincialYear);
           // commonRoutes.get('/sendNotification',ensureAuthenticated, common.sendNotification);
         
       //= ========================
