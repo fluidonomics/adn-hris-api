@@ -320,12 +320,7 @@ let express  = require('express'),
         leaveRoutes.get('/getLeavesByLeaveType', leave.getLeavesByLeaveType);
         leaveRoutes.get('/getAllEmployee', leave.getAllEmployee);
         leaveRoutes.get('/getEmployeeProbationDetails', leave.getEmployeeProbationDetails);
-        
-        // leaveRoutes.post('/updateLeave', kra.postUpdateLeave);
-
-        // leaveRoutes.get('/userLeaveDashboard', kra.getUserLeaveDashboardDetails);
-
-        // leaveRoutes.get('/empLeaveDetails', kra.getEmpLeaveDetails);
+        leaveRoutes.post('/postLeaveTransactionYear', leave.postLeaveTransactionYear);
       //= ========================
 
       //= ========================

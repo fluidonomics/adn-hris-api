@@ -7,9 +7,9 @@ let mongoose                = require('mongoose'),
       let FinancialYearSchema = new Schema(
       {
         _id:{type:Number},
-         FinancialYearName: {type: String,required:true,unique: false},
-         StarDate: {type: Date,required:true,unique: false},
-         EndDate: {type: Date,required:true,unique: false},
+         financialYearName: {type: String,required:true,unique: false},
+         starDate: {type: Date,required:true,unique: false},
+         endDate: {type: Date,required:true,unique: false},
          isYearActive: {type: Boolean,required:true,unique: false},
          companyId: {type: Number, required: true, unique: false},
          updatedBy: {type: Number, default:null},

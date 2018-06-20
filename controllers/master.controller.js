@@ -516,13 +516,13 @@ let functions = {
 
   createFinancialYear: (req, res) => {
     let financialYear = new FinancialYear();
-    financialYear.FinancialYearName = req.body.FinancialYearName;
-    financialYear.StarDate = new Date(req.body.StarDate);
-    financialYear.EndDate = new Date(req.body.EndDate);
+    financialYear.financialYearName = req.body.FinancialYearName;
+    financialYear.starDate = new Date(req.body.StarDate);
+    financialYear.endDate = new Date(req.body.EndDate);
     financialYear.isYearActive = req.body.isYearActive;
     financialYear.companyId = Number(req.body.companyId);
-    financialYear.updatedBy = Number(req.body.updatedBy);
-    financialYear.createdBy = Number(req.body.createdBy);
+    // financialYear.updatedBy = Number(req.body.updatedBy);
+    // financialYear.createdBy = Number(req.body.createdBy);
     financialYear.isDeleted = false;
 
     financialYear.save(function (err, result) {
