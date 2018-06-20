@@ -255,33 +255,36 @@ let express  = require('express'),
 
         apiRoutes.use('/kra', kraRoutes);
 
-        kraRoutes.post('/addKraInfo',ensureAuthenticated, kra.addKraInfo);
+        kraRoutes.post('/addKraInfo',ensureAuthenticated, kra.functions.addKraInfo);
 
-        kraRoutes.post('/updateKraInfo',ensureAuthenticated, kra.updateKraInfo);
+        kraRoutes.post('/updateKraInfo',ensureAuthenticated, kra.functions.updateKraInfo);
 
-        kraRoutes.delete('/deleteKraInfo',ensureAuthenticated, kra.deleteKraInfo);
+        kraRoutes.delete('/deleteKraInfo',ensureAuthenticated, kra.functions.deleteKraInfo);
 
         // kraRoutes.get('/getKraInfo',ensureAuthenticated, kra.getKraInfo);
 
         // kraRoutes.get('/getKraDetailsData',ensureAuthenticated, kra.getKraDetailsData);
 
-        kraRoutes.post('/addKraCategoryInfo',ensureAuthenticated, kra.addKraCategoryInfo);
+        kraRoutes.post('/addKraCategoryInfo',ensureAuthenticated, kra.functions.addKraCategoryInfo);
 
-        kraRoutes.post('/addKraWeightageInfo',ensureAuthenticated, kra.addKraWeightageInfo);
+        kraRoutes.post('/addKraWeightageInfo',ensureAuthenticated, kra.functions.addKraWeightageInfo);
 
-        kraRoutes.post('/addKraWorkFlowInfo',ensureAuthenticated, kra.addKraWorkFlowInfo);
+        kraRoutes.post('/addKraWorkFlowInfo',ensureAuthenticated, kra.functions.addKraWorkFlowInfo);
 
-        kraRoutes.post('/updateKraWorkFlowInfo',ensureAuthenticated, kra.updateKraWorkFlowInfo);
+        kraRoutes.post('/updateKraWorkFlowInfo',ensureAuthenticated, kra.functions.updateKraWorkFlowInfo);
         
-        kraRoutes.get('/getEmployeeKraWorkFlowInfo',ensureAuthenticated, kra.getEmployeeKraWorkFlowInfo);
+        kraRoutes.get('/getEmployeeKraWorkFlowInfo',ensureAuthenticated, kra.functions.getEmployeeKraWorkFlowInfo);
         
-        kraRoutes.get('/getKraWorkFlowInfo',ensureAuthenticated, kra.getKraWorkFlowInfo);
+        kraRoutes.get('/getKraWorkFlowInfo',ensureAuthenticated, kra.functions.getKraWorkFlowInfo);
         
-        kraRoutes.get('/getKraInfo',ensureAuthenticated, kra.getKraInfo);
+        kraRoutes.get('/getKraInfo',ensureAuthenticated, kra.functions.getKraInfo);
 
-        kraRoutes.post('/addBulkKra',ensureAuthenticated, kra.addBulkKra);
+        kraRoutes.post('/addBulkKra',ensureAuthenticated, kra.functions.addBulkKra);
 
-        kraRoutes.get('/getKraWorkFlowInfoByBatch',ensureAuthenticated, kra.getKraWorkFlowInfoByBatch);
+        kraRoutes.get('/getKraWorkFlowInfoByBatch',ensureAuthenticated, kra.functions.getKraWorkFlowInfoByBatch);
+
+        //kraRoutes.post('/updateBatchStatus',ensureAuthenticated, kra.updateBatchStatus);
+        
         
 
       //= ========================
@@ -512,6 +515,10 @@ let express  = require('express'),
       apiRoutes.use('/batch', batchRoutes);
 
       batchRoutes.get('/getBatchInfo',ensureAuthenticated, batch.functions.getBatchInfo);
+
+      batchRoutes.post('/updateBatchInfo',ensureAuthenticated, batch.functions.updateBatchInfo);
+
+      
 
     //= ======================== 
       

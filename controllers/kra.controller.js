@@ -36,12 +36,16 @@ let express           = require('express'),
 //     });
 // }
 
-function updateKraWorkFlowInfoDetails(req, res, done) {
+function updateKraWorkFlowInfoDetails(req, res,done) {
+    let batch_id= req.query.batch_id;
+    let query={_id:parseInt(req.body._id),isDeleted:false}
+    if(batch_id)
+    {
+       query={batch_id:parseInt(req.query.batch_id),isDeleted:false}
+    }
+    let queryUpdate={ $set: {"status":req.body.status, "updatedBy":parseInt(req.headers.uid) }};
 
-    // let kraWorkFlowDetails = new KraWorkFlowInfo(req.body);
-    // kraWorkFlowDetails.updatedBy = parseInt(req.headers.uid);
-    // /{_id:parseInt(req.body._id)},{$set:{status:req.body.status,updatedBy:parseInt(req.headers.uid);}},function(err,kraWorkflowData)
-    KraWorkFlowInfo.findOneAndUpdate({_id:parseInt(req.body._id)},{$set:{status:req.body.status,updatedBy:parseInt(req.headers.uid)}}, {new: true}, function(err, kraWorkFlowInfoData) {
+    KraWorkFlowInfo.update(query,queryUpdate,{new: true}, function(err, kraWorkFlowInfoData) {
         if (err) {
             return res.status(403).json({
                 title: 'There was a problem',
@@ -54,7 +58,7 @@ function updateKraWorkFlowInfoDetails(req, res, done) {
             });
         }
         AuditTrail.auditTrailEntry(kraWorkFlowInfoData.emp_id, "kraWorkFlowDetails", kraWorkFlowInfoData, "Kra", "kraWorkFlowDetails", "UPDATED");
-        return done(err, kraWorkFlowInfoData);
+        //return done(err, kraWorkFlowInfoData);
     });
 }
 
@@ -351,7 +355,7 @@ function getKraWorkFlowInfoDetailsByBatch(req, res)
         {
           "$unwind": "$employeeUserDetails"
         },
-        { "$match": { "batch_id":parseInt(batch_id),"isDeleted":false,"employeeUserDetails.isDeleted":false,"employeeUserDetails.isDeleted":false} },
+        { "$match": { "batch_id":parseInt(batch_id),"isDeleted":false,"employeedetails.isDeleted":false,"employeeUserDetails.isDeleted":false} },
         { "$sort": { "createdAt":-1,"updatedAt": -1 } },
         {"$project":{
             "_id":"$_id",
@@ -372,6 +376,26 @@ function getKraWorkFlowInfoDetailsByBatch(req, res)
         return res.status(200).json({data:kraflowInfoDataByBatch});
       }) 
 }
+
+// function updateBatchStatus(req, res)
+// {
+//     let _id=parseInt(req.body._id);
+//     let batchType=req.body.batchType;
+//     if(batchType=='KRA')
+//     {
+//         let queryUpdate={ $set: {"status":req.body.status, "updatedBy":parseInt(req.headers.uid) }};
+//         KraWorkFlowInfo.update({"batch_id":_id,isDeleted:false},queryUpdate,{ new: true },function(err,batchStatusData)
+//         {
+//             if (err) {
+//                 return res.status(403).json({
+//                   title: 'There was an error',
+//                   error: err
+//                 });
+//               }
+//             return res.status(200).json(batchStatusData);
+//         });
+//     }
+// }
 
 
 let functions = {
@@ -516,125 +540,7 @@ let functions = {
               return res.status(200).json(kraInfoData);
             }
         ]);
-    }
+    },
+ 
 }
-module.exports = functions;
-
-
-
-
-
-
-
-
-
-// function getKraInfoDetailsData(req, res) {
-//     let emp_id=req.query.emp_id;
-//     KraWorkFlowInfo.aggregate([
-//         {
-//             "$lookup": {
-//                 "from": "kradetails",
-//                 "localField": "_id",
-//                 "foreignField": "kraWorkflow_id",
-//                 "as": "kradetails"
-//             }
-//         },
-//         {"$match": {"isDeleted":false,"emp_id":parseInt(emp_id)} },
-//         {"$project":{
-//             "_id":"$_id",
-//             "batch_id":"$batch_id",
-//             "timeline_id":"$timeline_id",
-//             "emp_id":"$emp_id",
-//             "status":"$status",
-//             "kraDetails":"$kradetails"
-//             }}
-//         ]).exec(function(err, results){
-//         if(err)
-//         {
-//             return res.status(403).json({
-//                 title: 'There was a problem',
-//                 error: {
-//                     message: err
-//                 },
-//                 result: {
-//                     message: results
-//                 }
-//             });
-//         }
-//         return res.status(200).json({"data":results});
-//      });
-// }
-
-
-
-
-    // getKraInfo: (req, res) => {
-    //     async.waterfall([
-    //         function(done) {
-    //             getKraInfoDetails(req, res, done);
-    //         },
-    //         function(kraDetailsData, done) {
-    //             return res.status(200).json({
-    //                 "data": kraDetailsData
-    //             });
-    //         }
-    //     ]);
-    // },
-
-
-    // getKraDetailsData: (req, res) => {
-    //     async.waterfall([
-    //         function(done) {
-    //             getKraInfoDetailsData(req, res, done);
-    //         },
-    //         function(kraDetailsData, done) {
-    //             return res.status(200).json({
-    //                 "data": kraDetailsData
-    //             });
-    //         }
-    //     ]);
-    // },
-
-
-    // addKraInfo:(req,res )=> {
-    //   async.waterfall([
-    //     function(done) {
-    //        deleteAllKraDetailsByEmpId(req,res,done)
-    //     },
-    //     function(deleteStatus,done) {
-    //        addKraInfoDetails(0,req,res,done);
-    //     },
-    //     function(addKraData,done)
-    //     {
-    //       if(!req.body.isSaveDraft)
-    //       {
-    //         KraWorkFlowInfo.findOneAndUpdate({_id:parseInt(req.body.kraWorkflow_id)},{$set:{'status':'Submitted'}},function(err,kraWorkflowData)
-    //         {
-    //             if (err) {
-    //                 return res.status(403).json({
-    //                     title: 'There was an error, please try again later',
-    //                     error: err
-    //                 });
-    //             }
-    //             return done(err,true);
-    //         });
-    //       }
-    //       else{
-    //           done(null,true);
-    //       }
-    //     },
-    //     function(kraInfoData,done) {
-    //       return res.status(200).json(kraInfoData);
-    //     }
-    //   ]);
-    // },
-    // updateKraInfo: (req, res) => {
-    //     async.waterfall([
-    //         function (done) {
-    //             updateKraInfoDetails(req, res, done);
-    //         },
-    //         function (kraInfoData, done) {
-    //             return res.status(200).json(kraInfoData);
-    //         }
-    //     ]);
-    // },
+module.exports = {functions,updateKraWorkFlowInfoDetails};
