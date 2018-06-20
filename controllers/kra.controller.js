@@ -351,7 +351,7 @@ function getKraWorkFlowInfoDetailsByBatch(req, res)
         {
           "$unwind": "$employeeUserDetails"
         },
-        { "$match": { "batch_id":22,"isDeleted":false,"employeeUserDetails.isDeleted":false,"employeeUserDetails.isDeleted":false} },
+        { "$match": { "batch_id":parseInt(batch_id),"isDeleted":false,"employeeUserDetails.isDeleted":false,"employeeUserDetails.isDeleted":false} },
         { "$sort": { "createdAt":-1,"updatedAt": -1 } },
         {"$project":{
             "_id":"$_id",
