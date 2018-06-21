@@ -12,7 +12,7 @@ let mongoose                = require('mongoose'),
         batchEndDate: {type:Date, default:new Date() + 860000},
         createdBy: {type: Number,default:null},
         updatedBy: {type: Number,default:null},
-        status:{type:String,default:'Started'},
+        status:{type:String,default:'Active'},
         isDeleted: {type: Boolean,default:false}, 
       },
       {
