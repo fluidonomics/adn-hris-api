@@ -2034,6 +2034,7 @@ let functions = {
                 }
             });
         }
+        results= results.filter((obj, pos, arr) => { return arr.map(mapObj =>mapObj['_id']).indexOf(obj['_id']) === pos;});
         return res.status(200).json({"data":results});
      });
     },
