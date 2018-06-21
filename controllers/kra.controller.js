@@ -58,7 +58,7 @@ function updateKraWorkFlowInfoDetails(req, res,done) {
             });
         }
         AuditTrail.auditTrailEntry(kraWorkFlowInfoData.emp_id, "kraWorkFlowDetails", kraWorkFlowInfoData, "Kra", "kraWorkFlowDetails", "UPDATED");
-        //return done(err, kraWorkFlowInfoData);
+        return done(err, kraWorkFlowInfoData);
     });
 }
 
@@ -124,7 +124,7 @@ function getEmployeeKraWorkFlowInfoDetails(req, res) {
             "updatedAt":"$updatedAt",
             "createdBy":"$employeedetails.fullName",
             "batchEndDate":"$batchdetails.batchEndDate",
-            "batchName":"$batchdetails.batchName"
+            "batchName":"$batchdetails.batchName",
         }}
       ]).exec(function(err, kraEmployeeWorkflowInfoData){
         if (err) {
