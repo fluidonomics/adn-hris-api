@@ -20,7 +20,8 @@ let express = require('express'),
   Education = require('../models/master/education.model'),
   Relation = require('../models/master/relation.model'),
   PerformanceRating = require('../models/master/performanceRating.model'),
-  FinancialYear = require('../models/master/financialYear.model')
+  FinancialYearDetail = require('../models/master/financialYearDetails.model')
+  FinancialYearCompany = require('../models/master/financialYear.model');
 //jwt                = require('jsonwebtoken'),
 // config            = require('../config/config'),
 // fs                = require('fs'),
@@ -515,14 +516,11 @@ let functions = {
   },
 
   createFinancialYear: (req, res) => {
-    let financialYear = new FinancialYear();
+    let financialYear = new FinancialYearDetail();
     financialYear.financialYearName = req.body.FinancialYearName;
     financialYear.starDate = new Date(req.body.StarDate);
     financialYear.endDate = new Date(req.body.EndDate);
     financialYear.isYearActive = req.body.isYearActive;
-    financialYear.companyId = Number(req.body.companyId);
-    // financialYear.updatedBy = Number(req.body.updatedBy);
-    // financialYear.createdBy = Number(req.body.createdBy);
     financialYear.isDeleted = false;
 
     financialYear.save(function (err, result) {
@@ -539,6 +537,29 @@ let functions = {
         });
       }
     });
+  },
+
+  createCompanyFinancialYear: (req, res) => {
+    let financialYearCompany = new FinancialYearCompany();
+    financialYearCompany.financialYearId = req.body.financialYearId;
+    financialYearCompany.isDeleted = req.body.isDeleted;
+    financialYearCompany.companyId = req.body.companyId;
+
+    financialYearCompany.save(function (err, result) {
+      if (result) {
+        return res.status(200).json({
+          status: '200', message: 'Company Financial year added Successfully',
+        });
+      }
+      else {
+        return res.status(403).json({
+          title: 'Company Financial year add failed!',
+          error: { message: err },
+          result: { message: result }
+        });
+      }
+    });
+
   }
 };
 
