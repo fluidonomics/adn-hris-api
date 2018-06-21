@@ -1964,7 +1964,17 @@ let functions = {
     },
     getLeavesByMonth: (req, res) => {
         const query = {
-            "isApproved": null
+            $or:
+                [{
+                    "isDeleted": false,
+                    "isApproved": true,
+                    "isCancelled": false
+                },
+                {
+                    "isDeleted": false,
+                    "isApproved": true,
+                    "isCancelled": null
+                }]
         };
         LeaveApply.find(query, function (err, appliedLeaves) {
             if (err) {
@@ -1983,12 +1993,22 @@ let functions = {
     },
     getLeavesByLeaveType: (req, res) => {
         let query = {
-            'isDeleted': false
+            'isDeleted': false,
         };
         LeaveTypes.find(query, function (err, leaveTypesData) {
             if (leaveTypesData) {
                 const query = {
-                    "isApproved": null
+                    $or:
+                        [{
+                            "isDeleted": false,
+                            "isApproved": true,
+                            "isCancelled": false
+                        },
+                        {
+                            "isDeleted": false,
+                            "isApproved": true,
+                            "isCancelled": null
+                        }]
                 };
                 LeaveApply.find(query, function (err1, appliedLeaves) {
                     if (err1) {
