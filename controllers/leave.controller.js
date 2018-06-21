@@ -2,7 +2,7 @@ let express = require('express'),
 
     LeaveWorkflowHistory = require('../models/leave/leaveWorkflowHistory.model'),
     LeaveDetailsCarryForward = require('../models/master/leaveDetailsCarryForward.model');
-    LeaveApply = require('../models/leave/leaveApply.model'),
+LeaveApply = require('../models/leave/leaveApply.model'),
     LeaveHoliday = require('../models/leave/leaveHoliday.model'),
     LeaveTransactionType = require('../models/leave/leaveTransactioType.model'),
     PersonalInfo = require('../models/employee/employeePersonalDetails.model'),
@@ -12,7 +12,7 @@ let express = require('express'),
     LeaveBalance = require('../models/leave/EmployeeLeaveBalance.model'),
     EmployeeRoles = require('../models/master/role.model'),
     Employee = require('../models/employee/employeeDetails.model');
-    EmailDetails: require('../class/sendEmail'),
+EmailDetails: require('../class/sendEmail'),
     commonService = require('../controllers/common.controller'),
     userService = require('../controllers/user.controller'),
     EmployeeInfo = require('../models/employee/employeeDetails.model'),
@@ -162,12 +162,12 @@ function grantLeaveEmployee(req, res, done) {
         _leaveBalance = new LeaveBalance(req.body);
     _leaveBalance.emp_id = parseInt(req.body.emp_id);
     _leaveBalance.leave_type = parseInt(req.body.leave_type);
-    _leaveBalance.lapseDate = new Date(req.body.lapseDate);
-    _leaveBalance.createdDate = new Date();
-    _leaveBalance.updatedDate = new Date();
+    // _leaveBalance.lapseDate = new Date(req.body.lapseDate);
+    // _leaveBalance.createdDate = new Date();
+    // _leaveBalance.updatedDate = new Date();
     _leaveBalance.balance = parseInt(req.body.balance);
-    _leaveBalance.updatedBy = parseInt(req.body.updatedBy);
-    _leaveBalance.createdBy = parseInt(req.body.emp_id);
+    // _leaveBalance.updatedBy = parseInt(req.body.updatedBy);
+    // _leaveBalance.createdBy = parseInt(req.body.emp_id);
     var query = {
         isDeleted: false,
         leave_type: parseInt(req.body.leave_type),
@@ -509,8 +509,8 @@ function getApprovedLeavesByMonth(appliedLeaves, res) {
         //     toDtMonth = commonService.getMonthFromDate(leave.toDate);
         let _fromDate = new Date(leave.fromDate);
         let _toDate = new Date(leave.toDate);
-            const fromDtMonth = _fromDate.getUTCMonth() + 1; 
-            toDtMonth =  _toDate.getUTCMonth() + 1;  
+        const fromDtMonth = _fromDate.getUTCMonth() + 1;
+        toDtMonth = _toDate.getUTCMonth() + 1;
         if (fromDtMonth === toDtMonth) {
             // let noOfLeaves = (commonService.getDayFromDate(leave.toDate) - commonService.getDayFromDate(leave.fromDate)) + 1,
             let noOfLeaves = ((new Date(leave.toDate)).getUTCDate() - (new Date(leave.fromDate)).getUTCDate()) + 1,
@@ -522,10 +522,8 @@ function getApprovedLeavesByMonth(appliedLeaves, res) {
                 lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0);
             // monthlyLeaves[d.getUTCMonth()] += (lastDay.getDate() - commonService.getDayFromDate(leave.fromDate) + 1);
             // monthlyLeaves[new Date(leave.toDate).getUTCMonth()] += commonService.getDayFromDate(leave.toDate);
-            monthlyLeaves[d.getUTCMonth()] += (lastDay.getDate() - (new Date(leave.fromDate)).getUTCDate()  + 1);
+            monthlyLeaves[d.getUTCMonth()] += (lastDay.getDate() - (new Date(leave.fromDate)).getUTCDate() + 1);
             monthlyLeaves[new Date(leave.toDate).getUTCMonth()] += (new Date(leave.toDate)).getUTCDate();
-            
-
 
             for (let i = 1; i < monthDiff; i++) {
                 const str = fromDtMonth + i + '/01/' + d.getFullYear(),
@@ -537,7 +535,6 @@ function getApprovedLeavesByMonth(appliedLeaves, res) {
     });
     return res.status(200).json(monthlyLeaves);
 }
-
 function getLeavesByType(leaveTypesData, appliedLeaves, res) {
     let response = [];
     leaveTypesData.forEach((type) => {
@@ -549,18 +546,17 @@ function getLeavesByType(leaveTypesData, appliedLeaves, res) {
     });
     return res.status(200).json(response);
 }
-
 function processLeaveTransaction(req, res) {
+    let newFinancialYearId = req.body.NewFinancialYearId;
+    let PreviousFinancialYearId = req.body.PreviousFinancialYearId;
     let query = {
         'isDeleted': false,
-        'financialYearName': req.body.financialYearName
+        'financialYearId': req.body.financialYearId
     }
     var financialYearProjection = {
         createdAt: false,
         updatedAt: false,
         isDeleted: false,
-        updatedBy: false,
-        createdBy: false,
         isYearActive: false
     };
     //get the list of all companies
@@ -577,10 +573,12 @@ function processLeaveTransaction(req, res) {
             EmployeeInfo.find(epmInfoQuerySelector, function (err, empInfoDetails) {
                 var currentEmpIds = [];
                 empInfoDetails.forEach(element => {
-                    if (array.includes(element.company_id)) {
-                        currentEmpIds.push(element._id);
-                    }
+                    // if (array.includes(element.company_id)) {
+                    currentEmpIds.push(element._id);
+                    // }
                 });
+                // AllEmployeeLeaveBalance(currentEmpIds);
+                //comment started
                 let LeaveBalanceQuerySelector = {
                     createdAt: false,
                     updatedAt: false,
@@ -591,8 +589,8 @@ function processLeaveTransaction(req, res) {
                     lapseDate: false, // need to remove this 
                 }
                 let lappsedLeaveDetails = [];
+                //get all employee leave balance from last financial year
                 LeaveBalance.find({ 'isDeleted': false }, LeaveBalanceQuerySelector, function (err, leaveBalanceDetails) {
-
                     leaveBalanceDetails.forEach(element => {
                         let originalBalance = element.balance;
                         let carryforwardLeave = 0;
@@ -637,40 +635,50 @@ function processLeaveTransaction(req, res) {
                                 annualLeavelapsed: lapsedforwardLeave,
                                 annualLeaveencahsed: encashedforwardLeave,
                                 sickLeavelapsed: lapsedSickLeave,
-                                // id: element._id,
                                 leave_type: element.leave_type
                             });
                         }
                     });
+                    //#region --for Entry in leaveDetailsCarryForward
+                    let allEmpId = [];
+                    lappsedLeaveDetails.forEach(element => allEmpId.push(element.emp_id));
+                    var filteredEmpId = allEmpId.filter(function (item, pos) {
+                        return allEmpId.indexOf(item) == pos;
+                    });
+                    let lappsedLeaveDetailsForReport = [];
+                    filteredEmpId.forEach(element => {
+                        let lpsSickLeave = 0;
+                        let lpscarryforward = 0;
+                        let lpsEncashed = 0;
+                        let lpsLapsed = 0;
+                        if (lappsedLeaveDetails.filter(f => f.emp_id === element && f.leave_type === 2) !== undefined) {
+                            lpsSickLeave = lappsedLeaveDetails.filter(f => f.emp_id === element && f.leave_type === 2)[0].sickLeavelapsed;
+                        }
+                        if (lappsedLeaveDetails.filter(f => f.emp_id === element && f.leave_type === 1) !== undefined) {
+                            lpsEncashed = lappsedLeaveDetails.filter(f => f.emp_id === element && f.leave_type === 1)[0].annualLeaveencahsed;
+                            lpsLapsed = lappsedLeaveDetails.filter(f => f.emp_id === element && f.leave_type === 1)[0].annualLeavelapsed;
+                            lpsforward = lappsedLeaveDetails.filter(f => f.emp_id === element && f.leave_type === 1)[0].annualLeaveCarryForward;
+                        }
+                        lappsedLeaveDetailsForReport.push({
+                            emp_id: element,
+                            annualLeaveCarryForward: lpsforward,
+                            annualLeavelapsed: lpsLapsed,
+                            annualLeaveencahsed: lpsEncashed,
+                            sickLeavelapsed: lpsSickLeave,
+                        });
+                    });
 
-                    lappsedLeaveDetails.forEach(element => {
-                        let leaveCarryForwardDetails = new LeaveDetailsCarryForward(element);
-                        leaveCarryForwardDetails.emp_id = element.empId;
-                        leaveCarryForwardDetails.sickLeavelapsed = element.lapsedSickLeave;
-                        leaveCarryForwardDetails.annualLeavelapsed = element.lapsedAnnualLeave;
-                        leaveCarryForwardDetails.annualLeaveencahsed = element.encashedAnnualLeave;
-                        leaveCarryForwardDetails.annualLeaveCarryForward = element.carryforwardLeave;
-                        leaveCarryForwardDetails.fiscalYearId = 1;
-                        leaveCarryForwardDetails.save(function (err, leaveCarryForwardData) {
-                            if (err) {
-                                console.log(err);
-                                // return res.status(403).json({
-                                //     title: 'There is a problem',
-                                //     error: {
-                                //         message: err
-                                //     },
-                                //     result: {
-                                //         message: leaveCarryForwardData
-                                //     }
-                                // });
-                            }
-                            return done(err, leaveCarryForwardData);
-                        })
-                    })
-                    console.log(lappsedLeaveDetails);
+                    addLapsedLeave(lappsedLeaveDetailsForReport);
+                    //#endregion --for Entry in leaveDetailsCarryForward
+
+                    //#region --set previous year records isDelete True
+                    PreviousFinancialYearId = 1;
+                    newFinancialYearId = 2;
+                    performOperationOnLeaveBalance(PreviousFinancialYearId, newFinancialYearId, lappsedLeaveDetailsForReport);
+                    //#endregion --set previous year records isDelete True
                 })
+                //comment end
             })
-
         }
         // return res.status(403).json({
         //     title: 'Error',
@@ -683,7 +691,206 @@ function processLeaveTransaction(req, res) {
         // })
     })
 }
+function addLapsedLeave(lappsedLeaveData) {
+    let lappsedLeaveAdd = function (i) {
+        console.log(i);
+        if (i < 5) {
+            // if (i < lappsedLeaveData.length) {
+            let leaveCarryForwardDetails = new LeaveDetailsCarryForward(lappsedLeaveData[i]);
+            leaveCarryForwardDetails.emp_id = lappsedLeaveData[i].emp_id;
+            leaveCarryForwardDetails.sickLeavelapsed = lappsedLeaveData[i].sickLeavelapsed;
+            leaveCarryForwardDetails.annualLeavelapsed = lappsedLeaveData[i].annualLeavelapsed;
+            leaveCarryForwardDetails.annualLeaveencahsed = lappsedLeaveData[i].annualLeaveencahsed;
+            leaveCarryForwardDetails.annualLeaveCarryForward = lappsedLeaveData[i].annualLeaveCarryForward;
+            leaveCarryForwardDetails.fiscalYearId = 1;
+            leaveCarryForwardDetails.save(function (err, leaveCarryForwardData) {
+                if (err) {
+                    console.log(err);
+                }
+                lappsedLeaveAdd(i + 1)
+            })
+        } else {
+            console.log('return');
+            return;
+        }
+    }
+    lappsedLeaveAdd(0);
+}
+function performOperationOnLeaveBalance(oldId, newId, lappsedLeaveData) {
+    let query = {
+        $or:
+            [{
+                'isDeleted': false,
+                'fiscalYearId': oldId,
+                "leave_type": 1
+            },
+            {
+                'isDeleted': false,
+                'fiscalYearId': oldId,
+                "leave_type": 2
+            }]
+    }
+    LeaveBalance.find(query, function (err, leaveBalanceData) {
+        leaveBalanceData.forEach(element => {
+            LeaveBalance.findOneAndUpdate({ "_id": element._id }, { "$set": { "isDeleted": true } }, function (err, doc) {
+                console.log(err);
+            });
+        })
+    });
 
+    addAnnualLeave(newId, lappsedLeaveData);
+    addSickLeave(newId, lappsedLeaveData);
+}
+function addAnnualLeave(newId, lappsedLeaveData) {
+    let addAnnualLeaveBalance = function (i) {
+        if (i < lappsedLeaveData.length) {
+            let leaveBalance = new LeaveBalance();
+            leaveBalance.emp_id = parseInt(lappsedLeaveData[i].emp_id);
+            leaveBalance.leave_type = 1;
+            leaveBalance.balance = 20 + parseInt(lappsedLeaveData[i].annualLeaveCarryForward);
+            leaveBalance.fiscalYearId = newId;
+            leaveBalance.isDeleted = false;
+            leaveBalance.save((err, data) => {
+                addAnnualLeaveBalance(i + 1);
+            });
+        } else {
+            return;
+        }
+    }
+    addAnnualLeaveBalance(0);
+}
+function addSickLeave(newId, lappsedLeaveData) {
+    let addSickLeaveBalance = function (i) {
+        if (i < lappsedLeaveData.length) {
+            let sickLeaveBalance = new LeaveBalance();
+            sickLeaveBalance.emp_id = parseInt(lappsedLeaveData[i].emp_id);
+            sickLeaveBalance.leave_type = 2;
+            sickLeaveBalance.balance = 14;
+            sickLeaveBalance.isDeleted = false;
+            sickLeaveBalance.fiscalYearId = newId;
+            sickLeaveBalance.save((err, data) => {
+                addSickLeaveBalance(i + 1);
+            });
+        } else {
+            return;
+        }
+    }
+    addSickLeaveBalance(0);
+}
+function discardLastFiscalYear() {
+
+}
+function AllEmployeeLeaveBalance(empIds) {
+    let empLeaveBalanceCollection = [];
+    empIds.forEach(element => {
+        singleEmployeeLeaveBalance(element).then(x => {
+            empLeaveBalanceCollection.push(x);
+        });
+    })
+}
+function singleEmployeeLeaveBalance(currentEmpId, res) {
+    let empId = parseInt(currentEmpId);
+    LeaveBalance.aggregate(
+        // Pipeline
+        [
+            // Stage 1
+            {
+                $match: {
+                    "emp_id": empId
+                }
+            },
+
+            // Stage 2
+            {
+                $project: {
+                    leave_type: 1,
+                    balance: 1
+                }
+            },
+
+        ]
+    ).exec(function (err, results1) {
+        if (err) {
+            return res.status(403).json({
+                title: 'Error',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: results1
+                }
+            });
+        }
+        LeaveApply.aggregate(// Pipeline
+            [
+                // Stage 1
+                {
+                    $match: {
+                        "emp_id": empId
+                        // "isApproved": true
+                    }
+                },
+
+                // Stage 2
+                {
+                    $addFields: {
+                        "diffDate": { $subtract: ["$toDate", "$fromDate"] }
+                    }
+                },
+
+                // Stage 3
+                {
+                    $addFields: {
+                        "intDate": { $add: [{ $divide: ["$diffDate", 86400000] }, 1] }
+                    }
+                },
+
+                {
+                    "$match": {
+                        $or: [
+                            { "isApproved": true, "isCancelled": null }, //leave approved
+                            { "isApproved": true, "isCancelled": false }, //leave approved and pending to approve cancellation
+                            { "isApproved": null, "isCancelled": null } //when leave applied
+                            //{ "isApproved": true, "isCancelled": true} //leave approved and cancel approved --not counted
+                            //{ "isApproved": null, "isCancelled": true} //leave applied and cancel approved  --not counted
+                            //{ "isApproved": false } //leave applied and rejected  --not counted
+                        ]
+                    }
+                },
+                // Stage 4
+                {
+                    $group: {
+                        _id: "$leave_type",
+                        totalAppliedLeaves: { $sum: "$intDate" }
+                    }
+                },
+
+            ]).exec(function (err1, results2) {
+                if (err1) {
+                    return res.status(403).json({
+                        title: 'Error',
+                        error: {
+                            message: err1
+                        },
+                        result: {
+                            message: results2
+                        }
+                    });
+                }
+                let response = [];
+                results1.forEach((x) => {
+                    const balLeaveObj = results2.find(p => p._id === x.leave_type);
+                    obj = {
+                        'leaveType': x.leave_type,
+                        'leaveBalance': Math.round((x.balance - (balLeaveObj === undefined ? 0 : balLeaveObj.totalAppliedLeaves)))
+                    };
+                    response.push(obj);
+                })
+
+                return res.status(200).json(response);
+            })
+    });
+}
 let functions = {
     postApplyLeave: (req, res) => {
         async.waterfall([
@@ -1730,107 +1937,7 @@ let functions = {
         ])
     },
     getLeaveBalance: (req, res) => {
-        let empId = parseInt(req.query.empId);
-        LeaveBalance.aggregate(
-            // Pipeline
-            [
-                // Stage 1
-                {
-                    $match: {
-                        "emp_id": empId
-                    }
-                },
-
-                // Stage 2
-                {
-                    $project: {
-                        leave_type: 1,
-                        balance: 1
-                    }
-                },
-
-            ]
-        ).exec(function (err, results1) {
-            if (err) {
-                return res.status(403).json({
-                    title: 'Error',
-                    error: {
-                        message: err
-                    },
-                    result: {
-                        message: results1
-                    }
-                });
-            }
-            LeaveApply.aggregate(// Pipeline
-                [
-                    // Stage 1
-                    {
-                        $match: {
-                            "emp_id": empId
-                            // "isApproved": true
-                        }
-                    },
-
-                    // Stage 2
-                    {
-                        $addFields: {
-                            "diffDate": { $subtract: ["$toDate", "$fromDate"] }
-                        }
-                    },
-
-                    // Stage 3
-                    {
-                        $addFields: {
-                            "intDate": { $add: [{ $divide: ["$diffDate", 86400000] }, 1] }
-                        }
-                    },
-
-                    {
-                        "$match": {
-                            $or: [
-                                { "isApproved": true, "isCancelled": null }, //leave approved
-                                { "isApproved": true, "isCancelled": false }, //leave approved and pending to approve cancellation
-                                { "isApproved": null, "isCancelled": null } //when leave applied
-                                //{ "isApproved": true, "isCancelled": true} //leave approved and cancel approved --not counted
-                                //{ "isApproved": null, "isCancelled": true} //leave applied and cancel approved  --not counted
-                                //{ "isApproved": false } //leave applied and rejected  --not counted
-                            ]
-                        }
-                    },
-                    // Stage 4
-                    {
-                        $group: {
-                            _id: "$leave_type",
-                            totalAppliedLeaves: { $sum: "$intDate" }
-                        }
-                    },
-
-                ]).exec(function (err1, results2) {
-                    if (err1) {
-                        return res.status(403).json({
-                            title: 'Error',
-                            error: {
-                                message: err1
-                            },
-                            result: {
-                                message: results2
-                            }
-                        });
-                    }
-                    let response = [];
-                    results1.forEach((x) => {
-                        const balLeaveObj = results2.find(p => p._id === x.leave_type);
-                        obj = {
-                            'leaveType': x.leave_type,
-                            'leaveBalance': Math.round((x.balance - (balLeaveObj === undefined ? 0 : balLeaveObj.totalAppliedLeaves)))
-                        };
-                        response.push(obj);
-                    })
-
-                    return res.status(200).json(response);
-                })
-        });
+        singleEmployeeLeaveBalance(req.query.empId, res);
     },
     getLeaveDetailsById: (req, res) => {
         LeaveApply.aggregate([
@@ -2178,5 +2285,6 @@ let functions = {
         processLeaveTransaction(req, res);
     }
 }
+
 
 module.exports = functions;
