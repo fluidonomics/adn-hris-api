@@ -43,7 +43,7 @@ let express           = require('express'),
     PreviousEmploymentInfo = require('../models/employee/employeePreviousEmploymentDetails.model'),
     FamilyInfo        = require('../models/employee/employeeFamilyDetails.model'),
 
-    FinancialYear     = require('../models/master/financialYear.model')
+    FinancialYear     = require('../models/master/financialYearDetails.model')
     ProfileProcessStatus= require('../models/employee/employeeProfileProcessDetails.model'),
     uuidV1            = require('uuid/v1'),
     async             = require('async')
