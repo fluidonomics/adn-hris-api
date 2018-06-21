@@ -2,7 +2,7 @@ let express = require('express'),
 
     LeaveWorkflowHistory = require('../models/leave/leaveWorkflowHistory.model'),
     LeaveDetailsCarryForward = require('../models/master/leaveDetailsCarryForward.model');
-LeaveApply = require('../models/leave/leaveApply.model'),
+    LeaveApply = require('../models/leave/leaveApply.model'),
     LeaveHoliday = require('../models/leave/leaveHoliday.model'),
     LeaveTransactionType = require('../models/leave/leaveTransactioType.model'),
     PersonalInfo = require('../models/employee/employeePersonalDetails.model'),
@@ -12,7 +12,7 @@ LeaveApply = require('../models/leave/leaveApply.model'),
     LeaveBalance = require('../models/leave/EmployeeLeaveBalance.model'),
     EmployeeRoles = require('../models/master/role.model'),
     Employee = require('../models/employee/employeeDetails.model');
-EmailDetails: require('../class/sendEmail'),
+    EmailDetails: require('../class/sendEmail'),
     commonService = require('../controllers/common.controller'),
     userService = require('../controllers/user.controller'),
     EmployeeInfo = require('../models/employee/employeeDetails.model'),
@@ -505,18 +505,28 @@ function applyLeaveSupervisor(req, res, done) {
 function getApprovedLeavesByMonth(appliedLeaves, res) {
     let monthlyLeaves = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
     appliedLeaves.forEach((leave) => {
-        const fromDtMonth = commonService.getMonthFromDate(leave.fromDate),
-            toDtMonth = commonService.getMonthFromDate(leave.toDate);
+        //      const fromDtMonth =  commonService.getMonthFromDate(leave.fromDate),
+        //     toDtMonth = commonService.getMonthFromDate(leave.toDate);
+        let _fromDate = new Date(leave.fromDate);
+        let _toDate = new Date(leave.toDate);
+            const fromDtMonth = _fromDate.getUTCMonth() + 1; 
+            toDtMonth =  _toDate.getUTCMonth() + 1;  
         if (fromDtMonth === toDtMonth) {
-            let noOfLeaves = (commonService.getDayFromDate(leave.toDate) - commonService.getDayFromDate(leave.fromDate)) + 1,
+            // let noOfLeaves = (commonService.getDayFromDate(leave.toDate) - commonService.getDayFromDate(leave.fromDate)) + 1,
+            let noOfLeaves = ((new Date(leave.toDate)).getUTCDate() - (new Date(leave.fromDate)).getUTCDate()) + 1,
                 d = new Date(leave.fromDate);
             monthlyLeaves[d.getUTCMonth()] += noOfLeaves;
         } else {
             const monthDiff = toDtMonth - fromDtMonth;
             const d = new Date(leave.fromDate),
                 lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0);
-            monthlyLeaves[d.getUTCMonth()] += (lastDay.getDate() - commonService.getDayFromDate(leave.fromDate) + 1);
-            monthlyLeaves[new Date(leave.toDate).getUTCMonth()] += commonService.getDayFromDate(leave.toDate);
+            // monthlyLeaves[d.getUTCMonth()] += (lastDay.getDate() - commonService.getDayFromDate(leave.fromDate) + 1);
+            // monthlyLeaves[new Date(leave.toDate).getUTCMonth()] += commonService.getDayFromDate(leave.toDate);
+            monthlyLeaves[d.getUTCMonth()] += (lastDay.getDate() - (new Date(leave.fromDate)).getUTCDate()  + 1);
+            monthlyLeaves[new Date(leave.toDate).getUTCMonth()] += (new Date(leave.toDate)).getUTCDate();
+            
+
+
             for (let i = 1; i < monthDiff; i++) {
                 const str = fromDtMonth + i + '/01/' + d.getFullYear(),
                     dt = new Date(str),
@@ -589,10 +599,12 @@ function processLeaveTransaction(req, res) {
                         let encashedforwardLeave = 0;
                         let lapsedforwardLeave = 0;
                         let lapsedSickLeave = 0;
+                        //lapsed sick leave
                         if (element.leave_type === 2) {
                             lapsedSickLeave = element.balance;
                         }
                         else if (element.leave_type === 1) {
+                            //lapsed annual leave
                             if (element.balance > 10) {
                                 lapsedforwardLeave = element.balance - 10;
                                 element.balance -= lapsedforwardLeave;
@@ -600,7 +612,7 @@ function processLeaveTransaction(req, res) {
                             else {
                                 lapsedforwardLeave = 0;
                             }
-
+                            // encashed leaves
                             if (element.balance > 5) {
                                 encashedforwardLeave = element.balance - 5;
                                 element.balance -= encashedforwardLeave;
@@ -608,7 +620,7 @@ function processLeaveTransaction(req, res) {
                             else {
                                 encashedforwardLeave = 0;
                             }
-
+                            //forward leave balance
                             if (element.balance > 0) {
                                 carryforwardLeave = element.balance;
                                 element.balance = 0;
@@ -630,6 +642,7 @@ function processLeaveTransaction(req, res) {
                             });
                         }
                     });
+
                     lappsedLeaveDetails.forEach(element => {
                         let leaveCarryForwardDetails = new LeaveDetailsCarryForward(element);
                         leaveCarryForwardDetails.emp_id = element.empId;
@@ -639,18 +652,19 @@ function processLeaveTransaction(req, res) {
                         leaveCarryForwardDetails.annualLeaveCarryForward = element.carryforwardLeave;
                         leaveCarryForwardDetails.fiscalYearId = 1;
                         leaveCarryForwardDetails.save(function (err, leaveCarryForwardData) {
-                            // if (err) {
-                            //     // return res.status(403).json({
-                            //     //     title: 'There is a problem',
-                            //     //     error: {
-                            //     //         message: err
-                            //     //     },
-                            //     //     result: {
-                            //     //         message: leaveCarryForwardData
-                            //     //     }
-                            //     // });
-                            // }
-                            // return done(err, leaveCarryForwardData);
+                            if (err) {
+                                console.log(err);
+                                // return res.status(403).json({
+                                //     title: 'There is a problem',
+                                //     error: {
+                                //         message: err
+                                //     },
+                                //     result: {
+                                //         message: leaveCarryForwardData
+                                //     }
+                                // });
+                            }
+                            return done(err, leaveCarryForwardData);
                         })
                     })
                     console.log(lappsedLeaveDetails);
