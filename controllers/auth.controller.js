@@ -68,6 +68,8 @@ let functions = {
                 {"$project": {
                   "fullName":"$fullName",
                   "designation_id":"$designation_id",
+                  // "company_id"    :"$company_id",
+                  // "grade_id"      :"$grade_id",
                   "userName":"$userName",
                   "profileImage":"$profileImage",
                   "isDeleted":"$isDeleted",
@@ -116,6 +118,8 @@ let functions = {
                   "personalEmail"    :"$employeepersonaldetails.personalEmail",
                   "profileImage"     :"$profileImage",
                   "fullName"         :"$fullName",
+                  // "company_id"       :"$company_id",
+                  // "grade_id"         :"$grade_id",
                   "designation_id"   :"$designation_id",
                   "roles"            :"$roles.roleName",
                   "userName"         :"$userName"
@@ -284,6 +288,8 @@ let functions = {
                       "designation_id":"$designation_id",
                       "userName":"$userName",
                       "profileImage":"$profileImage",
+                      // "company_id"       :"$company_id",
+                      // "grade_id"         :"$grade_id",
                       "isDeleted":"$isDeleted",
                       "employeeroles": {
                          $filter: {
@@ -330,6 +336,8 @@ let functions = {
                       "personalEmail"    :"$employeepersonaldetails.personalEmail",
                       "profileImage"     :"$profileImage",
                       "fullName"         :"$fullName",
+                      // "company_id"       :"$company_id",
+                      // "grade_id"         :"$grade_id",
                       "designation_id"   :"$designation_id",
                       "roles"            :"$roles.roleName",
                       "userName"         :"$userName"

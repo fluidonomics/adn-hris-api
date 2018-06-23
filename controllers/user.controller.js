@@ -1983,6 +1983,19 @@ let functions = {
         },
         {
             "$lookup": {
+                "from": "employeedetails",
+                "localField": "supervisor.secondarySupervisorEmp_id",
+                "foreignField": "_id",
+                "as": "employeeSecondary"
+            }
+        },
+        {
+            "$unwind":{
+                "path": "$employeeSecondary","preserveNullAndEmptyArrays": true
+            }
+        },
+        {
+            "$lookup": {
                 "from": "employeeprofileprocessdetails",
                 "localField": "_id",
                 "foreignField": "emp_id",
@@ -2000,9 +2013,9 @@ let functions = {
                 "as": "kraworkflowdetails"
             }
         },
-        {"$unwind": {
-            "path": "$kraworkflowdetails","preserveNullAndEmptyArrays": true
-        }},
+        // {"$unwind": {
+        //     "path": "$kraworkflowdetails","preserveNullAndEmptyArrays": true
+        // }},
         
         {"$match": {"isDeleted":false,"designations.isActive":true,"officeDetails.isDeleted":false}},
         {"$project":{
@@ -2016,6 +2029,8 @@ let functions = {
           "supervisor":"$employees.fullName",
           "hrScope_id":'$officeDetails.hrspoc_id',
           "supervisor_id":"$employees._id",
+          "secondarySupervisor":"$employeeSecondary.fullName",
+          "secondarySupervisor_id":"$employeeSecondary._id",
           "profileProcessDetails":"$employeeprofileProcessDetails",
           "department_id":"$officeDetails.department_id",
           "grade_id":"$grade_id",
@@ -2034,7 +2049,7 @@ let functions = {
                 }
             });
         }
-        results= results.filter((obj, pos, arr) => { return arr.map(mapObj =>mapObj['_id']).indexOf(obj['_id']) === pos;});
+        //results= results.filter((obj, pos, arr) => { return arr.map(mapObj =>mapObj['_id']).indexOf(obj['_id']) === pos;});
         return res.status(200).json({"data":results});
      });
     },
