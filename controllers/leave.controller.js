@@ -783,8 +783,8 @@ async function processLeaveTransaction(req, res) {
     //#endregion --for Entry in leaveDetailsCarryForward
     await performOperationOnLeaveBalance(PreviousFinancialYearId, newFinancialYearId, finalCalculatedBalance);
 }
- async function addLapsedLeave(lappsedLeaveData) {
-    let lappsedLeaveAdd = await ( async function (i) {
+async function addLapsedLeave(lappsedLeaveData) {
+    let lappsedLeaveAdd = await (async function (i) {
         console.log(i);
         if (i < lappsedLeaveData.length) {
             let leaveCarryForwardDetails = new LeaveDetailsCarryForward(lappsedLeaveData[i]);
@@ -890,21 +890,22 @@ async function addSickLeave(newId, lappsedLeaveData) {
     return await addSickLeaveBalance(0);
 }
 async function grantMaternityLeave(req, res) {
-    let leaveBalanceResponse = await LeaveBalance.find({"emp_id": req.body.emp_id, "leave_type": 3},function(err, leaveBalanceData){
-        if(err){
+    let leaveBalanceResponse = await LeaveBalance.find({ "emp_id": req.body.emp_id, "leave_type": 3 }, function (err, leaveBalanceData) {
+        if (err) {
             return err;
         }
-        else{
+        else {
             return leaveBalanceData;
         }
     });
-    
+
     if (leaveBalanceResponse.length !== 0) {
         let maternityLeaveDetail = {
             $set: {
                 isDeleted: false,
-                startDate: new Date( req.body.startDate),
+                startDate: new Date(req.body.startDate),
                 endDate: new Date(req.body.endDate),
+                balance: parseInt(req.body.balance),
                 leave_type: 3,
             }
         };
@@ -933,25 +934,26 @@ async function grantMaternityLeave(req, res) {
         let _leaveBalance = new LeaveBalance(req.body);
         _leaveBalance.emp_id = parseInt(req.body.emp_id);
         _leaveBalance.leave_type = 3;
-        _leaveBalance.isDeleted = false,
-            _leaveBalance.startDate = new Date(req.body.startDate),
-            _leaveBalance.endDate = new Date(req.body.endDate),
-            _leaveBalance.save(function (err, response) {
-                if (err) {
-                    return res.status(403).json({
-                        title: 'There is a problem',
-                        error: {
-                            message: err
-                        },
-                        result: {
-                            message: response
-                        }
-                    });
-                }
-                else {
-                    return res.status(200).json(response);
-                }
-            })
+        _leaveBalance.isDeleted = false;
+        _leaveBalance.balance = parseInt(req.body.balance);
+        _leaveBalance.startDate = new Date(req.body.startDate);
+        _leaveBalance.endDate = new Date(req.body.endDate);
+        _leaveBalance.save(function (err, response) {
+            if (err) {
+                return res.status(403).json({
+                    title: 'There is a problem',
+                    error: {
+                        message: err
+                    },
+                    result: {
+                        message: response
+                    }
+                });
+            }
+            else {
+                return res.status(200).json(response);
+            }
+        })
     }
 }
 
