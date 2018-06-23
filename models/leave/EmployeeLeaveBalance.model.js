@@ -8,10 +8,12 @@ let EmployeeLeaveBalanceSchema = new Schema({
     _id: { type: Number },
     emp_id: { type: Number, ref: 'employeedetails' },
     leave_type: { type: Number, ref: 'leaveType' },
-    lapseDate: { type: Date },
     balance: { type: Number, default: null },
     updatedBy: { type: Number, default: null },
     createdBy: { type: Number, default: null },
+    startDate: { type: Date, default: null},
+    startDate: { type: Date, default: null},
+    endDate: { type: Date, default: null},
     isDeleted: { type: Boolean, default: false },
     fiscalYearId: { type: Number, ref: 'financialYear' }
 },

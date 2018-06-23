@@ -321,6 +321,7 @@ let express  = require('express'),
         leaveRoutes.get('/getAllEmployee', leave.getAllEmployee);
         leaveRoutes.get('/getEmployeeProbationDetails', leave.getEmployeeProbationDetails);
         leaveRoutes.post('/postLeaveTransactionYear', leave.postLeaveTransactionYear);
+        leaveRoutes.post('/grantMaternityLeave', leave.grantMaternityLeave);
       //= ========================
 
       //= ========================

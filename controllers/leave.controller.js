@@ -92,7 +92,6 @@ function applyLeave(req, res, done) {
 
     });
 }
-
 function cancelLeave(req, res, done) {
     let cancelLeaveDetals = {
         $set: {
@@ -299,9 +298,9 @@ function addLeaveBlance(empIdCollection, req, res, appliedFor) {
                 let _leaveBalance = new LeaveBalance({
                     emp_id: appliedFor === "employee" ? empIdCollection[i].id : empIdCollection[i].emp_id,
                     leave_type: parseInt(req.body.leave_type),
-                    lapseDate: new Date(req.body.lapseDate),
-                    createdDate: new Date(req.body.createdDate),
-                    updatedDate: new Date(req.body.updatedDate),
+                    // lapseDate: new Date(req.body.lapseDate),
+                    // createdDate: new Date(req.body.createdDate),
+                    // updatedDate: new Date(req.body.updatedDate),
                     balance: balance,
                     updatedBy: parseInt(req.body.updatedBy),
                     createdBy: parseInt(req.body.createdBy)
@@ -546,248 +545,6 @@ function getLeavesByType(leaveTypesData, appliedLeaves, res) {
     });
     return res.status(200).json(response);
 }
-function processLeaveTransaction(req, res) {
-    let newFinancialYearId = req.body.NewFinancialYearId;
-    let PreviousFinancialYearId = req.body.PreviousFinancialYearId;
-    let query = {
-        'isDeleted': false,
-        'financialYearId': req.body.financialYearId
-    }
-    var financialYearProjection = {
-        createdAt: false,
-        updatedAt: false,
-        isDeleted: false,
-        isYearActive: false
-    };
-    //get the list of all companies
-    FinancialYear.find(query, financialYearProjection, function (err, financialYearData) {
-        if (financialYearData) {
-            var array = [];
-            financialYearData.forEach(element => {
-                array.push(element.companyId);
-            });
-            let epmInfoQuerySelector = {
-                'isDeleted': false,
-            }
-            //get this list of all employees 
-            EmployeeInfo.find(epmInfoQuerySelector, function (err, empInfoDetails) {
-                var currentEmpIds = [];
-                empInfoDetails.forEach(element => {
-                    // if (array.includes(element.company_id)) {
-                    currentEmpIds.push(element._id);
-                    // }
-                });
-                // AllEmployeeLeaveBalance(currentEmpIds);
-                //comment started
-                let LeaveBalanceQuerySelector = {
-                    createdAt: false,
-                    updatedAt: false,
-                    isDeleted: false,
-                    updatedBy: false,
-                    createdBy: false,
-                    isYearActive: false,
-                    lapseDate: false, // need to remove this 
-                }
-                let lappsedLeaveDetails = [];
-                //get all employee leave balance from last financial year
-                LeaveBalance.find({ 'isDeleted': false }, LeaveBalanceQuerySelector, function (err, leaveBalanceDetails) {
-                    leaveBalanceDetails.forEach(element => {
-                        let originalBalance = element.balance;
-                        let carryforwardLeave = 0;
-                        let encashedforwardLeave = 0;
-                        let lapsedforwardLeave = 0;
-                        let lapsedSickLeave = 0;
-                        //lapsed sick leave
-                        if (element.leave_type === 2) {
-                            lapsedSickLeave = element.balance;
-                        }
-                        else if (element.leave_type === 1) {
-                            //lapsed annual leave
-                            if (element.balance > 10) {
-                                lapsedforwardLeave = element.balance - 10;
-                                element.balance -= lapsedforwardLeave;
-                            }
-                            else {
-                                lapsedforwardLeave = 0;
-                            }
-                            // encashed leaves
-                            if (element.balance > 5) {
-                                encashedforwardLeave = element.balance - 5;
-                                element.balance -= encashedforwardLeave;
-                            }
-                            else {
-                                encashedforwardLeave = 0;
-                            }
-                            //forward leave balance
-                            if (element.balance > 0) {
-                                carryforwardLeave = element.balance;
-                                element.balance = 0;
-                            }
-                            else {
-                                element.balance = 0;
-                            }
-                        }
-                        if (element.leave_type === 1 || element.leave_type === 2) {
-                            lappsedLeaveDetails.push({
-                                emp_id: element.emp_id,
-                                balance: originalBalance,
-                                annualLeaveCarryForward: carryforwardLeave,
-                                annualLeavelapsed: lapsedforwardLeave,
-                                annualLeaveencahsed: encashedforwardLeave,
-                                sickLeavelapsed: lapsedSickLeave,
-                                leave_type: element.leave_type
-                            });
-                        }
-                    });
-                    //#region --for Entry in leaveDetailsCarryForward
-                    let allEmpId = [];
-                    lappsedLeaveDetails.forEach(element => allEmpId.push(element.emp_id));
-                    var filteredEmpId = allEmpId.filter(function (item, pos) {
-                        return allEmpId.indexOf(item) == pos;
-                    });
-                    let lappsedLeaveDetailsForReport = [];
-                    filteredEmpId.forEach(element => {
-                        let lpsSickLeave = 0;
-                        let lpscarryforward = 0;
-                        let lpsEncashed = 0;
-                        let lpsLapsed = 0;
-                        if (lappsedLeaveDetails.filter(f => f.emp_id === element && f.leave_type === 2) !== undefined) {
-                            lpsSickLeave = lappsedLeaveDetails.filter(f => f.emp_id === element && f.leave_type === 2)[0].sickLeavelapsed;
-                        }
-                        if (lappsedLeaveDetails.filter(f => f.emp_id === element && f.leave_type === 1) !== undefined) {
-                            lpsEncashed = lappsedLeaveDetails.filter(f => f.emp_id === element && f.leave_type === 1)[0].annualLeaveencahsed;
-                            lpsLapsed = lappsedLeaveDetails.filter(f => f.emp_id === element && f.leave_type === 1)[0].annualLeavelapsed;
-                            lpsforward = lappsedLeaveDetails.filter(f => f.emp_id === element && f.leave_type === 1)[0].annualLeaveCarryForward;
-                        }
-                        lappsedLeaveDetailsForReport.push({
-                            emp_id: element,
-                            annualLeaveCarryForward: lpsforward,
-                            annualLeavelapsed: lpsLapsed,
-                            annualLeaveencahsed: lpsEncashed,
-                            sickLeavelapsed: lpsSickLeave,
-                        });
-                    });
-
-                    addLapsedLeave(lappsedLeaveDetailsForReport);
-                    //#endregion --for Entry in leaveDetailsCarryForward
-
-                    //#region --set previous year records isDelete True
-                    PreviousFinancialYearId = 1;
-                    newFinancialYearId = 2;
-                    performOperationOnLeaveBalance(PreviousFinancialYearId, newFinancialYearId, lappsedLeaveDetailsForReport);
-                    //#endregion --set previous year records isDelete True
-                })
-                //comment end
-            })
-        }
-        // return res.status(403).json({
-        //     title: 'Error',
-        //     error: {
-        //         message: err
-        //     },
-        //     result: {
-        //         message: result
-        //     }
-        // })
-    })
-}
-function addLapsedLeave(lappsedLeaveData) {
-    let lappsedLeaveAdd = function (i) {
-        console.log(i);
-        if (i < 5) {
-            // if (i < lappsedLeaveData.length) {
-            let leaveCarryForwardDetails = new LeaveDetailsCarryForward(lappsedLeaveData[i]);
-            leaveCarryForwardDetails.emp_id = lappsedLeaveData[i].emp_id;
-            leaveCarryForwardDetails.sickLeavelapsed = lappsedLeaveData[i].sickLeavelapsed;
-            leaveCarryForwardDetails.annualLeavelapsed = lappsedLeaveData[i].annualLeavelapsed;
-            leaveCarryForwardDetails.annualLeaveencahsed = lappsedLeaveData[i].annualLeaveencahsed;
-            leaveCarryForwardDetails.annualLeaveCarryForward = lappsedLeaveData[i].annualLeaveCarryForward;
-            leaveCarryForwardDetails.fiscalYearId = 1;
-            leaveCarryForwardDetails.save(function (err, leaveCarryForwardData) {
-                if (err) {
-                    console.log(err);
-                }
-                lappsedLeaveAdd(i + 1)
-            })
-        } else {
-            console.log('return');
-            return;
-        }
-    }
-    lappsedLeaveAdd(0);
-}
-function performOperationOnLeaveBalance(oldId, newId, lappsedLeaveData) {
-    let query = {
-        $or:
-            [{
-                'isDeleted': false,
-                'fiscalYearId': oldId,
-                "leave_type": 1
-            },
-            {
-                'isDeleted': false,
-                'fiscalYearId': oldId,
-                "leave_type": 2
-            }]
-    }
-    LeaveBalance.find(query, function (err, leaveBalanceData) {
-        leaveBalanceData.forEach(element => {
-            LeaveBalance.findOneAndUpdate({ "_id": element._id }, { "$set": { "isDeleted": true } }, function (err, doc) {
-                console.log(err);
-            });
-        })
-    });
-
-    addAnnualLeave(newId, lappsedLeaveData);
-    addSickLeave(newId, lappsedLeaveData);
-}
-function addAnnualLeave(newId, lappsedLeaveData) {
-    let addAnnualLeaveBalance = function (i) {
-        if (i < lappsedLeaveData.length) {
-            let leaveBalance = new LeaveBalance();
-            leaveBalance.emp_id = parseInt(lappsedLeaveData[i].emp_id);
-            leaveBalance.leave_type = 1;
-            leaveBalance.balance = 20 + parseInt(lappsedLeaveData[i].annualLeaveCarryForward);
-            leaveBalance.fiscalYearId = newId;
-            leaveBalance.isDeleted = false;
-            leaveBalance.save((err, data) => {
-                addAnnualLeaveBalance(i + 1);
-            });
-        } else {
-            return;
-        }
-    }
-    addAnnualLeaveBalance(0);
-}
-function addSickLeave(newId, lappsedLeaveData) {
-    let addSickLeaveBalance = function (i) {
-        if (i < lappsedLeaveData.length) {
-            let sickLeaveBalance = new LeaveBalance();
-            sickLeaveBalance.emp_id = parseInt(lappsedLeaveData[i].emp_id);
-            sickLeaveBalance.leave_type = 2;
-            sickLeaveBalance.balance = 14;
-            sickLeaveBalance.isDeleted = false;
-            sickLeaveBalance.fiscalYearId = newId;
-            sickLeaveBalance.save((err, data) => {
-                addSickLeaveBalance(i + 1);
-            });
-        } else {
-            return;
-        }
-    }
-    addSickLeaveBalance(0);
-}
-function discardLastFiscalYear() {
-
-}
-function AllEmployeeLeaveBalance(empIds) {
-    let empLeaveBalanceCollection = [];
-    empIds.forEach(element => {
-        singleEmployeeLeaveBalance(element).then(x => {
-            empLeaveBalanceCollection.push(x);
-        });
-    })
-}
 function singleEmployeeLeaveBalance(currentEmpId, res) {
     let empId = parseInt(currentEmpId);
     LeaveBalance.aggregate(
@@ -891,6 +648,313 @@ function singleEmployeeLeaveBalance(currentEmpId, res) {
             })
     });
 }
+async function processLeaveTransaction(req, res) {
+    let newFinancialYearId = req.body.NewFinancialYearId;
+    let PreviousFinancialYearId = req.body.PreviousFinancialYearId;
+    let financialYearQuerySelector = {
+        'isDeleted': false,
+        'financialYearId': parseInt(req.body.NewFinancialYearId)
+    }
+    var financialYearProjection = {
+        createdAt: false,
+        updatedAt: false,
+        isDeleted: false,
+        isYearActive: false
+    };
+    var financialYearResponse = await FinancialYear.find(financialYearQuerySelector, financialYearProjection, function (err, dataaa) {
+        if (err) {
+            return err;
+        }
+        else
+            return dataaa;
+    });
+    let epmInfoQuerySelector = {
+        'isDeleted': false,
+    }
+    var AllEmployeesDetails = await EmployeeInfo.find(epmInfoQuerySelector, function (err, empInfoDetails) {
+        if (err) {
+            return err;
+        }
+        else {
+            return empInfoDetails;
+        }
+    });
+    let AppliedLeaveBalanceQuerySelector = {
+        $or: [{
+            'isDeleted': false,
+            // 'fiscalYearId': PreviousFinancialYearId,
+            "leave_type": 1
+        },
+        {
+            'isDeleted': false,
+            // 'fiscalYearId': PreviousFinancialYearId,
+            "leave_type": 2
+        }]
+    };
+    var appliedLeaveDetails = await LeaveApply.find(AppliedLeaveBalanceQuerySelector, {}, function (err, leaveAppliedData) {
+        if (err) {
+            return err;
+        }
+        else {
+            return leaveAppliedData;
+        }
+    });
+
+    let empConsumedLeaveBalanceStatus = [];
+    let tempObj = {};
+    // calculating all employee current consumed leaves
+    AllEmployeesDetails.forEach(emp => {
+        tempObj = {};
+        tempObj.emp_id = emp._id;
+        //NEED TO CHANGE CONDITION TO CALCULATE BOTH LEAVE CONSUMED BALANCE
+        tempObj.annualLeave = appliedLeaveDetails.filter(f => f.leave_type === 1 && f.isApproved === true && f.emp_id == emp._id).length;
+        tempObj.sickLeave = appliedLeaveDetails.filter(f => f.leave_type === 2 && f.isApproved === true && f.emp_id == emp._id).length;
+        empConsumedLeaveBalanceStatus.push(tempObj);
+    });
+
+    let LeaveBalanceQuerySelector = {
+        createdAt: false,
+        updatedAt: false,
+        isDeleted: false,
+        updatedBy: false,
+        createdBy: false,
+        isYearActive: false,
+        // lapseDate: false, // need to remove this 
+    }
+
+    //get all employee leave balance from last financial year
+    let LeaveBalanceDetails = await LeaveBalance.find({ $or: [{ 'isDeleted': false, "leave_type": 1 }, { 'isDeleted': false, "leave_type": 2 }] }, LeaveBalanceQuerySelector, function (err, leaveBalanceDetails) {
+        return leaveBalanceDetails;
+    });
+
+    let finalCalculatedBalance = [];
+    empConsumedLeaveBalanceStatus.forEach(element => {
+        tempObj = {};
+        let empAnnualLeaveDetails = LeaveBalanceDetails.filter(f => f.emp_id === element.emp_id && f.leave_type === 1)[0];
+        let empSickLeaveDetails = LeaveBalanceDetails.filter(f => f.emp_id === element.emp_id && f.leave_type === 2)[0];
+        let remainingAnnualLeave = 0;
+        let remainingSickLeave = 0;
+        if (empAnnualLeaveDetails !== undefined)
+            remainingAnnualLeave = Number(empAnnualLeaveDetails.balance) - Number(element.annualLeave);
+        if (empSickLeaveDetails !== undefined)
+            remainingSickLeave = Number(empSickLeaveDetails.balance) - Number(element.sickLeave);
+
+        let carryforwardLeave = 0;
+        let encashedforwardLeave = 0;
+        let lapsedforwardLeave = 0;
+        let lapsedSickLeave = 0;
+
+        if (empSickLeaveDetails !== undefined)
+            lapsedSickLeave = remainingSickLeave
+        if (empAnnualLeaveDetails !== undefined) {
+            //lapsed annual leave
+            if (remainingAnnualLeave > 10) {
+                lapsedforwardLeave = remainingAnnualLeave - 10;
+                remainingAnnualLeave -= lapsedforwardLeave;
+            } else {
+                lapsedforwardLeave = 0;
+            }
+            // encashed leaves
+            if (remainingAnnualLeave > 5) {
+                encashedforwardLeave = remainingAnnualLeave - 5;
+                remainingAnnualLeave -= encashedforwardLeave;
+            } else {
+                encashedforwardLeave = 0;
+            }
+            //forward leave balance
+            if (remainingAnnualLeave > 0) {
+                carryforwardLeave = remainingAnnualLeave;
+                remainingAnnualLeave = 0;
+            } else {
+                remainingAnnualLeave = 0;
+            }
+        }
+        tempObj = {};
+        tempObj.emp_id = element.emp_id;
+        tempObj.annualLeaveCarryForward = carryforwardLeave;
+        tempObj.annualLeavelapsed = lapsedforwardLeave;
+        tempObj.annualLeaveencahsed = encashedforwardLeave;
+        tempObj.sickLeavelapsed = lapsedSickLeave;
+        finalCalculatedBalance.push(tempObj);
+    });
+
+    // #region--for Entry in leaveDetailsCarryForward
+    await addLapsedLeave(finalCalculatedBalance);
+    //#endregion --for Entry in leaveDetailsCarryForward
+    await performOperationOnLeaveBalance(PreviousFinancialYearId, newFinancialYearId, finalCalculatedBalance);
+}
+ async function addLapsedLeave(lappsedLeaveData) {
+    let lappsedLeaveAdd = await ( async function (i) {
+        console.log(i);
+        if (i < lappsedLeaveData.length) {
+            let leaveCarryForwardDetails = new LeaveDetailsCarryForward(lappsedLeaveData[i]);
+            leaveCarryForwardDetails.emp_id = lappsedLeaveData[i].emp_id;
+            leaveCarryForwardDetails.sickLeavelapsed = lappsedLeaveData[i].sickLeavelapsed;
+            leaveCarryForwardDetails.annualLeavelapsed = lappsedLeaveData[i].annualLeavelapsed;
+            leaveCarryForwardDetails.annualLeaveencahsed = lappsedLeaveData[i].annualLeaveencahsed;
+            leaveCarryForwardDetails.annualLeaveCarryForward = lappsedLeaveData[i].annualLeaveCarryForward;
+            leaveCarryForwardDetails.fiscalYearId = 1;
+            await leaveCarryForwardDetails.save(function (err, leaveCarryForwardData) {
+                if (err) {
+                    console.log(err);
+                }
+                else {
+                    return leaveCarryForwardData;
+                }
+            });
+            return await lappsedLeaveAdd(i + 1);
+        } else {
+            console.log('return');
+            return;
+        }
+    })
+    return await lappsedLeaveAdd(0);
+}
+async function performOperationOnLeaveBalance(oldId, newId, lappsedLeaveData) {
+    let query = {
+        $or:
+            [{
+                'isDeleted': false,
+                'fiscalYearId': oldId,
+                "leave_type": 1
+            },
+            {
+                'isDeleted': false,
+                'fiscalYearId': oldId,
+                "leave_type": 2
+            }]
+    }
+    await LeaveBalance.find(query, function (err, leaveBalanceData) {
+        leaveBalanceData.forEach(element => {
+            LeaveBalance.findOneAndUpdate({ "_id": element._id }, { "$set": { "isDeleted": true } }, function (err, doc) {
+                if (err) {
+                    console.log(err);
+                }
+                else {
+                    return doc;
+                }
+            });
+        });
+        return leaveBalanceData;
+    });
+
+    await addAnnualLeave(newId, lappsedLeaveData);
+    await addSickLeave(newId, lappsedLeaveData);
+}
+async function addAnnualLeave(newId, lappsedLeaveData) {
+    let addAnnualLeaveBalance = await (async function (i) {
+        if (i < lappsedLeaveData.length) {
+            let leaveBalance = new LeaveBalance();
+            leaveBalance.emp_id = parseInt(lappsedLeaveData[i].emp_id);
+            leaveBalance.leave_type = 1;
+            leaveBalance.balance = 20 + parseInt(lappsedLeaveData[i].annualLeaveCarryForward);
+            leaveBalance.fiscalYearId = newId;
+            leaveBalance.isDeleted = false;
+            await leaveBalance.save((err, data) => {
+                if (err) {
+                    console.log(err);
+                }
+                else {
+                    return data;
+                }
+            });
+            return await addAnnualLeaveBalance(i + 1);
+        } else {
+            return;
+        }
+    });
+    return await addAnnualLeaveBalance(0);
+}
+async function addSickLeave(newId, lappsedLeaveData) {
+    let addSickLeaveBalance = await (async function (i) {
+        if (i < lappsedLeaveData.length) {
+            let sickLeaveBalance = new LeaveBalance();
+            sickLeaveBalance.emp_id = parseInt(lappsedLeaveData[i].emp_id);
+            sickLeaveBalance.leave_type = 2;
+            sickLeaveBalance.balance = 14;
+            sickLeaveBalance.isDeleted = false;
+            sickLeaveBalance.fiscalYearId = newId;
+            await sickLeaveBalance.save((err, data) => {
+                if (err) {
+                    console.log(err);
+                }
+                else {
+                    return data;
+                }
+            });
+            return await addSickLeaveBalance(i + 1);
+        } else {
+            return;
+        }
+    });
+    return await addSickLeaveBalance(0);
+}
+async function grantMaternityLeave(req, res) {
+    let leaveBalanceResponse = await LeaveBalance.find({"emp_id": req.body.emp_id, "leave_type": 3},function(err, leaveBalanceData){
+        if(err){
+            return err;
+        }
+        else{
+            return leaveBalanceData;
+        }
+    });
+    
+    if (leaveBalanceResponse.length !== 0) {
+        let maternityLeaveDetail = {
+            $set: {
+                isDeleted: false,
+                startDate: new Date( req.body.startDate),
+                endDate: new Date(req.body.endDate),
+                leave_type: 3,
+            }
+        };
+        var query = {
+            _id: parseInt(leaveBalanceResponse[0]._id),
+            isDeleted: false
+        }
+        LeaveBalance.findOneAndUpdate(query, maternityLeaveDetail, function (err, response) {
+            if (err) {
+                return res.status(403).json({
+                    title: 'There is a problem',
+                    error: {
+                        message: err
+                    },
+                    result: {
+                        message: response
+                    }
+                });
+            }
+            else {
+                return res.status(200).json(response);
+            }
+        })
+    }
+    else {
+        let _leaveBalance = new LeaveBalance(req.body);
+        _leaveBalance.emp_id = parseInt(req.body.emp_id);
+        _leaveBalance.leave_type = 3;
+        _leaveBalance.isDeleted = false,
+            _leaveBalance.startDate = new Date(req.body.startDate),
+            _leaveBalance.endDate = new Date(req.body.endDate),
+            _leaveBalance.save(function (err, response) {
+                if (err) {
+                    return res.status(403).json({
+                        title: 'There is a problem',
+                        error: {
+                            message: err
+                        },
+                        result: {
+                            message: response
+                        }
+                    });
+                }
+                else {
+                    return res.status(200).json(response);
+                }
+            })
+    }
+}
+
 let functions = {
     postApplyLeave: (req, res) => {
         async.waterfall([
@@ -2283,6 +2347,9 @@ let functions = {
     postLeaveTransactionYear: (req, res) => {
 
         processLeaveTransaction(req, res);
+    },
+    grantMaternityLeave: (req, res) => {
+        grantMaternityLeave(req, res);
     }
 }
 
