@@ -3,26 +3,14 @@ let express           = require('express'),
     PersonalInfo      = require('../models/employee/employeePersonalDetails.model'),
     OfficeInfo        = require('../models/employee/employeeOfficeDetails.model'),
     SupervisorInfo    = require('../models/employee/employeeSupervisorDetails.model'),
-    // AuditTrail        = require('../models/common/auditTrail.model'),
     EmployeeRoles     = require('../models/employee/employeeRoleDetails.model'),
     BatchInfo         = require('../models/workflow/batch.model'),
     KraWorkFlowInfo   = require('../models/kra/kraWorkFlowDetails.model'),
+
     AuditTrail  = require('../class/auditTrail');
     async             = require('async');
     require('dotenv').load()
 
-
-//     function auditTrailEntry(emp_id, collectionName, collectionDocument, controllerName, action, comments) {
-//       let auditTrail = new AuditTrail();
-//       auditTrail.emp_id = emp_id;
-//       auditTrail.collectionName = collectionName;
-//       auditTrail.document_id = collectionDocument._id;
-//       auditTrail.document_values = JSON.stringify(collectionDocument);
-//       auditTrail.controllerName = controllerName;
-//       auditTrail.action = action;
-//       auditTrail.comments = comments;
-//       auditTrail.save();
-//   }
   
 function addBatchInfoDetails(req, res, done) {
   let batchDetails = new BatchInfo(req.body);
@@ -40,11 +28,10 @@ function addBatchInfoDetails(req, res, done) {
                 }
             });
         }
-        AuditTrail.auditTrailEntry(0, "batchDetails", batchDetails, "user", "batchDetails", "ADDED");
+        AuditTrail.auditTrailEntry(0, "batchDetails", batchDetails, "batch", "addBatchInfoDetails", "ADDED");
         return done(err, batchInfoData);   
     });
 }
-
 
 function updateBatchInfoDetails(req, res, done) {
     let batchDetails = new BatchInfo(req.body);
@@ -61,7 +48,7 @@ function updateBatchInfoDetails(req, res, done) {
                   }
               });
           }
-          AuditTrail.auditTrailEntry(0, "batchDetails", batchDetails, "user", "batchDetails", "UPDATED");
+          AuditTrail.auditTrailEntry(0, "batchDetails", batchDetails, "batch", "updateBatchInfoDetails", "UPDATED");
           return done(err, batchInfoData);   
     });
 }
@@ -89,7 +76,6 @@ function getBatchInfoDetails(req, res,done) {
   });
 }
 
-
 function updateKraWorkFlowInfoDetails(req, res,done) {
     let batch_id= req.query.batch_id;
     let query={_id:parseInt(req.body._id),isDeleted:false}
@@ -111,23 +97,12 @@ function updateKraWorkFlowInfoDetails(req, res,done) {
                 }
             });
         }
-        AuditTrail.auditTrailEntry(kraWorkFlowInfoData.emp_id, "kraWorkFlowDetails", kraWorkFlowInfoData, "Kra", "kraWorkFlowDetails", "UPDATED");
+        AuditTrail.auditTrailEntry(kraWorkFlowInfoData.emp_id, "kraWorkFlowDetails", kraWorkFlowInfoData, "batch", "updateKraWorkFlowInfoDetails", "UPDATED");
         return done(err, kraWorkFlowInfoData);
     });
 }
 
 let functions = {
-    addBatchInfo:(req,res )=> {
-      async.waterfall([
-        function(done) {
-          addBatchInfoDetails(req,res,done);
-        },
-        function(batchInfoData,done) {
-          return res.status(200).json(batchInfoData);
-        }
-      ]);
-    },
-    
     getBatchInfo: (req, res) => {
         async.waterfall([
             function(done) {
@@ -139,6 +114,17 @@ let functions = {
                 });
             }
         ]);
+    },
+
+    addBatchInfo:(req,res )=> {
+      async.waterfall([
+        function(done) {
+          addBatchInfoDetails(req,res,done);
+        },
+        function(batchInfoData,done) {
+          return res.status(200).json(batchInfoData);
+        }
+      ]);
     },
 
     updateBatchInfo:(req,res )=> {

@@ -62,7 +62,7 @@ function updateEmployeeExternalDocumentInfoDetails(req, res, done) {
                 }
             });
         }
-        AuditTrail.auditTrailEntry(employeeExternalDocumentDetailsData.emp_id, "employeeExternalDocumentDetails", employeeExternalDocumentDetailsData, "user", "employeeExternalDocumentDetails", "UPDATED");
+        AuditTrail.auditTrailEntry(employeeExternalDocumentDetailsData.emp_id, "employeeExternalDocumentDetails", employeeExternalDocumentDetailsData._id, employeeExternalDocumentDetailsData, "updateEmployeeExternalDocumentInfoDetails", "UPDATED");
         return done(err, req);
     });
 }
@@ -84,7 +84,7 @@ function deleteEmployeeExternalDocumentInfoDetails(req, res, done) {
                 }
             });
         }
-        AuditTrail.auditTrailEntry(employeeExternalDocumentDetailsData.emp_id, "employeeExternalDocumentDetails", employeeExternalDocumentDetailsData, "user", "employeeExternalDocumentDetails", "Remove");
+        AuditTrail.auditTrailEntry(employeeExternalDocumentDetailsData.emp_id, "employeeExternalDocumentDetails", employeeExternalDocumentDetailsData._id, employeeExternalDocumentDetailsData._id, "deleteEmployeeExternalDocumentInfoDetails", "REMOVED");
         return done(err, employeeExternalDocumentDetailsData);   
     });
 }
