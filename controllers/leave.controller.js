@@ -545,15 +545,17 @@ function getLeavesByType(leaveTypesData, appliedLeaves, res) {
     });
     return res.status(200).json(response);
 }
-function singleEmployeeLeaveBalance(currentEmpId, res) {
+function singleEmployeeLeaveBalance(currentEmpId,fiscalYearId, res) {
     let empId = parseInt(currentEmpId);
+    let _fiscalYearId = parseInt(fiscalYearId);
     LeaveBalance.aggregate(
         // Pipeline
         [
             // Stage 1
             {
                 $match: {
-                    "emp_id": empId
+                    "emp_id": empId,
+                    "fiscalYearId": _fiscalYearId
                 }
             },
 
@@ -1089,7 +1091,7 @@ let functions = {
                     "preserveNullAndEmptyArrays": true
                 }
             },
-            { "$match": { "isDeleted": false, "emp_id": parseInt(req.query.emp_id) } },
+            { "$match": { "isDeleted": false, "emp_id": parseInt(req.query.emp_id) , "fiscalYearId": parseInt(req.query.fiscalYearId) } },
             {
                 "$project": {
                     "_id": "$_id",
@@ -2003,7 +2005,7 @@ let functions = {
         ])
     },
     getLeaveBalance: (req, res) => {
-        singleEmployeeLeaveBalance(req.query.empId, res);
+        singleEmployeeLeaveBalance(req.query.empId, req.query.fiscalYearId, res);
     },
     getLeaveDetailsById: (req, res) => {
         LeaveApply.aggregate([
