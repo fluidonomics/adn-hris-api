@@ -27,7 +27,17 @@ EmailDetails: require('../class/sendEmail'),
 require('dotenv').load()
 function applyLeave(req, res, done) {
     const query = {
-        emp_id: req.body.emp_id
+        $or:[{
+        emp_id: req.body.emp_id,
+        leave_type: req.body.leave_type,
+        isApproved: null
+},
+{
+    emp_id: req.body.emp_id,
+    leave_type: req.body.leave_type,
+        isApproved: null
+
+}]
     };
     LeaveApply.find(query, function (err, details) {
         const sd = new Date(req.body.fromDate),
@@ -588,7 +598,8 @@ function singleEmployeeLeaveBalance(currentEmpId,fiscalYearId, res) {
                 // Stage 1
                 {
                     $match: {
-                        "emp_id": empId
+                        "emp_id": empId,
+                        
                         // "isApproved": true
                     }
                 },
@@ -2352,11 +2363,31 @@ let functions = {
         })
     },
     postLeaveTransactionYear: (req, res) => {
-
         processLeaveTransaction(req, res);
     },
     grantMaternityLeave: (req, res) => {
         grantMaternityLeave(req, res);
+    },
+    getEmpMaternityLeaveDetails: (req, res) => {
+        let query = {
+            'isDeleted': false,
+            'emp_id': parseInt(req.query.id),
+            'leave_type': 3
+        };
+        LeaveBalance.find(query, function (err, maternityLeaveDetails) {
+            if (maternityLeaveDetails) {
+                return res.status(200).json({ "result": maternityLeaveDetails });
+            }
+            return res.status(403).json({
+                title: 'Error',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: result
+                }
+            });
+        })
     }
 }
 
