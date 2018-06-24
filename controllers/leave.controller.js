@@ -905,8 +905,8 @@ async function grantMaternityLeave(req, res) {
         let maternityLeaveDetail = {
             $set: {
                 isDeleted: false,
-                startDate: new Date(req.body.startDate),
-                endDate: new Date(req.body.endDate),
+                startDate: new Date(req.body.fromDate),
+                endDate: new Date(req.body.toDate),
                 balance: parseInt(req.body.balance),
                 leave_type: 3,
             }
@@ -938,8 +938,8 @@ async function grantMaternityLeave(req, res) {
         _leaveBalance.leave_type = 3;
         _leaveBalance.isDeleted = false;
         _leaveBalance.balance = parseInt(req.body.balance);
-        _leaveBalance.startDate = new Date(req.body.startDate);
-        _leaveBalance.endDate = new Date(req.body.endDate);
+        _leaveBalance.startDate = new Date(req.body.fromDate);
+        _leaveBalance.endDate = new Date(req.body.toDate);
         _leaveBalance.save(function (err, response) {
             if (err) {
                 return res.status(403).json({
