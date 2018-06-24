@@ -554,8 +554,11 @@ function singleEmployeeLeaveBalance(currentEmpId,fiscalYearId, res) {
             // Stage 1
             {
                 $match: {
-                    "emp_id": empId,
-                    "fiscalYearId": _fiscalYearId
+                    $or: [{ "emp_id": empId, "fiscalYearId": _fiscalYearId, "leave_type": 1 },
+                    { "emp_id": empId, "fiscalYearId": _fiscalYearId, "leave_type": 2 },
+                    { "emp_id": empId, "leave_type": 3 },
+                    { "emp_id": empId, "leave_type": 4 }]
+                   
                 }
             },
 
