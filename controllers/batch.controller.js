@@ -102,6 +102,40 @@ function updateKraWorkFlowInfoDetails(req, res,done) {
     });
 }
 
+function getBatchNamesByEmp(req, res, done)
+{
+    BatchInfo.aggregate([
+        {
+            "$lookup": {
+                "from": "kraworkflowdetails",
+                "localField": "_id",
+                "foreignField": "batch_id",
+                "as": "kraworkflowdetails"
+            }
+        },
+        {
+            "$unwind":{
+                "path": "$kraworkflowinfo","preserveNullAndEmptyArrays": true
+            }
+        },
+        {"$match": {"kraworkflowdetails.emp_id":parseInt(req.query.emp_id)}},
+    ]).exec(function(err, batchInfoData){
+        if(err)
+        {
+            return res.status(403).json({
+                title: 'There was a problem',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: batchInfoData
+                }
+            });
+        }
+        return done(err, batchInfoData);   
+    });
+}
+
 let functions = {
     getBatchInfo: (req, res) => {
         async.waterfall([
@@ -162,6 +196,18 @@ let functions = {
         ]);
     },
 
+    getBatchInfoByEmp:(req,res)=>{
+        async.waterfall([
+            function(done) {
+                getBatchNamesByEmp(req, res, done);
+            },
+            function(batchDetailsData, done) {
+                return res.status(200).json({
+                        "data": batchDetailsData
+                    });
+            }
+        ]);
+    }
 }
 module.exports = {functions,addBatchInfoDetails};
 
