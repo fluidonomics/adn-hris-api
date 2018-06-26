@@ -2028,6 +2028,8 @@ let functions = {
           "designation":"$designations.designationName",
           "supervisor":"$employees.fullName",
           "hrScope_id":'$officeDetails.hrspoc_id',
+          "groupHrHead_id" :'$officeDetails.groupHrHead_id',
+          "businessHrHead_id":'$officeDetails.businessHrHead_id',
           "supervisor_id":"$employees._id",
           "secondarySupervisor":"$employeeSecondary.fullName",
           "secondarySupervisor_id":"$employeeSecondary._id",
