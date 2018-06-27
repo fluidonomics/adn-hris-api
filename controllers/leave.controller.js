@@ -27,17 +27,17 @@ EmailDetails: require('../class/sendEmail'),
 require('dotenv').load()
 function applyLeave(req, res, done) {
     const query = {
-        $or:[{
-        emp_id: req.body.emp_id,
-        leave_type: req.body.leave_type,
-        isApproved: null
-},
-{
-    emp_id: req.body.emp_id,
-    leave_type: req.body.leave_type,
-        isApproved: null
+        $or: [{
+            emp_id: req.body.emp_id,
+            leave_type: req.body.leave_type,
+            isApproved: null
+        },
+        {
+            emp_id: req.body.emp_id,
+            leave_type: req.body.leave_type,
+            isApproved: null
 
-}]
+        }]
     };
     LeaveApply.find(query, function (err, details) {
         const sd = new Date(req.body.fromDate),
@@ -305,6 +305,7 @@ function addLeaveBlance(empIdCollection, req, res, appliedFor) {
                     })
                 }
 
+
                 let _leaveBalance = new LeaveBalance({
                     emp_id: appliedFor === "employee" ? empIdCollection[i].id : empIdCollection[i].emp_id,
                     leave_type: parseInt(req.body.leave_type),
@@ -313,7 +314,9 @@ function addLeaveBlance(empIdCollection, req, res, appliedFor) {
                     // updatedDate: new Date(req.body.updatedDate),
                     balance: balance,
                     updatedBy: parseInt(req.body.updatedBy),
-                    createdBy: parseInt(req.body.createdBy)
+                    createdBy: parseInt(req.body.createdBy),
+                    fiscalYearId: parseInt(req.body.fiscalYearId),
+                    isDeleted: false
                 });
 
                 if (alreadyExists) {
@@ -555,7 +558,7 @@ function getLeavesByType(leaveTypesData, appliedLeaves, res) {
     });
     return res.status(200).json(response);
 }
-function singleEmployeeLeaveBalance(currentEmpId,fiscalYearId, res) {
+function singleEmployeeLeaveBalance(currentEmpId, fiscalYearId, res) {
     let empId = parseInt(currentEmpId);
     let _fiscalYearId = parseInt(fiscalYearId);
     LeaveBalance.aggregate(
@@ -568,7 +571,7 @@ function singleEmployeeLeaveBalance(currentEmpId,fiscalYearId, res) {
                     { "emp_id": empId, "fiscalYearId": _fiscalYearId, "leave_type": 2 },
                     { "emp_id": empId, "leave_type": 3 },
                     { "emp_id": empId, "leave_type": 4 }]
-                   
+
                 }
             },
 
@@ -599,7 +602,7 @@ function singleEmployeeLeaveBalance(currentEmpId,fiscalYearId, res) {
                 {
                     $match: {
                         "emp_id": empId,
-                        
+
                         // "isApproved": true
                     }
                 },
@@ -1105,7 +1108,7 @@ let functions = {
                     "preserveNullAndEmptyArrays": true
                 }
             },
-            { "$match": { "isDeleted": false, "emp_id": parseInt(req.query.emp_id) , "fiscalYearId": parseInt(req.query.fiscalYearId) } },
+            { "$match": { "isDeleted": false, "emp_id": parseInt(req.query.emp_id), "fiscalYearId": parseInt(req.query.fiscalYearId) } },
             {
                 "$project": {
                     "_id": "$_id",
