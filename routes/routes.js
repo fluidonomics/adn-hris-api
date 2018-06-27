@@ -517,6 +517,9 @@ let express  = require('express'),
 
       batchRoutes.post('/updateBatchInfo',ensureAuthenticated, batch.functions.updateBatchInfo);
 
+      batchRoutes.post('/updateBatchInfo',ensureAuthenticated, batch.functions.updateBatchInfo);
+      
+      batchRoutes.get('/getBatchInfoByEmp',ensureAuthenticated, batch.functions.getBatchInfoByEmp);
       
 
     //= ======================== 
