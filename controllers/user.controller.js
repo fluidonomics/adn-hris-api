@@ -1880,7 +1880,7 @@ let functions = {
                 emp.designation_id = req.body.designation_id;
                 emp.company_id = req.body.company_id;
                 emp.grade_id = req.body.grade_id;
-                emp.userName = req.body.userName;
+                emp.userName = req.body.employeeUserName;
                 emp.createdBy = parseInt(req.headers.uid);
                 //emp.createdBy = 0;
 

@@ -1290,6 +1290,28 @@ let functions = {
       });
     },
 
+    checkUserNameExists: (req, res) => {
+        Promise.all([
+            Employee.find({userName:req.query.userName}).count().exec()
+        ]).then(function(counts) {
+            if(counts[0] > 0 || counts[1] > 0)
+            {
+              return res.status(200).json(true);
+            }
+            else{
+             return res.status(200).json(false);
+            }
+        })
+        .catch(function(err) {
+          return res.status(403).json({
+                              title: 'Error',
+                              error: {
+                                  message: err
+                              }
+                  });
+        });
+      },
+
     getTabStatus: (req, res) => {
         let emp_id = parseInt(req.params.emp_id || req.query.emp_id);
         Promise.all([

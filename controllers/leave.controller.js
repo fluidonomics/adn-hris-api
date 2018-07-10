@@ -2,7 +2,7 @@ let express = require('express'),
 
     LeaveWorkflowHistory = require('../models/leave/leaveWorkflowHistory.model'),
     LeaveDetailsCarryForward = require('../models/master/leaveDetailsCarryForward.model');
-LeaveApply = require('../models/leave/leaveApply.model'),
+    LeaveApply = require('../models/leave/leaveApply.model'),
     LeaveHoliday = require('../models/leave/leaveHoliday.model'),
     LeaveTransactionType = require('../models/leave/leaveTransactioType.model'),
     PersonalInfo = require('../models/employee/employeePersonalDetails.model'),
@@ -12,7 +12,7 @@ LeaveApply = require('../models/leave/leaveApply.model'),
     LeaveBalance = require('../models/leave/EmployeeLeaveBalance.model'),
     EmployeeRoles = require('../models/master/role.model'),
     Employee = require('../models/employee/employeeDetails.model');
-EmailDetails: require('../class/sendEmail'),
+    EmailDetails: require('../class/sendEmail'),
     commonService = require('../controllers/common.controller'),
     userService = require('../controllers/user.controller'),
     EmployeeInfo = require('../models/employee/employeeDetails.model'),

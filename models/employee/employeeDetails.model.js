@@ -44,42 +44,42 @@ let mongoose                = require('mongoose'),
               _this._id = 1;
             }
 
-            let userName = "";
-            switch(_this.company_id) {
-                case 1:
-                    userName = "10";
-                    break;
-                case 2:
-                    userName = "20";
-                    break;
-                case 3:
-                    userName = "30"; 
-                    break;
-                case 4:
-                    userName = "40";
-                    break;
-                case 5:
-                    userName = "30";
-                    break
-                default:
-                    break;
-            };
-             if(req.body.roles.indexOf(6)==-1)
-             {   
-              switch(req.body.managementType_id) {
-                case 1:
-                    userName += "1";
-                    break;
-                case 2:
-                    userName += "2";
-                    break;
-                default:
-                    break;
-              }; 
-             }
-              let n = _this._id;
-              userName += n < 10 ?  "000" + n : ((n > 9 && n <100) ? "00" + n : ((n > 99 && n < 1000) ? "0" + n : n ));
-              _this.userName = userName;
+            // let userName = "";
+            // switch(_this.company_id) {
+            //     case 1:
+            //         userName = "10";
+            //         break;
+            //     case 2:
+            //         userName = "20";
+            //         break;
+            //     case 3:
+            //         userName = "30"; 
+            //         break;
+            //     case 4:
+            //         userName = "40";
+            //         break;
+            //     case 5:
+            //         userName = "30";
+            //         break
+            //     default:
+            //         break;
+            // };
+            //  if(req.body.roles.indexOf(6)==-1)
+            //  {   
+            //   switch(req.body.managementType_id) {
+            //     case 1:
+            //         userName += "1";
+            //         break;
+            //     case 2:
+            //         userName += "2";
+            //         break;
+            //     default:
+            //         break;
+            //   }; 
+            //  }
+            //   let n = _this._id;
+            //   userName += n < 10 ?  "000" + n : ((n > 9 && n <100) ? "00" + n : ((n > 99 && n < 1000) ? "0" + n : n ));
+            //   _this.userName = userName;
             bcrypt.genSalt(10, function (err, salt) {
                       if (err) {
                           next(err);

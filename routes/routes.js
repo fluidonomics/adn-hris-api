@@ -455,6 +455,8 @@ let express  = require('express'),
 
           commonRoutes.get('/checkEmailExists',ensureAuthenticated, common.checkEmailExists);
 
+          commonRoutes.get('/checkUserNameExists',ensureAuthenticated, common.checkUserNameExists);
+
           commonRoutes.get('/getEducation',ensureAuthenticated, common.getEducation);
 
           commonRoutes.get('/getPerformanceRating',ensureAuthenticated, common.getPerformanceRating);
