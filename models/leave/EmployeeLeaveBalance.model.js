@@ -12,7 +12,6 @@ let EmployeeLeaveBalanceSchema = new Schema({
     updatedBy: { type: Number, default: null },
     createdBy: { type: Number, default: null },
     startDate: { type: Date, default: null},
-    startDate: { type: Date, default: null},
     endDate: { type: Date, default: null},
     isDeleted: { type: Boolean, default: false },
     fiscalYearId: { type: Number, ref: 'financialYear' }

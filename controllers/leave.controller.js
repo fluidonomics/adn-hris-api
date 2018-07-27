@@ -656,13 +656,26 @@ function singleEmployeeLeaveBalance(currentEmpId, fiscalYearId, res) {
                 let response = [];
                 results1.forEach((x) => {
                     const balLeaveObj = results2.find(p => p._id === x.leave_type);
+
                     obj = {
+
                         'leaveType': x.leave_type,
-                        'leaveBalance': Math.round((x.balance - (balLeaveObj === undefined ? 0 : balLeaveObj.totalAppliedLeaves)))
+                        'leaveBalance': Math.round((x.balance - (balLeaveObj === undefined ? 0 : balLeaveObj.totalAppliedLeaves))),
+                        'totalLeave': Math.round(x.balance)
                     };
                     response.push(obj);
-                })
 
+                })
+                results2.forEach((x) => {
+                    const balLeaveObj = results1.find(p => p.leave_type === x._id);
+                     if (balLeaveObj === undefined) {
+                        obj = {
+                            'leaveType': x._id,
+                            'appliedLeave': Math.round(x.totalAppliedLeaves)
+                        };
+                        response.push(obj);
+                     }
+                })
                 return res.status(200).json(response);
             })
     });
@@ -2022,6 +2035,7 @@ let functions = {
         ])
     },
     getLeaveBalance: (req, res) => {
+    console.log("req>>>",req.query)
         singleEmployeeLeaveBalance(req.query.empId, req.query.fiscalYearId, res);
     },
     getLeaveDetailsById: (req, res) => {
