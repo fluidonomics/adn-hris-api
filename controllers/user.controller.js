@@ -1281,6 +1281,34 @@ function getPersonalInfoDetails(req, res) {
         return res.status(200).json(personalEmpDetails);
     });
 }
+function getEmployeeDetails(req, res) {
+    let emp_id = req.query.emp_id;
+    let query = {
+        isDeleted: false
+    };
+    if (emp_id) {
+        query = {
+            emp_id: emp_id,
+            isDeleted: false
+        };
+    }
+    var personalInfoProjection = {
+        createdAt: false,
+        updatedAt: false,
+        isDeleted: false,
+        updatedBy: false,
+        createdBy: false,
+    };
+    PersonalInfo.findOne(query, personalInfoProjection, function(err, personalEmpDetails) {
+        if (err) {
+            return res.status(403).json({
+                title: 'There was an error, please try again later',
+                error: err
+            });
+        }
+        return res.status(200).json(personalEmpDetails);
+    });
+}
 function getAddressInfoDetails(req, res) {
     let emp_id = req.query.emp_id;
     let query = {
@@ -2057,6 +2085,9 @@ let functions = {
     },
     getPersonalInfo: (req, res) => {
         getPersonalInfoDetails(req, res);
+    },
+    getEmployeeDetails: (req, res) => {
+        getEmployeeDetails(req, res);
     },
     getAddressInfo: (req, res) => {
         getAddressInfoDetails(req, res);
