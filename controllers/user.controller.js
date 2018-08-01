@@ -1283,6 +1283,7 @@ function getPersonalInfoDetails(req, res) {
 }
 function getEmployeeDetails(req, res) {
     let emp_id = req.query.emp_id;
+    console.log(req.query)
     let query = {
         isDeleted: false
     };
@@ -1299,15 +1300,129 @@ function getEmployeeDetails(req, res) {
         updatedBy: false,
         createdBy: false,
     };
-    PersonalInfo.findOne(query, personalInfoProjection, function(err, personalEmpDetails) {
-        if (err) {
-            return res.status(403).json({
-                title: 'There was an error, please try again later',
-                error: err
+    PersonalInfo.aggregate([
+    {
+                        $match: {
+                            "$or":[
+                            {"emp_id": parseInt(emp_id)}
+    //                        {"emp_id": parseInt(upervisorDetails.leaveSupervisorEmp_id)}
+                             ]
+                        }
+                    },
+                {
+                    "$lookup": {
+                        "from": "employeeprobationdetails",
+                        "localField": "emp_id",
+                        "foreignField": "emp_id",
+                        "as": "probationDetails"
+                    }
+                },
+                {
+                    "$unwind": {
+                        path: "$probationDetails",
+                        "preserveNullAndEmptyArrays": true
+                    }
+                },
+                {
+                    "$lookup": {
+                        "from": "employeesupervisordetails",
+                        "localField": "emp_id",
+                        "foreignField": "emp_id",
+                        "as": "supervisorDetails"
+                    }
+                },
+                {
+                    "$unwind": {
+                        path: "$supervisorDetails",
+                        "preserveNullAndEmptyArrays": true
+                    }
+                },
+                {
+                    "$lookup": {
+                        "from": "employeedetails",
+                        "localField": "supervisorDetails.leaveSupervisorEmp_id",
+                        "foreignField": "_id",
+                        "as": "supervisorDetails.leaveSupervisorDetails"
+                    }
+                },
+                {
+                    "$unwind": {
+                        path: "$supervisorDetails.leaveSupervisorDetails",
+                        "preserveNullAndEmptyArrays": true
+                    }
+                },
+                {
+                    "$lookup": {
+                        "from": "employeedetails",
+                        "localField": "supervisorDetails.secondarySupervisorEmp_id",
+                        "foreignField": "_id",
+                        "as": "supervisorDetails.secondarySupervisorDetails"
+                    }
+                },
+                {
+                    "$unwind": {
+                        path: "$supervisorDetails.secondarySupervisorDetails",
+                        "preserveNullAndEmptyArrays": true
+                    }
+                },
+                 {
+                     "$lookup": {
+                         "from": "employeedetails",
+                         "localField": "supervisorDetails.primarySupervisorEmp_id",
+                         "foreignField": "_id",
+                         "as": "supervisorDetails.primarySupervisorDetails"
+                     }
+                 },
+                 {
+                     "$unwind": {
+                         path: "$supervisorDetails.primarySupervisorDetails",
+                         "preserveNullAndEmptyArrays": true
+                     }
+                 },
+
+                {
+                    "$project": {
+                        "_id": "$_id",
+                        "gender": 1,
+                        "probationDetails" : {
+                            "_id" : "$_id",
+                            "probationPeriod": 1,
+                            "isActive":1,
+                        },
+                        "supervisorDetails": {
+                               "_id" : 1,
+                               "emp_id" : 1,
+                               "leaveSupervisorDetails": {
+                                "_id" : 1,
+                                "fullName":1
+                               },
+                               "leaveSupervisorDetails": {
+                                   "_id" : 1,
+                                   "fullName":1
+                               },
+                               "leaveSupervisorDetails": {
+                                   "_id" : 1,
+                                   "fullName":1
+                              }
+                         }
+
+                    }
+                }
+
+            ]).exec(function (err, results) {
+                if (err) {
+                    return res.status(403).json({
+                        title: 'There is a problem',
+                        error: {
+                            message: err
+                        },
+                        result: {
+                            message: results
+                        }
+                    });
+                }
+                return res.status(200).json({ "data": results });
             });
-        }
-        return res.status(200).json(personalEmpDetails);
-    });
 }
 function getAddressInfoDetails(req, res) {
     let emp_id = req.query.emp_id;
@@ -1327,7 +1442,7 @@ function getAddressInfoDetails(req, res) {
         updatedBy: false,
         createdBy: false,
     };
-    AddressInfo.findOne(query, addressInfoProjection, function(err, addressDetails) {
+    AddressInfo.aggregate(query, addressInfoProjection, function(err, addressDetails) {
         if (err) {
             return res.status(403).json({
                 title: 'There was an error, please try again later',

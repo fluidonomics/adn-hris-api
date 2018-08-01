@@ -27,6 +27,7 @@ let express = require('express'),
 require('dotenv').load()
 function singleEmployeeLeaveBalance(currentEmpId, fiscalYearId, res) {
     let empId = parseInt(currentEmpId);
+    console.log("parseint")
     let _fiscalYearId = parseInt(fiscalYearId);
     LeaveBalance.aggregate(
         // Pipeline
