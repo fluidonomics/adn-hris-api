@@ -27,7 +27,6 @@ let express = require('express'),
 require('dotenv').load()
 function singleEmployeeLeaveBalance(currentEmpId, fiscalYearId, res) {
     let empId = parseInt(currentEmpId);
-    console.log("parseint")
     let _fiscalYearId = parseInt(fiscalYearId);
     LeaveBalance.aggregate(
         // Pipeline
@@ -122,16 +121,14 @@ function singleEmployeeLeaveBalance(currentEmpId, fiscalYearId, res) {
                     });
                 }
                 let response = [];
-                console.log("results1=>",results1)
-                console.log("results2=>",results2)
+                let leaveType = ["Annual Leave", "Sick Leave", "Maternity Leave", "Special Leave"]
                 results1.forEach((x) => {
                     const balLeaveObj = results2.find(p => p._id === x.leave_type);
-                    console.log(balLeaveObj)
                     obj = {
 
-                        'leaveType': x.leave_type,
-                        'leaveBalance': Math.round((x.balance - (balLeaveObj === undefined ? 0 : balLeaveObj.totalAppliedLeaves))),
-                        'totalLeave': Math.round(x.balance)
+                        'leaveType': leaveType[x.leave_type-1],
+                        'appliedLeave': Math.round( (balLeaveObj === undefined ? 0 : balLeaveObj.totalAppliedLeaves)),
+                        'allotedLeave': Math.round(x.balance)
                     };
                     response.push(obj);
 
@@ -140,11 +137,26 @@ function singleEmployeeLeaveBalance(currentEmpId, fiscalYearId, res) {
                     const balLeaveObj = results1.find(p => p.leave_type === x._id);
                      if (balLeaveObj === undefined) {
                         obj = {
-                            'leaveType': x._id,
-                            'appliedLeave': Math.round(x.totalAppliedLeaves)
+                            'leaveType': leaveType[x.leave_type-1],
+                            'appliedLeave': Math.round(x.totalAppliedLeaves),
+                            'allotedLeave': Math.round(balLeaveObj.balance)
                         };
                         response.push(obj);
                      }
+                })
+                leaveType.forEach((x) => {
+
+                    let result = response.filter(obj => {
+                      return obj.leaveType === x
+                    })
+                    if (result.length == 0) {
+                        response.push({
+                            'leaveType': x,
+                            'appliedLeave': 0,
+                            'allotedLeave': 0
+                           })
+                    }
+
                 })
                 return res.status(200).json(response);
             })
