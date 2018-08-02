@@ -1380,34 +1380,34 @@ function getEmployeeDetails(req, res) {
                      }
                  },
 
-                {
-                    "$project": {
-                        "_id": "$_id",
-                        "gender": 1,
-                        "probationDetails" : {
-                            "_id" : "$_id",
-                            "probationPeriod": 1,
-                            "isActive":1,
-                        },
-                        "supervisorDetails": {
-                               "_id" : 1,
-                               "emp_id" : 1,
-                               "leaveSupervisorDetails": {
-                                "_id" : 1,
-                                "fullName":1
-                               },
-                               "leaveSupervisorDetails": {
-                                   "_id" : 1,
-                                   "fullName":1
-                               },
-                               "leaveSupervisorDetails": {
-                                   "_id" : 1,
-                                   "fullName":1
-                              }
-                         }
-
-                    }
-                }
+//                {
+//                    "$project": {
+//                        "_id": "$_id",
+//                        "gender": 1,
+//                        "probationDetails" : {
+//                            "_id" : "$_id",
+//                            "probationPeriod": 1,
+//                            "isActive":1,
+//                        },
+//                        "supervisorDetails": {
+//                               "_id" : 1,
+//                               "emp_id" : 1,
+//                               "leaveSupervisorDetails": {
+//                                "_id" : 1,
+//                                "fullName":1
+//                               },
+//                               "leaveSupervisorDetails": {
+//                                   "_id" : 1,
+//                                   "fullName":1
+//                               },
+//                               "leaveSupervisorDetails": {
+//                                   "_id" : 1,
+//                                   "fullName":1
+//                              }
+//                         }
+//
+//                    }
+//                }
 
             ]).exec(function (err, results) {
                 if (err) {
