@@ -134,6 +134,7 @@ let functions =
                     uid: uuidV1()
                 }
             };
+            console.log(toemail)
             // send mail with defined transport object
             transporter.sendMail(mailOptions);
         }

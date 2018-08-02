@@ -414,7 +414,7 @@ let express  = require('express'),
           apiRoutes.use('/common', commonRoutes);
 
           commonRoutes.get('/getRole',ensureAuthenticated, common.getRole);
-          commonRoutes.get('/getEmployeEmailDetails', common.getAllEmployeeEmails);
+          commonRoutes.get('/getEmployeeEmailDetails', common.getAllEmployeeEmails);
           
 
           commonRoutes.get('/getCompany',ensureAuthenticated, common.getCompany);
