@@ -1,5 +1,4 @@
 let express = require('express'),
-
     LeaveWorkflowHistory = require('../models/leave/leaveWorkflowHistory.model'),
     LeaveDetailsCarryForward = require('../models/master/leaveDetailsCarryForward.model');
     LeaveApply = require('../models/leave/leaveApply.model'),
@@ -11,8 +10,8 @@ let express = require('express'),
     OfficeDetails = require('../models/employee/employeeOfficeDetails.model'),
     LeaveBalance = require('../models/leave/EmployeeLeaveBalance.model'),
     EmployeeRoles = require('../models/master/role.model'),
-    Employee = require('../models/employee/employeeDetails.model');
-    EmailDetails: require('../class/sendEmail'),
+    Employee = require('../models/employee/employeeDetails.model'),
+    EmailDetails = require('../class/sendEmail'),
     commonService = require('../controllers/common.controller'),
     userService = require('../controllers/user.controller'),
     EmployeeInfo = require('../models/employee/employeeDetails.model'),
@@ -173,9 +172,180 @@ function getLeavesByType(leaveTypesData, appliedLeaves, res) {
     });
     return res.status(200).json(response);
 }
+function applyLeave(req, res, done) {
+    let startd = new Date(new Date(req.body.fromDate).getTime() + 86400000),
+          endd = new Date(new Date(req.body.toDate).getTime() + 86400000);
+    let flag = true;
+    let message;
+    const query = {
+        $or: [{
+            emp_id: req.body.emp_id,
+            leave_type: req.body.leave_type,
+            status: null
+        },
+        {
+            emp_id: req.body.emp_id,
+            leave_type: req.body.leave_type,
+            status: "Approved"
+
+        }]
+    };
+    let minusDayStart = new Date(startd.getTime() - 86400000);
+    let minusDayEnd = new Date(endd.getTime() - 86400000);
+    LeaveHoliday.find({
+        $or:[{
+            $and:
+                [{"date": {$gt: minusDayStart}},
+                {"date": {$lte: startd}}]
+        },{
+             $and:[{"date": {$gt: minusDayEnd}},
+             {"date": {$lte: endd}}]
+        }]
+    }, function (err, details) {
+        if (err) {
+            flag = false;
+            message = err.message;
+            return res.status(403).json({
+                title: 'There is a problem',
+                error: {
+                    message: message
+                },
+                result: {
+                    message: message
+                }
+            });
+        } else if (details.length > 0) {
+            flag = false;
+            message = "You cannot apply on holiday"
+            return res.status(403).json({
+                title: 'There is a problem',
+                error: {
+                    message: message
+                },
+                result: {
+                    message: message
+                }
+            });
+
+        } else {
+
+            LeaveApply.find(query, function (err, details) {
+                const sd = new Date(new Date(req.body.fromDate) + 86400000),
+                      ed = new Date(new Date(req.body.toDate) + 86400000);
+                for (let i = 0; i < details.length; i++) {
+                let fromDate =  new Date(details[i].fromDate),
+                    toDate =  new Date(details[i].toDate);
+                    if (details[i].status == null  || details[i].status == undefined) {
+                        if ((sd >= fromDate && ed <= toDate) ||
+                            (sd <= fromDate && ed >= fromDate) ||
+                            (sd <= toDate && ed >= toDate)) {
+                            flag = false;
+                            message = "Already applied";
+                        }
+                    }
+                }
+                let sdDay = sd.getDay(),
+                    edDay = ed.getDay();
+                if (sd.getD == 0 || sdDay == 6 || edDay == 0 || edDay == 1) {
+                    message = "you can not apply leave on weekends";
+                }
+                let d = new Date();
+                d.setDate(d.getDate()+7);
+                if ((((ed - sd)/86400000 + 1) > 3) && (req.body.leave_type == 1) && sd <= d) {
+                    flag = false;
+                    message = "Annual Leave should be applied in seven days advance";
+                }
+                if (flag) {
+                    let leavedetails = new LeaveApply(req.body);
+                    leavedetails.emp_id = req.body.emp_id || req.query.emp_id;
+                    leavedetails.status = req.body.status;
+                    leavedetails.createdBy = parseInt(req.body.emp_id);
+                    leavedetails.fromDate = sd;
+                    leavedetails.toDate = ed;
+                    leavedetails.updatedBy = parseInt(req.body.updatedBy);
+                    leavedetails.days = (leavedetails.toDate - leavedetails.fromDate)/86400000 + 1
+                    leavedetails.save(function (err, leavesInfoData) {
+                        if (err) {
+                            return res.status(403).json({
+                                title: 'There is a problem',
+                                error: {
+                                    message: err
+                                },
+                                result: {
+                                    message: leavesInfoData
+                                }
+                            });
+                        }
+                        leaveWorkflowDetails(leavesInfoData, req.body.updatedBy, 'applied');
+
+                        if (req.body.emailTo && req.body.emailTo != "") {
+                            var ccToList = req.body.emailTo.split(',');
+
+                            ccToList.forEach((x) => {
+                                try {
+                                    var emailWithName = x.split('~');
+                                    EmailDetails.sendToCCEmail(emailWithName[1], emailWithName[0]);
+                                }
+                                catch (e) {
+                                }
+                            })
+                        }
+                        return done(err, leavesInfoData);
+                    });
+                } else {
+                    return res.status(403).json({
+                        title: 'There is a problem',
+                        error: {
+                            message: message
+                        },
+                        result: {
+                            message: message
+                        }
+                    });
+                }
+
+            });
+        }
+    });
+}
+function leaveWorkflowDetails(req, applied_by_id, step) {
+    let _LeaveWorkflowDetails = new LeaveWorkflowHistory(req._doc);
+    _LeaveWorkflowDetails.emp_id = parseInt(req._doc.emp_id);
+    _LeaveWorkflowDetails.Owner = parseInt(applied_by_id);
+    _LeaveWorkflowDetails.appliedLeaveId = parseInt(req._doc.leave_type);
+    _LeaveWorkflowDetails.updatedAt = new Date(req._doc.updatedAt);
+    _LeaveWorkflowDetails.Step = step;
+    switch (step) {
+        case 'applied':
+            _LeaveWorkflowDetails.Status = 'pending';
+            break;
+        case 'cancelled':
+            _LeaveWorkflowDetails.Status = 'Cancelled';
+
+
+    }
+    try {
+        _LeaveWorkflowDetails.save(function (err, leavesInfoData) {
+            if (err) {
+            }
+        });
+    } catch (e) {
+    }
+
+}
 let functions = {
     getLeaveBalance: (req, res) => {
         singleEmployeeLeaveBalance(req.query.empId, req.query.fiscalYearId, res);
+    },
+    postApplyLeave: (req, res) => {
+        async.waterfall([
+            function (done) {
+                applyLeave(req, res, done);
+            },
+            function (_applyLeaveDetails, done) {
+                return res.status(200).json(_applyLeaveDetails);
+            }
+        ])
     },
     getLeaveTypes: (req, res) => {
         let query = {

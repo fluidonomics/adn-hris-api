@@ -2,7 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="36fd029c-97c6-43f6-9be4-9bd5751fa19b" name="Default" comment="">
+      <change beforePath="$PROJECT_DIR$/class/sendEmail.js" beforeDir="false" afterPath="$PROJECT_DIR$/class/sendEmail.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/controllers/leave.controller.js" beforeDir="false" afterPath="$PROJECT_DIR$/controllers/leave.controller.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/routes/routes.js" beforeDir="false" afterPath="$PROJECT_DIR$/routes/routes.js" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -16,8 +20,8 @@
       <file leaf-file-name="routes.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/routes/routes.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="620">
-              <caret line="312" column="73" selection-start-line="312" selection-start-column="58" selection-end-line="312" selection-end-column="73" />
+            <state relative-caret-position="285">
+              <caret line="416" column="51" selection-start-line="416" selection-start-column="29" selection-end-line="416" selection-end-column="51" />
               <folding>
                 <element signature="e#0#26261#0" />
               </folding>
@@ -25,11 +29,40 @@
           </provider>
         </entry>
       </file>
+      <file leaf-file-name="common.controller.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/controllers/common.controller.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="-45">
+              <caret line="237" column="29" selection-start-line="237" selection-start-column="9" selection-end-line="237" selection-end-column="29" />
+            </state>
+          </provider>
+        </entry>
+      </file>
       <file leaf-file-name="leave.controller.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/controllers/leave.controller.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="243">
-              <caret line="125" column="83" selection-start-line="125" selection-start-column="83" selection-end-line="125" selection-end-column="83" />
+            <state relative-caret-position="258">
+              <caret line="124" column="24" selection-start-line="124" selection-start-column="24" selection-end-line="124" selection-end-column="24" />
+              <folding>
+                <element signature="e#0#12182#0" />
+                <element signature="e#0#11175#0" />
+                <element signature="e#0#11175#0" />
+                <element signature="e#0#11175#0" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="upload.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/class/upload.js">
+          <provider selected="true" editor-type-id="text-editor" />
+        </entry>
+      </file>
+      <file leaf-file-name="sendEmail.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/class/sendEmail.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="594">
+              <caret line="135" column="14" selection-start-line="135" selection-start-column="14" selection-end-line="135" selection-end-column="14" />
             </state>
           </provider>
         </entry>
@@ -37,8 +70,33 @@
       <file leaf-file-name="user.controller.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/controllers/user.controller.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1712">
-              <caret line="1403" column="45" selection-start-line="1403" selection-start-column="45" selection-end-line="1403" selection-end-column="45" />
+            <state relative-caret-position="99">
+              <caret line="30" column="10" selection-start-line="30" selection-start-column="4" selection-end-line="30" selection-end-column="10" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="upload.controller.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/controllers/upload.controller.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="-1794" />
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="leaveApply.model.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/models/leave/leaveApply.model.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="420">
+              <caret line="28" column="18" selection-start-line="28" selection-start-column="18" selection-end-line="28" selection-end-column="18" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="leaveWorkflowHistory.model.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/models/leave/leaveWorkflowHistory.model.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="300">
+              <caret line="20" column="2" selection-start-line="20" selection-start-column="2" selection-end-line="20" selection-end-column="2" />
             </state>
           </provider>
         </entry>
@@ -47,36 +105,36 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>leavebalance</find>
-      <find>leavety</find>
-      <find>leave</find>
-      <find>getLeaveBalance</find>
-      <find>mail</find>
-      <find>user</find>
-      <find>leave.</find>
-      <find>add</find>
-      <find>ensureAuthenticated</find>
-      <find>addEmployee</find>
-      <find>getPersonalInfoDetails</find>
-      <find>getLeaveTypes</find>
-      <find>email</find>
-      <find>loginUser</find>
-      <find>getPersonalInfo</find>
-      <find>PersonalInfo.</find>
-      <find>employeePersonalDetails</find>
-      <find>PersonalInfo.f</find>
       <find>getEmployeeDetails</find>
       <find>aggregate</find>
       <find>getEmpl</find>
       <find>getE</find>
       <find>aggre</find>
       <find>getEmployeeLeaveBalance</find>
-      <find>singleEmployeeLeaveBalance</find>
       <find>PersonalInfo</find>
       <find>results</find>
-      <find>getEmployeeDetail</find>
-      <find>&quot;_id&quot;</find>
       <find>consol</find>
+      <find>&quot;_id&quot;</find>
+      <find>applyLeave</find>
+      <find>LeaveWorkflowHistory</find>
+      <find>error2</find>
+      <find>appl]</find>
+      <find>EmailDetails</find>
+      <find>sendToCCEmail</find>
+      <find>fullName</find>
+      <find>leaveWorkflowDetails</find>
+      <find>singleEmployeeLeaveBalance</find>
+      <find>leaveType</find>
+      <find>collec</find>
+      <find>email</find>
+      <find>getEmployee</find>
+      <find>getEmployeeDetail</find>
+      <find>emailde</find>
+      <find>class/up</find>
+      <find>emp</find>
+      <find>upload</find>
+      <find>getAllEmployeeEmails</find>
+      <find>console</find>
     </findStrings>
     <dirStrings>
       <dir>$PROJECT_DIR$</dir>
@@ -90,10 +148,11 @@
       <list>
         <option value="$PROJECT_DIR$/.env" />
         <option value="$PROJECT_DIR$/models/leave/EmployeeLeaveBalance.model.js" />
-        <option value="$PROJECT_DIR$/routes/routes.js" />
         <option value="$PROJECT_DIR$/models/leave/leaveApply.model.js" />
         <option value="$PROJECT_DIR$/controllers/user.controller.js" />
+        <option value="$PROJECT_DIR$/routes/routes.js" />
         <option value="$PROJECT_DIR$/controllers/leave.controller.js" />
+        <option value="$PROJECT_DIR$/class/sendEmail.js" />
       </list>
     </option>
   </component>
@@ -140,23 +199,6 @@
               <item name="adn-hris-api" type="b2602c69:ProjectViewProjectNode" />
               <item name="adn-hris-api" type="462c0819:PsiDirectoryNode" />
               <item name="controllers" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="adn-hris-api" type="b2602c69:ProjectViewProjectNode" />
-              <item name="adn-hris-api" type="462c0819:PsiDirectoryNode" />
-              <item name="models" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="adn-hris-api" type="b2602c69:ProjectViewProjectNode" />
-              <item name="adn-hris-api" type="462c0819:PsiDirectoryNode" />
-              <item name="models" type="462c0819:PsiDirectoryNode" />
-              <item name="employee" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="adn-hris-api" type="b2602c69:ProjectViewProjectNode" />
-              <item name="adn-hris-api" type="462c0819:PsiDirectoryNode" />
-              <item name="models" type="462c0819:PsiDirectoryNode" />
-              <item name="leave" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="adn-hris-api" type="b2602c69:ProjectViewProjectNode" />
@@ -349,9 +391,6 @@
     <entry file="file://$PROJECT_DIR$/config/passport.js">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
-    <entry file="file://$PROJECT_DIR$/class/upload.js">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
     <entry file="file://$PROJECT_DIR$/models/common/notification.model.js">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
@@ -411,13 +450,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/models/leave/leaveWorkflowHistory.model.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="154">
-          <caret line="20" column="2" selection-start-line="20" selection-start-column="2" selection-end-line="20" selection-end-column="2" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/models/leave/leaveHoliday.model.js">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
@@ -439,23 +471,6 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/models/employee/employeeBankDetails.model.js">
       <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/models/leave/leaveApply.model.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="420">
-          <caret line="28" column="18" selection-start-line="28" selection-start-column="18" selection-end-line="28" selection-end-column="18" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/routes/routes.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="620">
-          <caret line="312" column="73" selection-start-line="312" selection-start-column="58" selection-end-line="312" selection-end-column="73" />
-          <folding>
-            <element signature="e#0#26261#0" />
-          </folding>
-        </state>
-      </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/models/employee/employeeSupervisorDetails.model.js">
       <provider selected="true" editor-type-id="text-editor">
@@ -492,17 +507,69 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/models/leave/leaveWorkflowHistory.model.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="300">
+          <caret line="20" column="2" selection-start-line="20" selection-start-column="2" selection-end-line="20" selection-end-column="2" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/models/leave/leaveApply.model.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="420">
+          <caret line="28" column="18" selection-start-line="28" selection-start-column="18" selection-end-line="28" selection-end-column="18" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/routes/routes.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="285">
+          <caret line="416" column="51" selection-start-line="416" selection-start-column="29" selection-end-line="416" selection-end-column="51" />
+          <folding>
+            <element signature="e#0#26261#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/class/upload.js">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/controllers/upload.controller.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-1794" />
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/controllers/user.controller.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1712">
-          <caret line="1403" column="45" selection-start-line="1403" selection-start-column="45" selection-end-line="1403" selection-end-column="45" />
+        <state relative-caret-position="99">
+          <caret line="30" column="10" selection-start-line="30" selection-start-column="4" selection-end-line="30" selection-end-column="10" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/controllers/common.controller.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-45">
+          <caret line="237" column="29" selection-start-line="237" selection-start-column="9" selection-end-line="237" selection-end-column="29" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/class/sendEmail.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="594">
+          <caret line="135" column="14" selection-start-line="135" selection-start-column="14" selection-end-line="135" selection-end-column="14" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/controllers/leave.controller.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="243">
-          <caret line="125" column="83" selection-start-line="125" selection-start-column="83" selection-end-line="125" selection-end-column="83" />
+        <state relative-caret-position="258">
+          <caret line="124" column="24" selection-start-line="124" selection-start-column="24" selection-end-line="124" selection-end-column="24" />
+          <folding>
+            <element signature="e#0#12182#0" />
+            <element signature="e#0#11175#0" />
+            <element signature="e#0#11175#0" />
+            <element signature="e#0#11175#0" />
+          </folding>
         </state>
       </provider>
     </entry>

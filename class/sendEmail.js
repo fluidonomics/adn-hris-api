@@ -41,6 +41,7 @@ let functions =
 
                     return console.log("RESULT ERROR = ", error2);
                 }
+                console.log("errr",err)
                 return res.status(200).json({ "message": "Email Send SuccessFully." });
             });
 
@@ -127,8 +128,8 @@ let functions =
                 subject: config.email.LeaveApplied.subject, // Subject line
                 template: 'email-notify-leave-applied',
                 context: {
-                    fullName: emp.fullName,
-                    userName: emp.userName,
+//                    fullName: emp.fullName,
+//                    userName: emp.userName,
                     redirectUrl: process.env.HostUrl + "/reset/",
                     uid: uuidV1()
                 }
