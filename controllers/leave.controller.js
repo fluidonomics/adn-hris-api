@@ -366,6 +366,224 @@ let functions = {
             }
         ])
     },
+    
+    getHolidays: (req, res) => {
+        let queryYear = req.query.year;
+        let queryMonth = req.query.month;
+        let upcoming = req.query.upcoming;
+        LeaveHoliday.find({}, function (err, LeaveHolidaysData) {
+            if (LeaveHolidaysData) {
+                let respdata = [];
+                if (queryYear) {
+                    LeaveHolidaysData.forEach((holiday) => {
+                        const holidayDate = new Date(holiday.date);
+                        if (holidayDate.getFullYear() == queryYear) {
+                            respdata.push(holiday);
+                        }
+                    });
+                }
+                if (queryMonth) {
+                    LeaveHolidaysData.forEach((holiday) => {
+                        const holidayDate = new Date(holiday.date);
+                        if (holidayDate.getMonth() == queryMonth) {
+                            respdata.push(holiday);
+                        }
+                    });
+                }
+                if (upcoming) {
+                    LeaveHolidaysData.forEach((holiday) => {
+                        const holidayDate = new Date(holiday.date);
+                        let queryDate = new Date();
+                        if (holidayDate >= queryDate) {
+                            respdata.push(holiday);
+                        }
+                    });
+                }
+                return res.status(200).json(respdata);
+            }
+            return res.status(403).json({
+                title: 'Error',
+                error: {
+                    message: err
+                },
+                // result: {
+                //     message: result
+                // }
+            });
+
+        })
+    },
+    getLeaveTransactionDetails: (req, res) => {
+        let queryObj = {'$match':{}};
+        queryObj['$match']['$and']=[]
+        let projectQuery = {$project: {emp_id: 1, fiscalYearId:1, leave_type:1, fromDate:1, toDate:1, status:1, monthStart: {$month: '$fromDate'}}};
+        
+        if (req.query.empId) {
+            queryObj['$match']["$and"].push({emp_id:parseInt(req.query.empId)})
+        }
+        if (req.query.month) {
+            queryObj['$match']["$and"].push({monthStart:parseInt(req.query.month)})
+
+        } 
+        if (req.query.status) {
+            queryObj['$match']["$and"].push({status:req.query.status})
+        }
+        console.log(queryObj['$match'])
+        LeaveApply.aggregate([
+            projectQuery,
+            queryObj
+        ]).exec(function(err, LeaveTransactionDetails){
+            if (err) {
+                return res.status(403).json({
+                    title: 'Error',
+                    error: {
+                        message: err
+                    },
+                    // result: {
+                    //     message: result
+                    // }
+                });
+            }
+
+            return res.status(200).json(LeaveTransactionDetails);
+        })
+    },
+
+    getAllEmployee: (req, res) => {
+        EmployeeInfo.aggregate([
+            {
+                "$lookup": {
+                    "from": "designations",
+                    "localField": "designation_id",
+                    "foreignField": "_id",
+                    "as": "designations"
+                }
+            },
+            {
+                "$unwind": "$designations"
+            },
+            {
+                "$lookup": {
+                    "from": "employeeofficedetails",
+                    "localField": "_id",
+                    "foreignField": "emp_id",
+                    "as": "officeDetails"
+                }
+            },
+            {
+                "$unwind": "$officeDetails"
+            },
+            {
+                "$lookup": {
+                    "from": "employeesupervisordetails",
+                    "localField": "_id",
+                    "foreignField": "emp_id",
+                    "as": "supervisor"
+                }
+            },
+            {
+                "$unwind": "$supervisor"
+            },
+            {
+                "$lookup": {
+                    "from": "employeedetails",
+                    "localField": "supervisor.primarySupervisorEmp_id",
+                    "foreignField": "_id",
+                    "as": "employees"
+                }
+            },
+            {
+                "$unwind": "$employees"
+            },
+            {
+                "$lookup": {
+                    "from": "employeeprofileprocessdetails",
+                    "localField": "_id",
+                    "foreignField": "emp_id",
+                    "as": "employeeprofileProcessDetails"
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "employeeprofileprocessdetails",
+                    "localField": "_id",
+                    "foreignField": "emp_id",
+                    "as": "employeeprofileProcessDetails"
+                }
+            },
+            {
+                "$unwind": "$employeeprofileProcessDetails"
+            },
+            {
+                "$lookup": {
+                    "from": "employeepersonaldetails",
+                    "localField": "_id",
+                    "foreignField": "emp_id",
+                    "as": "employeePersonalDetails"
+                }
+            },
+            {
+                "$unwind": "$employeePersonalDetails"
+            },
+            { "$match": { "isDeleted": false, "designations.isActive": true, "officeDetails.isDeleted": false } },
+            {
+                "$project": {
+                    "_id": "$_id",
+                    "fullName": "$fullName",
+                    "userName": "$userName",
+                    "isAccountActive": "$isAccountActive",
+                    "profileImage": "$profileImage",
+                    "officeEmail": "$officeDetails.officeEmail",
+                    "designation": "$designations.designationName",
+                    "supervisor": "$employees.fullName",
+                    "hrScope_id": '$officeDetails.hrspoc_id',
+                    "supervisor_id": "$employees._id",
+                    "profileProcessDetails": "$employeeprofileProcessDetails",
+                    "department_id": "$officeDetails.department_id",
+                    "grade_id": "$grade_id",
+                    "gender": "$employeePersonalDetails.gender"
+                }
+            }
+        ]).exec(function (err, results) {
+            if (err) {
+                return res.status(403).json({
+                    title: 'There was a problem',
+                    error: {
+                        message: err
+                    },
+                    result: {
+                        message: results
+                    }
+                });
+            }
+            return res.status(200).json({ "data": results });
+        });
+    },
+    getUpcomingHoliday: (req, res) => {
+        let queryDate = req.query.date;
+        LeaveHoliday.find({}, function (err, LeaveHolidaysData) {
+            if (LeaveHolidaysData) {
+                let respdata = [];
+                LeaveHolidaysData.forEach((holiday) => {
+                    const holidayDate = new Date(holiday.date);
+                    if (holidayDate.getFullYear() == queryDate) {
+                        respdata.push(holiday);
+                    }
+                });
+                return res.status(200).json(respdata);
+            }
+            return res.status(403).json({
+                title: 'Error',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: result
+                }
+            });
+
+        })
+    },
     getLeaveTypes: (req, res) => {
         let query = {
             'isDeleted': false
@@ -385,6 +603,8 @@ let functions = {
             });
         })
     },
+
+
 }
 
 

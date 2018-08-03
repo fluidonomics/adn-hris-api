@@ -313,14 +313,16 @@ let express  = require('express'),
         leaveRoutes.get('/getEmployeeLeaveBalance', leave.getLeaveBalance);
 //        leaveRoutes.get('/getLeaveDetailsByRole', leave.getLeaveDetailsByRole);
 //        leaveRoutes.post('/addLeaveHoliday', leave.postLeaveHoliday);
-//        leaveRoutes.get('/getLeaveHolidays', leave.getHolidays);
+          leaveRoutes.get('/getLeaveHolidays', leave.getHolidays);
+          leaveRoutes.get('/getUpcomingHoliday', leave.getUpcomingHoliday);
+          leaveRoutes.get('/getLeaveTransactionDetails', leave.getLeaveTransactionDetails);
 //        leaveRoutes.post('/updateLeaveHoliday', leave.updateHoliday);
 //        leaveRoutes.post('/postLeaveCarry', leave.postLeaveCarry);
 //        leaveRoutes.post('/removeLeaveHoliday', leave.removeHoliday);
 //        leaveRoutes.post('/postAcceptRejectLeave', leave.postAcceptRejectLeave);
 //        leaveRoutes.get('/getLeavesByMonth', leave.getLeavesByMonth);
 //        leaveRoutes.get('/getLeavesByLeaveType', leave.getLeavesByLeaveType);
-//        leaveRoutes.get('/getAllEmployee', leave.getAllEmployee);
+    	  leaveRoutes.get('/getAllEmployee', leave.getAllEmployee);
 //        leaveRoutes.get('/getEmployeeProbationDetails', leave.getEmployeeProbationDetails);
 //        leaveRoutes.post('/postLeaveTransactionYear', leave.postLeaveTransactionYear);
 //        leaveRoutes.post('/grantMaternityLeave', leave.grantMaternityLeave);
