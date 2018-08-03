@@ -24,33 +24,52 @@ let express = require('express'),
     sgTransport = require('nodemailer-sendgrid-transport'),
     uuidV1 = require('uuid/v1');
 require('dotenv').load()
-function singleEmployeeLeaveBalance(currentEmpId, fiscalYearId, res) {
+function singleEmployeeLeaveBalance(currentEmpId, fiscalYearId, month, res) {
     let empId = parseInt(currentEmpId);
     let _fiscalYearId = parseInt(fiscalYearId);
+    let projectQuery = {$project: {emp_id: 1,fiscalYearId:1,leave_type:1,balance:1, monthStart: {$month: '$startDate'}}};
+    let matchQuery = {$match: {"emp_id": empId}}
+    console.log("month = ",month)
+    if (month != null && month != undefined) {
+        matchQuery = {$match: {"monthStart": parseInt(month)}}
+    }
+
     LeaveBalance.aggregate(
         // Pipeline
-        [
-            // Stage 1
+        [   projectQuery,
             {
-                $match: {
-                    $or: [{ "emp_id": empId, "fiscalYearId": _fiscalYearId, "leave_type": 1 },
-                    { "emp_id": empId, "fiscalYearId": _fiscalYearId, "leave_type": 2 },
-                    { "emp_id": empId, "leave_type": 3 },
-                    { "emp_id": empId, "leave_type": 4 }]
+                 $match: {
+                     $or: [{ "emp_id": empId, "fiscalYearId": _fiscalYearId, "leave_type": 1 },
+                     { "emp_id": empId, "fiscalYearId": _fiscalYearId, "leave_type": 2 },
+                     { "emp_id": empId, "leave_type": 3 },
+                     { "emp_id": empId, "leave_type": 4 }]
 
-                }
+                 }
             },
+            matchQuery,
+            // Stage 1
+//            {
+//                $match: {
+//                    $or: [{ "emp_id": empId, "fiscalYearId": _fiscalYearId, "leave_type": 1 },
+//                    { "emp_id": empId, "fiscalYearId": _fiscalYearId, "leave_type": 2 },
+//                    { "emp_id": empId, "leave_type": 3 },
+//                    { "emp_id": empId, "leave_type": 4 }]
+//
+//                }
+//            },
 
             // Stage 2
-            {
-                $project: {
-                    leave_type: 1,
-                    balance: 1
-                }
-            },
+//            {
+//                $project: {
+//                    leave_type: 1,
+//                    balance: 1,
+//                    monthStart:1,
+//                }
+//            },
 
         ]
     ).exec(function (err, results1) {
+        console.log(results1)
         if (err) {
             return res.status(403).json({
                 title: 'Error',
@@ -335,7 +354,7 @@ function leaveWorkflowDetails(req, applied_by_id, step) {
 }
 let functions = {
     getLeaveBalance: (req, res) => {
-        singleEmployeeLeaveBalance(req.query.empId, req.query.fiscalYearId, res);
+        singleEmployeeLeaveBalance(req.query.empId, req.query.fiscalYearId, req.query.month, res);
     },
     postApplyLeave: (req, res) => {
         async.waterfall([
