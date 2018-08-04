@@ -304,6 +304,7 @@ let express  = require('express'),
 //        leaveRoutes.post('/cancelLeave', leave.postCancelLeave);
 //        leaveRoutes.get('/getCancelEmployeeLeaveDetails', leave.getCancelEmployeeLeaveDetails);
 //        leaveRoutes.get('/getLeaveWorkflowDetails', leave.getLeaveWorkflowDetails);
+       leaveRoutes.get('/getSupervisorTeamMember', leave.getSupervisorTeamMember);
        leaveRoutes.get('/getSupervisorLeaveDetails', leave.getSupervisorLeaveDetails);
 //        leaveRoutes.get('/getHRLeaveDetails', leave.getHRLeaveDetails);
 //        leaveRoutes.get('/getLeaveDetailsById', leave.getLeaveDetailsById);

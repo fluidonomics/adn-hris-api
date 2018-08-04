@@ -700,6 +700,106 @@ let functions = {
             return res.status(200).json({ "data": results });
         });
     },
+    getSupervisorTeamMember: (req, res) => {
+        let primaryEmpId = req.query.empId;
+        let month = req.query.month;
+        let year = req.query.year;
+        let projectQuery = {$project: {isActive: 1, primarySupervisorEmp_id:1, emp_id:1,leaveTypeName:{
+            _id:1, type:1
+        }, leavedetails:{days:1, leave_type:1}, monthStart: {$month: '$leavedetails.fromDate'}, yearStart: {$year: '$leavedetails.fromDate'}}};
+        let queryObj = {'$match':{ "isActive": true}};
+        if (month) {
+            queryObj = {'$match':{month:parseInt(month)}}
+        } 
+        SupervisorInfo.aggregate([
+            { "$match": { "isActive": true, "primarySupervisorEmp_id": parseInt(primaryEmpId) } },
+
+            
+            {
+                "$lookup": {
+                    "from": "employeedetails",
+                    "localField": "emp_id",
+                    "foreignField": "_id",
+                    "as": "employeeDetails"
+                }
+            },
+            {
+                "$unwind": {
+                    path: "$employeeDetails",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "leaveapplieddetails",
+                    "localField": "emp_id",
+                    "foreignField": "emp_id",
+                    "as": "leavedetails"
+                }
+            },
+            {
+                "$unwind": {
+                    path: "$leavedetails",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                "$project": {
+                    _id:1,
+                    isActive:1,
+                    "month" :{$month:"$leavedetails.fromDate"},
+                    // "year" :{$year:"$leavedetails.fromDate"},
+                    employeeDetails: {
+                        "_id": 1,
+                        "userName": 1,
+                        "grade_id": 1,
+                        "company_id": 1,
+                        "designation_id": 1,
+                        "employmentType_id": 1,
+                        "fullName": 1,
+                        "isAccountActive": 1,
+                        "isDeleted": 1,
+                        "profileImage": 1
+                    },
+                    leavedetails: {
+                        "fromDate": 1,
+                        "toDate": 1,
+                        "days": 1,
+                        "leave_type":1
+                        
+                    }
+                }
+            },
+            // projectQuery,
+            
+            queryObj,
+            // {
+            //     $group: {
+            //         _id:"$employeeDetails._id",
+            //         employeeDetails:{$first:"$employeeDetails"},
+            //         leavedetails:{$first:"$leavedetails"},
+            //         // yearStart:{$first:"$yearStart"},
+            //         // monthStart:{$first:"$monthStart"},
+            //         // isActive:{$first:"$isActive"},
+            //         // totalAppliedLeaves: { $sum: "$leavedetails.days" }
+            //     }
+            // },
+
+        ]).exec(function (err, results) {
+            if (err) {
+                return res.status(403).json({
+                    title: 'There is a problem',
+                    error: {
+                        message: err
+                    },
+                    result: {
+                        message: results
+                    }
+                });
+            }
+            return res.status(200).json({ "data": results });
+        });
+    },
 
 
 
