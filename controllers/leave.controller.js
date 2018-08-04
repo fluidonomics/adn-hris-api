@@ -16,6 +16,8 @@ let express = require('express'),
     userService = require('../controllers/user.controller'),
     EmployeeInfo = require('../models/employee/employeeDetails.model'),
     FinancialYear = require('../models/master/financialYear.model'),
+    SupervisorInfo    = require('../models/employee/employeeSupervisorDetails.model'),
+
     config = require('../config/config'),
     crypto = require('crypto'),
     async = require('async'),
@@ -24,28 +26,42 @@ let express = require('express'),
     sgTransport = require('nodemailer-sendgrid-transport'),
     uuidV1 = require('uuid/v1');
 require('dotenv').load()
-function singleEmployeeLeaveBalance(currentEmpId, fiscalYearId, month, res) {
+function singleEmployeeLeaveBalance(currentEmpId, fiscalYearId, month, year, res) {
     let empId = parseInt(currentEmpId);
     let _fiscalYearId = parseInt(fiscalYearId);
-    let projectQuery = {$project: {emp_id: 1,fiscalYearId:1,leave_type:1,balance:1, monthStart: {$month: '$startDate'}}};
+    let projectQuery = {$project: {emp_id: 1,fiscalYearId:1,leave_type:1,balance:1, monthStart: {$month: '$startDate'}, yearStart: {$year: '$startDate'}}};
     let matchQuery = {$match: {"emp_id": empId}}
-    console.log("month = ",month)
+    let query = {};
     if (month != null && month != undefined) {
         matchQuery = {$match: {"monthStart": parseInt(month)}}
     }
-
+    if (year != null && year != undefined) {
+        // matchQuery = {$match: {"yearStart": parseInt(year)}};
+        query =  {
+            $match: {
+                $or: [{ "emp_id": empId, "yearStart": parseInt(year), "leave_type": 1 },
+                { "emp_id": empId, "yearStart": parseInt(year), "leave_type": 2 },
+                { "emp_id": empId, "leave_type": 3 },
+                { "emp_id": empId, "leave_type": 4 }]
+    
+            }
+        }
+    } else {
+        query =  {
+            $match: {
+                $or: [{ "emp_id": empId, "fiscalYearId": _fiscalYearId, "leave_type": 1 },
+                { "emp_id": empId, "fiscalYearId": _fiscalYearId, "leave_type": 2 },
+                { "emp_id": empId, "leave_type": 3 },
+                { "emp_id": empId, "leave_type": 4 }]
+    
+            }
+        }
+    }
+    
     LeaveBalance.aggregate(
         // Pipeline
         [   projectQuery,
-            {
-                 $match: {
-                     $or: [{ "emp_id": empId, "fiscalYearId": _fiscalYearId, "leave_type": 1 },
-                     { "emp_id": empId, "fiscalYearId": _fiscalYearId, "leave_type": 2 },
-                     { "emp_id": empId, "leave_type": 3 },
-                     { "emp_id": empId, "leave_type": 4 }]
-
-                 }
-            },
+            query,
             matchQuery,
             // Stage 1
 //            {
@@ -111,7 +127,7 @@ function singleEmployeeLeaveBalance(currentEmpId, fiscalYearId, month, res) {
                         $or: [
                             { "status": "Applied" }, //leave approved
                             { "status": "Applied (Pending)" }, //leave approved and pending to approve cancellation
-                            { "status": null} //when leave applied
+                            // { "status": null} //when leave applied
                             //{ "isApproved": true, "isCancelled": true} //leave approved and cancel approved --not counted
                             //{ "isApproved": null, "isCancelled": true} //leave applied and cancel approved  --not counted
                             //{ "isApproved": false } //leave applied and rejected  --not counted
@@ -141,6 +157,7 @@ function singleEmployeeLeaveBalance(currentEmpId, fiscalYearId, month, res) {
                 let response = [];
                 let leaveType = ["Annual Leave", "Sick Leave", "Maternity Leave", "Special Leave"]
                 results1.forEach((x) => {
+                    console.log(x)
                     const balLeaveObj = results2.find(p => p._id === x.leave_type);
                     obj = {
 
@@ -151,17 +168,20 @@ function singleEmployeeLeaveBalance(currentEmpId, fiscalYearId, month, res) {
                     response.push(obj);
 
                 })
+                console.log("1",results2)
                 results2.forEach((x) => {
                     const balLeaveObj = results1.find(p => p.leave_type === x._id);
                      if (balLeaveObj === undefined) {
                         obj = {
-                            'leaveType': leaveType[x.leave_type-1],
+                            'leaveType': leaveType[x._id-1],
                             'appliedLeave': Math.round(x.totalAppliedLeaves),
-                            'allotedLeave': Math.round(balLeaveObj.balance)
+                            'allotedLeave': (x.balance == null || x.balance == undefined) ? 0 : Math.round(x.balance)
                         };
                         response.push(obj);
                      }
                 })
+                console.log("2",response)
+
                 leaveType.forEach((x) => {
 
                     let result = response.filter(obj => {
@@ -176,6 +196,7 @@ function singleEmployeeLeaveBalance(currentEmpId, fiscalYearId, month, res) {
                     }
 
                 })
+
                 return res.status(200).json(response);
             })
     });
@@ -354,7 +375,7 @@ function leaveWorkflowDetails(req, applied_by_id, step) {
 }
 let functions = {
     getLeaveBalance: (req, res) => {
-        singleEmployeeLeaveBalance(req.query.empId, req.query.fiscalYearId, req.query.month, res);
+        singleEmployeeLeaveBalance(req.query.empId, req.query.fiscalYearId, req.query.month, req.query.year, res);
     },
     postApplyLeave: (req, res) => {
         async.waterfall([
@@ -603,6 +624,83 @@ let functions = {
             });
         })
     },
+    getSupervisorLeaveDetails: (req, res) => {
+        let primaryEmpId = req.query.empId;
+        let month = req.query.month;
+        let year = req.query.year;
+        let projectQuery = {$project: {isActive: 1, primarySupervisorEmp_id:1, emp_id:1,leaveTypeName:{
+            _id:1, type:1
+        }, leavedetails:{days:1, leave_type:1}, monthStart: {$month: '$leavedetails.fromDate'}, yearStart: {$year: '$leavedetails.fromDate'}}};
+        let queryObj = {'$match':{}};
+        queryObj['$match']['$and']=[{ "isActive": true}]
+        
+        
+        if (month) {
+            queryObj['$match']["$and"].push({monthStart:parseInt(month)})
+        } 
+        if (year) {
+            queryObj['$match']["$and"].push({yearStart:parseInt(year)})
+        } 
+        SupervisorInfo.aggregate([
+            { "$match": { "isActive": true, "primarySupervisorEmp_id": parseInt(primaryEmpId) } },
+
+            {
+                "$lookup": {
+                    "from": "leaveapplieddetails",
+                    "localField": "emp_id",
+                    "foreignField": "emp_id",
+                    "as": "leavedetails"
+                }
+            },
+            {
+                "$unwind": {
+                    path: "$leavedetails",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "leaveTypes",
+                    "localField": "leavedetails.leave_type",
+                    "foreignField": "_id",
+                    "as": "leaveTypeName"
+                }
+            },
+            {
+                "$unwind": {
+                    path: "$leaveTypeName",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            projectQuery,
+            {
+                $group: {
+                    _id:"$leaveTypeName._id",
+                    leaveTypeName:{$first:"$leaveTypeName.type"},
+                    yearStart:{$first:"$yearStart"},
+                    monthStart:{$first:"$monthStart"},
+                    isActive:{$first:"$isActive"},
+                    totalAppliedLeaves: { $sum: "$leavedetails.days" }
+                }
+            },
+            queryObj
+
+        ]).exec(function (err, results) {
+            if (err) {
+                return res.status(403).json({
+                    title: 'There is a problem',
+                    error: {
+                        message: err
+                    },
+                    result: {
+                        message: results
+                    }
+                });
+            }
+            return res.status(200).json({ "data": results });
+        });
+    },
+
 
 
 }
