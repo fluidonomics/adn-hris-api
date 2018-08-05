@@ -496,6 +496,7 @@ let functions = {
                     toDate:{$first:"$toDate"},
                     status:{$first:"$status"},
                     days:{$first:"$days"},
+                    reason:{$first:"$reason"},
                 }
             },
 
@@ -676,7 +677,7 @@ let functions = {
         let year = req.query.year;
         let projectQuery = {$project: {isActive: 1, primarySupervisorEmp_id:1, emp_id:1,leaveTypeName:{
             _id:1, type:1
-        }, leavedetails:{days:1, leave_type:1}, monthStart: {$month: '$leavedetails.fromDate'}, yearStart: {$year: '$leavedetails.fromDate'}}};
+        }, leavedetails:{days:1, leave_type:1, fromDate:1}, monthStart: {$month: '$leavedetails.fromDate'}, yearStart: {$year: '$leavedetails.fromDate'}}};
         let queryObj = {'$match':{}};
         queryObj['$match']['$and']=[{ "isActive": true}]
         
@@ -916,12 +917,27 @@ let functions = {
                 }
             },
             {
+                "$lookup": {
+                    "from": "leaveTypes",
+                    "localField": "leavedetails.leave_type",
+                    "foreignField": "_id",
+                    "as": "leavedetails.leaveTypeName"
+                }
+            },
+            {
+                "$unwind": {
+                    path: "$leavedetails.leaveTypeName",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
                 "$project": {
                     _id:1,
                     isActive:1,
                     "month" :{$month:"$leavedetails.fromDate"},
                     "year" :{$year:"$leavedetails.fromDate"},
-                    "leaveType":"$leavedetails.leave_type",
+                    "leave_type":"$leavedetails.leaveTypeName._id",
+                    "leaveTypeName":"$leavedetails.leaveTypeName.type",
                     employeeDetails: {
                         "_id": 1,
                         "userName": 1,
@@ -934,6 +950,7 @@ let functions = {
                         "leave_type":1,
                         "createdAt":1,
                         "updatedAt":1,
+
                         "createdByName":{
                             "_id":1,
                             "fullName":1
