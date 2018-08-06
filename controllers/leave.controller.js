@@ -181,7 +181,8 @@ function singleEmployeeLeaveBalance(currentEmpId, fiscalYearId, month, year, res
 
                         'leaveType': leaveType[x.leave_type-1],
                         'appliedLeave': Math.round( (balLeaveObj === undefined ? 0 : balLeaveObj.totalAppliedLeaves)),
-                        'allotedLeave': Math.round(x.balance)
+                        'allotedLeave': Math.round(x.balance),
+                        'leaveBalance': Math.round(x.balance) - (Math.round( (balLeaveObj === undefined ? 0 : balLeaveObj.totalAppliedLeaves)))
                     };
                     response.push(obj);
 
@@ -193,7 +194,8 @@ function singleEmployeeLeaveBalance(currentEmpId, fiscalYearId, month, year, res
                         obj = {
                             'leaveType': leaveType[x._id-1],
                             'appliedLeave': Math.round(x.totalAppliedLeaves),
-                            'allotedLeave': (x.balance == null || x.balance == undefined) ? 0 : Math.round(x.balance)
+                            'allotedLeave': (x.balance == null || x.balance == undefined) ? 0 : Math.round(x.balance),
+                            'leaveBalance': (x.balance == null || x.balance == undefined) ? 0 : Math.round(x.balance) - Math.round(x.totalAppliedLeaves)
                         };
                         response.push(obj);
                      }
@@ -207,7 +209,8 @@ function singleEmployeeLeaveBalance(currentEmpId, fiscalYearId, month, year, res
                         response.push({
                             'leaveType': x,
                             'appliedLeave': 0,
-                            'allotedLeave': 0
+                            'allotedLeave': 0,
+                            'leaveBalance': 0
                            })
                     }
 
@@ -727,7 +730,7 @@ let functions = {
                     yearStart:{$first:"$yearStart"},
                     monthStart:{$first:"$monthStart"},
                     isActive:{$first:"$isActive"},
-                    totalAppliedLeaves: { $sum: "$leavedetails.days" }
+                    totalAppliedLeaves: { $sum: "$leavedetails.days" },
                 }
             },
             queryObj
@@ -856,7 +859,10 @@ let functions = {
         } 
         if (req.query.leave_type) {
             leave_type = req.query.leave_type;
-            queryObj['$match']['$and'].push({leaveType:parseInt(leave_type)})
+            queryObj['$match']['$and'].push({leave_type:parseInt(leave_type)})
+        }
+        if (req.query.status) {
+            queryObj['$match']['$and'].push({leaveStatus:req.query.status})
         } 
         SupervisorInfo.aggregate([
             matchQuery,
@@ -934,10 +940,11 @@ let functions = {
                 "$project": {
                     _id:1,
                     isActive:1,
-                    "month" :{$month:"$leavedetails.fromDate"},
-                    "year" :{$year:"$leavedetails.fromDate"},
+                    "month" :{$month:new Date("$leavedetails.fromDate")},
+                    "year" :{$year:new Date("$leavedetails.fromDate")},
                     "leave_type":"$leavedetails.leaveTypeName._id",
                     "leaveTypeName":"$leavedetails.leaveTypeName.type",
+                    "leaveStatus":"$leavedetails.status",
                     employeeDetails: {
                         "_id": 1,
                         "userName": 1,
