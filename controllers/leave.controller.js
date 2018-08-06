@@ -942,8 +942,8 @@ let functions = {
                 "$project": {
                     _id:1,
                     isActive:1,
-                    "month" :{$month:new Date("$leavedetails.fromDate")},
-                    "year" :{$year:new Date("$leavedetails.fromDate")},
+                    "month" :{$month:"$leavedetails.fromDate"},
+                    "year" :{$year:"$leavedetails.fromDate"},
                     "leave_type":"$leavedetails.leaveTypeName._id",
                     "leaveTypeName":"$leavedetails.leaveTypeName.type",
                     "leaveStatus":"$leavedetails.status",
