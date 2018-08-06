@@ -301,7 +301,7 @@ let express  = require('express'),
 //        leaveRoutes.get('/leaveTransactionDetails', leave.getLeaveTransaction);
 //        leaveRoutes.get('/getEmployeeLeaveDetails', leave.getEmployeeLeaveDetails);
         leaveRoutes.get('/getLeaveTypes', leave.getLeaveTypes);
-//        leaveRoutes.post('/cancelLeave', leave.postCancelLeave);
+       leaveRoutes.post('/cancelLeave', leave.postCancelLeave);
 //        leaveRoutes.get('/getCancelEmployeeLeaveDetails', leave.getCancelEmployeeLeaveDetails);
 //        leaveRoutes.get('/getLeaveWorkflowDetails', leave.getLeaveWorkflowDetails);
        leaveRoutes.get('/getSupervisorTeamMember', leave.getSupervisorTeamMember);
@@ -329,7 +329,7 @@ let express  = require('express'),
 //        leaveRoutes.get('/getEmployeeProbationDetails', leave.getEmployeeProbationDetails);
 //        leaveRoutes.post('/postLeaveTransactionYear', leave.postLeaveTransactionYear);
 //        leaveRoutes.post('/grantMaternityLeave', leave.grantMaternityLeave);
-//        leaveRoutes.get('/getEmpMaternityLeaveDetails', leave.getEmpMaternityLeaveDetails);
+       leaveRoutes.get('/getEmpMaternityLeaveDetails', leave.getEmpMaternityLeaveDetails);
         
       //= ========================
 

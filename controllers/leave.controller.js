@@ -178,7 +178,6 @@ function singleEmployeeLeaveBalance(currentEmpId, fiscalYearId, month, year, res
                     console.log(x)
                     const balLeaveObj = results2.find(p => p._id === x.leave_type);
                     obj = {
-
                         'leaveTypeId': x.leave_type,
                         'leaveType': leaveType[x.leave_type-1],
                         'appliedLeave': Math.round( (balLeaveObj === undefined ? 0 : balLeaveObj.totalAppliedLeaves)),
@@ -392,6 +391,53 @@ function leaveWorkflowDetails(req, applied_by_id, step) {
         });
     } catch (e) {
     }
+
+}
+function cancelLeave(req, res, done) {
+    let cancelLeaveDetals = {
+        $set: {
+            cancelLeaveApplyTo: parseInt(req.body.cancelLeaveApplyTo),
+            updatedBy: parseInt(req.body.updatedBy),
+            cancelReason: req.body.cancelReason,
+            reason: req.body.reason,
+            status: req.body.status
+        }
+    };
+    var query = {
+        _id: parseInt(req.body.id),
+        isDeleted: false
+    }
+
+
+    LeaveApply.findOneAndUpdate(query, cancelLeaveDetals, {
+        new: true
+    }, function (err, _leaveDetails) {
+        if (err) {
+            return res.status(403).json({
+                title: 'There was a problem',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: _leaveDetails
+                }
+            });
+        }
+        leaveWorkflowDetails(_leaveDetails, req.body.updatedBy, 'cancelled');
+        if (req.body.ccTo && req.body.ccTo != "") {
+            var ccToList = req.body.ccTo.split(',');
+
+            ccToList.forEach((x) => {
+                try {
+                    var emailWithName = x.split('~');
+                    EmailDetails.sendToCCEmail(emailWithName[1], emailWithName[0]);
+                }
+                catch (e) {
+                }
+            })
+        }
+        return done(err, _leaveDetails);
+    })
 
 }
 let functions = {
@@ -991,6 +1037,15 @@ let functions = {
             return res.status(200).json({ "data": results });
         });
     },
+    postCancelLeave: (req, res) => {
+        async.waterfall([
+            function (done) {
+                cancelLeave(req, res, done);
+            }, function (_cancelLeaveDetails, done) {
+                return res.status(200).json(_cancelLeaveDetails);
+            }
+        ])
+    },
     withdrawLeave: (req, res) => {
         var query = {
             _id: req.body._id,
@@ -1000,27 +1055,27 @@ let functions = {
         
         LeaveApply.findOne(query, function(err, leaveapplydetails){
             let updateQuery;
-            if (rleaveapplydetails.status == 'Approved') {
+            if (leaveapplydetails.status == 'Approved') {
                 updateQuery = {
                     $set: {
                         updatedDate: new Date(),
                         updatedBy: parseInt(leaveapplydetails.emp_id),
-                        remark: req.body.remarks,
+                        remarks: (req.body.remarks == undefined || req.body.reason)?leaveapplydetails.reason:req.body.reason,
                         status: "Withdraw (Pending)",
-                        reason: req.body.reason
+                        reason: (req.body.reason == undefined || req.body.reason)?leaveapplydetails.reason:req.body.reason,
                     }
                 };
             } else {
                 updateQuery = {
                     $set: {
                         updatedDate: new Date(),
-                        updatedBy: parseInt(req.body.emp_id),
+                        updatedBy: parseInt(leaveapplydetails.emp_id),
                         status: "Withdrawn",
-                        reason: req.body.reason
+                        reason: (req.body.reason == undefined || req.body.reason)?leaveapplydetails.reason:req.body.reason,
                     }
                 };
             }
-            LeaveApply.findOneAndUpdate(query, updateQuery, {
+            LeaveApply.update(query, updateQuery, {
                 new: true
             }, function (err, _leaveDetails) {
                 console.log(_leaveDetails)
@@ -1040,6 +1095,24 @@ let functions = {
             })
         })
         
+    },
+    getEmpMaternityLeaveDetails: (req, res) => {
+        let query = {
+            'isDeleted': false,
+            'emp_id': parseInt(req.query.id),
+            'leave_type': 3
+        };
+        LeaveBalance.find(query, function (err, maternityLeaveDetails) {
+            if (maternityLeaveDetails) {
+                return res.status(200).json({ "result": maternityLeaveDetails });
+            }
+            return res.status(403).json({
+                title: 'Error',
+                error: {
+                    message: err
+                }
+            });
+        })
     }
 
 }
