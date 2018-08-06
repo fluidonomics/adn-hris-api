@@ -1379,35 +1379,75 @@ function getEmployeeDetails(req, res) {
                          "preserveNullAndEmptyArrays": true
                      }
                  },
+                 {
+                    "$lookup": {
+                        "from": "employeeofficedetails",
+                        "localField": "emp_id",
+                        "foreignField": "emp_id",
+                        "as": "employeeOfficeDetails"
+                    }
+                },
+                {
+                    "$unwind": {
+                        path: "$employeeOfficeDetails",
+                        "preserveNullAndEmptyArrays": true
+                    }
+                },
+                {
+                    "$lookup": {
+                        "from": "employmentstatuses",
+                        "localField": "employeeOfficeDetails.employmentStatus_id",
+                        "foreignField": "_id",
+                        "as": "employeeOfficeDetails.employmentstatus"
+                    }
+                },
+                {
+                    "$unwind": {
+                        path: "$employeeOfficeDetails.employmentstatus",
+                        "preserveNullAndEmptyArrays": true
+                    }
+                },
 
-//                {
-//                    "$project": {
-//                        "_id": "$_id",
-//                        "gender": 1,
-//                        "probationDetails" : {
-//                            "_id" : "$_id",
-//                            "probationPeriod": 1,
-//                            "isActive":1,
-//                        },
-//                        "supervisorDetails": {
-//                               "_id" : 1,
-//                               "emp_id" : 1,
-//                               "leaveSupervisorDetails": {
-//                                "_id" : 1,
-//                                "fullName":1
-//                               },
-//                               "leaveSupervisorDetails": {
-//                                   "_id" : 1,
-//                                   "fullName":1
-//                               },
-//                               "leaveSupervisorDetails": {
-//                                   "_id" : 1,
-//                                   "fullName":1
-//                              }
-//                         }
-//
-//                    }
-//                }
+               {
+                   "$project": {
+                       "employeeOfficeDetails": {
+                            "_id": 0,
+                            "updatedAt": 0,
+                            "createdAt": 0,
+                            "emp_id": 0,
+                            "isCompleted": 0,
+                            "isDeleted": 0,
+                            "updatedBy": 0,
+                            "createdBy": 0,
+                            "hrspoc_id": 0,
+                            "reviewer_id": 0,
+                            "employeeCategory": 0,
+                            "workPermitExpiryDate": 0,
+                            "workPermitEffectiveDate": 0,
+                            "workPermitNumber": 0,
+                            "tenureOfContract": 0,
+                            "subVertical_id": 0,
+                            "vertical_id": 0,
+                            "department_id": 0,
+                            "division_id": 0,
+                            "businessHrHead_id": 0,
+                            "groupHrHead_id": 0,
+                            "jobTitle": 0,
+                            "managementType_id": 0,
+                            "dateOfConfirmation": 0,
+                            "dateOfJoining": 0,
+                            "costCentre": 0,
+                            "country": 0,
+                            "city": 0,
+                            "facility_id": 0,
+                            "officeMobile": 0,
+                            "officePhone": 0,
+                            "officeEmail": 0,
+                            "idCardNumber": 0,
+                        }
+
+                   }
+               }
 
             ]).exec(function (err, results) {
                 if (err) {
