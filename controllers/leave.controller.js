@@ -179,6 +179,7 @@ function singleEmployeeLeaveBalance(currentEmpId, fiscalYearId, month, year, res
                     const balLeaveObj = results2.find(p => p._id === x.leave_type);
                     obj = {
 
+                        'leaveTypeId': x.leave_type,
                         'leaveType': leaveType[x.leave_type-1],
                         'appliedLeave': Math.round( (balLeaveObj === undefined ? 0 : balLeaveObj.totalAppliedLeaves)),
                         'allotedLeave': Math.round(x.balance),
@@ -192,6 +193,7 @@ function singleEmployeeLeaveBalance(currentEmpId, fiscalYearId, month, year, res
                     const balLeaveObj = results1.find(p => p.leave_type === x._id);
                      if (balLeaveObj === undefined) {
                         obj = {
+                            'leaveTypeId': x._id,
                             'leaveType': leaveType[x._id-1],
                             'appliedLeave': Math.round(x.totalAppliedLeaves),
                             'allotedLeave': (x.balance == null || x.balance == undefined) ? 0 : Math.round(x.balance),
@@ -200,13 +202,13 @@ function singleEmployeeLeaveBalance(currentEmpId, fiscalYearId, month, year, res
                         response.push(obj);
                      }
                 })
-                leaveType.forEach((x) => {
-
-                    let result = response.filter(obj => {
+                leaveType.forEach((x, index) => {
+                    let result = response.filter((obj) => {
                       return obj.leaveType === x
                     })
                     if (result.length == 0) {
                         response.push({
+                            'leaveTypeId': parseInt(index)+1,
                             'leaveType': x,
                             'appliedLeave': 0,
                             'allotedLeave': 0,
@@ -989,7 +991,56 @@ let functions = {
             return res.status(200).json({ "data": results });
         });
     },
-
+    withdrawLeave: (req, res) => {
+        var query = {
+            _id: req.body._id,
+            isDeleted: false,
+            fromDate: { $gt: new Date() } 
+        }
+        
+        LeaveApply.findOne(query, function(err, leaveapplydetails){
+            let updateQuery;
+            if (rleaveapplydetails.status == 'Approved') {
+                updateQuery = {
+                    $set: {
+                        updatedDate: new Date(),
+                        updatedBy: parseInt(leaveapplydetails.emp_id),
+                        remark: req.body.remarks,
+                        status: "Withdraw (Pending)",
+                        reason: req.body.reason
+                    }
+                };
+            } else {
+                updateQuery = {
+                    $set: {
+                        updatedDate: new Date(),
+                        updatedBy: parseInt(req.body.emp_id),
+                        status: "Withdrawn",
+                        reason: req.body.reason
+                    }
+                };
+            }
+            LeaveApply.findOneAndUpdate(query, updateQuery, {
+                new: true
+            }, function (err, _leaveDetails) {
+                console.log(_leaveDetails)
+                if (err) {
+                    return res.status(403).json({
+                        title: 'There was a problem',
+                        error: {
+                            message: err
+                        },
+                        result: {
+                            message: _leaveDetails
+                        }
+                    });
+                }
+                leaveWorkflowDetails(_leaveDetails, req.body.updatedBy, 'cancelled');
+                return res.status(200).json( _leaveDetails);
+            })
+        })
+        
+    }
 
 }
 
