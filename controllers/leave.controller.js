@@ -62,36 +62,13 @@ function singleEmployeeLeaveBalance(currentEmpId, fiscalYearId, month, year, res
             }
         }
     }
-    console.log(query)
-    console.log(matchQuery)
     LeaveBalance.aggregate(
         // Pipeline
         [   projectQuery,
             query,
             matchQuery,
-            // Stage 1
-//            {
-//                $match: {
-//                    $or: [{ "emp_id": empId, "fiscalYearId": _fiscalYearId, "leave_type": 1 },
-//                    { "emp_id": empId, "fiscalYearId": _fiscalYearId, "leave_type": 2 },
-//                    { "emp_id": empId, "leave_type": 3 },
-//                    { "emp_id": empId, "leave_type": 4 }]
-//
-//                }
-//            },
-
-            // Stage 2
-//            {
-//                $project: {
-//                    leave_type: 1,
-//                    balance: 1,
-//                    monthStart:1,
-//                }
-//            },
-
         ]
     ).exec(function (err, results1) {
-        console.log(results1)
         if (err) {
             return res.status(403).json({
                 title: 'Error',
@@ -175,7 +152,6 @@ function singleEmployeeLeaveBalance(currentEmpId, fiscalYearId, month, year, res
                 let response = [];
                 let leaveType = ["Annual Leave", "Sick Leave", "Maternity Leave", "Special Leave"]
                 results1.forEach((x) => {
-                    console.log(x)
                     const balLeaveObj = results2.find(p => p._id === x.leave_type);
                     obj = {
                         'leaveTypeId': x.leave_type,
@@ -187,7 +163,6 @@ function singleEmployeeLeaveBalance(currentEmpId, fiscalYearId, month, year, res
                     response.push(obj);
 
                 })
-                console.log("1",results2)
                 results2.forEach((x) => {
                     const balLeaveObj = results1.find(p => p.leave_type === x._id);
                      if (balLeaveObj === undefined) {
@@ -519,7 +494,6 @@ let functions = {
         if (req.query.status) {
             queryObj['$match']["$and"].push({status:req.query.status})
         }
-        console.log(queryObj['$match'])
         LeaveApply.aggregate([
             projectQuery,
             queryObj,
@@ -1078,7 +1052,6 @@ let functions = {
             LeaveApply.update(query, updateQuery, {
                 new: true
             }, function (err, _leaveDetails) {
-                console.log(_leaveDetails)
                 if (err) {
                     return res.status(403).json({
                         title: 'There was a problem',
@@ -1113,7 +1086,177 @@ let functions = {
                 }
             });
         })
-    }
+    },
+    getLeaveDetailsById: (req, res) => {
+        LeaveApply.aggregate([
+            { "$match": { "isDeleted": false, "_id": parseInt(req.query.id) } },
+            
+            {
+                "$lookup": {
+                    "from": "employeedetails",
+                    "localField": "emp_id",
+                    "foreignField": "_id",
+                    "as": "emp_name"
+                }
+            },
+            {
+                "$unwind": {
+                    path: "$emp_name",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "employeedetails",
+                    "localField": "forwardTo",
+                    "foreignField": "_id",
+                    "as": "forwardTo_name"
+                }
+            },
+            {
+                "$unwind": {
+                    path: "$forwardTo_name",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "employeedetails",
+                    "localField": "applyTo",
+                    "foreignField": "_id",
+                    "as": "sup_name"
+                }
+            },
+            {
+                "$unwind": {
+                    path: "$sup_name",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "employeedetails",
+                    "localField": "cancelLeaveApplyTo",
+                    "foreignField": "_id",
+                    "as": "cancelLeave_ApplyTo"
+                }
+            },
+            {
+                "$unwind": {
+                    path: "$cancelLeave_ApplyTo",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "leaveTypes",
+                    "localField": "leave_type",
+                    "foreignField": "_id",
+                    "as": "leaveTypes"
+                }
+            },
+            {
+                "$unwind": {
+                    path: "$leaveTypes",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "employeeofficedetails",
+                    "localField": "emp_id",
+                    "foreignField": "emp_id",
+                    "as": "employeeofficedetails"
+                }
+            },
+            {
+                "$unwind": {
+                    path: "$employeeofficedetails",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            // {
+            //     "$project": {
+            //         "_id": "$_id",
+            //         "emp_id": "$emp_id",
+            //         "emp_name": "$emp_name.fullName",
+            //         "leave_type": "$leave_type",
+            //         "leave_type_name": "$leaveTypes.type",
+            //         "forwardTo": "$forwardTo",
+            //         "forwardTo_FullName": "$forwardTo_name.fullName",
+            //         "remark": "$remark",
+            //         "cancelLeaveApplyTo": "$cancelLeaveApplyTo",
+            //         "cancelLeaveApplyTo_name": "$cancelLeave_ApplyTo.fullName",
+            //         "cancelReason": "$cancelReason",
+            //         "isCancelled": "$isCancelled",
+            //         "isApproved": "$isApproved",
+            //         "ccTo": "$ccTo",
+            //         "contactDetails": "$contactDetails",
+            //         "applyTo": "$applyTo",
+            //         "applyTo_name": "$sup_name.fullName",
+            //         "toDate": "$toDate",
+            //         "fromDate": "$fromDate",
+            //         "reason": "$reason",
+            //         "status": '$status',
+            //         "employmentStatus": "$employeeofficedetails.employmentStatus_id"
+            //     }
+            // }
+
+        ]).exec(function (err, results) {
+            if (err) {
+                return res.status(403).json({
+                    title: 'There is a problem',
+                    error: {
+                        message: err
+                    },
+                    result: {
+                        message: results
+                    }
+                });
+            }
+            return res.status(200).json({ "data": results });
+        });
+
+    },
+    cancelApproveLeave: (req, res) => {
+        var query = {
+            _id: parseInt(req.body.id),
+
+        }
+        if (req.body.status == 'Approved') {
+            updateQuery = {
+                $set: {
+                    status: "Approved",
+                    supervisorReason: req.body.reason,
+                }
+            };
+        } else {
+            updateQuery = {
+                $set: {
+                    status: "Rejected",
+                    supervisorReason: req.body.reason,
+                }
+            };
+        }
+        LeaveApply.findOneAndUpdate(query, updateQuery, {
+            new: true
+        }, function (err, _leaveDetails) {
+            if (err) {
+                return res.status(403).json({
+                    title: 'There was a problem',
+                    error: {
+                        message: err
+                    },
+                    result: {
+                        message: _leaveDetails
+                    }
+                });
+            }
+            // leaveWorkflowDetails(_leaveDetails, req.body.updatedBy, 'cancelled');
+            return res.status(200).json( _leaveDetails);
+        })
+        
+    },
 
 }
 

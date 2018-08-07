@@ -38,10 +38,8 @@ let functions =
             };
             this.transporter.sendMail(mailOptions, (err, info) => {
                 if (err) {
-
                     return console.log("RESULT ERROR = ", error2);
                 }
-                console.log("errr",err)
                 return res.status(200).json({ "message": "Email Send SuccessFully." });
             });
 
@@ -134,7 +132,6 @@ let functions =
                     uid: uuidV1()
                 }
             };
-            console.log(toemail)
             // send mail with defined transport object
             transporter.sendMail(mailOptions);
         }
