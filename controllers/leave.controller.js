@@ -136,7 +136,7 @@ function singleEmployeeLeaveBalance(currentEmpId, fiscalYearId, month, year, res
                 // Stage 3
                 {
                     $addFields: {
-                        "intDate": { $add: [{ $divide: ["$diffDate", 86400000] }, 1] }
+                        "intDate": { $add: [{ $divide: ["$diffDate", 86400000] }] }
                     }
                 },
 
