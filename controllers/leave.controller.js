@@ -113,7 +113,7 @@ function singleEmployeeLeaveBalance(currentEmpId, fiscalYearId, month, year, res
                 // Stage 3
                 {
                     $addFields: {
-                        "intDate": { $add: [{ $divide: ["$diffDate", 86400000] }] }
+                        "intDate": { $add: [{ $divide: ["$diffDate", 86400000] },1] }
                     }
                 },
 
@@ -133,7 +133,7 @@ function singleEmployeeLeaveBalance(currentEmpId, fiscalYearId, month, year, res
                 {
                     $group: {
                         _id: "$leave_type",
-                        totalAppliedLeaves: { $sum: "$intDate" }
+                        totalAppliedLeaves: { $sum: "$days" }
                     }
                 },
 
