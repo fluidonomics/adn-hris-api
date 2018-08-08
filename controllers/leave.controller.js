@@ -122,8 +122,8 @@ function singleEmployeeLeaveBalance(currentEmpId, fiscalYearId, month, year, res
                         $or: [
                             { "status": "Applied" }, //leave approved
                             { "status": "Approved)" }, //leave approved and pending to approve cancellation
-                            { "status": "Pending Withdrawal" },
-                            { "status": "Pending Cancellation" },
+                            { "status": "Pending Withdrawal" },//apply for withdraw leave,
+                            { "status": "Pending Cancellation" }//apply for cancel leave,
                             // { "status": null} //when leave applied
                             //{ "isApproved": true, "isCancelled": true} //leave approved and cancel approved --not counted
                             //{ "isApproved": null, "isCancelled": true} //leave applied and cancel approved  --not counted
@@ -1227,6 +1227,7 @@ let functions = {
             _id: parseInt(req.body.id),
 
         }
+        let updateQuery;
         if (req.body.status == 'Applied' && req.body.approved) {
             updateQuery = {
                 $set: {
