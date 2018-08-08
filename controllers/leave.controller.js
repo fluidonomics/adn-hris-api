@@ -973,6 +973,7 @@ let functions = {
                         "fullName": 1,
                     },
                     leavedetails: {
+                        "_id": 1,
                         "fromDate": 1,
                         "toDate": 1,
                         "days": 1,
