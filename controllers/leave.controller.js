@@ -265,8 +265,8 @@ function applyLeave(req, res, done) {
         } else {
 
             LeaveApply.find(query, function (err, details) {
-                const sd = new Date(new Date(req.body.fromDate) + 86400000),
-                      ed = new Date(new Date(req.body.toDate) + 86400000);
+                const sd = new Date(new Date(req.body.fromDate).getTime() + 86400000),
+                      ed = new Date(new Date(req.body.toDate).getTime() + 86400000);
                 for (let i = 0; i < details.length; i++) {
                 let fromDate =  new Date(details[i].fromDate),
                     toDate =  new Date(details[i].toDate);
