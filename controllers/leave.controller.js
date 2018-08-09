@@ -1026,8 +1026,8 @@ let functions = {
     withdrawLeave: (req, res) => {
         var query = {
             _id: req.body._id,
-            isDeleted: false,
-            fromDate: { $gt: new Date() } 
+            isDeleted: false
+            // fromDate: { $gt: new Date() } 
         }
         
         LeaveApply.findOne(query, function(err, leaveapplydetails){
@@ -1067,7 +1067,7 @@ let functions = {
                         }
                     });
                 }
-                leaveWorkflowDetails(_leaveDetails, req.body.updatedBy, 'cancelled');
+                // leaveWorkflowDetails(_leaveDetails, req.body.updatedBy, 'cancelled');
                 return res.status(200).json( _leaveDetails);
             })
         })
