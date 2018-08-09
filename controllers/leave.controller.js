@@ -705,7 +705,7 @@ let functions = {
         let status = req.query.status;
         let projectQuery = {$project: {isActive: 1, primarySupervisorEmp_id:1, emp_id:1,leaveTypeName:{
             _id:1, type:1
-        }, leavedetails:{days:1, leave_type:1, fromDate:1}, monthStart: {$month: '$leavedetails.fromDate'}, yearStart: {$year: '$leavedetails.fromDate'}}};
+        }, leavedetails:{days:1, leave_type:1, fromDate:1, status:1}, monthStart: {$month: '$leavedetails.fromDate'}, yearStart: {$year: '$leavedetails.fromDate'}}};
         let queryObj = {'$match':{}};
         queryObj['$match']['$and']=[{ "isActive": true}]
         
