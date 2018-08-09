@@ -121,7 +121,7 @@ function singleEmployeeLeaveBalance(currentEmpId, fiscalYearId, month, year, res
                     "$match": {
                         $or: [
                             { "status": "Applied" }, //leave approved
-                            { "status": "Approved)" }, //leave approved and pending to approve cancellation
+                            { "status": "Approved" }, //leave approved and pending to approve cancellation
                             { "status": "Pending Withdrawal" },//apply for withdraw leave,
                             { "status": "Pending Cancellation" }//apply for cancel leave,
                             // { "status": null} //when leave applied
