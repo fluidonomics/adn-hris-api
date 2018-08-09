@@ -1026,8 +1026,8 @@ let functions = {
     withdrawLeave: (req, res) => {
         var query = {
             _id: req.body._id,
-            isDeleted: false,
-            fromDate: { $gt: new Date() } 
+            isDeleted: false
+            // fromDate: { $gt: new Date() } 
         }
         
         LeaveApply.findOne(query, function(err, leaveapplydetails){
@@ -1067,7 +1067,7 @@ let functions = {
                         }
                     });
                 }
-                leaveWorkflowDetails(_leaveDetails, req.body.updatedBy, 'cancelled');
+                // leaveWorkflowDetails(_leaveDetails, req.body.updatedBy, 'cancelled');
                 return res.status(200).json( _leaveDetails);
             })
         })
@@ -1253,6 +1253,20 @@ let functions = {
             updateQuery = {
                 $set: {
                     status: "Cancelled",
+                    supervisorReason: req.body.reason,
+                }
+            };
+        }else if (req.body.status == 'Pending Withdrawal' && !req.body.withdrawn && (req.body.withdrawn != undefined)) {
+            updateQuery = {
+                $set: {
+                    status: "Applied",
+                    supervisorReason: req.body.reason,
+                }
+            };
+        } else if (req.body.status == 'Pending Cancellation' && !req.body.cancelled && (req.body.cancelled != undefined)) {
+            updateQuery = {
+                $set: {
+                    status: "Approved",
                     supervisorReason: req.body.reason,
                 }
             };
