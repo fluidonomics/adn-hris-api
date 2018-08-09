@@ -1038,7 +1038,7 @@ let functions = {
                         updatedDate: new Date(),
                         updatedBy: parseInt(leaveapplydetails.emp_id),
                         status: "Pending Cancellation",
-                        reason: (req.body.reason == undefined || req.body.reason)?leaveapplydetails.reason:req.body.reason,
+                        reason2: (req.body.reason == undefined || req.body.reason)?leaveapplydetails.reason:req.body.reason,
                     }
                 };
 
@@ -1049,7 +1049,7 @@ let functions = {
                         updatedBy: parseInt(leaveapplydetails.emp_id),
                         remarks: (req.body.remarks == undefined || req.body.reason)?leaveapplydetails.reason:req.body.reason,
                         status: "Pending Withdrawal",
-                        reason: (req.body.reason == undefined || req.body.reason)?leaveapplydetails.reason:req.body.reason,
+                        reason2: (req.body.reason == undefined || req.body.reason)?leaveapplydetails.reason:req.body.reason,
                     }
                 };
             } 
@@ -1179,6 +1179,42 @@ let functions = {
                     "preserveNullAndEmptyArrays": true
                 }
             },
+            {
+                "$lookup": {
+                    "from": "employmentstatuses",
+                    "localField": "employeeofficedetails.employmentStatus_id",
+                    "foreignField": "_id",
+                    "as": "employeeofficedetails.employmentstatus"
+                }
+            },
+            {
+                "$unwind": {
+                    path: "$employeeofficedetails.employmentstatus",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "employeesupervisordetails",
+                    "localField": "emp_id",
+                    "foreignField": "emp_id",
+                    "as": "supervisor"
+                }
+            },
+            {
+                "$unwind": "$supervisor"
+            },
+            {
+                "$lookup": {
+                    "from": "employeedetails",
+                    "localField": "supervisor.primarySupervisorEmp_id",
+                    "foreignField": "_id",
+                    "as": "primarySupervisor"
+                }
+            },
+            {
+                "$unwind": "$primarySupervisor"
+            },
             // {
             //     "$project": {
             //         "_id": "$_id",
@@ -1260,14 +1296,14 @@ let functions = {
             updateQuery = {
                 $set: {
                     status: "Applied",
-                    supervisorReason: req.body.reason,
+                    supervisorReason2: req.body.reason,
                 }
             };
         } else if (req.body.status == 'Pending Cancellation' && !req.body.cancelled && (req.body.cancelled != undefined)) {
             updateQuery = {
                 $set: {
                     status: "Approved",
-                    supervisorReason: req.body.reason,
+                    supervisorReason2: req.body.reason,
                 }
             };
         }
