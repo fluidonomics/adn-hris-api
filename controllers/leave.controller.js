@@ -702,6 +702,7 @@ let functions = {
         let primaryEmpId = req.query.empId;
         let month = req.query.month;
         let year = req.query.year;
+        let status = req.query.status;
         let projectQuery = {$project: {isActive: 1, primarySupervisorEmp_id:1, emp_id:1,leaveTypeName:{
             _id:1, type:1
         }, leavedetails:{days:1, leave_type:1, fromDate:1}, monthStart: {$month: '$leavedetails.fromDate'}, yearStart: {$year: '$leavedetails.fromDate'}}};
@@ -714,6 +715,9 @@ let functions = {
         } 
         if (year) {
             queryObj['$match']["$and"].push({yearStart:parseInt(year)})
+        } 
+        if (status) {
+            queryObj['$match']["$and"].push({status:status})
         } 
         SupervisorInfo.aggregate([
             { "$match": { "isActive": true, "primarySupervisorEmp_id": parseInt(primaryEmpId) } },
@@ -754,6 +758,7 @@ let functions = {
                     yearStart:{$first:"$yearStart"},
                     monthStart:{$first:"$monthStart"},
                     isActive:{$first:"$isActive"},
+                    status: { $first: "$leavedetails.status" },
                     totalAppliedLeaves: { $sum: "$leavedetails.days" },
                 }
             },
@@ -778,6 +783,7 @@ let functions = {
         let primaryEmpId = req.query.empId;
         let month = req.query.month;
         let year = req.query.year;
+        let status = req.query.status;
         
         let queryObj = {'$match':{}};
         queryObj['$match']['$and']=[{ "isActive": true}]
@@ -786,6 +792,9 @@ let functions = {
         } 
         if (year){
             queryObj['$match']['$and'].push({year:parseInt(year)})
+        }
+        if (status){
+            queryObj['$match']['$and'].push({status:status})
         }
         SupervisorInfo.aggregate([
             { "$match": { "isActive": true, "primarySupervisorEmp_id": parseInt(primaryEmpId) } },
@@ -823,6 +832,7 @@ let functions = {
                     isActive:1,
                     "month" :{$month:"$leavedetails.fromDate"},
                     "year" :{$year:"$leavedetails.fromDate"},
+                    "status" :"$leavedetails.status",
                     employeeDetails: {
                         "_id": 1,
                         "userName": 1,
@@ -839,7 +849,8 @@ let functions = {
                         "fromDate": 1,
                         "toDate": 1,
                         "days": 1,
-                        "leave_type":1
+                        "leave_type":1,
+                        "status":1,
                         
                     }
                 }
