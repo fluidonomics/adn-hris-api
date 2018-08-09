@@ -717,24 +717,24 @@ let functions = {
             queryObj['$match']["$and"].push({yearStart:parseInt(year)})
         } 
         if (status) {
-            // queryObj['$match']["$and"].push({'leavedetails.status':status})
-            filterQuery = {
-                "$addFields": {
-                    "leavedetails": {
-                        "$arrayElemAt": [
-                            {
-                                "$filter": {
-                                    "input": "$leavedetails",
-                                    "as": "leaveDetails",
-                                    "cond": {
-                                        "$eq": [ "$$leaveDetails.status", status ]
-                                    }
-                                }
-                            }, 0
-                        ]
-                    }
-                }
-            }
+            queryObj['$match']["$and"].push({'leavedetails.status':status})
+            // filterQuery = {
+            //     "$addFields": {
+            //         "leavedetails": {
+            //             "$arrayElemAt": [
+            //                 {
+            //                     "$filter": {
+            //                         "input": "$leavedetails",
+            //                         "as": "leaveDetails",
+            //                         "cond": {
+            //                             "$eq": [ "$$leaveDetails.status", status ]
+            //                         }
+            //                     }
+            //                 }, 0
+            //             ]
+            //         }
+            //     }
+            // }
         } 
         SupervisorInfo.aggregate([
             { "$match": { "isActive": true, "primarySupervisorEmp_id": parseInt(primaryEmpId) } },
@@ -747,7 +747,7 @@ let functions = {
                     "as": "leavedetails"
                 }
             },
-            filterQuery,
+            // filterQuery,
 
             {
                 "$unwind": {
@@ -785,7 +785,7 @@ let functions = {
             queryObj
             ,{
                 $group:{
-                    _id:"$_id",
+                    _id:"$leaveTypeName._id",
                     leaveTypeName:{$first:"$leaveTypeName.type"},
                     yearStart:{$first:"$yearStart"},
                     monthStart:{$first:"$monthStart"},
