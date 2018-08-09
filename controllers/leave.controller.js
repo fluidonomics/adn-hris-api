@@ -709,7 +709,7 @@ let functions = {
         let queryObj = {'$match':{}};
         queryObj['$match']['$and']=[{ "isActive": true}]
         
-        
+        let filterQuery;
         if (month) {
             queryObj['$match']["$and"].push({monthStart:parseInt(month)})
         } 
@@ -717,7 +717,24 @@ let functions = {
             queryObj['$match']["$and"].push({yearStart:parseInt(year)})
         } 
         if (status) {
-            queryObj['$match']["$and"].push({status:status})
+            // queryObj['$match']["$and"].push({'leavedetails.status':status})
+            filterQuery = {
+                "$addFields": {
+                    "leavedetails": {
+                        "$arrayElemAt": [
+                            {
+                                "$filter": {
+                                    "input": "$leavedetails",
+                                    "as": "leaveDetails",
+                                    "cond": {
+                                        "$eq": [ "$$leaveDetails.status", status ]
+                                    }
+                                }
+                            }, 0
+                        ]
+                    }
+                }
+            }
         } 
         SupervisorInfo.aggregate([
             { "$match": { "isActive": true, "primarySupervisorEmp_id": parseInt(primaryEmpId) } },
@@ -730,6 +747,8 @@ let functions = {
                     "as": "leavedetails"
                 }
             },
+            filterQuery,
+
             {
                 "$unwind": {
                     path: "$leavedetails",
@@ -751,9 +770,22 @@ let functions = {
                 }
             },
             projectQuery,
-            {
-                $group: {
-                    _id:"$leaveTypeName._id",
+            // {
+            //     $group: {
+            //         _id:"$leaveTypeName._id",
+            //         leaveTypeName:{$first:"$leaveTypeName.type"},
+            //         yearStart:{$first:"$yearStart"},
+            //         monthStart:{$first:"$monthStart"},
+            //         isActive:{$first:"$isActive"},
+            //         status: { $first: "$leavedetails.status" },
+            //         totalAppliedLeaves: { $sum: "$leavedetails.days" },
+
+            //     }
+            // },
+            queryObj
+            ,{
+                $group:{
+                    _id:"$_id",
                     leaveTypeName:{$first:"$leaveTypeName.type"},
                     yearStart:{$first:"$yearStart"},
                     monthStart:{$first:"$monthStart"},
@@ -761,8 +793,7 @@ let functions = {
                     status: { $first: "$leavedetails.status" },
                     totalAppliedLeaves: { $sum: "$leavedetails.days" },
                 }
-            },
-            queryObj
+            }
 
         ]).exec(function (err, results) {
             if (err) {
@@ -1053,6 +1084,16 @@ let functions = {
                     }
                 };
 
+            } else if (leaveapplydetails.status == "Applied") {
+                updateQuery = {
+                    $set: {
+                        updatedDate: new Date(),
+                        updatedBy: parseInt(leaveapplydetails.emp_id),
+                        status: "Cancelled",
+                        reason2: (req.body.reason == undefined || req.body.reason)?leaveapplydetails.reason:req.body.reason,
+                    }
+                };
+
             } else {
                 updateQuery = {
                     $set: {
@@ -1272,7 +1313,6 @@ let functions = {
     cancelApproveLeave: (req, res) => {
         var query = {
             _id: parseInt(req.body.id),
-
         }
         let updateQuery;
         if (req.body.status == 'Applied' && req.body.approved) {
