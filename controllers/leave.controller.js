@@ -1256,20 +1256,6 @@ let functions = {
                     supervisorReason: req.body.reason,
                 }
             };
-        }else if (req.body.status == 'Pending Withdrawal' && !req.body.withdrawn && (req.body.withdrawn != undefined)) {
-            updateQuery = {
-                $set: {
-                    status: "Applied",
-                    supervisorReason: req.body.reason,
-                }
-            };
-        } else if (req.body.status == 'Pending Cancellation' && !req.body.cancelled && (req.body.cancelled != undefined)) {
-            updateQuery = {
-                $set: {
-                    status: "Approved",
-                    supervisorReason: req.body.reason,
-                }
-            };
         }
         LeaveApply.findOneAndUpdate(query, updateQuery, {
             new: true
