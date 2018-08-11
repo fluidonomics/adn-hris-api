@@ -297,8 +297,8 @@ function applyLeave(req, res, done) {
                     leavedetails.emp_id = req.body.emp_id || req.query.emp_id;
                     leavedetails.status = req.body.status;
                     leavedetails.createdBy = parseInt(req.body.emp_id);
-                    leavedetails.fromDate = sd;
-                    leavedetails.toDate = ed;
+                    leavedetails.fromDate = new Date(req.body.fromDate);
+                    leavedetails.toDate = new Date(req.body.toDate);
                     leavedetails.updatedBy = parseInt(req.body.updatedBy);
                     leavedetails.days = (leavedetails.toDate - leavedetails.fromDate)/86400000 + 1
                     leavedetails.save(function (err, leavesInfoData) {
@@ -1346,7 +1346,7 @@ let functions = {
         }else if (req.body.status == 'Pending Withdrawal' && !req.body.withdrawn && (req.body.withdrawn != undefined)) {
             updateQuery = {
                 $set: {
-                    status: "Applied",
+                    status: "Approved",
                     supervisorReason2: req.body.reason,
                 }
             };
