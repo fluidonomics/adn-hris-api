@@ -26,10 +26,10 @@ let express = require('express'),
     sgTransport = require('nodemailer-sendgrid-transport'),
     uuidV1 = require('uuid/v1');
 require('dotenv').load()
-function singleEmployeeLeaveBalance(currentEmpId, fiscalYearId, month, year, res) {
+function singleEmployeeLeaveBalance(currentEmpId, fiscalYearId, month, year, fromDate, endDate, res) {
     let empId = parseInt(currentEmpId);
     let _fiscalYearId = parseInt(fiscalYearId);
-    let projectQuery = {$project: {emp_id: 1,fiscalYearId:1,leave_type:1,balance:1, monthStart: {$month: '$startDate'}, yearStart: {$year: '$startDate'}}};
+    let projectQuery = {$project: {emp_id: 1,fiscalYearId:1,leave_type:1,balance:1,startDate:1,endDate:1, monthStart: {$month: '$startDate'}, yearStart: {$year: '$startDate'}}};
     let matchQuery = {$match: {"emp_id": empId}}
     let queryObj = {'$match':{}};
         queryObj['$match']['$and']=[{"emp_id": empId}]
@@ -39,6 +39,17 @@ function singleEmployeeLeaveBalance(currentEmpId, fiscalYearId, month, year, res
     }
     if (year != null && year != undefined) {
         queryObj['$match']['$and'].push({"yearStart": parseInt(year)})
+    }
+    let toDate = new Date(endDate);
+        toDate.setDate(toDate.getDate() + 1)
+    let queryForDate = {'$match':{}};
+    queryForDate['$match']['$and']=[{"emp_id": empId}]
+    if (fromDate && endDate) {
+        queryForDate['$match']['$and'].push({
+            $and:
+                [{"fromDate": {$gte: new Date(fromDate)}},
+                {"fromDate": {$lte: toDate}}]
+        });
     }
     if (year != null && year != undefined) {
         // matchQuery = {$match: {"yearStart": parseInt(year)}};
@@ -102,6 +113,7 @@ function singleEmployeeLeaveBalance(currentEmpId, fiscalYearId, month, year, res
                         // "isApproved": true
                     }
                 },
+                queryForDate,
                 queryObj,
                 // Stage 2
                 {
@@ -297,8 +309,8 @@ function applyLeave(req, res, done) {
                     leavedetails.emp_id = req.body.emp_id || req.query.emp_id;
                     leavedetails.status = req.body.status;
                     leavedetails.createdBy = parseInt(req.body.emp_id);
-                    leavedetails.fromDate = new Date(req.body.fromDate);
-                    leavedetails.toDate = new Date(req.body.toDate);
+                    leavedetails.fromDate = sd;
+                    leavedetails.toDate = ed;
                     leavedetails.updatedBy = parseInt(req.body.updatedBy);
                     leavedetails.days = (leavedetails.toDate - leavedetails.fromDate)/86400000 + 1
                     leavedetails.save(function (err, leavesInfoData) {
@@ -419,7 +431,7 @@ function cancelLeave(req, res, done) {
 }
 let functions = {
     getLeaveBalance: (req, res) => {
-        singleEmployeeLeaveBalance(req.query.empId, req.query.fiscalYearId, req.query.month, req.query.year, res);
+        singleEmployeeLeaveBalance(req.query.empId, req.query.fiscalYearId, req.query.month, req.query.year,req.query.fromDate,req.query.toDate, res);
     },
     postApplyLeave: (req, res) => {
         async.waterfall([
@@ -436,7 +448,17 @@ let functions = {
         let queryYear = req.query.year;
         let queryMonth = req.query.month;
         let upcoming = req.query.upcoming;
-        LeaveHoliday.find({}, function (err, LeaveHolidaysData) {
+        let queryObj = {};
+        let toDate = new Date(req.query.toDate);
+        toDate.setDate(toDate.getDate() + 1)
+        if (req.query.fromDate && req.query.toDate) {
+            queryObj ={
+                $and:
+                    [{"date": {$gte: new Date(req.query.fromDate)}},
+                    {"date": {$lte: toDate}}]
+            };
+        }
+        LeaveHoliday.find(queryObj, function (err, LeaveHolidaysData) {
             if (LeaveHolidaysData) {
                 let respdata = [];
                 if (queryYear) {
@@ -496,6 +518,16 @@ let functions = {
         if (req.query.status) {
             queryObj['$match']["$and"].push({status:req.query.status})
         }
+        let toDate = new Date(req.query.toDate);
+        toDate.setDate(toDate.getDate() + 1)
+        if (req.query.fromDate && req.query.toDate) {
+            queryObj['$match']["$and"].push({
+                $and:
+                    [{"fromDate": {$gte: new Date(req.query.fromDate)}},
+                    {"fromDate": {$lte: toDate}}]
+            })
+        }
+        
         LeaveApply.aggregate([
             projectQuery,
             queryObj,
@@ -656,7 +688,16 @@ let functions = {
     },
     getUpcomingHoliday: (req, res) => {
         let queryDate = req.query.date;
-        LeaveHoliday.find({}, function (err, LeaveHolidaysData) {
+        let queryObj = {'$match':{}};
+        queryObj['$match']['$and']=[{ "isActive": true}]
+        if (req.query.fromDate && req.query.toDate) {
+            queryObj['$match']["$and"].push({
+                $and:
+                    [{"fromDate": {$gte: new Date(req.query.fromDate)}},
+                    {"fromDate": {$lte: new Date(req.query.toDate)}}]
+            })
+        }
+        LeaveHoliday.find(queryObj, function (err, LeaveHolidaysData) {
             if (LeaveHolidaysData) {
                 let respdata = [];
                 LeaveHolidaysData.forEach((holiday) => {
@@ -718,24 +759,14 @@ let functions = {
         } 
         if (status) {
             queryObj['$match']["$and"].push({'leavedetails.status':status})
-            // filterQuery = {
-            //     "$addFields": {
-            //         "leavedetails": {
-            //             "$arrayElemAt": [
-            //                 {
-            //                     "$filter": {
-            //                         "input": "$leavedetails",
-            //                         "as": "leaveDetails",
-            //                         "cond": {
-            //                             "$eq": [ "$$leaveDetails.status", status ]
-            //                         }
-            //                     }
-            //                 }, 0
-            //             ]
-            //         }
-            //     }
-            // }
         } 
+        if (req.query.fromDate && req.query.toDate) {
+            queryObj['$match']["$and"].push({
+                $and:
+                    [{"leavedetails.fromDate": {$gte: new Date(req.query.fromDate)}},
+                    {"leavedetails.fromDate": {$lte: new Date(req.query.toDate)}}]
+            })
+        }
         SupervisorInfo.aggregate([
             { "$match": { "isActive": true, "primarySupervisorEmp_id": parseInt(primaryEmpId) } },
 
@@ -826,6 +857,13 @@ let functions = {
         }
         if (status){
             queryObj['$match']['$and'].push({status:status})
+        }
+        if (req.query.fromDate && req.query.toDate) {
+            queryObj['$match']["$and"].push({
+                $and:
+                    [{"leavedetails.fromDate": {$gte: new Date(req.query.fromDate)}},
+                    {"leavedetails.fromDate": {$lte: new Date(req.query.toDate)}}]
+            })
         }
         SupervisorInfo.aggregate([
             { "$match": { "isActive": true, "primarySupervisorEmp_id": parseInt(primaryEmpId) } },
@@ -930,6 +968,13 @@ let functions = {
         if (req.query.status) {
             queryObj['$match']['$and'].push({leaveStatus:req.query.status})
         } 
+        if (req.query.fromDate && req.query.toDate) {
+            queryObj['$match']["$and"].push({
+                $and:
+                    [{"leavedetails.fromDate": {$gte: new Date(req.query.fromDate)}},
+                    {"leavedetails.fromDate": {$lte: new Date(req.query.toDate)}}]
+            })
+        }
         SupervisorInfo.aggregate([
             matchQuery,
             {
@@ -1144,7 +1189,18 @@ let functions = {
         })
     },
     getLeaveDetailsById: (req, res) => {
+
+        let queryObj = {'$match':{}};
+        queryObj['$match']['$and']=[{ "isDeleted": false}]
+        if (req.query.fromDate && req.query.toDate) {
+            queryObj['$match']["$and"].push({
+                $and:
+                    [{"fromDate": {$gte: new Date(req.query.fromDate)}},
+                    {"fromDate": {$lte: new Date(req.query.toDate)}}]
+            })
+        }
         LeaveApply.aggregate([
+            queryObj,
             { "$match": { "isDeleted": false, "_id": parseInt(req.query.id) } },
             
             {

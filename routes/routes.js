@@ -330,7 +330,7 @@ let express  = require('express'),
 //        leaveRoutes.get('/getEmployeeProbationDetails', leave.getEmployeeProbationDetails);
 //        leaveRoutes.post('/postLeaveTransactionYear', leave.postLeaveTransactionYear);
 //        leaveRoutes.post('/grantMaternityLeave', leave.grantMaternityLeave);
-       leaveRoutes.post('/getEmpMaternityLeaveDetails', leave.getEmpMaternityLeaveDetails);
+       leaveRoutes.get('/getEmpMaternityLeaveDetails', leave.getEmpMaternityLeaveDetails);
         
       //= ========================
 
