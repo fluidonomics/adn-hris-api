@@ -295,7 +295,10 @@ function applyLeave(req, res, done) {
                 }
                 let sdDay = sd.getDay(),
                     edDay = ed.getDay();
-                if (sd.getD == 0 || sdDay == 6 || edDay == 0 || edDay == 1) {
+                    console.log(sdDay,"==",sd,new Date(req.body.fromDate))
+                    console.log(edDay,"==",ed,new Date(req.body.toDate))
+                if (sdDay == 0 || sdDay == 1 || edDay == 0 || edDay == 1) {
+                    flag = false;
                     message = "you can not apply leave on weekends";
                 }
                 let d = new Date();
@@ -503,7 +506,7 @@ let functions = {
     getLeaveTransactionDetails: (req, res) => {
         let queryObj = {'$match':{}};
         queryObj['$match']['$and']=[]
-        let projectQuery = {$project: {emp_id: 1, fiscalYearId:1, leave_type:1, fromDate:1, toDate:1, status:1, days:1, monthStart: {$month: '$fromDate'}, yearStart: {$year: '$fromDate'}}};
+        let projectQuery = {$project: {emp_id: 1, fiscalYearId:1, leave_type:1, fromDate:1, toDate:1, status:1, days:1,applyTo:1, supervisorReason:1,supervisorReason2:1, monthStart: {$month: '$fromDate'}, yearStart: {$year: '$fromDate'}}};
         let empId;
         if (req.query.empId) {
             empId = parseInt(req.query.empId);
@@ -556,6 +559,9 @@ let functions = {
                     status:{$first:"$status"},
                     days:{$first:"$days"},
                     reason:{$first:"$reason"},
+                    applyTo:{$first:"$applyTo"},
+                    supervisorReason:{$first:"$supervisorReason"},
+                    supervisorReason2:{$first:"$supervisorReason2"},
                 }
             },
 
@@ -1081,7 +1087,6 @@ let functions = {
                         "updatedBy":1,
                         "createdBy":1,
                         "status":1
-                        
                     }
                 }
             },
@@ -1376,6 +1381,8 @@ let functions = {
                 $set: {
                     status: "Approved",
                     supervisorReason: req.body.reason,
+                    updatedBy: req.body.updatedBy,
+                    updatedAt: new Date()
                 }
             };
         } else if(req.body.status == 'Applied' && req.body.rejected){
@@ -1383,6 +1390,8 @@ let functions = {
                 $set: {
                     status: "Rejected",
                     supervisorReason: req.body.reason,
+                    updatedBy: req.body.updatedBy,
+                    updatedAt: new Date()
                 }
             };
         } else if (req.body.status == 'Pending Withdrawal' && req.body.withdrawn) {
@@ -1390,6 +1399,8 @@ let functions = {
                 $set: {
                     status: "Withdrawn",
                     supervisorReason: req.body.reason,
+                    updatedBy: req.body.updatedBy,
+                    updatedAt: new Date()
                 }
             };
         } else if (req.body.status == 'Pending Cancellation' && req.body.cancelled) {
@@ -1397,6 +1408,8 @@ let functions = {
                 $set: {
                     status: "Cancelled",
                     supervisorReason: req.body.reason,
+                    updatedBy: req.body.updatedBy,
+                    updatedAt: new Date()
                 }
             };
         }else if (req.body.status == 'Pending Withdrawal' && !req.body.withdrawn && (req.body.withdrawn != undefined)) {
@@ -1404,6 +1417,8 @@ let functions = {
                 $set: {
                     status: "Approved",
                     supervisorReason2: req.body.reason,
+                    updatedBy: req.body.updatedBy,
+                    updatedAt: new Date()
                 }
             };
         } else if (req.body.status == 'Pending Cancellation' && !req.body.cancelled && (req.body.cancelled != undefined)) {
@@ -1411,6 +1426,8 @@ let functions = {
                 $set: {
                     status: "Approved",
                     supervisorReason2: req.body.reason,
+                    updatedBy: req.body.updatedBy,
+                    updatedAt: new Date()
                 }
             };
         }
