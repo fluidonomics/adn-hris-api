@@ -1381,7 +1381,7 @@ let functions = {
                 $set: {
                     status: "Approved",
                     supervisorReason: req.body.reason,
-                    updatedBy: req.body.updatedBy,
+                    // updatedBy: req.body.updatedBy,
                     updatedAt: new Date()
                 }
             };
@@ -1390,7 +1390,7 @@ let functions = {
                 $set: {
                     status: "Rejected",
                     supervisorReason: req.body.reason,
-                    updatedBy: req.body.updatedBy,
+                    // updatedBy: req.body.updatedBy,
                     updatedAt: new Date()
                 }
             };
@@ -1399,7 +1399,7 @@ let functions = {
                 $set: {
                     status: "Withdrawn",
                     supervisorReason: req.body.reason,
-                    updatedBy: req.body.updatedBy,
+                    // updatedBy: req.body.updatedBy,
                     updatedAt: new Date()
                 }
             };
@@ -1408,7 +1408,7 @@ let functions = {
                 $set: {
                     status: "Cancelled",
                     supervisorReason: req.body.reason,
-                    updatedBy: req.body.updatedBy,
+                    // updatedBy: req.body.updatedBy,
                     updatedAt: new Date()
                 }
             };
@@ -1417,7 +1417,7 @@ let functions = {
                 $set: {
                     status: "Approved",
                     supervisorReason2: req.body.reason,
-                    updatedBy: req.body.updatedBy,
+                    // updatedBy: req.body.updatedBy,
                     updatedAt: new Date()
                 }
             };
@@ -1426,7 +1426,7 @@ let functions = {
                 $set: {
                     status: "Approved",
                     supervisorReason2: req.body.reason,
-                    updatedBy: req.body.updatedBy,
+                    // updatedBy: req.body.updatedBy,
                     updatedAt: new Date()
                 }
             };
