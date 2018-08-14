@@ -295,8 +295,6 @@ function applyLeave(req, res, done) {
                 }
                 let sdDay = sd.getDay(),
                     edDay = ed.getDay();
-                    console.log(sdDay,"==",sd,new Date(req.body.fromDate))
-                    console.log(edDay,"==",ed,new Date(req.body.toDate))
                 if (sdDay == 0 || sdDay == 1 || edDay == 0 || edDay == 1) {
                     flag = false;
                     message = "you can not apply leave on weekends";
@@ -312,8 +310,8 @@ function applyLeave(req, res, done) {
                     leavedetails.emp_id = req.body.emp_id || req.query.emp_id;
                     leavedetails.status = req.body.status;
                     leavedetails.createdBy = parseInt(req.body.emp_id);
-                    leavedetails.fromDate = sd;
-                    leavedetails.toDate = ed;
+                    leavedetails.fromDate = new Date(req.body.fromDate);
+                    leavedetails.toDate = new Date(req.body.toDate);
                     leavedetails.updatedBy = parseInt(req.body.updatedBy);
                     leavedetails.days = (leavedetails.toDate - leavedetails.fromDate)/86400000 + 1
                     leavedetails.save(function (err, leavesInfoData) {
