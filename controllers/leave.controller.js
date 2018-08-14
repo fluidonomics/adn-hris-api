@@ -309,6 +309,7 @@ function applyLeave(req, res, done) {
                     let leavedetails = new LeaveApply(req.body);
                     leavedetails.emp_id = req.body.emp_id || req.query.emp_id;
                     leavedetails.status = req.body.status;
+                    leavedetails.applyTo = req.body.supervisor_id;
                     leavedetails.createdBy = parseInt(req.body.emp_id);
                     leavedetails.fromDate = new Date(req.body.fromDate);
                     leavedetails.toDate = new Date(req.body.toDate);
@@ -504,7 +505,7 @@ let functions = {
     getLeaveTransactionDetails: (req, res) => {
         let queryObj = {'$match':{}};
         queryObj['$match']['$and']=[]
-        let projectQuery = {$project: {emp_id: 1, fiscalYearId:1, leave_type:1, fromDate:1, toDate:1, status:1, days:1,applyTo:1, supervisorReason:1,supervisorReason2:1, monthStart: {$month: '$fromDate'}, yearStart: {$year: '$fromDate'}}};
+        let projectQuery = {$project: {emp_id: 1, fiscalYearId:1, leave_type:1, fromDate:1, toDate:1, status:1, reason:1, days:1,applyTo:1, supervisorReason:1,supervisorReason2:1, monthStart: {$month: '$fromDate'}, yearStart: {$year: '$fromDate'}}};
         let empId;
         if (req.query.empId) {
             empId = parseInt(req.query.empId);
@@ -1039,6 +1040,20 @@ let functions = {
             },
             {
                 "$lookup": {
+                    "from": "employeedetails",
+                    "localField": "leavedetails.applyTo",
+                    "foreignField": "_id",
+                    "as": "leavedetails.supervisorDetails"
+                }
+            },
+            {
+                "$unwind": {
+                    path: "$leavedetails.applyTo",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                "$lookup": {
                     "from": "leaveTypes",
                     "localField": "leavedetails.leave_type",
                     "foreignField": "_id",
@@ -1084,7 +1099,12 @@ let functions = {
                         },
                         "updatedBy":1,
                         "createdBy":1,
-                        "status":1
+                        "status":1,
+                        "reason":1,
+                        "supervisorDetails":{
+                            "_id":1,
+                            "fullName":1
+                        }
                     }
                 }
             },
