@@ -237,6 +237,24 @@ function applyLeave(req, res, done) {
             leave_type: req.body.leave_type,
             status: "Approved"
 
+        },
+        {
+            emp_id: req.body.emp_id,
+            leave_type: req.body.leave_type,
+            status: "Applied"
+
+        },
+        {
+            emp_id: req.body.emp_id,
+            leave_type: req.body.leave_type,
+            status: "Pendin Withdrawal"
+
+        },
+        {
+            emp_id: req.body.emp_id,
+            leave_type: req.body.leave_type,
+            status: "Pending Cancellation"
+
         }]
     };
     let minusDayStart = new Date(startd.getTime() - 86400000);
@@ -284,6 +302,14 @@ function applyLeave(req, res, done) {
                 for (let i = 0; i < details.length; i++) {
                 let fromDate =  new Date(details[i].fromDate),
                     toDate =  new Date(details[i].toDate);
+                    console.log(details)
+                    console.log(details[i].fromDate)
+                    console.log(fromDate)
+                    console.log(details[i].toDate)
+                    console.log(toDate)
+                    console.log("****end****")
+                    console.log(sd)
+                    console.log(ed)
                     if (details[i].status == null  || details[i].status == undefined) {
                         if ((sd >= fromDate && ed <= toDate) ||
                             (sd <= fromDate && ed >= fromDate) ||
