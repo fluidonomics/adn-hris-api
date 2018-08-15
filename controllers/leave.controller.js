@@ -229,30 +229,25 @@ function applyLeave(req, res, done) {
     const query = {
         $or: [{
             emp_id: req.body.emp_id,
-            leave_type: req.body.leave_type,
             status: null
         },
         {
             emp_id: req.body.emp_id,
-            leave_type: req.body.leave_type,
             status: "Approved"
 
         },
         {
             emp_id: req.body.emp_id,
-            leave_type: req.body.leave_type,
             status: "Applied"
 
         },
         {
             emp_id: req.body.emp_id,
-            leave_type: req.body.leave_type,
-            status: "Pendin Withdrawal"
+            status: "Pending Withdrawal"
 
         },
         {
             emp_id: req.body.emp_id,
-            leave_type: req.body.leave_type,
             status: "Pending Cancellation"
 
         }]
@@ -300,15 +295,13 @@ function applyLeave(req, res, done) {
                 const sd = (new Date(new Date(req.body.fromDate).setUTCHours(0,0,0,0) + 86400000)),
                       ed = (new Date(new Date(req.body.toDate).setUTCHours(0,0,0,0) + 86400000));
                 for (let i = 0; i < details.length; i++) {
-                let fromDate =  new Date(details[i].fromDate),
-                    toDate =  new Date(details[i].toDate);
-                    if (details[i].status == null  || details[i].status == undefined) {
-                        if ((sd >= fromDate && ed <= toDate) ||
-                            (sd <= fromDate && ed >= fromDate) ||
-                            (sd <= toDate && ed >= toDate)) {
-                            flag = false;
-                            message = "Already applied";
-                        }
+                    let fromDate =  new Date(details[i].fromDate),
+                        toDate =  new Date(details[i].toDate);
+                    if ((sd >= fromDate && ed <= toDate) ||
+                        (sd <= fromDate && ed >= fromDate) ||
+                        (sd <= toDate && ed >= toDate)) {
+                        flag = false;
+                        message = "Already applied";
                     }
                 }
                 console.log(sd)
