@@ -878,7 +878,23 @@ let functions = {
                     }
                 });
             }
-            return res.status(200).json({ "data": results });
+            let response = [];
+            let leaveType = ["Annual Leave", "Sick Leave", "Maternity Leave", "Special Leave"]
+            results.forEach(x=>response.push(x))
+            leaveType.forEach((x, index) => {
+                const balLeaveObj = results.find((p) => p.leaveTypeName === x);
+                if (balLeaveObj == undefined) {
+                    response.push({
+                        _id: index,
+                        leaveTypeName: x,
+                        status: null,
+                        totalAppliedLeaves: 0
+                    })
+                }
+                
+            })
+
+            return res.status(200).json({ "data": response });
         });
     },
     getSupervisorTeamMember: (req, res) => {
