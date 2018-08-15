@@ -297,8 +297,8 @@ function applyLeave(req, res, done) {
         } else {
 
             LeaveApply.find(query, function (err, details) {
-                const sd = new Date(new Date(req.body.fromDate).getTime() + 86400000),
-                      ed = new Date(new Date(req.body.toDate).getTime() + 86400000);
+                const sd = (new Date(new Date(req.body.fromDate).setUTCHours(0,0,0,0) + 86400000)),
+                      ed = (new Date(new Date(req.body.toDate).setUTCHours(0,0,0,0) + 86400000));
                 for (let i = 0; i < details.length; i++) {
                 let fromDate =  new Date(details[i].fromDate),
                     toDate =  new Date(details[i].toDate);
@@ -311,6 +311,7 @@ function applyLeave(req, res, done) {
                         }
                     }
                 }
+                console.log(sd)
                 let sdDay = sd.getDay(),
                     edDay = ed.getDay();
                 if (sdDay == 0 || sdDay == 1 || edDay == 0 || edDay == 1) {
