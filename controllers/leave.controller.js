@@ -885,7 +885,7 @@ let functions = {
                 const balLeaveObj = results.find((p) => p.leaveTypeName === x);
                 if (balLeaveObj == undefined) {
                     response.push({
-                        _id: index,
+                        _id: index+1,
                         leaveTypeName: x,
                         status: null,
                         totalAppliedLeaves: 0
