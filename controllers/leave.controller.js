@@ -566,19 +566,36 @@ let functions = {
                 }
             },
             {
+                "$lookup": {
+                    "from": "employeedetails",
+                    "localField": "applyTo",
+                    "foreignField": "_id",
+                    "as": "applyToDetails"
+                }
+            },
+            {
+                "$unwind": {
+                    path: "$applyToDetails",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
                 $group: {
                     _id:"$_id",
                     leaveTypeName:{$first:"$leaveTypeDetails.type"},
                     leave_type:{$first:"$leaveTypeDetails._id"},
+                    applyTo:{$first:"$applyToDetails._id"},
                     emp_id:{$first:"$emp_id"},
                     fromDate:{$first:"$fromDate"},
                     toDate:{$first:"$toDate"},
                     status:{$first:"$status"},
                     days:{$first:"$days"},
                     reason:{$first:"$reason"},
-                    applyTo:{$first:"$applyTo"},
+                    reason2:{$first:"$reason2"},
+                    applyToFullName:{$first:"$applyToDetails.fullName"},
                     supervisorReason:{$first:"$supervisorReason"},
                     supervisorReason2:{$first:"$supervisorReason2"},
+                    remark:{$first:"$remark"},
                 }
             },
 
