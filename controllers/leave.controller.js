@@ -302,14 +302,6 @@ function applyLeave(req, res, done) {
                 for (let i = 0; i < details.length; i++) {
                 let fromDate =  new Date(details[i].fromDate),
                     toDate =  new Date(details[i].toDate);
-                    console.log(details)
-                    console.log(details[i].fromDate)
-                    console.log(fromDate)
-                    console.log(details[i].toDate)
-                    console.log(toDate)
-                    console.log("****end****")
-                    console.log(sd)
-                    console.log(ed)
                     if (details[i].status == null  || details[i].status == undefined) {
                         if ((sd >= fromDate && ed <= toDate) ||
                             (sd <= fromDate && ed >= fromDate) ||
@@ -337,8 +329,8 @@ function applyLeave(req, res, done) {
                     leavedetails.status = req.body.status;
                     leavedetails.applyTo = req.body.supervisor_id;
                     leavedetails.createdBy = parseInt(req.body.emp_id);
-                    leavedetails.fromDate = new Date(req.body.fromDate);
-                    leavedetails.toDate = new Date(req.body.toDate);
+                    leavedetails.fromDate = sd;
+                    leavedetails.toDate = ed;
                     leavedetails.updatedBy = parseInt(req.body.updatedBy);
                     leavedetails.days = (leavedetails.toDate - leavedetails.fromDate)/86400000 + 1
                     leavedetails.save(function (err, leavesInfoData) {
