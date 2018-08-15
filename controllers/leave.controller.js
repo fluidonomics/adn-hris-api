@@ -329,8 +329,8 @@ function applyLeave(req, res, done) {
                     leavedetails.status = req.body.status;
                     leavedetails.applyTo = req.body.supervisor_id;
                     leavedetails.createdBy = parseInt(req.body.emp_id);
-                    leavedetails.fromDate = sd;
-                    leavedetails.toDate = ed;
+                    leavedetails.fromDate = (sd.setUTCHours(0,0,0,0));
+                    leavedetails.toDate = (ed.setUTCHours(0,0,0,0));
                     leavedetails.updatedBy = parseInt(req.body.updatedBy);
                     leavedetails.days = (leavedetails.toDate - leavedetails.fromDate)/86400000 + 1
                     leavedetails.save(function (err, leavesInfoData) {
