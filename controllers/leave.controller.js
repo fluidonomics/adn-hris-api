@@ -296,9 +296,13 @@ function applyLeave(req, res, done) {
                 console.log("details",details)
                 const sd = (new Date(new Date(req.body.fromDate).setUTCHours(0,0,0,0) + 86400000)),
                       ed = (new Date(new Date(req.body.toDate).setUTCHours(0,0,0,0) + 86400000));
+                      console.log(sd)
+                      console.log(ed)
                 for (let i = 0; i < details.length; i++) {
                     let fromDate =  new Date(details[i].fromDate),
                         toDate =  new Date(details[i].toDate);
+                        console.log("fromDate",fromDate)
+                        console.log("toDate",toDate)
                     if ((sd >= fromDate && ed <= toDate) ||
                         (sd <= fromDate && ed >= fromDate) ||
                         (sd <= toDate && ed >= toDate)) {
