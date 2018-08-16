@@ -17,6 +17,7 @@ let express = require('express'),
     EmployeeInfo = require('../models/employee/employeeDetails.model'),
     FinancialYear = require('../models/master/financialYear.model'),
     SupervisorInfo    = require('../models/employee/employeeSupervisorDetails.model'),
+    uploadClass       = require('../class/upload');
 
     config = require('../config/config'),
     crypto = require('crypto'),
@@ -444,7 +445,66 @@ function cancelLeave(req, res, done) {
     })
 
 }
+function updateSickLeaveDocumentDetails(req, res, done) {
+
+    let _id = req.body._id;
+    var query = {
+        _id: parseInt(req.body._id),
+        isDeleted: false
+    }
+    let updateQuery={
+        $set:{
+            attachment:req.body.sickLeaveDocument
+        }
+    }
+
+    LeaveApply.findOneAndUpdate(query, updateQuery, {new: true}, function(err, leaveApplyDetails){
+        if (err) {
+            return res.status(403).json({
+                title: 'There was a problem',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: leaveApplyDetails
+                }
+            });
+        }
+        // AuditTrail.auditTrailEntry(employeeExternalDocumentDetailsData.emp_id, "employeeExternalDocumentDetails", employeeExternalDocumentDetailsData._id, employeeExternalDocumentDetailsData, "updateEmployeeExternalDocumentInfoDetails", "UPDATED");
+        return done(err, req);
+    });
+}
 let functions = {
+    uploadSickLeaveDocument:(req,res )=> {
+        async.waterfall([
+          function(done) {
+            uploadClass.pdfDocuments(req, res, (err) => {
+                if (err) {
+                  return res.status(403).json({
+                    title: 'Error',
+                    error: {
+                        message: err
+                    }
+                  
+                  });
+                }
+                else if (req.file !== undefined) {
+                    req.body.sickLeaveDocument=req.file.key;
+                    done(err,true)
+                }
+            });
+          },
+          function(data,done)
+          {
+            updateSickLeaveDocumentDetails(req,res,done);
+          },
+          function(req,done) {
+            return res.status(200).json({
+                message: 'Document uploaded successfully!',key:req.file.key
+              });
+          }
+        ]);
+    },
     getLeaveBalance: (req, res) => {
         singleEmployeeLeaveBalance(req.query.empId, req.query.fiscalYearId, req.query.month, req.query.year,req.query.fromDate,req.query.toDate, res);
     },

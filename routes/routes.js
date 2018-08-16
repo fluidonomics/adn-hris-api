@@ -298,6 +298,7 @@ let express  = require('express'),
         apiRoutes.use('/leave', leaveRoutes);
 
         leaveRoutes.post('/applyLeave', leave.postApplyLeave);
+        leaveRoutes.post('/uploadSickLeaveDocument', leave.uploadSickLeaveDocument);
 //        leaveRoutes.get('/leaveTransactionDetails', leave.getLeaveTransaction);
 //        leaveRoutes.get('/getEmployeeLeaveDetails', leave.getEmployeeLeaveDetails);
         leaveRoutes.get('/getLeaveTypes', leave.getLeaveTypes);

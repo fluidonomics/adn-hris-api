@@ -50,9 +50,9 @@ let express = require('express'),
     if (mimetype && extname) {
         return cb(null, req);
     }
-    cb('File upload only supports the following filetypes - jpg|jpeg|png');
+    cb('File upload only supports the following filetypes - jpg|jpeg|png|pdf|docx');
     }
-   }).single('externalDocument');
+   }).single('seakleavedocument');
 
    let profileTemp = multer({
     storage   : imageTempStorage,
