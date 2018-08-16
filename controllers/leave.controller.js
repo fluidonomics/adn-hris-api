@@ -304,7 +304,6 @@ function applyLeave(req, res, done) {
                         message = "Already applied";
                     }
                 }
-                console.log(sd)
                 let sdDay = sd.getDay(),
                     edDay = ed.getDay();
                 if (sdDay == 0 || sdDay == 1 || edDay == 0 || edDay == 1) {
@@ -323,8 +322,8 @@ function applyLeave(req, res, done) {
                     leavedetails.status = req.body.status;
                     leavedetails.applyTo = req.body.supervisor_id;
                     leavedetails.createdBy = parseInt(req.body.emp_id);
-                    leavedetails.fromDate = (sd.setUTCHours(0,0,0,0));
-                    leavedetails.toDate = (ed.setUTCHours(0,0,0,0));
+                    leavedetails.fromDate = new Date(req.body.fromDate).setUTCHours(0,0,0,0);
+                    leavedetails.toDate = (new Date(req.body.fromDate).setUTCHours(0,0,0,0));
                     leavedetails.updatedBy = parseInt(req.body.updatedBy);
                     leavedetails.days = (leavedetails.toDate - leavedetails.fromDate)/86400000 + 1
                     leavedetails.save(function (err, leavesInfoData) {
