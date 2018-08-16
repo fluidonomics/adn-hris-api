@@ -18,7 +18,7 @@ let express = require('express'),
     FinancialYear = require('../models/master/financialYear.model'),
     SupervisorInfo    = require('../models/employee/employeeSupervisorDetails.model'),
     uploadClass       = require('../class/upload');
-
+    moment = require('moment');
     config = require('../config/config'),
     crypto = require('crypto'),
     async = require('async'),
@@ -223,6 +223,8 @@ function getLeavesByType(leaveTypesData, appliedLeaves, res) {
     return res.status(200).json(response);
 }
 function applyLeave(req, res, done) {
+    let fromDateBody = moment(req.body.fromDate+' UTC').utc().format();
+    let toDateBody = moment(req.body.toDate+' UTC').utc().format();
     let startd = new Date(new Date(req.body.fromDate).getTime() + 86400000),
           endd = new Date(new Date(req.body.toDate).getTime() + 86400000);
     let flag = true;
@@ -293,34 +295,25 @@ function applyLeave(req, res, done) {
         } else {
 
             LeaveApply.find(query, function (err, details) {
-                console.log("details",details)
-                const sd = (new Date(new Date(req.body.fromDate).setUTCHours(0,0,0,0) + 86400000)),
-                      ed = (new Date(new Date(req.body.toDate).setUTCHours(0,0,0,0) + 86400000));
-                      console.log(sd)
-                      console.log(ed)
                 for (let i = 0; i < details.length; i++) {
-                    let fromDate =  new Date(details[i].fromDate),
-                        toDate =  new Date(details[i].toDate);
-                        console.log("fromDate",fromDate)
-                        console.log("toDate",toDate)
-                    if ((sd >= fromDate && ed <= toDate) ||
-                        (sd <= fromDate && ed >= fromDate) ||
-                        (sd <= toDate && ed >= toDate)) {
+                    let fromDate =  moment(details[i].fromDate+' UTC').utc().format(),
+                        toDate =  moment(details[i].toDate+'UTC').utc().format();
+                    if ((fromDateBody >= fromDate && toDateBody <= toDate) ||
+                        (fromDateBody <= fromDate && toDateBody >= fromDate) ||
+                        (fromDateBody <= toDate && toDateBody >= toDate)) {
                         flag = false;
                         message = "Already applied";
                     }
                 }
-                let sdDay = sd.getDay(),
-                    edDay = ed.getDay();
-                    console.log(sdDay)
-                    console.log(edDay)
+                let sdDay = moment(fromDateBody).day(),
+                    edDay = moment(toDateBody).day();
                 if (sdDay == 0 || sdDay == 7 || edDay == 0 || edDay == 7) {
                     flag = false;
                     message = "you can not apply leave on weekends";
                 }
-                let d = new Date();
-                d.setDate(d.getDate()+7);
-                if ((((ed - sd)/86400000 + 1) > 3) && (req.body.leave_type == 1) && sd <= d) {
+                let d = moment(moment().add(7, 'days').format('YYYY-MM-DD')+' UTC').utc().format();
+    
+                if (((moment(fromDateBody).diff(toDateBody,'days') + 1) > 3) && (req.body.leave_type == 1) && fromDateBody <= d) {
                     flag = false;
                     message = "Annual Leave should be applied in seven days advance";
                 }
@@ -330,8 +323,8 @@ function applyLeave(req, res, done) {
                     leavedetails.status = req.body.status;
                     leavedetails.applyTo = req.body.supervisor_id;
                     leavedetails.createdBy = parseInt(req.body.emp_id);
-                    leavedetails.fromDate = new Date(req.body.fromDate).setUTCHours(0,0,0,0);
-                    leavedetails.toDate = (new Date(req.body.toDate).setUTCHours(0,0,0,0));
+                    leavedetails.fromDate = fromDateBody//moment(req.body.fromDate).format('MM/DD/YYYY');//new Date(req.body.fromDate).setUTCHours(0,0,0,0);
+                    leavedetails.toDate = toDateBody//(new Date(req.body.toDate).setUTCHours(0,0,0,0));
                     leavedetails.updatedBy = parseInt(req.body.updatedBy);
                     leavedetails.days = (leavedetails.toDate - leavedetails.fromDate)/86400000 + 1
                     leavedetails.save(function (err, leavesInfoData) {
