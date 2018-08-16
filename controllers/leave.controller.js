@@ -293,6 +293,7 @@ function applyLeave(req, res, done) {
         } else {
 
             LeaveApply.find(query, function (err, details) {
+                console.log("details",details)
                 const sd = (new Date(new Date(req.body.fromDate).setUTCHours(0,0,0,0) + 86400000)),
                       ed = (new Date(new Date(req.body.toDate).setUTCHours(0,0,0,0) + 86400000));
                 for (let i = 0; i < details.length; i++) {
