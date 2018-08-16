@@ -306,7 +306,9 @@ function applyLeave(req, res, done) {
                 }
                 let sdDay = sd.getDay(),
                     edDay = ed.getDay();
-                if (sdDay == 0 || sdDay == 1 || edDay == 0 || edDay == 1) {
+                    console.log(sdDay)
+                    console.log(edDay)
+                if (sdDay == 0 || sdDay == 7 || edDay == 0 || edDay == 7) {
                     flag = false;
                     message = "you can not apply leave on weekends";
                 }
