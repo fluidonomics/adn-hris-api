@@ -229,26 +229,26 @@ function applyLeave(req, res, done) {
     let message;
     const query = {
         $or: [{
-            emp_id: req.body.emp_id,
+            emp_id: parseInt(req.body.emp_id),
             status: null
         },
         {
-            emp_id: req.body.emp_id,
+            emp_id: parseInt(req.body.emp_id),
             status: "Approved"
 
         },
         {
-            emp_id: req.body.emp_id,
+            emp_id: parseInt(req.body.emp_id),
             status: "Applied"
 
         },
         {
-            emp_id: req.body.emp_id,
+            emp_id: parseInt(req.body.emp_id),
             status: "Pending Withdrawal"
 
         },
         {
-            emp_id: req.body.emp_id,
+            emp_id: parseInt(req.body.emp_id),
             status: "Pending Cancellation"
 
         }]
