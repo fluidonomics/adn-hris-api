@@ -1271,9 +1271,8 @@ let functions = {
                     $set: {
                         updatedDate: new Date(),
                         updatedBy: parseInt(leaveapplydetails.emp_id),
-                        remarks: (req.body.remarks == undefined || req.body.reason)?leaveapplydetails.reason:req.body.reason,
                         status: "Pending Withdrawal",
-                        reason2: (req.body.reason == undefined || req.body.reason)?leaveapplydetails.reason:req.body.reason,
+                        reason2: req.body.remarks 
                     }
                 };
             } 
