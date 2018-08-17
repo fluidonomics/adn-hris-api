@@ -27,6 +27,192 @@ let express = require('express'),
     sgTransport = require('nodemailer-sendgrid-transport'),
     uuidV1 = require('uuid/v1');
 require('dotenv').load()
+function getAllLeaveBalance(req, res) {
+    let _fiscalYearId = (req.query.fiscalYearId);
+    let year = (req.query.year);
+    let month = (req.query.month);
+    let fromDate = (req.query.fromDate);
+    let endDate = (req.query.toDate);
+    let projectQuery = {$project: {emp_id: 1,fiscalYearId:1,leave_type:1,balance:1,startDate:1,endDate:1, monthStart: {$month: '$startDate'}, yearStart: {$year: '$startDate'}}};
+    let queryObj = {'$match':{}};
+        queryObj['$match']['$and']=[{"isDeleted": false}]
+    let query = {};
+    if (month != null && month != undefined) {
+        queryObj['$match']['$and'].push({"monthStart": parseInt(month)})
+    }
+    if (year != null && year != undefined) {
+        queryObj['$match']['$and'].push({"yearStart": parseInt(year)})
+    }
+    console.log(queryObj['$match']['$and'])
+    let toDate = new Date(endDate);
+        toDate.setDate(toDate.getDate() + 1)
+    let queryForDate = {'$match':{}};
+    queryForDate['$match']['$and']=[{"isDeleted": false}]
+    if (fromDate && endDate) {
+        queryForDate['$match']['$and'].push({
+            $and:
+                [{"fromDate": {$gte: new Date(fromDate)}},
+                {"fromDate": {$lte: toDate}}]
+        });
+    }
+    if (year != null && year != undefined) {
+        console.log("year")
+        query =  {
+            $match: {
+                $or: [{ "yearStart": parseInt(year), "leave_type": 1 },
+                { "yearStart": parseInt(year), "leave_type": 2 },
+                { "leave_type": 3 },
+                { "leave_type": 4 }]
+    
+            }
+        }
+    } else if (_fiscalYearId != null && _fiscalYearId != undefined) {
+        console.log("_fiscalYearId")
+        query =  {
+            $match: {
+                $or: [{ "fiscalYearId": parseInt(_fiscalYearId), "leave_type": 1 },
+                { "fiscalYearId": parseInt(_fiscalYearId), "leave_type": 2 },
+                { "leave_type": 3 },
+                { "leave_type": 4 }]
+    
+            }
+        }
+    } else {
+        console.log("else")
+        query =  {
+            $match: {
+                $or: [{ "leave_type": 1 },
+                { "leave_type": 2 },
+                { "leave_type": 3 },
+                { "leave_type": 4 }]
+    
+            }
+        }
+    }
+    console.log(query)
+    LeaveBalance.aggregate(
+        // Pipeline
+        [   projectQuery,
+            query,
+            // matchQuery,
+            {
+                $group: {
+                    _id: "$leave_type",
+                    totalBalance: { $sum: "$balance" }
+                }
+            },
+        ]
+    ).exec(function (err, results1) {
+        console.log(results1)
+        if (err) {
+            return res.status(403).json({
+                title: 'Error',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: results1
+                }
+            });
+        }
+        LeaveApply.aggregate(// Pipeline
+            [
+                {
+                    $project: {
+                        emp_id: 1,
+                        leave_type:1,
+                        status:1,
+                        toDate:1,
+                        fromDate:1,
+                        days:1,
+                        isDeleted:1,
+                        monthStart: {$month: '$fromDate'}, 
+                        yearStart: {$year: '$fromDate'}
+                    }
+                },
+                queryForDate,
+                queryObj,
+
+                {
+                    "$match": {
+                        $or: [
+                            { "status": "Applied" }, //leave approved
+                            { "status": "Approved" }, //leave approved and pending to approve cancellation
+                            { "status": "Pending Withdrawal" },//apply for withdraw leave,
+                            { "status": "Pending Cancellation" }//apply for cancel leave,
+                        ]
+                    }
+                },
+                // Stage 4
+                {
+                    $group: {
+                        _id: "$leave_type",
+                        totalAppliedLeaves: { $sum: "$days" }
+                    }
+                },
+
+            ]).exec(function (err1, results2) {
+                if (err1) {
+                    return res.status(403).json({
+                        title: 'Error',
+                        error: {
+                            message: err1
+                        },
+                        result: {
+                            message: results2
+                        }
+                    });
+                }
+                let response = [];
+                let leaveType = ["Annual Leave", "Sick Leave", "Maternity Leave", "Special Leave"]
+                results1.forEach((x) => {
+                    const balLeaveObj = results2.find(p => p._id === x._id);
+                    obj = {
+                        'leaveTypeId': x._id,
+                        'leaveType': leaveType[x._id-1],
+                        'appliedLeave': Math.round((balLeaveObj === undefined ? 0 : balLeaveObj.totalAppliedLeaves)),
+                        'totalBalance': Math.round(x.totalBalance),
+                        'percentage': Math.round((balLeaveObj === undefined ? 0 : balLeaveObj.totalAppliedLeaves))*100/Math.round(x.totalBalance),
+                        // 'leaveBalance': Math.round(x.totalBalance) - (Math.round( (balLeaveObj === undefined ? 0 : balLeaveObj.totalAppliedLeaves)))
+                    };
+                    response.push(obj);
+
+                })
+                results2.forEach((x) => {
+                    const balLeaveObj = results1.find(p => p._id === x._id);
+                     if (balLeaveObj === undefined) {
+                        obj = {
+                            'leaveTypeId': x._id,
+                            'leaveType': leaveType[x._id-1],
+                            'appliedLeave': Math.round(x.totalAppliedLeaves),
+                            'allotedLeave': (x.balance == null || x.balance == undefined) ? 0 : Math.round(x.balance),
+                            'totalBalance': (x.balance == null || x.balance == undefined) ? 0 : Math.round(x.balance) - Math.round(x.totalAppliedLeaves),
+                            'percentage': (x.balance == null || x.balance == undefined) ? 0 : Math.round(x.balance)*100/(x.balance == null || x.balance == undefined) ? 0 : Math.round(x.balance) - Math.round(x.totalAppliedLeaves)
+                        };
+                        response.push(obj);
+                     }
+                })
+                leaveType.forEach((x, index) => {
+                    let result = response.filter((obj) => {
+                      return obj.leaveType === x
+                    })
+                    if (result.length == 0) {
+                        response.push({
+                            '_id': parseInt(index)+1,
+                            'leaveType': x,
+                            'appliedLeave': 0,
+                            'allotedLeave': 0,
+                            'leaveBalance': 0,
+                            'percentage':0
+                           })
+                    }
+
+                })
+
+                return res.status(200).json(response);
+            })
+    });
+}
 function singleEmployeeLeaveBalance(currentEmpId, fiscalYearId, month, year, fromDate, endDate, res) {
     let empId = parseInt(currentEmpId);
     let _fiscalYearId = parseInt(fiscalYearId);
@@ -211,6 +397,37 @@ function singleEmployeeLeaveBalance(currentEmpId, fiscalYearId, month, year, fro
             })
     });
 }
+getLeaveTransaction: (req, res) => {
+    let query = {
+        isDeleted: false
+    }
+    var transactionProjection = {
+        createdAt: false,
+        updatedAt: false,
+        isDeleted: false,
+        updatedBy: false,
+        createdBy: false,
+    };
+    LeaveTransactionType.find(query, transactionProjection, {
+        sort: {
+            _id: 1
+        }
+    }, function (err, leaveTransactionTypeData) {
+        if (leaveTransactionTypeData) {
+            return res.status(200).json(leaveTransactionTypeData);
+        }
+        return res.status(403).json({
+            title: 'Error',
+            error: {
+                message: err
+            },
+            result: {
+                message: result
+            }
+        });
+    })
+},
+
 function getLeavesByType(leaveTypesData, appliedLeaves, res) {
     let response = [];
     leaveTypesData.forEach((type) => {
@@ -509,6 +726,9 @@ let functions = {
     getLeaveBalance: (req, res) => {
         singleEmployeeLeaveBalance(req.query.empId, req.query.fiscalYearId, req.query.month, req.query.year,req.query.fromDate,req.query.toDate, res);
     },
+    getAllLeaveBalance: (req, res) => {
+        getAllLeaveBalance(req, res);
+    },
     postApplyLeave: (req, res) => {
         async.waterfall([
             function (done) {
@@ -671,7 +891,182 @@ let functions = {
             return res.status(200).json(LeaveTransactionDetails);
         })
     },
-
+    getAllEmployeeLeaveDetails: (req, res) => {
+        let matchQuery = { "$match": { "isDeleted": false} }
+        let queryObj = {'$match':{}};
+        queryObj['$match']['$and']=[{ "isDeleted": false}]
+        if (req.query.fromDate && req.query.toDate) {
+            queryObj['$match']["$and"].push({
+                $and:
+                    [{"fromDate": {$gte: new Date(req.query.fromDate)}},
+                    {"fromDate": {$lte: new Date(req.query.toDate)}}]
+            })
+        }
+        if (req.query.fiscalYearId) {
+            matchQuery = { "$match": { "isDeleted": false,  "fiscalYearId":parseInt(req.query.fiscalYearId)} }
+        }
+        LeaveApply.aggregate([
+            {
+                "$lookup": {
+                    "from": "employeedetails",
+                    "localField": "emp_id",
+                    "foreignField": "_id",
+                    "as": "emp_name"
+                }
+            },
+            {
+                "$unwind": {
+                    path: "$emp_name",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "employeesupervisordetails",
+                    "localField": "emp_id",
+                    "foreignField": "emp_id",
+                    "as": "empsupervisor_name"
+                }
+            },
+            {
+                "$unwind": {
+                    path: "$empsupervisor_name",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "employeedetails",
+                    "localField": "empsupervisor_name.leaveSupervisorEmp_id",
+                    "foreignField": "_id",
+                    "as": "empsupervisor_name.primarysupervisor_name"
+                }
+            },
+            {
+                "$unwind": {
+                    path: "$empsupervisor_name.primarysupervisor_name",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "employeedetails",
+                    "localField": "forwardTo",
+                    "foreignField": "_id",
+                    "as": "forwardTo_name"
+                }
+            },
+            {
+                "$unwind": {
+                    path: "$forwardTo_name",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "employeedetails",
+                    "localField": "applyTo",
+                    "foreignField": "_id",
+                    "as": "sup_name"
+                }
+            },
+            {
+                "$unwind": {
+                    path: "$sup_name",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "employeedetails",
+                    "localField": "cancelLeaveApplyTo",
+                    "foreignField": "_id",
+                    "as": "cancelLeave_ApplyTo"
+                }
+            },
+            {
+                "$unwind": {
+                    path: "$cancelLeave_ApplyTo",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "leaveTypes",
+                    "localField": "leave_type",
+                    "foreignField": "_id",
+                    "as": "leaveTypes"
+                }
+            },
+            {
+                "$unwind": {
+                    path: "$leaveTypes",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "employeepersonaldetails",
+                    "localField": "emp_id",
+                    "foreignField": "emp_id",
+                    "as": "empPersonalDetails"
+                }
+            },
+            {
+                "$unwind": {
+                    path: "$empPersonalDetails",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            matchQuery,
+            queryObj,
+            {
+                "$project": {
+                    "_id": "$_id",
+                    "emp_id": "$emp_id",
+                    "emp_name": "$emp_name.fullName",
+                    "leave_type": "$leave_type",
+                    "leave_type_name": "$leaveTypes.type",
+                    "forwardTo": "$forwardTo",
+                    "forwardTo_FullName": "$forwardTo_name.fullName",
+                    "remark": "$remark",
+                    "cancelLeaveApplyTo": "$cancelLeaveApplyTo",
+                    "cancelLeaveApplyTo_name": "$cancelLeave_ApplyTo.fullName",
+                    "cancelReason": "$cancelReason",
+                    "isCancelled": "$isCancelled",
+                    "isApproved": "$isApproved",
+                    "ccTo": "$ccTo",
+                    "contactDetails": "$contactDetails",
+                    "applyTo": "$applyTo",
+                    "applyTo_name": "$sup_name.fullName",
+                    "userName":"$emp_name.userName",
+                    "gender":"$empPersonalDetails.gender",
+                    "primarysupervisor_fullname":"$empsupervisor_name.primarysupervisor_name.fullName",
+                    "primarysupervisor_username":"$empsupervisor_name.primarysupervisor_name.userName",
+                    "toDate": "$toDate",
+                    "fromDate": "$fromDate",
+                    "days": "$days",
+                    "reason": "$reason",
+                    "status": "$status"
+    
+                }
+            }
+    
+        ]).exec(function (err, results) {
+            if (err) {
+                return res.status(403).json({
+                    title: 'There is a problem',
+                    error: {
+                        message: err
+                    },
+                    result: {
+                        message: results
+                    }
+                });
+            }
+            return res.status(200).json({ "data": results });
+        });
+    },
     getAllEmployee: (req, res) => {
         EmployeeInfo.aggregate([
             {
