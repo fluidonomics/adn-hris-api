@@ -307,7 +307,7 @@ function applyLeave(req, res, done) {
                 }
                 let sdDay = moment(fromDateBody).day(),
                     edDay = moment(toDateBody).day();
-                if (sdDay == 0 || sdDay == 7 || edDay == 0 || edDay == 7) {
+                if (sdDay == 6 || sdDay == 7 || edDay == 6 || edDay == 7) {
                     flag = false;
                     message = "you can not apply leave on weekends";
                 }
