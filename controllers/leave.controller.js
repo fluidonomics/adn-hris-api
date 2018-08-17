@@ -1246,12 +1246,14 @@ let functions = {
         
         LeaveApply.findOne(query, function(err, leaveapplydetails){
             let updateQuery;
-            if (new Date(leaveapplydetails.fromDate) > new Date()) {
+            console.log(leaveapplydetails)
+            console.log((leaveapplydetails.fromDate) > new Date())
+            if ((new Date(leaveapplydetails.fromDate) > new Date()) && leaveapplydetails.status == "Applied") {
                 updateQuery = {
                     $set: {
                         updatedDate: new Date(),
                         updatedBy: parseInt(leaveapplydetails.emp_id),
-                        status: "Pending Cancellation",
+                        status: "Withdrawn",
                         reason2: (req.body.reason == undefined || req.body.reason)?leaveapplydetails.reason:req.body.reason,
                     }
                 };
@@ -1261,22 +1263,32 @@ let functions = {
                     $set: {
                         updatedDate: new Date(),
                         updatedBy: parseInt(leaveapplydetails.emp_id),
-                        status: "Cancelled",
+                        status: "Pending Cancellation",
                         reason2: (req.body.reason == undefined || req.body.reason)?leaveapplydetails.reason:req.body.reason,
                     }
                 };
 
-            } else {
+            } else if(new Date(leaveapplydetails.fromDate) > new Date() && (leaveapplydetails.status == "Approved")){
                 updateQuery = {
                     $set: {
                         updatedDate: new Date(),
                         updatedBy: parseInt(leaveapplydetails.emp_id),
                         remarks: (req.body.remarks == undefined || req.body.reason)?leaveapplydetails.reason:req.body.reason,
-                        status: "Pending Withdrawal",
+                        status: "Pending Cancellation",
                         reason2: (req.body.reason == undefined || req.body.reason)?leaveapplydetails.reason:req.body.reason,
                     }
                 };
-            } 
+            } else if (leaveapplydetails.status == "Approved") {
+                updateQuery = {
+                    $set: {
+                        updatedDate: new Date(),
+                        updatedBy: parseInt(leaveapplydetails.emp_id),
+                        status: "Pending Cancellation",
+                        reason2: (req.body.reason == undefined || req.body.reason)?leaveapplydetails.reason:req.body.reason,
+                    }
+                };
+
+            }
             LeaveApply.update(query, updateQuery, {
                 new: true
             }, function (err, _leaveDetails) {
