@@ -312,8 +312,11 @@ function applyLeave(req, res, done) {
                     message = "you can not apply leave on weekends";
                 }
                 let d = moment(moment().add(7, 'days').format('YYYY-MM-DD')+' UTC').utc().format();
-    
-                if (((moment(fromDateBody).diff(toDateBody,'days') + 1) > 3) && (req.body.leave_type == 1) && fromDateBody <= d) {
+                console.log(((moment(fromDateBody).diff(toDateBody,'days') + 1)))
+                console.log(req.body.leave_type == 1)
+                console.log(fromDateBody)
+                console.log( d)
+                if (((moment(toDateBody).diff(fromDateBody,'days') + 1) > 3) && (req.body.leave_type == 1) && fromDateBody <= d) {
                     flag = false;
                     message = "Annual Leave should be applied in seven days advance";
                 }
