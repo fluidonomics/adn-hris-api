@@ -1651,7 +1651,7 @@ let functions = {
                     $set: {
                         updatedDate: new Date(),
                         updatedBy: parseInt(leaveapplydetails.emp_id),
-                        remarks: (req.body.remarks == undefined || req.body.reason)?leaveapplydetails.remarks:req.body.reason,
+                        remarks: (req.body.remarks == undefined || req.body.remarks)?leaveapplydetails.remarks:req.body.remarks,
                         status: "Withdrawn",
                         reason2: (req.body.reason == undefined || req.body.reason)?leaveapplydetails.reason:req.body.reason,
                     }
@@ -1662,7 +1662,7 @@ let functions = {
                     $set: {
                         updatedDate: new Date(),
                         updatedBy: parseInt(leaveapplydetails.emp_id),
-                        remarks: (req.body.remarks == undefined || req.body.reason)?leaveapplydetails.remarks:req.body.reason,
+                        remarks: (req.body.remarks == undefined || req.body.remarks)?leaveapplydetails.remarks:req.body.remarks,
                         status: "Pending Cancellation",
                         reason2: (req.body.reason == undefined || req.body.reason)?leaveapplydetails.reason:req.body.reason,
                     }
@@ -1673,7 +1673,7 @@ let functions = {
                     $set: {
                         updatedDate: new Date(),
                         updatedBy: parseInt(leaveapplydetails.emp_id),
-                        remarks: (req.body.remarks == undefined || req.body.reason)?leaveapplydetails.remarks:req.body.reason,
+                        remarks: (req.body.remarks == undefined || req.body.remarks)?leaveapplydetails.remarks:req.body.remarks,
                         status: "Pending Cancellation",
                         reason2: (req.body.reason == undefined || req.body.reason)?leaveapplydetails.reason:req.body.reason,
                     }
@@ -1683,7 +1683,7 @@ let functions = {
                     $set: {
                         updatedDate: new Date(),
                         updatedBy: parseInt(leaveapplydetails.emp_id),
-                        remarks: (req.body.remarks == undefined || req.body.reason)?leaveapplydetails.remarks:req.body.reason,
+                        remarks: (req.body.remarks == undefined || req.body.remarks)?leaveapplydetails.remarks:req.body.remarks,
                         status: "Pending Cancellation",
                         reason2: (req.body.reason == undefined || req.body.reason)?leaveapplydetails.reason:req.body.reason,
                     }
