@@ -314,12 +314,17 @@ let express  = require('express'),
 //        leaveRoutes.post('/grantLeaveByDepartment', leave.grantLeaveByDepartment);
 //        leaveRoutes.post('/grantLeaveAllEmployee', leave.grantLeaveAllEmployee);
         leaveRoutes.get('/getEmployeeLeaveBalance', leave.getLeaveBalance);
+        leaveRoutes.post('/createLeaveTransactionReport', leave.createLeaveTransactionReport);
+
+        leaveRoutes.get('/hr/getAllEmployeeLeaveBalance', leave.getAllLeaveBalance);
+        leaveRoutes.get('/hr/getAllEmployeeLeaveDetails', leave.getAllEmployeeLeaveDetails);
 //        leaveRoutes.get('/getLeaveDetailsByRole', leave.getLeaveDetailsByRole);
 //        leaveRoutes.post('/addLeaveHoliday', leave.postLeaveHoliday);
           leaveRoutes.get('/getLeaveHolidays', leave.getHolidays);
           leaveRoutes.get('/getUpcomingHoliday', leave.getUpcomingHoliday);
           leaveRoutes.get('/getLeaveTransactionDetails', leave.getLeaveTransactionDetails);
           leaveRoutes.post('/cancelApproveLeave', leave.cancelApproveLeave);
+          leaveRoutes.post('/autoApproveLeave', leave.autoApproveLeave);
 //        leaveRoutes.post('/updateLeaveHoliday', leave.updateHoliday);
 //        leaveRoutes.post('/postLeaveCarry', leave.postLeaveCarry);
 //        leaveRoutes.post('/removeLeaveHoliday', leave.removeHoliday);
@@ -335,9 +340,6 @@ let express  = require('express'),
         
       //= ========================
       //hr dashboard routes
-        apiRoutes.use('/hr', hrRoutes);
-        hrRoutes.get('/getAllEmployeeLeaveBalance', leave.getAllLeaveBalance);
-        hrRoutes.get('/getAllEmployeeLeaveDetails', leave.getAllEmployeeLeaveDetails);
 
       //= ========================
       // Master Data (Dropdowns) Routes 
