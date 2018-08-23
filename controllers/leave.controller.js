@@ -1046,6 +1046,7 @@ let functions = {
                     "applyTo": "$applyTo",
                     "applyTo_name": "$sup_name.fullName",
                     "userName":"$emp_name.userName",
+                    "profileImage":"$emp_name.profileImage",
                     "gender":"$empPersonalDetails.gender",
                     "primarysupervisor_fullname":"$empsupervisor_name.primarysupervisor_name.fullName",
                     "primarysupervisor_username":"$empsupervisor_name.primarysupervisor_name.userName",
@@ -1818,7 +1819,6 @@ let functions = {
                         "_id": 1,
                         "userName": 1,
                         "fullName": 1,
-                        "profileImage":1
                     },
                     leavedetails: {
                         "_id": 1,
