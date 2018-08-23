@@ -142,7 +142,8 @@ function getAllLeaveBalance(req, res) {
                             { "status": "Applied" }, //leave approved
                             { "status": "Approved" }, //leave approved and pending to approve cancellation
                             { "status": "Pending Withdrawal" },//apply for withdraw leave,
-                            { "status": "Pending Cancellation" }//apply for cancel leave,
+                            { "status": "Pending Cancellation" },//apply for cancel leave,
+                            { "status": "System Approved" }//apply for cancel leave,
                         ]
                     }
                 },
@@ -1817,6 +1818,7 @@ let functions = {
                         "_id": 1,
                         "userName": 1,
                         "fullName": 1,
+                        "profileImage":1
                     },
                     leavedetails: {
                         "_id": 1,
@@ -2238,68 +2240,34 @@ let functions = {
         
     },
     autoApproveLeave: (req, res) => {
+        let toDate = new Date();
+        toDate.setDate(toDate.getDate() - 3)
         var query = {
-            _id: parseInt(req.body.id),
             status: 'Applied',
+            "updatedAt": {$lte: toDate},
         }
-        let updateQuery;
-        if (req.body.status == 'Applied' && req.body.approved) {
-            updateQuery = {
-                $set: {
-                    status: "Approved",
-                    supervisorReason: req.body.reason2,
-                    updatedBy: req.body.updatedBy,
-                    updatedAt: new Date()
-                }
-            };
-        } else if(req.body.status == 'Applied' && req.body.rejected){
-            updateQuery = {
-                $set: {
-                    status: "Rejected",
-                    supervisorReason: req.body.reason2,
-                    updatedBy: req.body.updatedBy,
-                    updatedAt: new Date()
-                }
-            };
-        } else if (req.body.status == 'Pending Withdrawal' && req.body.withdrawn) {
-            updateQuery = {
-                $set: {
-                    status: "Withdrawn",
-                    supervisorReason: req.body.reason2,
-                    updatedBy: req.body.updatedBy,
-                    updatedAt: new Date()
-                }
-            };
-        } else if (req.body.status == 'Pending Cancellation' && req.body.cancelled) {
-            updateQuery = {
-                $set: {
-                    status: "Cancelled",
-                    supervisorReason: req.body.reason2,
-                    updatedBy: req.body.updatedBy,
-                    updatedAt: new Date()
-                }
-            };
-        }else if (req.body.status == 'Pending Withdrawal' && !req.body.withdrawn && (req.body.withdrawn != undefined)) {
-            updateQuery = {
-                $set: {
-                    status: "Approved",
-                    supervisorReason2: req.body.reason2,
-                    updatedBy: req.body.updatedBy,
-                    updatedAt: new Date()
-                }
-            };
-        } else if (req.body.status == 'Pending Cancellation' && !req.body.cancelled && (req.body.cancelled != undefined)) {
-            updateQuery = {
-                $set: {
-                    status: "Approved",
-                    supervisorReason2: req.body.reason2,
-                    updatedBy: req.body.updatedBy,
-                    updatedAt: new Date()
-                }
-            };
-        }
-        LeaveApply.findOneAndUpdate(query, updateQuery, {
-            new: true
+    //     let toDate = new Date(endDate);
+    //     toDate.setDate(toDate.getDate() + 1)
+    // let queryForDate = {'$match':{}};
+    // queryForDate['$match']['$and']=[{"emp_id": empId}]
+    // if (fromDate && endDate) { 
+    //     queryForDate['$match']['$and'].push({
+    //         $and:
+    //             [{"fromDate": {$gte: new Date(fromDate)}},
+    //             {"fromDate": {$lte: toDate}}]
+    //     });
+    // }
+    //     let updateQuery;
+        updateQuery = {
+            $set: {
+                status: "System Approved",
+                updatedAt: new Date()
+            }
+        };
+        
+        LeaveApply.update(query, updateQuery, {
+            new: true,
+            multi: true
         }, function (err, _leaveDetails) {
             if (err) {
                 return res.status(403).json({
