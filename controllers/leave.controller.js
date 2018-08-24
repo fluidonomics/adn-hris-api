@@ -1024,6 +1024,48 @@ let functions = {
                     "preserveNullAndEmptyArrays": true
                 }
             },
+            {
+                "$lookup": {
+                    "from": "employeeofficedetails",
+                    "localField": "emp_id",
+                    "foreignField": "emp_id",
+                    "as": "employeeOfficeDetails"
+                }
+            },
+            {
+                "$unwind": {
+                    path: "$employeeOfficeDetails",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "departments",
+                    "localField": "employeeOfficeDetails.department_id",
+                    "foreignField": "_id",
+                    "as": "employeeOfficeDetails.departments"
+                }
+            },
+            {
+                "$unwind": {
+                    path: "$employeeOfficeDetails.departments",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "divisions",
+                    "localField": "employeeOfficeDetails.division_id",
+                    "foreignField": "_id",
+                    "as": "employeeOfficeDetails.divisions"
+                }
+            },
+            {
+                "$unwind": {
+                    path: "$employeeOfficeDetails.divisions",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
             matchQuery,
             queryObj,
             {
@@ -1055,7 +1097,9 @@ let functions = {
                     "days": "$days",
                     "reason": "$reason",
                     "status": "$status",
-                    "attachment": "$attachment"
+                    "attachment": "$attachment",
+                    "department": "$employeeOfficeDetails.departments.departmentName",
+                    "division": "$employeeOfficeDetails.divisions.divisionName"
     
                 }
             }
@@ -2285,6 +2329,7 @@ let functions = {
         })
         
     },
+
 
 }
 
