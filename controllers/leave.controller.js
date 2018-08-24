@@ -1681,14 +1681,14 @@ let functions = {
     },
     createLeaveTransactionReport: (req, res) => {
         let primaryEmpId, empId, matchQuery;
-        if (req.query.supervisorId) {
-            primaryEmpId = req.query.supervisorId
-            matchQuery = {'$match':{ "primarySupervisorEmp_id":  parseInt(primaryEmpId)}};
-        } else {
-            empId = req.query.empId;
-            matchQuery = {'$match':{ "emp_id":  parseInt(empId)}};
+        // if (req.query.supervisorId) {
+        //     primaryEmpId = req.query.supervisorId
+        //     matchQuery = {'$match':{ "primarySupervisorEmp_id":  parseInt(primaryEmpId)}};
+        // } else {
+        //     empId = req.query.empId;
+        //     matchQuery = {'$match':{ "emp_id":  parseInt(empId)}};
 
-        }
+        // }
         let month ,year, leave_type;
         let queryObj = {'$match':{}};
         queryObj['$match']['$and']=[{ "isActive": true}]
@@ -1729,7 +1729,7 @@ let functions = {
             })
         }
         SupervisorInfo.aggregate([
-            matchQuery,
+            // matchQuery,
             {
                 "$lookup": {
                     "from": "employeedetails",
