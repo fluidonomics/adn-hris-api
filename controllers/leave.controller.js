@@ -1929,7 +1929,8 @@ let functions = {
             let xls = json2xls(json);
 
             fs.writeFileSync('data.xlsx', xls, 'binary');
-            return res.status(200).json({ "data": results });
+            // res.download('data.xlsx');
+            return res.status(200).download('data.xlsx');
         });
     },
     postCancelLeave: (req, res) => {
