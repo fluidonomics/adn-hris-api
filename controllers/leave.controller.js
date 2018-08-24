@@ -1713,6 +1713,12 @@ let functions = {
         if (req.query.divisionName) {
             queryObj['$match']['$and'].push({"employeeOfficeDetails.divisions.divisionName":req.query.divisionName})
         }
+        if (req.query.leaveType) {
+            queryObj['$match']['$and'].push({"leavedetails.leave_type":parseInt(req.query.leaveType)})
+        }
+        if (req.query.userName) {
+            queryObj['$match']['$and'].push({"employeeDetails.userName":req.query.userName})
+        }
         
          
         if (req.query.fromDate && req.query.toDate) {
