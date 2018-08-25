@@ -46,7 +46,6 @@ function getAllLeaveBalance(req, res) {
     if (year != null && year != undefined) {
         queryObj['$match']['$and'].push({"yearStart": parseInt(year)})
     }
-    console.log(queryObj['$match']['$and'])
     let toDate = new Date(endDate);
         toDate.setDate(toDate.getDate() + 1)
     let queryForDate = {'$match':{}};
@@ -80,7 +79,6 @@ function getAllLeaveBalance(req, res) {
             }
         }
     } else {
-        console.log("else")
         query =  {
             $match: {
                 $or: [{ "leave_type": 1 },
@@ -327,7 +325,8 @@ function singleEmployeeLeaveBalance(currentEmpId, fiscalYearId, month, year, fro
                             { "status": "Applied" }, //leave approved
                             { "status": "Approved" }, //leave approved and pending to approve cancellation
                             { "status": "Pending Withdrawal" },//apply for withdraw leave,
-                            { "status": "Pending Cancellation" }//apply for cancel leave,
+                            { "status": "Pending Cancellation" },//apply for cancel leave,
+                            { "status": "System Approved" }//apply for cancel leave,
                             // { "status": null} //when leave applied
                             //{ "isApproved": true, "isCancelled": true} //leave approved and cancel approved --not counted
                             //{ "isApproved": null, "isCancelled": true} //leave applied and cancel approved  --not counted
@@ -1407,6 +1406,7 @@ let functions = {
         let status = req.query.status;
         
         let queryObj = {'$match':{}};
+        let matchQuery = {'$match':{"isActive": true}};
         queryObj['$match']['$and']=[{ "isActive": true}]
         if (month) {
             queryObj['$match']['$and'].push({month:parseInt(month)})
@@ -1417,15 +1417,19 @@ let functions = {
         if (status){
             queryObj['$match']['$and'].push({status:status})
         }
+        if (primaryEmpId){
+            matchQuery = {'$match':{"isActive": true, "primarySupervisorEmp_id":parseInt(primaryEmpId)}};
+        }
         if (req.query.fromDate && req.query.toDate) {
             queryObj['$match']["$and"].push({
                 $and:
                     [{"leavedetails.fromDate": {$gte: new Date(req.query.fromDate)}},
                     {"leavedetails.fromDate": {$lte: new Date(req.query.toDate)}}]
             })
-        }
+        }   
+        console.log(matchQuery)
         SupervisorInfo.aggregate([
-            { "$match": { "isActive": true, "primarySupervisorEmp_id": parseInt(primaryEmpId) } },
+            matchQuery,
             {
                 "$lookup": {
                     "from": "employeedetails",
@@ -1448,19 +1452,19 @@ let functions = {
                     "as": "leavedetails"
                 }
             },
-            {
-                "$unwind": {
-                    path: "$leavedetails",
-                    "preserveNullAndEmptyArrays": true
-                }
-            },
+            // {
+            //     "$unwind": {
+            //         path: "$leavedetails",
+            //         "preserveNullAndEmptyArrays": true
+            //     }
+            // },
             {
                 "$project": {
                     _id:1,
                     isActive:1,
-                    "month" :{$month:"$leavedetails.fromDate"},
-                    "year" :{$year:"$leavedetails.fromDate"},
-                    "status" :"$leavedetails.status",
+                    // "month" :{$month:"$leavedetails.fromDate"},
+                    // "year" :{$year:"$leavedetails.fromDate"},
+                    // "status" :"$leavedetails.status",
                     employeeDetails: {
                         "_id": 1,
                         "userName": 1,
@@ -1746,6 +1750,20 @@ let functions = {
             },
             {
                 "$lookup": {
+                    "from": "companies",
+                    "localField": "employeeDetails.company_id",
+                    "foreignField": "_id",
+                    "as": "employeeDetails.companyDetails"
+                }
+            },
+            {
+                "$unwind": {
+                    path: "$employeeDetails.companyDetails",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                "$lookup": {
                     "from": "leaveapplieddetails",
                     "localField": "emp_id",
                     "foreignField": "emp_id",
@@ -1796,7 +1814,7 @@ let functions = {
             },
             {
                 "$unwind": {
-                    path: "$leavedetails.applyTo",
+                    path: "$leavedetails.supervisorDetails",
                     "preserveNullAndEmptyArrays": true
                 }
             },
@@ -1860,8 +1878,14 @@ let functions = {
                 "$project": {
                     _id:1,
                     isActive:1,
-                    "month" :{$month:"$leavedetails.fromDate"},
-                    "year" :{$year:"$leavedetails.fromDate"},
+                    // "month" :{$month:"$leavedetails.fromDate"},
+                    // "year" :{$year:"$leavedetails.fromDate"},
+                    "compayName":"$employeeDetails.companyDetails.companyName",
+                    "employeeName":"$employeeDetails.fullName",
+                    "division":"$employeeOfficeDetails.divisions.divisionName",
+                    "department":"$employeeOfficeDetails.departments.departmentName",
+                    "supervisorName":"$leavedetails.supervisorDetails.fullName",
+                    "fiscalYearId":"$leavedetails.fiscalYearId",
                     "leave_type":"$leavedetails.leaveTypeName._id",
                     "leaveTypeName":"$leavedetails.leaveTypeName.type",
                     "leaveStatus":"$leavedetails.status",
@@ -1869,6 +1893,10 @@ let functions = {
                         "_id": 1,
                         "userName": 1,
                         "fullName": 1,
+                        companyDetails:{
+                            "_id":1,
+                            "companyName":1
+                        }
                     },
                     leavedetails: {
                         "_id": 1,
@@ -1879,7 +1907,7 @@ let functions = {
                         "createdAt":1,
                         "updatedAt":1,
                         "attachment":1,
-
+                        "fiscalYearId":1,
                         createdByName:{
                             "_id":1,
                             "fullName":1
@@ -1926,11 +1954,10 @@ let functions = {
             }
             let json = results
 
-            let xls = json2xls(json);
-
-            fs.writeFileSync('data.xlsx', xls, 'binary');
-            // res.download('data.xlsx');
-            return res.status(200).download('data.xlsx');
+            // let xls = json2xls(json);
+            // fs.writeFileSync('data.xlsx', xls, 'binary');
+            // return res.status(200).download('data.xlsx');
+            return res.status(200).json(results);
         });
     },
     postCancelLeave: (req, res) => {
@@ -2220,7 +2247,7 @@ let functions = {
             updateQuery = {
                 $set: {
                     status: "Approved",
-                    supervisorReason: req.body.reason2,
+                    supervisorReason: req.body.supervisorReason,
                     updatedBy: req.body.updatedBy,
                     updatedAt: new Date()
                 }
@@ -2229,7 +2256,7 @@ let functions = {
             updateQuery = {
                 $set: {
                     status: "Rejected",
-                    supervisorReason: req.body.reason2,
+                    supervisorReason: req.body.supervisorReason,
                     updatedBy: req.body.updatedBy,
                     updatedAt: new Date()
                 }
@@ -2238,7 +2265,7 @@ let functions = {
             updateQuery = {
                 $set: {
                     status: "Withdrawn",
-                    supervisorReason: req.body.reason2,
+                    supervisorReason2: req.body.supervisorReason2,
                     updatedBy: req.body.updatedBy,
                     updatedAt: new Date()
                 }
@@ -2247,7 +2274,7 @@ let functions = {
             updateQuery = {
                 $set: {
                     status: "Cancelled",
-                    supervisorReason: req.body.reason2,
+                    supervisorReason2: req.body.supervisorReason2,
                     updatedBy: req.body.updatedBy,
                     updatedAt: new Date()
                 }
@@ -2256,7 +2283,7 @@ let functions = {
             updateQuery = {
                 $set: {
                     status: "Approved",
-                    supervisorReason2: req.body.reason2,
+                    supervisorReason2: req.body.supervisorReason2,
                     updatedBy: req.body.updatedBy,
                     updatedAt: new Date()
                 }
@@ -2265,7 +2292,7 @@ let functions = {
             updateQuery = {
                 $set: {
                     status: "Approved",
-                    supervisorReason2: req.body.reason2,
+                    supervisorReason2: req.body.supervisorReason2,
                     updatedBy: req.body.updatedBy,
                     updatedAt: new Date()
                 }
