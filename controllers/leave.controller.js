@@ -1505,12 +1505,13 @@ let functions = {
     },
     getLeaveDetailsByFilter: (req, res) => {
         let primaryEmpId, empId, matchQuery;
-        if (req.query.supervisorId) {
-            primaryEmpId = req.query.supervisorId
-            matchQuery = {'$match':{ "primarySupervisorEmp_id":  parseInt(primaryEmpId)}};
-        } else {
+        if (req.query.empId) {
             empId = req.query.empId;
             matchQuery = {'$match':{ "emp_id":  parseInt(empId)}};
+        } else {
+            primaryEmpId = req.query.supervisorId
+            matchQuery = {'$match':{ "primarySupervisorEmp_id":  parseInt(primaryEmpId)}};
+            
 
         }
         let month ,year, leave_type;
@@ -1985,7 +1986,7 @@ let functions = {
                         updatedBy: parseInt(leaveapplydetails.emp_id),
                         remarks: (req.body.remarks == undefined || req.body.remarks)?leaveapplydetails.remarks:req.body.remarks,
                         status: "Withdrawn",
-                        reason2: (req.body.reason == undefined || req.body.reason)?leaveapplydetails.reason:req.body.reason,
+                        reason2: req.body.reason2
                     }
                 };
 
@@ -1996,7 +1997,7 @@ let functions = {
                         updatedBy: parseInt(leaveapplydetails.emp_id),
                         remarks: (req.body.remarks == undefined || req.body.remarks)?leaveapplydetails.remarks:req.body.remarks,
                         status: "Pending Cancellation",
-                        reason2: (req.body.reason == undefined || req.body.reason)?leaveapplydetails.reason:req.body.reason,
+                        reason2: req.body.reason2
                     }
                 };
 
@@ -2007,7 +2008,7 @@ let functions = {
                         updatedBy: parseInt(leaveapplydetails.emp_id),
                         remarks: (req.body.remarks == undefined || req.body.remarks)?leaveapplydetails.remarks:req.body.remarks,
                         status: "Pending Cancellation",
-                        reason2: (req.body.reason == undefined || req.body.reason)?leaveapplydetails.reason:req.body.reason,
+                        reason2: req.body.reason2
                     }
                 };
             } else if (leaveapplydetails.status == "Approved") {
@@ -2017,7 +2018,7 @@ let functions = {
                         updatedBy: parseInt(leaveapplydetails.emp_id),
                         remarks: (req.body.remarks == undefined || req.body.remarks)?leaveapplydetails.remarks:req.body.remarks,
                         status: "Pending Cancellation",
-                        reason2: (req.body.reason == undefined || req.body.reason)?leaveapplydetails.reason:req.body.reason,
+                        reason2: req.body.reason2
                     }
                 };
 
