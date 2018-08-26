@@ -1411,27 +1411,27 @@ let functions = {
         let month = req.query.month;
         let year = req.query.year;
         let status = req.query.status;
-
-        let queryObj = { '$match': {} };
-        let matchQuery = { '$match': { "isActive": true } };
-        queryObj['$match']['$and'] = [{ "isActive": true }]
+ 
+        let queryObj = {'$match':{}};
+        let matchQuery = {'$match':{"isActive": true}};
+        queryObj['$match']['$and']=[{ "isActive": true}]
         if (month) {
-            queryObj['$match']['$and'].push({ month: parseInt(month) })
+            queryObj['$match']['$and'].push({month:parseInt(month)})
         }
-        if (year) {
-            queryObj['$match']['$and'].push({ year: parseInt(year) })
+        if (year){
+            queryObj['$match']['$and'].push({year:parseInt(year)})
         }
-        if (status) {
-            queryObj['$match']['$and'].push({ status: status })
-        }
-        if (primaryEmpId) {
-            matchQuery = { '$match': { "isActive": true, "primarySupervisorEmp_id": parseInt(primaryEmpId) } };
+        // if (status){
+        //     queryObj['$match']['$and'].push({status:status})
+        // }
+        if (primaryEmpId){
+            matchQuery = {'$match':{"isActive": true, "primarySupervisorEmp_id":parseInt(primaryEmpId)}};
         }
         if (req.query.fromDate && req.query.toDate) {
             queryObj['$match']["$and"].push({
                 $and:
-                    [{ "leavedetails.fromDate": { $gte: new Date(req.query.fromDate) } },
-                    { "leavedetails.fromDate": { $lte: new Date(req.query.toDate) } }]
+                    [{"leavedetails.fromDate": {$gte: new Date(req.query.fromDate)}},
+                    {"leavedetails.fromDate": {$lte: new Date(req.query.toDate)}}]
             })
         }
         console.log(matchQuery)
@@ -1459,16 +1459,16 @@ let functions = {
                     "as": "leavedetails"
                 }
             },
-            // {
-            //     "$unwind": {
-            //         path: "$leavedetails",
-            //         "preserveNullAndEmptyArrays": true
-            //     }
-            // },
+            {
+                "$unwind": {
+                    path: "$leavedetails",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
             {
                 "$project": {
-                    _id: 1,
-                    isActive: 1,
+                    _id:1,
+                    isActive:1,
                     // "month" :{$month:"$leavedetails.fromDate"},
                     // "year" :{$year:"$leavedetails.fromDate"},
                     // "status" :"$leavedetails.status",
@@ -1488,9 +1488,9 @@ let functions = {
                         "fromDate": 1,
                         "toDate": 1,
                         "days": 1,
-                        "leave_type": 1,
-                        "status": 1,
-
+                        "leave_type":1,
+                        "status":1,
+ 
                     }
                 }
             },
@@ -1507,7 +1507,7 @@ let functions = {
                     }
                 });
             }
-            return res.status(200).json({ "data": results });
+            return res.status(200).json({ "data": results.filter(f => f.leavedetails.status === 'Approved') });
         });
     },
     getLeaveDetailsByFilter: (req, res) => {
