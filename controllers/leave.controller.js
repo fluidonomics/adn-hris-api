@@ -1427,7 +1427,6 @@ let functions = {
                     {"leavedetails.fromDate": {$lte: new Date(req.query.toDate)}}]
             })
         }   
-        console.log(matchQuery)
         SupervisorInfo.aggregate([
             matchQuery,
             {
