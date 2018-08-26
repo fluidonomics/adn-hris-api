@@ -44,7 +44,7 @@ let express = require('express'),
     fileSize: config.aws.fileSize, // 5MB filesize limit
     },
     fileFilter: (req, file, cb) => {
-    let filetypes = /pdf/;
+    let filetypes = /pdf/jpg/jpeg/png/pdf/docx;
     let mimetype = filetypes.test(file.mimetype);
     let extname = filetypes.test(path.extname(file.originalname).toLowerCase());
     if (mimetype && extname) {
