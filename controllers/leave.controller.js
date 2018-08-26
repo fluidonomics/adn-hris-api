@@ -2425,6 +2425,21 @@ let functions = {
             if(err) {
               console.error(err);
             }else {
+                let response = [];
+                for(let i=0;i<result.length;i++){
+                    Employee.find({userName:parseInt(result[i]['ID #'])},function(err,users){
+                        let temp = {};
+                        if(users[0]){
+                            temp = {
+                                'CARRY FORWARD':result[i]['CARRY FORWARD'],
+                                'id':users[0]._id
+                            }
+                            response.push(temp)
+                        }
+
+                    
+                    })
+                }
               console.log(result);
             }
           });
