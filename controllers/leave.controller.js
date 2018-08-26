@@ -18,17 +18,17 @@ LeaveApply = require('../models/leave/leaveApply.model'),
     FinancialYear = require('../models/master/financialYear.model'),
     SupervisorInfo = require('../models/employee/employeeSupervisorDetails.model'),
     uploadClass = require('../class/upload');
-moment = require('moment');
-config = require('../config/config'),
+    moment = require('moment');
+    config = require('../config/config'),
     crypto = require('crypto'),
     async = require('async'),
     nodemailer = require('nodemailer'),
     hbs = require('nodemailer-express-handlebars'),
     sgTransport = require('nodemailer-sendgrid-transport'),
     uuidV1 = require('uuid/v1');
-json2xls = require('json2xls');
-fs = require('fs');
-
+// json2xls = require('json2xls');
+// fs = require('fs');
+    xlsxj = require("xlsx-to-json");
 require('dotenv').load()
 function getAllLeaveBalance(req, res) {
     let _fiscalYearId = (req.query.fiscalYearId);
@@ -537,10 +537,7 @@ function applyLeave(req, res, done) {
                     message = "You can not apply leave on weekends";
                 }
                 let d = moment(moment().add(7, 'days').format('YYYY-MM-DD') + ' UTC').utc().format();
-                console.log(((moment(fromDateBody).diff(toDateBody, 'days') + 1)))
-                console.log(req.body.leave_type == 1)
-                console.log(fromDateBody)
-                console.log(d)
+                
                 if (((moment(toDateBody).diff(fromDateBody, 'days') + 1) > 3) && (req.body.leave_type == 1) && fromDateBody <= d) {
                     flag = false;
                     message = "Annual Leave should be applied in seven days advance";
@@ -2373,7 +2370,66 @@ let functions = {
         })
 
     },
+    calculateLeave: (req, res) => {
+        let fromDateBody = moment(req.body.fromDate + ' UTC').utc().format();
+    let toDateBody = moment(req.body.toDate + ' UTC').utc().format();
+    let startd = new Date(new Date(req.body.fromDate).getTime() + 86400000),
+        endd = new Date(new Date(req.body.toDate).getTime() + 86400000);
+    let flag = true;
+    let message;
+    let minusDayStart = new Date(startd.getTime() - 86400000);
+    let minusDayEnd = new Date(endd.getTime() - 86400000);
+        LeaveHoliday.find({
+            $or: [{
+                $and:
+                    [{ "date": { $gt: minusDayStart } },
+                    { "date": { $lte: startd } }]
+            }, {
+                $and: [{ "date": { $gt: minusDayEnd } },
+                { "date": { $lte: endd } }]
+            }]
+        }, function (err, details) {
+            if (err) {
+                flag = false;
+                message = err.message;
+                return res.status(403).json({
+                    title: 'There is a problem',
+                    error: {
+                        message: message
+                    },
+                    result: {
+                        message: message
+                    }
+                });
+            } else if (details.length > 0) {
+                flag = false;
+                message = "You cannot apply on holiday"
+                return res.status(403).json({
+                    title: 'There is a problem',
+                    error: {
+                        message: message
+                    },
+                    result: {
+                        message: message
+                    }
+                });
 
+            }
+        })
+    },
+    uploadCarryForward: (req, res) => {
+        xlsxj({
+            input: "/Volumes/Webrex/Client Project/fluidonomics/adn-hris-api/Carry_Forward.xlsx", 
+            output: "output.json"
+          }, function(err, result) {
+            if(err) {
+              console.error(err);
+            }else {
+              console.log(result);
+            }
+          });
+        
+    }
 
 }
 

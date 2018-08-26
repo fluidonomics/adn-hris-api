@@ -325,7 +325,8 @@ let express  = require('express'),
           leaveRoutes.get('/getLeaveTransactionDetails', leave.getLeaveTransactionDetails);
           leaveRoutes.post('/cancelApproveLeave', leave.cancelApproveLeave);
           leaveRoutes.post('/autoApproveLeave', leave.autoApproveLeave);
-          // leaveRoutes.get('/calculateLeave', leave.calculateLeave);
+          leaveRoutes.get('/calculateLeave', leave.calculateLeave);
+          leaveRoutes.get('/uploadCarryForward', leave.uploadCarryForward);
 //        leaveRoutes.post('/updateLeaveHoliday', leave.updateHoliday);
 //        leaveRoutes.post('/postLeaveCarry', leave.postLeaveCarry);
 //        leaveRoutes.post('/removeLeaveHoliday', leave.removeHoliday);
