@@ -28,7 +28,8 @@ LeaveApply = require('../models/leave/leaveApply.model'),
     uuidV1 = require('uuid/v1');
 // json2xls = require('json2xls');
 // fs = require('fs');
-    xlsxj = require("xlsx-to-json");
+    xlsx2json = require('xlsx2json');
+    XLSX = require('xlsx');
 require('dotenv').load()
 function getAllLeaveBalance(req, res) {
     let _fiscalYearId = (req.query.fiscalYearId);
@@ -2325,7 +2326,12 @@ let functions = {
 
     },
     autoApproveLeave: (req, res) => {
-        let toDate = new Date();
+        let toDate;
+        if(req.query.date){
+            toDate = new Date(req.query.date);
+        }else{
+            toDate = new Date();
+        }
         toDate.setDate(toDate.getDate() - 3)
         var query = {
             status: 'Applied',
@@ -2418,32 +2424,35 @@ let functions = {
         })
     },
     uploadCarryForward: (req, res) => {
-        xlsxj({
-            input: "/Volumes/Webrex/Client Project/fluidonomics/adn-hris-api/Carry_Forward.xlsx", 
-            output: "output.json"
-          }, function(err, result) {
-            if(err) {
-              console.error(err);
-            }else {
-                let response = [];
-                for(let i=0;i<result.length;i++){
-                    Employee.find({userName:parseInt(result[i]['ID #'])},function(err,users){
-                        let temp = {};
-                        if(users[0]){
-                            temp = {
-                                'CARRY FORWARD':result[i]['CARRY FORWARD'],
-                                'id':users[0]._id
-                            }
-                            response.push(temp)
-                        }
-
+        let workbook = XLSX.readFile('/Volumes/Webrex/Client Project/fluidonomics/adn-hris-api/Carry_Forward.xlsx');
+        let sheet_name_list = workbook.SheetNames;
+        let data = XLSX.utils.sheet_to_json(workbook.Sheets[sheet_name_list[0]])
+        let response = [];
+        for(let i=1;i<data.length;i++){
+            Employee.find({userName:parseInt(data[i]['ID #'])},function(err,users){
+                let temp = {};
+                if(users[0]){
+                    temp = {
+                        'CARRY FORWARD':data[i]['CARRY FORWARD'],
+                        'id':users[0]._id
+                    }
+                    response.push(temp)
                     
+                    LeaveBalance.find({emp_id: parseInt(users[0]._id),
+                    leave_type: 1},function(err,users){
+                        LeaveBalance.findOneAndUpdate({emp_id: parseInt(users[0]._id),
+                            leave_type: 1},{
+                                $set: {
+                                    balance: parseInt(users[0].balance) + parseInt(data[i]['CARRY FORWARD']),
+                                    carryForwardLeave: parseInt(data[i]['CARRY FORWARD']),
+                                }
+                            }, function(err,_leaveDetails){
+                                
+                            }) 
                     })
                 }
-              console.log(result);
-            }
-          });
-        
+            })
+        }
     }
 
 }
