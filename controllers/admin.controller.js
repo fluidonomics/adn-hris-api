@@ -65,7 +65,7 @@ let tempStorage = multer.diskStorage({
 let uploadTemp = multer({
   storage   : tempStorage,
   limits    : {
-    fileSize: 5000000, // 5MB filesize limit
+    fileSize: 300000, // 5MB filesize limit
     parts   : 1
   },
   fileFilter: (req, file, cb) => {

@@ -69,6 +69,7 @@ let express  = require('express'),
           uploadRoutes= express.Router(),
           kraRoutes   = express.Router(),
           leaveRoutes = express.Router(),
+          hrRoutes = express.Router(),
           externalDocumentRoutes = express.Router(),
           batchRoutes=express.Router(),
 
@@ -235,6 +236,8 @@ let express  = require('express'),
 
           userRoutes.get('/getSupervisorInfo', ensureAuthenticated, user.getSupervisorInfo);
 
+          userRoutes.get('/getEmployeeDetails', ensureAuthenticated, user.getEmployeeDetails);
+
           userRoutes.post('/changePassword', ensureAuthenticated, user.changePassword);
 
           
@@ -296,35 +299,49 @@ let express  = require('express'),
         apiRoutes.use('/leave', leaveRoutes);
 
         leaveRoutes.post('/applyLeave', leave.postApplyLeave);
-        leaveRoutes.get('/leaveTransactionDetails', leave.getLeaveTransaction);
-        leaveRoutes.get('/getEmployeeLeaveDetails', leave.getEmployeeLeaveDetails);
+        leaveRoutes.post('/uploadSickLeaveDocument', leave.uploadSickLeaveDocument);
+//        leaveRoutes.get('/leaveTransactionDetails', leave.getLeaveTransaction);
         leaveRoutes.get('/getLeaveTypes', leave.getLeaveTypes);
-        leaveRoutes.post('/cancelLeave', leave.postCancelLeave);
-        leaveRoutes.get('/getCancelEmployeeLeaveDetails', leave.getCancelEmployeeLeaveDetails);
-        leaveRoutes.get('/getLeaveWorkflowDetails', leave.getLeaveWorkflowDetails);
-        leaveRoutes.get('/getSupervisorLeaveDetails', leave.getSupervisorLeaveDetails);
-        leaveRoutes.get('/getHRLeaveDetails', leave.getHRLeaveDetails);
-        leaveRoutes.get('/getLeaveDetailsById', leave.getLeaveDetailsById);
-        leaveRoutes.post('/grantLeaveByEmployee', leave.grantLeaveByEmployee);
-        leaveRoutes.post('/grantLeaveByDepartment', leave.grantLeaveByDepartment);
-        leaveRoutes.post('/grantLeaveAllEmployee', leave.grantLeaveAllEmployee);
+       leaveRoutes.post('/cancelLeave', leave.postCancelLeave);
+//        leaveRoutes.get('/getCancelEmployeeLeaveDetails', leave.getCancelEmployeeLeaveDetails);
+//        leaveRoutes.get('/getLeaveWorkflowDetails', leave.getLeaveWorkflowDetails);
+       leaveRoutes.get('/getSupervisorTeamMember', leave.getSupervisorTeamMember);
+       leaveRoutes.get('/getSupervisorLeaveDetails', leave.getSupervisorLeaveDetails);
+       leaveRoutes.get('/getLeaveDetailsByFilter', leave.getLeaveDetailsByFilter);
+//        leaveRoutes.get('/getHRLeaveDetails', leave.getHRLeaveDetails);
+       leaveRoutes.get('/getLeaveDetailsById', leave.getLeaveDetailsById);
+//        leaveRoutes.post('/grantLeaveByEmployee', leave.grantLeaveByEmployee);
+//        leaveRoutes.post('/grantLeaveByDepartment', leave.grantLeaveByDepartment);
+//        leaveRoutes.post('/grantLeaveAllEmployee', leave.grantLeaveAllEmployee);
         leaveRoutes.get('/getEmployeeLeaveBalance', leave.getLeaveBalance);
-        leaveRoutes.get('/getLeaveDetailsByRole', leave.getLeaveDetailsByRole);
-        leaveRoutes.post('/addLeaveHoliday', leave.postLeaveHoliday);
-        leaveRoutes.get('/getLeaveHolidays', leave.getHolidays);
-        leaveRoutes.post('/updateLeaveHoliday', leave.updateHoliday);
-        leaveRoutes.post('/postLeaveCarry', leave.postLeaveCarry);
-        leaveRoutes.post('/removeLeaveHoliday', leave.removeHoliday);
-        leaveRoutes.post('/postAcceptRejectLeave', leave.postAcceptRejectLeave);
-        leaveRoutes.get('/getLeavesByMonth', leave.getLeavesByMonth);
-        leaveRoutes.get('/getLeavesByLeaveType', leave.getLeavesByLeaveType);
-        leaveRoutes.get('/getAllEmployee', leave.getAllEmployee);
-        leaveRoutes.get('/getEmployeeProbationDetails', leave.getEmployeeProbationDetails);
-        leaveRoutes.post('/postLeaveTransactionYear', leave.postLeaveTransactionYear);
-        leaveRoutes.post('/grantMaternityLeave', leave.grantMaternityLeave);
-        leaveRoutes.get('/getEmpMaternityLeaveDetails', leave.getEmpMaternityLeaveDetails);
+        leaveRoutes.post('/hr/createLeaveTransactionReport', leave.createLeaveTransactionReport);
+
+        leaveRoutes.get('/hr/getAllEmployeeLeaveBalance', leave.getAllLeaveBalance);
+        leaveRoutes.get('/hr/getAllEmployeeLeaveDetails', leave.getAllEmployeeLeaveDetails);
+//        leaveRoutes.get('/getLeaveDetailsByRole', leave.getLeaveDetailsByRole);
+//        leaveRoutes.post('/addLeaveHoliday', leave.postLeaveHoliday);
+          leaveRoutes.get('/getLeaveHolidays', leave.getHolidays);
+          leaveRoutes.get('/getUpcomingHoliday', leave.getUpcomingHoliday);
+          leaveRoutes.get('/getLeaveTransactionDetails', leave.getLeaveTransactionDetails);
+          leaveRoutes.post('/cancelApproveLeave', leave.cancelApproveLeave);
+          leaveRoutes.post('/autoApproveLeave', leave.autoApproveLeave);
+          leaveRoutes.get('/calculateLeave', leave.calculateLeave);
+          leaveRoutes.get('/uploadCarryForward', leave.uploadCarryForward);
+//        leaveRoutes.post('/updateLeaveHoliday', leave.updateHoliday);
+//        leaveRoutes.post('/postLeaveCarry', leave.postLeaveCarry);
+//        leaveRoutes.post('/removeLeaveHoliday', leave.removeHoliday);
+//        leaveRoutes.post('/postAcceptRejectLeave', leave.postAcceptRejectLeave);
+//        leaveRoutes.get('/getLeavesByMonth', leave.getLeavesByMonth);
+//        leaveRoutes.get('/getLeavesByLeaveType', leave.getLeavesByLeaveType);
+    	  leaveRoutes.get('/getAllEmployee', leave.getAllEmployee);
+    	  leaveRoutes.post('/withdrawLeave', leave.withdrawLeave);
+//        leaveRoutes.get('/getEmployeeProbationDetails', leave.getEmployeeProbationDetails);
+//        leaveRoutes.post('/postLeaveTransactionYear', leave.postLeaveTransactionYear);
+//        leaveRoutes.post('/grantMaternityLeave', leave.grantMaternityLeave);
+       leaveRoutes.get('/getEmpMaternityLeaveDetails', leave.getEmpMaternityLeaveDetails);
         
       //= ========================
+      //hr dashboard routes
 
       //= ========================
       // Master Data (Dropdowns) Routes 
@@ -412,7 +429,7 @@ let express  = require('express'),
           apiRoutes.use('/common', commonRoutes);
 
           commonRoutes.get('/getRole',ensureAuthenticated, common.getRole);
-          commonRoutes.get('/getEmployeEmailDetails', common.getAllEmployeeEmails);
+          commonRoutes.get('/getEmployeeEmailDetails', common.getAllEmployeeEmails);
           
 
           commonRoutes.get('/getCompany',ensureAuthenticated, common.getCompany);

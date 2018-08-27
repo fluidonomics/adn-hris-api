@@ -1281,6 +1281,189 @@ function getPersonalInfoDetails(req, res) {
         return res.status(200).json(personalEmpDetails);
     });
 }
+function getEmployeeDetails(req, res) {
+    let emp_id = req.query.emp_id;
+    console.log(req.query)
+    let query = {
+        isDeleted: false
+    };
+    if (emp_id) {
+        query = {
+            emp_id: emp_id,
+            isDeleted: false
+        };
+    }
+    var personalInfoProjection = {
+        createdAt: false,
+        updatedAt: false,
+        isDeleted: false,
+        updatedBy: false,
+        createdBy: false,
+    };
+    PersonalInfo.aggregate([
+    {
+                        $match: {
+                            "$or":[
+                            {"emp_id": parseInt(emp_id)}
+    //                        {"emp_id": parseInt(upervisorDetails.leaveSupervisorEmp_id)}
+                             ]
+                        }
+                    },
+                {
+                    "$lookup": {
+                        "from": "employeeprobationdetails",
+                        "localField": "emp_id",
+                        "foreignField": "emp_id",
+                        "as": "probationDetails"
+                    }
+                },
+                {
+                    "$unwind": {
+                        path: "$probationDetails",
+                        "preserveNullAndEmptyArrays": true
+                    }
+                },
+                {
+                    "$lookup": {
+                        "from": "employeesupervisordetails",
+                        "localField": "emp_id",
+                        "foreignField": "emp_id",
+                        "as": "supervisorDetails"
+                    }
+                },
+                {
+                    "$unwind": {
+                        path: "$supervisorDetails",
+                        "preserveNullAndEmptyArrays": true
+                    }
+                },
+                {
+                    "$lookup": {
+                        "from": "employeedetails",
+                        "localField": "supervisorDetails.leaveSupervisorEmp_id",
+                        "foreignField": "_id",
+                        "as": "supervisorDetails.leaveSupervisorDetails"
+                    }
+                },
+                {
+                    "$unwind": {
+                        path: "$supervisorDetails.leaveSupervisorDetails",
+                        "preserveNullAndEmptyArrays": true
+                    }
+                },
+                {
+                    "$lookup": {
+                        "from": "employeedetails",
+                        "localField": "supervisorDetails.secondarySupervisorEmp_id",
+                        "foreignField": "_id",
+                        "as": "supervisorDetails.secondarySupervisorDetails"
+                    }
+                },
+                {
+                    "$unwind": {
+                        path: "$supervisorDetails.secondarySupervisorDetails",
+                        "preserveNullAndEmptyArrays": true
+                    }
+                },
+                 {
+                     "$lookup": {
+                         "from": "employeedetails",
+                         "localField": "supervisorDetails.primarySupervisorEmp_id",
+                         "foreignField": "_id",
+                         "as": "supervisorDetails.primarySupervisorDetails"
+                     }
+                 },
+                 {
+                     "$unwind": {
+                         path: "$supervisorDetails.primarySupervisorDetails",
+                         "preserveNullAndEmptyArrays": true
+                     }
+                 },
+                 {
+                    "$lookup": {
+                        "from": "employeeofficedetails",
+                        "localField": "emp_id",
+                        "foreignField": "emp_id",
+                        "as": "employeeOfficeDetails"
+                    }
+                },
+                {
+                    "$unwind": {
+                        path: "$employeeOfficeDetails",
+                        "preserveNullAndEmptyArrays": true
+                    }
+                },
+                {
+                    "$lookup": {
+                        "from": "employmentstatuses",
+                        "localField": "employeeOfficeDetails.employmentStatus_id",
+                        "foreignField": "_id",
+                        "as": "employeeOfficeDetails.employmentstatus"
+                    }
+                },
+                {
+                    "$unwind": {
+                        path: "$employeeOfficeDetails.employmentstatus",
+                        "preserveNullAndEmptyArrays": true
+                    }
+                },
+
+               {
+                   "$project": {
+                       "employeeOfficeDetails": {
+                            "_id": 0,
+                            "updatedAt": 0,
+                            "createdAt": 0,
+                            "emp_id": 0,
+                            "isCompleted": 0,
+                            "isDeleted": 0,
+                            "updatedBy": 0,
+                            "createdBy": 0,
+                            "hrspoc_id": 0,
+                            "reviewer_id": 0,
+                            "employeeCategory": 0,
+                            "workPermitExpiryDate": 0,
+                            "workPermitEffectiveDate": 0,
+                            "workPermitNumber": 0,
+                            "tenureOfContract": 0,
+                            "subVertical_id": 0,
+                            "vertical_id": 0,
+                            "department_id": 0,
+                            "division_id": 0,
+                            "businessHrHead_id": 0,
+                            "groupHrHead_id": 0,
+                            "jobTitle": 0,
+                            "managementType_id": 0,
+                            "dateOfConfirmation": 0,
+                            "dateOfJoining": 0,
+                            "costCentre": 0,
+                            "country": 0,
+                            "city": 0,
+                            "facility_id": 0,
+                            "officeMobile": 0,
+                            "officePhone": 0,
+                            "officeEmail": 0,
+                            "idCardNumber": 0,
+                        }
+
+                   }
+               }
+
+            ]).exec(function (err, results) {
+                if (err) {
+                    return res.status(403).json({
+                        title: 'There is a problem',
+                        error: {
+                            message: err
+                        },
+                        result: {
+                            message: results
+                        }
+                    });
+                }
+                return res.status(200).json({ "data": results });
+            });
+}
 function getAddressInfoDetails(req, res) {
     let emp_id = req.query.emp_id;
     let query = {
@@ -1299,7 +1482,7 @@ function getAddressInfoDetails(req, res) {
         updatedBy: false,
         createdBy: false,
     };
-    AddressInfo.findOne(query, addressInfoProjection, function(err, addressDetails) {
+    AddressInfo.aggregate(query, addressInfoProjection, function(err, addressDetails) {
         if (err) {
             return res.status(403).json({
                 title: 'There was an error, please try again later',
@@ -2057,6 +2240,9 @@ let functions = {
     },
     getPersonalInfo: (req, res) => {
         getPersonalInfoDetails(req, res);
+    },
+    getEmployeeDetails: (req, res) => {
+        getEmployeeDetails(req, res);
     },
     getAddressInfo: (req, res) => {
         getAddressInfoDetails(req, res);

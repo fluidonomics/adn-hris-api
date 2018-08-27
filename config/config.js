@@ -29,7 +29,7 @@ module.exports = {
   },
   'aws':
   {
-    fileSize        : 5000000,
+    fileSize        : 300000,
     documentPath    : 'document/',
     profilePath     : 'profile/',
     tmpImagePath    : 'tmp/',
