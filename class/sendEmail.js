@@ -134,7 +134,27 @@ let functions =
             };
             // send mail with defined transport object
             transporter.sendMail(mailOptions);
-        }
+        },
+        sendEmailToSuprsvrNotifyAppliedLeave: (toEmail, data) => {
+            let mailOptions = {
+                from: config.email.forget.from, // sender address
+                to: toEmail,
+                subject: config.email.emailToSupvsrForAppliedLeave.subject + data.empName, // Subject line
+                template: 'email-notify-to-supvsr-for-applied-leave',
+                context: {
+                    fullName: data.fullName,
+                    empName: data.empName,
+                    leaveType: data.leaveType,
+                    appliedDate: data.appliedDate,
+                    fromDate: data.fromDate,
+                    toDate: data.toDate,
+                    action_link: data.actionLink
+                }
+            };
+            transporter.sendMail(mailOptions);
+
+        },
+
     }
 
 module.exports = functions;

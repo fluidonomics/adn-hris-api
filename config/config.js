@@ -25,6 +25,10 @@ module.exports = {
     'LeaveApplied':{
       from:'"Team HRIS" <hris@adnsl.net>',
       subject:'Leave applied'
+    },
+    'emailToSupvsrForAppliedLeave': {
+      from:'"Team HRIS" <hris@adnsl.net>',
+      subject:'Leave  application of'
     }
   },
   'aws':

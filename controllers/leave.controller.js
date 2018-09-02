@@ -25,7 +25,8 @@ LeaveApply = require('../models/leave/leaveApply.model'),
     nodemailer = require('nodemailer'),
     hbs = require('nodemailer-express-handlebars'),
     sgTransport = require('nodemailer-sendgrid-transport'),
-    uuidV1 = require('uuid/v1');
+    uuidV1 = require('uuid/v1'),
+    SendEmail = require('../class/sendEmail');
 // json2xls = require('json2xls');
 // fs = require('fs');
     xlsx2json = require('xlsx2json');
@@ -579,6 +580,16 @@ function applyLeave(req, res, done) {
                                 }
                             })
                         }
+                        let data = {
+                            fullName: req.body.supervisorName,
+                            empName: req.body.empName,
+                            leaveType: req.body.leave_type,
+                            appliedDate: new Date(),
+                            fromDate: req.body.fromDate,
+                            toDate: req.body.toDate,
+                            action_link: "Link"
+                        };
+                        SendEmail.sendEmailToSuprsvrNotifyAppliedLeave(req.body.supervisorEmail, data);
                         return done(err, leavesInfoData);
                     });
                 } else {
