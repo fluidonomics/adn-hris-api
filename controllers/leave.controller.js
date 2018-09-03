@@ -591,16 +591,26 @@ function applyLeave(req, res, done) {
                                 // Nothing
                             }
                             if(supervisor != null) {
-                                let data = {
-                                    fullName: supervisor.fullName,
-                                    empName: req.body.empName,
-                                    leaveType: req.body.leave_type,
-                                    appliedDate: new Date().toISOString().replace(/T/, ' ').replace(/\..+/, ''),
-                                    fromDate: req.body.fromDate,
-                                    toDate: req.body.toDate,
-                                    action_link: "Link"
+
+                                let queryForFindSupervisorOfficeDetail = {
+                                    emp_id: _id,
+                                    sDeleted: false
                                 }
-                                SendEmail.sendEmailToSuprsvrNotifyAppliedLeave(req.body.supervisorEmail, data);
+                                OfficeDetails.find(queryForFindSupervisorOfficeDetail, function(err, supervisorOfficeDetail){
+                                    if(err) {
+                                        // Nothing
+                                    }
+                                    let data = {
+                                        fullName: supervisor.fullName,
+                                        empName: req.body.empName,
+                                        leaveType: req.body.leave_type,
+                                        appliedDate: new Date().toISOString().replace(/T/, ' ').replace(/\..+/, ''),
+                                        fromDate: req.body.fromDate,
+                                        toDate: req.body.toDate,
+                                        action_link: "Link"
+                                    }
+                                    SendEmail.sendEmailToSuprsvrNotifyAppliedLeave(supervisorOfficeDetail[0]['officeEmail'], data);
+                                })                                
                             }
                         });
                         
@@ -2345,6 +2355,54 @@ let functions = {
                     }
                 });
             }
+            let queryForFindEmployeeDetail = {
+                _id: _leaveDetails.emp_id,
+                isDeleted: false
+            }
+
+            EmployeeInfo.findOne(queryForFindEmployeeDetail, function(err, employeeDetail) {
+                if(err) {
+                    // Do nothing
+                }
+                if(employeeDetail != null) {
+                    
+                    let queryForFindEmployeeOfficeDetail = {
+                        emp_id: _id,
+                        isDeleted: false
+                    }
+                    OfficeDetails.find(queryForFindEmployeeOfficeDetail, function(err, employeeOfficeDetails){
+                        if(err) {
+                            // Do nothing
+                        }
+                        let queryForFindLeaveType = {
+                            _id: _leaveDetails.leave_type,
+                            isDeleted: false
+                        }
+                        LeaveTypes.findOne(queryForFindLeaveType, function(err, leaveType) {
+                            if(err) {
+                                // Do nothing
+                            }
+                            let data = {
+                                fullName: employeeDetail.fullName,
+                                leaveType: leaveType.type,
+                                fromDate: _leaveDetails.fromDate,
+                                toDate: _leaveDetails.toDate,
+                                link: "Link"
+                            }
+                            if(req.body.status == 'Applied' && req.body.approved) {
+                                SendEmail.sendEmailToEmployeeForLeaveRequestApproved(employeeOfficeDetails[0]['officeEmail'], data);
+                            } else if(req.body.status == 'Applied' && req.body.rejected) {
+                                SendEmail.sendEmailToEmployeeForLeaveRequestRejected(employeeOfficeDetails[0]['officeEmail'], data)
+                            } else if(req.body.status == 'Pending Cancellation' && !req.body.cancelled && (req.body.cancelled != undefined)) {
+                                SendEmail.sendEmailToEmployeeForLeaveCancellationApprove(employeeOfficeDetails[0]['officeEmail'], data);
+                            } else if(req.body.status == 'Pending Cancellation' && req.body.cancelled) {
+                                SendEmail.sendEmailToEmployeeForLeaveCancellationRejected(employeeOfficeDetails[0]['officeEmail'], data);
+                            }
+                        })                        
+                    })                                        
+                }
+            });
+            
             // leaveWorkflowDetails(_leaveDetails, req.body.updatedBy, 'cancelled');
             return res.status(200).json(_leaveDetails);
         })

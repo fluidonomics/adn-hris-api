@@ -137,7 +137,7 @@ let functions =
         },
         sendEmailToSuprsvrNotifyAppliedLeave: (toEmail, data) => {
             let mailOptions = {
-                from: config.email.forget.from, // sender address
+                from: config.email.emailToEmployeeForLeaveRequestRejected.from, // sender address
                 to: toEmail,
                 subject: config.email.emailToSupvsrForAppliedLeave.subject + data.empName, // Subject line
                 template: 'email-notify-to-supvsr-for-applied-leave',
@@ -154,6 +154,74 @@ let functions =
             transporter.sendMail(mailOptions);
 
         },
+        sendEmailToEmployeeForLeaveRequestApproved: (toEmail, data) => {
+            let mailOptions = {
+                from: config.email.emailToEmployeeForLeaveRequestApproved.from, // sender address
+                to: toEmail,
+                subject: data.leaveType + " " + config.email.emailToEmployeeForLeaveRequestApproved.subject + " " + data.formDate + " " + data.toDate, // Subject line
+                template: 'email-notify-to-emp-for-applied-leave-approved',
+                context: {
+                    fullName: data.fullName,
+                    leaveType: data.leaveType,
+                    appliedDate: data.appliedDate,
+                    fromDate: data.fromDate,
+                    toDate: data.toDate,
+                    action_link: data.actionLink
+                }
+            };
+            transporter.sendMail(mailOptions);
+        },
+        sendEmailToEmployeeForLeaveRequestRejected: (toEmail, data) => {
+            let mailOptions = {
+                from: config.email.emailToEmployeeForLeaveRequestRejected.from, // sender address
+                to: toEmail,
+                subject: config.email.emailToEmployeeForLeaveRequestRejected.subject, // Subject line
+                template: 'email-notify-to-emp-for-applied-leave-rejected',
+                context: {
+                    fullName: data.fullName,
+                    leaveType: data.leaveType,
+                    appliedDate: data.appliedDate,
+                    fromDate: data.fromDate,
+                    toDate: data.toDate,
+                    action_link: data.actionLink
+                }
+            };
+            transporter.sendMail(mailOptions);
+        },
+        sendEmailToEmployeeForLeaveCancellationApprove: (toEmail, data) => {
+            let mailOptions = {
+                from: config.email.emailToEmployeeForLeaveCancellationApprove.from, // sender address
+                to: toEmail,
+                subject: config.email.emailToEmployeeForLeaveCancellationApprove.subject, // Subject line
+                template: 'email-notify-to-emp-for-leave-cancellation-approve',
+                context: {
+                    fullName: data.fullName,
+                    leaveType: data.leaveType,
+                    appliedDate: data.appliedDate,
+                    fromDate: data.fromDate,
+                    toDate: data.toDate,
+                    action_link: data.actionLink
+                }
+            };
+            transporter.sendMail(mailOptions);
+        },
+        sendEmailToEmployeeForLeaveCancellationRejected: (toEmail, data) => {
+            let mailOptions = {
+                from: config.email.emailToEmployeeForLeaveCancellationRejected.from, // sender address
+                to: toEmail,
+                subject: config.email.emailToEmployeeForLeaveCancellationRejected.subject, // Subject line
+                template: 'email-notify-to-emp-for-leave-cancellation-rejected',
+                context: {
+                    fullName: data.fullName,
+                    leaveType: data.leaveType,
+                    appliedDate: data.appliedDate,
+                    fromDate: data.fromDate,
+                    toDate: data.toDate,
+                    action_link: data.actionLink
+                }
+            };
+            transporter.sendMail(mailOptions);
+        }
 
     }
 
