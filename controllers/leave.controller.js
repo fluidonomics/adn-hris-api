@@ -2107,7 +2107,7 @@ let functions = {
                     let x = req;
                     let y = leaveapplydetails;
                     let queryForFindSupervisor = {
-                        emp_id: req.body.emp_id
+                        emp_id: leaveapplydetails.emp_id
                     }
                     //fetching supervisor info from emp_id
                     SupervisorInfo.findOne(queryForFindSupervisor, function (err, supervisor) {
@@ -2139,7 +2139,7 @@ let functions = {
                                 if (supervisorDetails != null) {
                                     let supervisorName = supervisorDetails.fullName;
                                     //fetching supervisor personal info for mail id
-                                    PersonalInfo.findOne({ emp_id: supervisorDetails._id }, function (err, supervisorEmailDetails) {
+                                    OfficeDetails.findOne({ emp_id: supervisorDetails._id }, function (err, supervisorEmailDetails) {
                                         if (err) {
                                             return res.status(403).json({
                                                 title: 'There was a problem',
@@ -2153,7 +2153,7 @@ let functions = {
                                         }
                                         if (supervisorEmailDetails != null) {
                                             //fetching emp details
-                                            EmployeeInfo.findOne({ _id: req.body.emp_id }, function (err, empDetails) {
+                                            EmployeeInfo.findOne({ _id: leaveapplydetails.emp_id }, function (err, empDetails) {
                                                 if (err) {
                                                     return res.status(403).json({
                                                         title: 'There was a problem',
@@ -2166,32 +2166,39 @@ let functions = {
                                                     });
                                                 }
                                                 if (empDetails != null) {
-                                                    if ((new Date(leaveapplydetails.fromDate) > new Date()) && leaveapplydetails.status == "Applied") {
-                                                        let data = {
-                                                            fullName: supervisorName,
-                                                            empName: empDetails.fullName,
-                                                            leaveType: req.body.leave_type,
-                                                            appliedDate: leaveapplydetails.fromDate.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
-                                                            fromDate: leaveapplydetails.fromDate.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
-                                                            toDate: leaveapplydetails.toDate,
-                                                            action_link: "Link"
-                                                        }
-                                                        SendEmail.sendEmailToSuprsvrNotifyWithdrawnLeave(supervisorEmailDetails.personalEmail, data);
+                                                    let queryForFindLeaveType = {
+                                                        _id: leaveapplydetails.leave_type,
+                                                        isDeleted: false
                                                     }
-                                                    else {
-                                                        let data = {
-                                                            fullName: supervisorName,
-                                                            empName: empDetails.fullName,
-                                                            leaveType: req.body.leave_type,
-                                                            appliedDate: leaveapplydetails.createdAt.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
-                                                            fromDate: leaveapplydetails.fromDate.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
-                                                            toDate: leaveapplydetails.toDate.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
-                                                            action_link: "Link"
+                                                    LeaveTypes.findOne(queryForFindLeaveType, function(err, leaveType) {
+                                                        if ((new Date(leaveapplydetails.fromDate) > new Date()) && leaveapplydetails.status == "Applied") {
+                                                            let data = {
+                                                                fullName: supervisorName,
+                                                                empName: empDetails.fullName,
+                                                                leaveType: leaveType.type,
+                                                                appliedDate: leaveapplydetails.createdAt.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
+                                                                fromDate: leaveapplydetails.fromDate.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
+                                                                toDate: leaveapplydetails.toDate.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
+                                                                action_link: "Link"
+                                                            }
+                                                            SendEmail.sendEmailToSuprsvrNotifyWithdrawnLeave(supervisorEmailDetails.officeEmail, data);
                                                         }
-                                                        SendEmail.sendEmailToSuprsvrNotifyCancelLeave(supervisorEmailDetails.personalEmail, data);
-                                                    }
-                                                    return res.status(200).json(_leaveDetails);
+                                                        else {
+                                                            let data = {
+                                                                fullName: supervisorName,
+                                                                empName: empDetails.fullName,
+                                                                leaveType: leaveType.type,
+                                                                appliedDate: leaveapplydetails.createdAt.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
+                                                                fromDate: leaveapplydetails.fromDate.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
+                                                                toDate: leaveapplydetails.toDate.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
+                                                                action_link: "Link"
+                                                            }
+                                                            SendEmail.sendEmailToSuprsvrNotifyCancelLeave(supervisorEmailDetails.officeEmail, data);
+                                                        }
 
+                                                    });
+                                                    
+                                                    return res.status(200).json(_leaveDetails);
                                                 }
                                             })
                                         }
@@ -2491,7 +2498,7 @@ let functions = {
                 if (employeeDetail != null) {
 
                     let queryForFindEmployeeOfficeDetail = {
-                        emp_id: _id,
+                        emp_id: employeeDetail._id,
                         isDeleted: false
                     }
                     OfficeDetails.find(queryForFindEmployeeOfficeDetail, function (err, employeeOfficeDetails) {
@@ -2511,8 +2518,8 @@ let functions = {
                                 let data = {
                                     fullName: employeeDetail.fullName,
                                     leaveType: leaveType.type,
-                                    fromDate: _leaveDetails.fromDate,
-                                    toDate: _leaveDetails.toDate,
+                                    fromDate: _leaveDetails.fromDate.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
+                                    toDate: _leaveDetails.toDate.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
                                     link: "Link"
                                 }
                                 if(req.body.status == 'Applied' && req.body.approved) {
@@ -2520,9 +2527,9 @@ let functions = {
                                 } else if(req.body.status == 'Applied' && req.body.rejected) {
                                     SendEmail.sendEmailToEmployeeForLeaveRequestRejected(employeeOfficeDetails[0]['officeEmail'], data)
                                 } else if(req.body.status == 'Pending Cancellation' && !req.body.cancelled && (req.body.cancelled != undefined)) {
-                                    SendEmail.sendEmailToEmployeeForLeaveCancellationApprove(employeeOfficeDetails[0]['officeEmail'], data);
-                                } else if(req.body.status == 'Pending Cancellation' && req.body.cancelled) {
                                     SendEmail.sendEmailToEmployeeForLeaveCancellationRejected(employeeOfficeDetails[0]['officeEmail'], data);
+                                } else if(req.body.status == 'Pending Cancellation' && req.body.cancelled) {
+                                    SendEmail.sendEmailToEmployeeForLeaveCancellationApprove(employeeOfficeDetails[0]['officeEmail'], data);
                                 }
                             })
                         }                      
