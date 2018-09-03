@@ -580,16 +580,30 @@ function applyLeave(req, res, done) {
                                 }
                             })
                         }
-                        let data = {
-                            fullName: req.body.supervisorName,
-                            empName: req.body.empName,
-                            leaveType: req.body.leave_type,
-                            appliedDate: new Date(),
-                            fromDate: req.body.fromDate,
-                            toDate: req.body.toDate,
-                            action_link: "Link"
-                        };
-                        SendEmail.sendEmailToSuprsvrNotifyAppliedLeave(req.body.supervisorEmail, data);
+
+                        let queryForFindSupervisor = {
+                            _id: req.body.supervisor_id,
+                            isDeleted: false
+                        }
+
+                        EmployeeInfo.findOne(queryForFindSupervisor, function(err, supervisor) {
+                            if(err) {
+                                // Nothing
+                            }
+                            if(supervisor != null) {
+                                let data = {
+                                    fullName: supervisor.fullName,
+                                    empName: req.body.empName,
+                                    leaveType: req.body.leave_type,
+                                    appliedDate: new Date().toISOString().replace(/T/, ' ').replace(/\..+/, ''),
+                                    fromDate: req.body.fromDate,
+                                    toDate: req.body.toDate,
+                                    action_link: "Link"
+                                }
+                                SendEmail.sendEmailToSuprsvrNotifyAppliedLeave(req.body.supervisorEmail, data);
+                            }
+                        });
+                        
                         return done(err, leavesInfoData);
                     });
                 } else {
@@ -1995,7 +2009,7 @@ let functions = {
             // fromDate: { $gt: new Date() } 
         }
 
-        LeaveApply.findOne(query, function (err, leaveapplydetails) {
+    LeaveApply.findOne(query, function (err, leaveapplydetails) {
             let updateQuery;
             if ((new Date(leaveapplydetails.fromDate) > new Date()) && leaveapplydetails.status == "Applied") {
                 updateQuery = {
