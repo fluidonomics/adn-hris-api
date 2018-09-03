@@ -1351,6 +1351,7 @@ function getEmployeeDetails(req, res) {
                         "preserveNullAndEmptyArrays": true
                     }
                 },
+                
                 {
                     "$lookup": {
                         "from": "employeedetails",
@@ -1379,6 +1380,22 @@ function getEmployeeDetails(req, res) {
                          "preserveNullAndEmptyArrays": true
                      }
                  },
+                 // employeepersonaldetails
+                {
+                    "$lookup": {
+                        "from": "employeepersonaldetails",
+                        "localField": "supervisorDetails.primarySupervisorEmp_id",
+                        "foreignField": "emp_id",
+                        "as": "supervisorDetails.leaveSupervisorEmailDetails"
+                    }
+                },
+                {
+                    "$unwind": {
+                        path: "$supervisorDetails.leaveSupervisorEmailDetails",
+                        "preserveNullAndEmptyArrays": true
+                    }
+                },
+                //
                  {
                     "$lookup": {
                         "from": "employeeofficedetails",
@@ -1410,6 +1427,7 @@ function getEmployeeDetails(req, res) {
 
                {
                    "$project": {
+                       "leaveSupervisorEmailDetails": 0,
                        "employeeOfficeDetails": {
                             "_id": 0,
                             "updatedAt": 0,
@@ -1443,7 +1461,7 @@ function getEmployeeDetails(req, res) {
                             "officeMobile": 0,
                             "officePhone": 0,
                             "officeEmail": 0,
-                            "idCardNumber": 0,
+                            "idCardNumber": 0
                         }
 
                    }
@@ -1463,7 +1481,7 @@ function getEmployeeDetails(req, res) {
                 }
                 return res.status(200).json({ "data": results });
             });
-}
+} 
 function getAddressInfoDetails(req, res) {
     let emp_id = req.query.emp_id;
     let query = {
