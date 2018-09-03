@@ -18,8 +18,8 @@ LeaveApply = require('../models/leave/leaveApply.model'),
     FinancialYear = require('../models/master/financialYear.model'),
     SupervisorInfo = require('../models/employee/employeeSupervisorDetails.model'),
     uploadClass = require('../class/upload');
-    moment = require('moment');
-    config = require('../config/config'),
+moment = require('moment');
+config = require('../config/config'),
     crypto = require('crypto'),
     async = require('async'),
     nodemailer = require('nodemailer'),
@@ -29,8 +29,8 @@ LeaveApply = require('../models/leave/leaveApply.model'),
     SendEmail = require('../class/sendEmail');
 // json2xls = require('json2xls');
 // fs = require('fs');
-    xlsx2json = require('xlsx2json');
-    XLSX = require('xlsx');
+xlsx2json = require('xlsx2json');
+XLSX = require('xlsx');
 require('dotenv').load()
 function getAllLeaveBalance(req, res) {
     let _fiscalYearId = (req.query.fiscalYearId);
@@ -539,7 +539,7 @@ function applyLeave(req, res, done) {
                     message = "You can not apply leave on weekends";
                 }
                 let d = moment(moment().add(7, 'days').format('YYYY-MM-DD') + ' UTC').utc().format();
-                
+
                 if (((moment(toDateBody).diff(fromDateBody, 'days') + 1) > 3) && (req.body.leave_type == 1) && fromDateBody <= d) {
                     flag = false;
                     message = "Annual Leave should be applied in seven days advance";
@@ -1485,7 +1485,7 @@ let functions = {
                     [{ "leavedetails.fromDate": { $gte: new Date(req.query.fromDate) } },
                     { "leavedetails.fromDate": { $lte: new Date(req.query.toDate) } }]
             })
-        }   
+        }
         SupervisorInfo.aggregate([
             matchQuery,
             {
@@ -2037,10 +2037,11 @@ let functions = {
             isDeleted: false
             // fromDate: { $gt: new Date() } 
         }
-
-    LeaveApply.findOne(query, function (err, leaveapplydetails) {
+        let withdrawStatus;
+        LeaveApply.findOne(query, function (err, leaveapplydetails) {
             let updateQuery;
             if ((new Date(leaveapplydetails.fromDate) > new Date()) && leaveapplydetails.status == "Applied") {
+                withdrawStatus = "Withdrawn;"
                 updateQuery = {
                     $set: {
                         updatedDate: new Date(),
@@ -2052,6 +2053,7 @@ let functions = {
                 };
 
             } else if (leaveapplydetails.status == "Applied") {
+                withdrawStatus = "Cancellation;"
                 updateQuery = {
                     $set: {
                         updatedDate: new Date(),
@@ -2063,6 +2065,7 @@ let functions = {
                 };
 
             } else if (new Date(leaveapplydetails.fromDate) > new Date() && (leaveapplydetails.status == "Approved")) {
+                withdrawStatus = "Cancellation;"
                 updateQuery = {
                     $set: {
                         updatedDate: new Date(),
@@ -2073,6 +2076,7 @@ let functions = {
                     }
                 };
             } else if (leaveapplydetails.status == "Approved") {
+                withdrawStatus = "Cancellation;"
                 updateQuery = {
                     $set: {
                         updatedDate: new Date(),
@@ -2087,6 +2091,7 @@ let functions = {
             LeaveApply.update(query, updateQuery, {
                 new: true
             }, function (err, _leaveDetails) {
+
                 if (err) {
                     return res.status(403).json({
                         title: 'There was a problem',
@@ -2098,10 +2103,110 @@ let functions = {
                         }
                     });
                 }
-                // leaveWorkflowDetails(_leaveDetails, req.body.updatedBy, 'cancelled');
-                return res.status(200).json(_leaveDetails);
+                else {
+                    let x = req;
+                    let y = leaveapplydetails;
+                    let queryForFindSupervisor = {
+                        emp_id: req.body.emp_id
+                    }
+                    //fetching supervisor info from emp_id
+                    SupervisorInfo.findOne(queryForFindSupervisor, function (err, supervisor) {
+                        if (err) {
+                            return res.status(403).json({
+                                title: 'There was a problem',
+                                error: {
+                                    message: err
+                                },
+                                result: {
+                                    message: _leaveDetails
+                                }
+                            });
+                        }
+                        if (supervisor != null) {
+                            //fetching supervisor details
+                            EmployeeInfo.findOne({ _id: supervisor.primarySupervisorEmp_id }, function (err, supervisorDetails) {
+                                if (err) {
+                                    return res.status(403).json({
+                                        title: 'There was a problem',
+                                        error: {
+                                            message: err
+                                        },
+                                        result: {
+                                            message: _leaveDetails
+                                        }
+                                    });
+                                }
+                                if (supervisorDetails != null) {
+                                    let supervisorName = supervisorDetails.fullName;
+                                    //fetching supervisor personal info for mail id
+                                    PersonalInfo.findOne({ emp_id: supervisorDetails._id }, function (err, supervisorEmailDetails) {
+                                        if (err) {
+                                            return res.status(403).json({
+                                                title: 'There was a problem',
+                                                error: {
+                                                    message: err
+                                                },
+                                                result: {
+                                                    message: _leaveDetails
+                                                }
+                                            });
+                                        }
+                                        if (supervisorEmailDetails != null) {
+                                            //fetching emp details
+                                            EmployeeInfo.findOne({ _id: req.body.emp_id }, function (err, empDetails) {
+                                                if (err) {
+                                                    return res.status(403).json({
+                                                        title: 'There was a problem',
+                                                        error: {
+                                                            message: err
+                                                        },
+                                                        result: {
+                                                            message: _leaveDetails
+                                                        }
+                                                    });
+                                                }
+                                                if (empDetails != null) {
+                                                    if ((new Date(leaveapplydetails.fromDate) > new Date()) && leaveapplydetails.status == "Applied") {
+                                                        let data = {
+                                                            fullName: supervisorName,
+                                                            empName: empDetails.fullName,
+                                                            leaveType: req.body.leave_type,
+                                                            appliedDate: leaveapplydetails.fromDate.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
+                                                            fromDate: leaveapplydetails.fromDate.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
+                                                            toDate: leaveapplydetails.toDate,
+                                                            action_link: "Link"
+                                                        }
+                                                        SendEmail.sendEmailToSuprsvrNotifyWithdrawnLeave(supervisorEmailDetails.personalEmail, data);
+                                                    }
+                                                    else {
+                                                        let data = {
+                                                            fullName: supervisorName,
+                                                            empName: empDetails.fullName,
+                                                            leaveType: req.body.leave_type,
+                                                            appliedDate: leaveapplydetails.createdAt.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
+                                                            fromDate: leaveapplydetails.fromDate.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
+                                                            toDate: leaveapplydetails.toDate.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
+                                                            action_link: "Link"
+                                                        }
+                                                        SendEmail.sendEmailToSuprsvrNotifyCancelLeave(supervisorEmailDetails.personalEmail, data);
+                                                    }
+                                                    return res.status(200).json(_leaveDetails);
+
+                                                }
+                                            })
+                                        }
+                                    })
+                                }
+                            })
+                        }
+                    })
+
+                    // leaveWorkflowDetails(_leaveDetails, req.body.updatedBy, 'cancelled');
+                    // return res.status(200).json(_leaveDetails);
+                }
             })
         })
+
 
     },
     getEmpMaternityLeaveDetails: (req, res) => {
@@ -2379,18 +2484,18 @@ let functions = {
                 isDeleted: false
             }
 
-            EmployeeInfo.findOne(queryForFindEmployeeDetail, function(err, employeeDetail) {
-                if(err) {
+            EmployeeInfo.findOne(queryForFindEmployeeDetail, function (err, employeeDetail) {
+                if (err) {
                     // Do nothing
                 }
-                if(employeeDetail != null) {
-                    
+                if (employeeDetail != null) {
+
                     let queryForFindEmployeeOfficeDetail = {
                         emp_id: _id,
                         isDeleted: false
                     }
-                    OfficeDetails.find(queryForFindEmployeeOfficeDetail, function(err, employeeOfficeDetails){
-                        if(err) {
+                    OfficeDetails.find(queryForFindEmployeeOfficeDetail, function (err, employeeOfficeDetails) {
+                        if (err) {
                             // Do nothing
                         }
                         if(employeeOfficeDetails.length > 0 && employeeOfficeDetails[0]['officeEmail'] != null) {                        
@@ -2424,7 +2529,7 @@ let functions = {
                     })                                        
                 }
             });
-            
+
             // leaveWorkflowDetails(_leaveDetails, req.body.updatedBy, 'cancelled');
             return res.status(200).json(_leaveDetails);
         })
@@ -2432,9 +2537,9 @@ let functions = {
     },
     autoApproveLeave: (req, res) => {
         let toDate;
-        if(req.query.date){
+        if (req.query.date) {
             toDate = new Date(req.query.date);
-        }else{
+        } else {
             toDate = new Date();
         }
         toDate.setDate(toDate.getDate() - 3)
@@ -2483,13 +2588,13 @@ let functions = {
     },
     calculateLeave: (req, res) => {
         let fromDateBody = moment(req.body.fromDate + ' UTC').utc().format();
-    let toDateBody = moment(req.body.toDate + ' UTC').utc().format();
-    let startd = new Date(new Date(req.body.fromDate).getTime() + 86400000),
-        endd = new Date(new Date(req.body.toDate).getTime() + 86400000);
-    let flag = true;
-    let message;
-    let minusDayStart = new Date(startd.getTime() - 86400000);
-    let minusDayEnd = new Date(endd.getTime() - 86400000);
+        let toDateBody = moment(req.body.toDate + ' UTC').utc().format();
+        let startd = new Date(new Date(req.body.fromDate).getTime() + 86400000),
+            endd = new Date(new Date(req.body.toDate).getTime() + 86400000);
+        let flag = true;
+        let message;
+        let minusDayStart = new Date(startd.getTime() - 86400000);
+        let minusDayEnd = new Date(endd.getTime() - 86400000);
         LeaveHoliday.find({
             $or: [{
                 $and:
@@ -2533,27 +2638,31 @@ let functions = {
         let sheet_name_list = workbook.SheetNames;
         let data = XLSX.utils.sheet_to_json(workbook.Sheets[sheet_name_list[0]])
         let response = [];
-        for(let i=1;i<data.length;i++){
-            Employee.find({userName:parseInt(data[i]['ID #'])},function(err,users){
+        for (let i = 1; i < data.length; i++) {
+            Employee.find({ userName: parseInt(data[i]['ID #']) }, function (err, users) {
                 let temp = {};
-                if(users[0]){
+                if (users[0]) {
                     temp = {
-                        'CARRY FORWARD':data[i]['CARRY FORWARD'],
-                        'id':users[0]._id
+                        'CARRY FORWARD': data[i]['CARRY FORWARD'],
+                        'id': users[0]._id
                     }
                     response.push(temp)
-                    
-                    LeaveBalance.find({emp_id: parseInt(users[0]._id),
-                    leave_type: 1},function(err,users){
-                        LeaveBalance.findOneAndUpdate({emp_id: parseInt(users[0]._id),
-                            leave_type: 1},{
+
+                    LeaveBalance.find({
+                        emp_id: parseInt(users[0]._id),
+                        leave_type: 1
+                    }, function (err, users) {
+                        LeaveBalance.findOneAndUpdate({
+                            emp_id: parseInt(users[0]._id),
+                            leave_type: 1
+                        }, {
                                 $set: {
                                     balance: parseInt(users[0].balance) + parseInt(data[i]['CARRY FORWARD']),
                                     carryForwardLeave: parseInt(data[i]['CARRY FORWARD']),
                                 }
-                            }, function(err,_leaveDetails){
-                                
-                            }) 
+                            }, function (err, _leaveDetails) {
+
+                            })
                     })
                 }
             })
