@@ -159,7 +159,23 @@ let functions = {
         {
         }
     });
-   }
+   },
+   
+   downloadLeaveAttachment: (key, res) => {
+   let fileName = /[^/]*$/.exec(key)[0];
+   let params = {
+     Bucket: process.env.BucketName,
+     Key: key
+    };
+    s3.getObject(params, function (err, data) {
+      if (err === null) {
+        res.attachment(fileName); // or whatever your logic needs
+        res.send(data.Body);
+      } else {
+        res.status(500).send(err);
+      }
+    });
+  }
 };
 
 module.exports = functions;

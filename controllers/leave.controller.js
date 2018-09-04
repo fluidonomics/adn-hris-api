@@ -17,6 +17,7 @@ LeaveApply = require('../models/leave/leaveApply.model'),
     EmployeeInfo = require('../models/employee/employeeDetails.model'),
     FinancialYear = require('../models/master/financialYear.model'),
     SupervisorInfo = require('../models/employee/employeeSupervisorDetails.model'),
+    uploadController = require('./upload.controller');
     uploadClass = require('../class/upload');
 moment = require('moment');
 config = require('../config/config'),
@@ -797,6 +798,30 @@ let functions = {
                 return res.status(200).json(_applyLeaveDetails);
             }
         ])
+    },
+
+    downloadLeaveAttachment: (req, res) => {
+        let query = {
+            _id: req.query.id,
+            isDeleted: false
+        }
+        LeaveApply.findOne(query, function (err, leaveApplyResult) {
+            if(err) {
+                return res.status(403).json({
+                    title: "ERROR",
+                    error: {
+                        message: err
+                    },
+                });
+            }
+            if(leaveApplyResult != null && leaveApplyResult.attachment != null) {
+                uploadController.downloadLeaveAttachment(leaveApplyResult.attachment, res);
+            } else {
+                return res.status(200).json({
+                    message: "Attachment not found."
+                });
+            }
+        })
     },
 
     getHolidays: (req, res) => {
