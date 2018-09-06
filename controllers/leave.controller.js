@@ -866,6 +866,9 @@ let functions = {
                         }
                     });
                 }
+                if (req.query.all) {
+                    respdata = LeaveHolidaysData;
+                }
                 return res.status(200).json(respdata);
             }
             return res.status(403).json({
