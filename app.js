@@ -52,7 +52,7 @@ app.use(function (req, res, next) {
 
 // setting up route
 require('./routes/routes')(app);
-crontab.autoApproveLeave();
+// crontab.autoApproveLeave();
 
 
 // catch 404 and rsforward to error handler
