@@ -28,7 +28,8 @@ let mongoose                = require('mongoose'),
         updatedBy:{type: Number, ref:'employeedetails', default:null},
         createdBy:{type: Number, ref:'employeedetails', default:null},
         isDeleted:{type:Boolean,default:false},
-        fiscalYearId: {type: Number, default: null}
+        fiscalYearId: {type: Number, default: null},
+        systemApproved: {type: Boolean, default: false}
     },
     {
         timestamps: true,

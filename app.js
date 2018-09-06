@@ -4,6 +4,7 @@ let express      = require('express'),
     cookieParser = require('cookie-parser'),
     bodyParser   = require('body-parser'),
     mongoose     = require('mongoose'),
+    crontab      = require('./cron/cron'),
     config       = require('./config/config');
     require('dotenv').load()
    
@@ -51,6 +52,7 @@ app.use(function (req, res, next) {
 
 // setting up route
 require('./routes/routes')(app);
+crontab.autoApproveLeave();
 
 
 // catch 404 and rsforward to error handler
