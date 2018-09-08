@@ -517,7 +517,7 @@ function applyLeave(req, res, done) {
             });
 
         } else {
-
+            
             LeaveApply.find(query, function (err, details) {
                 for (let i = 0; i < details.length; i++) {
                     let fromDate = moment(details[i].fromDate + ' UTC').utc().format(),
@@ -618,6 +618,8 @@ function applyLeave(req, res, done) {
                                                 if(err) {
                                                     // Do nothing
                                                 }
+                                                let appliedLeaveId = leavesInfoData._id;
+                                                let linktoSend = req.body.link + '/' + appliedLeaveId;
                                                 let data = {
                                                     fullName: supervisor.fullName,
                                                     empName: employeee.fullName,
@@ -625,7 +627,7 @@ function applyLeave(req, res, done) {
                                                     appliedDate: new Date().toISOString().replace(/T/, ' ').replace(/\..+/, ''),
                                                     fromDate: req.body.fromDate,
                                                     toDate: req.body.toDate,
-                                                    action_link: "Link"
+                                                    action_link: linktoSend
                                                 }
                                                 SendEmail.sendEmailToSuprsvrNotifyAppliedLeave(supervisorOfficeDetail[0]['officeEmail'], data);
                                             });                                            
