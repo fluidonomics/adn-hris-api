@@ -2201,6 +2201,8 @@ let functions = {
                                                         isDeleted: false
                                                     }
                                                     LeaveTypes.findOne(queryForFindLeaveType, function(err, leaveType) {
+                                                        let appliedLeaveId = req.body._id;
+                                                        let linktoSend = req.body.link + '/' + appliedLeaveId;
                                                         if ((new Date(leaveapplydetails.fromDate) > new Date()) && leaveapplydetails.status == "Applied") {
                                                             let data = {
                                                                 fullName: supervisorName,
@@ -2209,7 +2211,7 @@ let functions = {
                                                                 appliedDate: leaveapplydetails.createdAt.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
                                                                 fromDate: leaveapplydetails.fromDate.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
                                                                 toDate: leaveapplydetails.toDate.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
-                                                                action_link: "Link"
+                                                                action_link: linktoSend
                                                             }
                                                             SendEmail.sendEmailToSuprsvrNotifyWithdrawnLeave(supervisorEmailDetails.officeEmail, data);
                                                         }
@@ -2221,7 +2223,7 @@ let functions = {
                                                                 appliedDate: leaveapplydetails.createdAt.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
                                                                 fromDate: leaveapplydetails.fromDate.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
                                                                 toDate: leaveapplydetails.toDate.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
-                                                                action_link: "Link"
+                                                                action_link: linktoSend
                                                             }
                                                             SendEmail.sendEmailToSuprsvrNotifyCancelLeave(supervisorEmailDetails.officeEmail, data);
                                                         }
@@ -2545,12 +2547,14 @@ let functions = {
                                 if(err) {
                                     // Do nothing
                                 }
+                                let appliedLeaveId = req.body.id;
+                                let linktoSend = req.body.link + '/' + appliedLeaveId;
                                 let data = {
                                     fullName: employeeDetail.fullName,
                                     leaveType: leaveType.type,
                                     fromDate: _leaveDetails.fromDate.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
                                     toDate: _leaveDetails.toDate.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
-                                    link: "Link"
+                                    action_link: linktoSend
                                 }
                                 if(req.body.status == 'Applied' && req.body.approved) {
                                     SendEmail.sendEmailToEmployeeForLeaveRequestApproved(employeeOfficeDetails[0]['officeEmail'], data);

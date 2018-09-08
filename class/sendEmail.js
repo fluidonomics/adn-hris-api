@@ -150,7 +150,7 @@ let functions =
                 appliedDate: moment(data.appliedDate).format('L'),
                 fromDate: moment(data.fromDate).format('L'),
                 toDate: moment(data.toDate).format('L'),
-                action_link: data.actionLink
+                link: data.action_link
             }
         };
         transporter.sendMail(mailOptions);
@@ -168,7 +168,7 @@ let functions =
                 appliedDate: moment(data.appliedDate).format('L'),
                 fromDate: moment(data.fromDate).format('L'),
                 toDate: moment(data.toDate).format('L'),
-                action_link: data.actionLink
+                link: data.action_link
             }
         };
         transporter.sendMail(mailOptions);
@@ -185,7 +185,7 @@ let functions =
                 appliedDate: moment(data.appliedDate).format('L'),
                 fromDate: moment(data.fromDate).format('L'),
                 toDate: moment(data.toDate).format('L'),
-                action_link: data.actionLink
+                link: data.action_link
             }
         };
         transporter.sendMail(mailOptions);
@@ -202,7 +202,7 @@ let functions =
                 appliedDate: moment(data.appliedDate).format('L'),
                 fromDate: moment(data.fromDate).format('L'),
                 toDate: moment(data.toDate).format('L'),
-                action_link: data.actionLink
+                link: data.action_link
             }
         };
         transporter.sendMail(mailOptions);
@@ -219,7 +219,7 @@ let functions =
                 appliedDate: moment(data.appliedDate).format('L'),
                 fromDate: moment(data.fromDate).format('L'),
                 toDate: moment(data.toDate).format('L'),
-                action_link: data.actionLink
+                link: data.action_link
             }
         };
         transporter.sendMail(mailOptions);
@@ -237,7 +237,7 @@ let functions =
                 appliedDate: moment(data.appliedDate).format('L'),
                 fromDate: moment(data.fromDate).format('L'),
                 toDate: moment(data.toDate).format('L'),
-                action_link: data.actionLink
+                link: data.action_link
             }
         };
         transporter.sendMail(mailOptions);
@@ -256,7 +256,7 @@ let functions =
                 appliedDate: moment(data.appliedDate).format('L'),
                 fromDate: moment(data.fromDate).format('L'),
                 toDate: moment(data.toDate).format('L'),
-                action_link: data.actionLink
+                link: data.action_link
             }
         };
         transporter.sendMail(mailOptions);
