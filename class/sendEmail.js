@@ -2,7 +2,9 @@ let express = require('express'),
     nodemailer = require('nodemailer'),
     hbs = require('nodemailer-express-handlebars'),
     uuidV1 = require('uuid/v1'),
-    config = require('../config/config');
+    config = require('../config/config'),
+    moment = require('moment');
+
 require('dotenv').load()
 
 let options = {
@@ -145,9 +147,9 @@ let functions =
                 fullName: data.fullName,
                 empName: data.empName,
                 leaveType: data.leaveType,
-                appliedDate: data.appliedDate,
-                fromDate: data.fromDate,
-                toDate: data.toDate,
+                appliedDate: moment(data.appliedDate).format('L'),
+                fromDate: moment(data.fromDate).format('L'),
+                toDate: moment(data.toDate).format('L'),
                 action_link: data.actionLink
             }
         };
@@ -163,9 +165,9 @@ let functions =
             context: {
                 fullName: data.fullName,
                 leaveType: data.leaveType,
-                appliedDate: data.appliedDate,
-                fromDate: data.fromDate,
-                toDate: data.toDate,
+                appliedDate: moment(data.appliedDate).format('L'),
+                fromDate: moment(data.fromDate).format('L'),
+                toDate: moment(data.toDate).format('L'),
                 action_link: data.actionLink
             }
         };
@@ -180,9 +182,9 @@ let functions =
             context: {
                 fullName: data.fullName,
                 leaveType: data.leaveType,
-                appliedDate: data.appliedDate,
-                fromDate: data.fromDate,
-                toDate: data.toDate,
+                appliedDate: moment(data.appliedDate).format('L'),
+                fromDate: moment(data.fromDate).format('L'),
+                toDate: moment(data.toDate).format('L'),
                 action_link: data.actionLink
             }
         };
@@ -197,9 +199,9 @@ let functions =
             context: {
                 fullName: data.fullName,
                 leaveType: data.leaveType,
-                appliedDate: data.appliedDate,
-                fromDate: data.fromDate,
-                toDate: data.toDate,
+                appliedDate: moment(data.appliedDate).format('L'),
+                fromDate: moment(data.fromDate).format('L'),
+                toDate: moment(data.toDate).format('L'),
                 action_link: data.actionLink
             }
         };
@@ -214,9 +216,9 @@ let functions =
             context: {
                 fullName: data.fullName,
                 leaveType: data.leaveType,
-                appliedDate: data.appliedDate,
-                fromDate: data.fromDate,
-                toDate: data.toDate,
+                appliedDate: moment(data.appliedDate).format('L'),
+                fromDate: moment(data.fromDate).format('L'),
+                toDate: moment(data.toDate).format('L'),
                 action_link: data.actionLink
             }
         };
@@ -232,9 +234,9 @@ let functions =
                 fullName: data.fullName,
                 empName: data.empName,
                 leaveType: data.leaveType,
-                appliedDate: data.appliedDate,
-                fromDate: data.fromDate,
-                toDate: data.toDate,
+                appliedDate: moment(data.appliedDate).format('L'),
+                fromDate: moment(data.fromDate).format('L'),
+                toDate: moment(data.toDate).format('L'),
                 action_link: data.actionLink
             }
         };
@@ -251,9 +253,9 @@ let functions =
                 fullName: data.fullName,
                 empName: data.empName,
                 leaveType: data.leaveType,
-                appliedDate: data.appliedDate,
-                fromDate: data.fromDate,
-                toDate: data.toDate,
+                appliedDate: moment(data.appliedDate).format('L'),
+                fromDate: moment(data.fromDate).format('L'),
+                toDate: moment(data.toDate).format('L'),
                 action_link: data.actionLink
             }
         };

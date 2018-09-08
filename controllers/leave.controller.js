@@ -554,7 +554,7 @@ function applyLeave(req, res, done) {
                     leavedetails.fromDate = fromDateBody//moment(req.body.fromDate).format('MM/DD/YYYY');//new Date(req.body.fromDate).setUTCHours(0,0,0,0);
                     leavedetails.toDate = toDateBody//(new Date(req.body.toDate).setUTCHours(0,0,0,0));
                     leavedetails.updatedBy = parseInt(req.body.updatedBy);
-                    leavedetails.days = (leavedetails.toDate - leavedetails.fromDate) / 86400000 + 1
+                    leavedetails.days = req.body.days
                     leavedetails.save(function (err, leavesInfoData) {
                         if (err) {
                             return res.status(403).json({
