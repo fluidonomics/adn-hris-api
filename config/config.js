@@ -28,7 +28,15 @@ module.exports = {
     },
     'emailToSupvsrForAppliedLeave': {
       from:'"Team HRIS" <hris@adnsl.net>',
-      subject:'Leave  application of '
+      subject:'Leave application of '
+    },
+    'emailToSupvsrForWithdrawnLeave': {
+      from:'"Team HRIS" <hris@adnsl.net>',
+      subject:'Leave withdrawn application of '
+    },
+    'emailToSupvsrForCancelLeave': {
+      from:'"Team HRIS" <hris@adnsl.net>',
+      subject:'Leave cancel application of '
     },
     'emailToEmployeeForLeaveRequestApproved': {
       from:'"Team HRIS" <hris@adnsl.net>',

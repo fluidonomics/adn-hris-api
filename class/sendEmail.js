@@ -228,7 +228,7 @@ let functions =
         let mailOptions = {
             from: config.email.forget.from, // sender address
             to: toEmail,
-            subject: config.email.emailToSupvsrForAppliedLeave.subject + data.empName, // Subject line
+            subject: config.email.emailToSupvsrForWithdrawnLeave.subject + data.empName, // Subject line
             template: 'email-notify-to-supvsr-for-withdrawn-leave',
             context: {
                 fullName: data.fullName,
@@ -247,7 +247,7 @@ let functions =
         let mailOptions = {
             from: config.email.forget.from, // sender address
             to: toEmail,
-            subject: config.email.emailToSupvsrForAppliedLeave.subject + data.empName, // Subject line
+            subject: config.email.emailToSupvsrForCancelLeave.subject + data.empName, // Subject line
             template: 'email-notify-to-supvsr-for-leave-cancellation',
             context: {
                 fullName: data.fullName,
