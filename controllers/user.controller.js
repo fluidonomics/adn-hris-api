@@ -1500,7 +1500,7 @@ function getAddressInfoDetails(req, res) {
         updatedBy: false,
         createdBy: false,
     };
-    AddressInfo.aggregate(query, addressInfoProjection, function(err, addressDetails) {
+    AddressInfo.findOne(query, addressInfoProjection, function(err, addressDetails) {
         if (err) {
             return res.status(403).json({
                 title: 'There was an error, please try again later',
