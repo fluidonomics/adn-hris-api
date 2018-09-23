@@ -2180,7 +2180,9 @@ let functions = {
             }
         },
         {
-            "$unwind": "$employees"
+            "$unwind":{
+                "path": "$employees","preserveNullAndEmptyArrays": true
+            }
         },
         {
             "$lookup": {
