@@ -2146,6 +2146,17 @@ let functions = {
             },
             {
                 "$lookup": {
+                    "from": "employeedetails",
+                    "localField": "employees.emp_id",
+                    "foreignField": "_id",
+                    "as": "employeedetails"
+                }
+            },
+            {
+                "$unwind": "$employeedetails"
+            },
+            {
+                "$lookup": {
                     "from": "kraworkflowdetails",
                     "localField": "employees.emp_id",
                     "foreignField": "emp_id",
@@ -2155,10 +2166,15 @@ let functions = {
             {
                 "$unwind": "$kraWorkflowDetails"
             },
+            
             {
                 "$project": {
                     "employees": "$employees",
-                    "kra": "$kraWorkflowDetails"
+                    "kra": "$kraWorkflowDetails",
+                    "emp_id": "$employeedetails._id",
+                    "fullName": "$employeedetails.fullName",                   
+                    "userName": "$employeedetails.userName",                  
+                    "profileImage": "$employeedetails.profileImage",
                 }
             }
         ]).exec(function (err, results) {
