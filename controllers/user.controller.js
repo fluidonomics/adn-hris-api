@@ -2136,7 +2136,68 @@ let functions = {
             }
         ]);
     },
-    getAllEmployee:(req, res)=>{
+    getAllEmployeeByReviewerId:(req,res)=>{       
+        SupervisorInfo.aggregate([  
+            {"$match": {"primarySupervisorEmp_id" : parseInt(2)}},
+            {
+                "$lookup": {
+                    "from": "employeesupervisordetails",
+                    "localField": "primarySupervisorEmp_id",
+                    "foreignField": "primarySupervisorEmp_id",
+                    "as": "primarysuperviserdetails"
+                }
+            },
+            {
+              "$unwind": "$primarysuperviserdetails"
+            }, 
+            {
+                "$lookup": {
+                    "from": "employeesupervisordetails",
+                    "localField": "primarysuperviserdetails.emp_id",
+                    "foreignField": "primarySupervisorEmp_id",
+                    "as": "superviserdetails"
+                }
+            },
+            {
+              "$unwind": "$superviserdetails"
+            },   
+            {
+                "$lookup": {
+                    "from": "employeedetails",
+                    "localField": "superviserdetails.emp_id",
+                    "foreignField": "_id",
+                    "as": "employeedetails"
+                }
+            },
+            {
+              "$unwind": "$employeedetails"
+            },                 
+              
+            {"$project":{
+                "_id":"$_id", 
+                "rev":"$primarysuperviserdetails",
+                "sup":"$superviserdetails",
+                "emp":"$employeedetails",               
+                "fullname":"$employeedetails.fullName",                                            
+              }}
+        ]).exec(function(err, results){
+            if(err)
+            {
+                return res.status(403).json({
+                    title: 'There was a problem',
+                    error: {
+                        message: err
+                    },
+                    result: {
+                        message: results
+                    }
+                });
+            }            
+            console.log(results.length);       
+            return res.status(200).json({"data":results});
+         });
+    },
+    getAllEmployee:(req, res)=>{      
         EmployeeInfo.aggregate([
         {
             "$lookup": {

@@ -231,6 +231,8 @@ let express  = require('express'),
           userRoutes.get('/getSalaryInfo',ensureAuthenticated,user.getSalaryInfo);
 
           userRoutes.get('/getAllEmployee',ensureAuthenticated,user.getAllEmployee);
+          userRoutes.post('/getAllEmployeeByReviewerId',user.getAllEmployeeByReviewerId);
+          
           
           userRoutes.get('/getCarInfo',ensureAuthenticated,user.getCarInfo);
 
