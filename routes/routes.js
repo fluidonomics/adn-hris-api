@@ -336,8 +336,7 @@ let express  = require('express'),
 //        leaveRoutes.get('/getLeavesByMonth', leave.getLeavesByMonth);
 //        leaveRoutes.get('/getLeavesByLeaveType', leave.getLeavesByLeaveType);
     	  leaveRoutes.get('/getAllEmployee', leave.getAllEmployee);
-        leaveRoutes.post('/withdrawLeave', leave.withdrawLeave);
-        leaveRoutes.post('/updateLeaveQuota', leave.updateLeaveQuota);
+    	  leaveRoutes.post('/withdrawLeave', leave.withdrawLeave);
 //        leaveRoutes.get('/getEmployeeProbationDetails', leave.getEmployeeProbationDetails);
 //        leaveRoutes.post('/postLeaveTransactionYear', leave.postLeaveTransactionYear);
 //        leaveRoutes.post('/grantMaternityLeave', leave.grantMaternityLeave);

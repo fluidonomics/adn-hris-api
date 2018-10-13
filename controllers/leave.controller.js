@@ -755,25 +755,6 @@ function updateSickLeaveDocumentDetails(req, res, done) {
         return done(err, req);
     });
 }
-function updateLeaveQuota(req,res,done){
-    let leaveBalance = new LeaveBalance(req.body);  
-    leaveBalance.createdBy = parseInt(req.headers.uid);
-    leaveBalance.updatedBy = parseInt(req.headers.uid);   
-    leaveBalance.save(function (err, leaveBalanceData) {
-        if (err) {
-            return res.status(403).json({
-                title: 'There was a problem',
-                error: {
-                    message: err
-                },
-                result: {
-                    message: leaveBalanceData
-                }
-            });
-        }       
-        return done(err, leaveBalanceData);
-    });
-}
 let functions = {
     uploadSickLeaveDocument: (req, res) => {
         async.waterfall([
@@ -2727,18 +2708,6 @@ let functions = {
                 }
             })
         }
-    },
-    updateLeaveQuota:(req, res)=>{
-        let leaveBalance = new LeaveBalance(req.body);
-        console.log(leaveBalance);
-        async.waterfall([
-            function (done) {
-                updateLeaveQuota(req, res, done);
-            },
-            function (leaveBalanceData, done) {
-                return res.status(200).json(leaveBalanceData);
-            }
-        ]);
     }
 
 }
