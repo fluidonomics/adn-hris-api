@@ -28,6 +28,7 @@
     "body-parser": "^1.17.2",
     "cookie-parser": "^1.4.3",
     "core-js": "^2.5.5",
+    "csv-write-stream": "^2.0.0",
     "debug": "^2.5.1",
     "dotenv": "^5.0.1",
     "express": "^4.15.3",

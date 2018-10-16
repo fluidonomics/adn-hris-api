@@ -3,8 +3,12 @@ let express           = require('express'),
     KraWorkFlowInfo   = require('../models/kra/kraWorkFlowDetails.model'),
     KraWeightageInfo   = require('../models/kra/kraWeightage.model'),
     KraCategoryInfo   = require('../models/kra/kraCategory.model'),
+    EmployeeInfo = require('../models/employee/employeeDetails.model'),
+    SupervisorInfo = require('../models/employee/employeeSupervisorDetails.model'),
+    BatchInfo = require('../models/workflow/batch.model'),
     async             = require('async'),
-
+    csvWriter = require('csv-write-stream'),
+    fs = require('fs');
     BatchCtrl= require('./batch.controller'),
     TimeLineCtrl= require('./timeline.controller'),
     AuditTrail  = require('../class/auditTrail');
@@ -318,15 +322,7 @@ function getKraWorkFlowInfoDetails(req, res) {
             isDeleted: false
         };
     }
-    KraWorkFlowInfo.findOne(query, kraWorkflowProjection, function (err, kraWorkflowInfoData) {
-        if (err) {
-            return res.status(403).json({
-                title: 'There was an error, please try again later',
-                error: err
-            });
-        }
-        return res.status(200).json(kraWorkflowInfoData);
-    });
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
 }
 
 function getKraWorkFlowInfoDetailsByBatch(req, res)
@@ -540,6 +536,132 @@ let functions = {
               return res.status(200).json(kraInfoData);
             }
         ]);
+    },
+    getKraList:(req, res)=>
+    { 
+        
+        KraWorkFlowInfo.find({isDeleted:false}, function(err,kraWorkFlow){
+            if (err) {
+                return res.status(403).json({
+                    title: 'There was an error, please try again later',
+                    error: err
+                });
+            }else{
+               // fs.unlinkSync('kralist.csv');
+             var writer = csvWriter({ headers: ["#", "batch_id", "Emploee_ID", "KRA_intiated_on", "KRA_initiated_by", "Number_of_KRA's", "KRA_status", "Last_updated_on", "Last_updated_by"],sendHeaders: true})
+                writer.pipe(fs.createWriteStream('kralist.csv', {flags: 'a'}))
+
+              let kraWorkId = kraWorkFlow;
+              let count = 0;
+              let kraDetailsArrCSV=[];
+            for (let i = 1; i < kraWorkId.length; i++) {
+               let kraDetailsArr=[];
+                kraDetailsArr.push(i);
+
+             
+                BatchInfo.findOne({_id: parseInt(kraWorkId[i]['batch_id']) }, function (err, batchInfoData) {
+                                if (err) {
+                                    return res.status(403).json({
+                                        title: 'There was an error, please try again later',
+                                        error: err
+                                    });
+                                }else{
+                                    kraDetailsArr.push(batchInfoData._id);
+
+                                    EmployeeInfo.findOne({_id: parseInt(kraWorkId[i]['emp_id']) }, function (err, employee) {
+
+                    if (err) {
+                        return res.status(403).json({
+                            title: 'There was an error, please try again later',
+                            error: err
+                         });
+                    }else{
+                            kraDetailsArr.push(employee._id);
+                            kraDetailsArr.push(employee.fullName);
+
+
+                EmployeeInfo.findOne({_id: parseInt(kraWorkId[i]['createdBy']) }, function (err, employeecreatedBy) {
+
+                    if (err) {
+                        return res.status(403).json({
+                            title: 'There was an error, please try again later',
+                            error: err
+                         });
+                    }else{
+                           // kraDetailsArr.push(employee._id);
+                             kraDetailsArr.push(employeecreatedBy.fullName);
+                          //  console.log('employeecreatedBy', employeecreatedBy);
+                           if(kraWorkId[i]['updatedBy']){
+                    EmployeeInfo.findOne({_id: parseInt(kraWorkId[i]['updatedBy']) }, function (err, employeeupdatedBy) {
+
+                        if (err) {
+                            return res.status(403).json({
+                                title: 'There was an error, please try again later',
+                                error: err
+                             });
+                        }else{
+                               // kraDetailsArr.push(employee._id);
+                                kraDetailsArr.push(employeeupdatedBy.fullName+"\n");
+                                
+                                console.log(i)
+                                kraDetailsArrCSV.push(kraDetailsArr)
+                                console.log('kraDetailsArr',kraDetailsArrCSV);
+                              //if(i==(kraWorkId.length-1)){
+                               
+                                  writer.write(kraDetailsArr);
+                                  // writer.end()
+                                    return res.status(200).json({
+                                title: 'File generated successfully',
+                                error: ''
+                             });
+                            //  }
+                              //  console.log('employeeupdatedBy', employeeupdatedBy);
+                              
+                        }
+                        
+                    });
+                }
+                    }
+                    
+                })
+                           // console.log('employee', employee);
+                    }
+                    
+                })
+                                  // console.log('batchInfoData', batchInfoData._id);
+                                }
+
+                            });
+
+                
+               /* SupervisorInfo.findOne({emp_id: parseInt(kraWorkId[i]['emp_id']) }, function (err, supervisor) {
+
+                   console.log(supervisor);
+                })*/
+
+               
+              /*  KraInfo.findOne({ kraWorkflow_id: parseInt(kraWorkId[i]['_id']) }, function (err, KraInfodetail) {
+                    if (err) {
+                        return res.status(403).json({
+                            title: 'There was an error, please try again later',
+                            error: err
+                         });
+                    }else{
+                           // kraDetailsArr.push(employee._id);
+                           // kraDetailsArr.push(employee.fullName);
+                       console.log('count', count);
+                      count++;
+                    }
+ 
+                })*/
+                   
+
+            }
+                
+            }
+
+         })
+ 
     },
  
 }

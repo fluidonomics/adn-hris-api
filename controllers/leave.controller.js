@@ -30,8 +30,8 @@ config = require('../config/config'),
     SendEmail = require('../class/sendEmail');
 // json2xls = require('json2xls');
 // fs = require('fs');
-xlsx2json = require('xlsx2json');
-XLSX = require('xlsx');
+   xlsx2json = require('xlsx2json');
+   XLSX = require('xlsx');
 require('dotenv').load()
 function getAllLeaveBalance(req, res) {
     let _fiscalYearId = (req.query.fiscalYearId);
