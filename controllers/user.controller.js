@@ -1138,6 +1138,7 @@ function updatepositionInfoDetails(req, res) {
                     "vertical_id": req.body.vertical_id,
                     "subVertical_id": req.body.subVertical_id,
                     "managementType_id": req.body.managementType_id,
+                    "employmentStatus_id":req.body.employmentStatus_id,
                     "tenureOfContract": req.body.tenureOfContract,
                     "groupHrHead_id": req.body.groupHrHead_id,
                     "businessHrHead_id": req.body.businessHrHead_id,
@@ -1154,7 +1155,8 @@ function updatepositionInfoDetails(req, res) {
                     queryUpdate = {
                         $set: {
                             "emp_id": req.body.emp_id,
-                            "primarySupervisorEmp_id": req.body.primarySupervisorEmp_id
+                            "primarySupervisorEmp_id": req.body.primarySupervisorEmp_id,
+                            
                         }
                     }
                     SupervisorInfo.findOneAndUpdate(query, queryUpdate, function (err, supervisorData) {
