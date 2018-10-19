@@ -1849,7 +1849,7 @@ function getPositionInfoDetails(req, res) {
                         department_id: results[0].department_id,
                         vertical_id: results[0].vertical_id,
                         subVertical_id: results[0].subVertical_id,
-                        managementType_id: results[0].managementType_id,
+                        managementType_id: parseInt(results[0].managementType_id),
                         tenureOfContract: results[0].tenureOfContract,
                         groupHrHead_id: results[0].groupHrHead_id,
                         businessHrHead_id: results[0].businessHrHead_id,
