@@ -8,6 +8,9 @@ let express           = require('express'),
     BatchInfo = require('../models/workflow/batch.model'),
     async             = require('async'),
     csvWriter = require('csv-write-stream'),
+    Json2csvParser = require('json2csv').Parser;
+    path = require('path');
+    mime = require('mime');
     fs = require('fs');
     BatchCtrl= require('./batch.controller'),
     TimeLineCtrl= require('./timeline.controller'),
@@ -539,128 +542,83 @@ let functions = {
     },
     getKraList:(req, res)=>
     { 
-        
-        KraWorkFlowInfo.find({isDeleted:false}, function(err,kraWorkFlow){
-            if (err) {
-                return res.status(403).json({
-                    title: 'There was an error, please try again later',
-                    error: err
-                });
-            }else{
-               // fs.unlinkSync('kralist.csv');
-             var writer = csvWriter({ headers: ["#", "batch_id", "Emploee_ID", "KRA_intiated_on", "KRA_initiated_by", "Number_of_KRA's", "KRA_status", "Last_updated_on", "Last_updated_by"],sendHeaders: true})
-                writer.pipe(fs.createWriteStream('kralist.csv', {flags: 'a'}))
-
-              let kraWorkId = kraWorkFlow;
-              let count = 0;
-              let kraDetailsArrCSV=[];
-            for (let i = 1; i < kraWorkId.length; i++) {
-               let kraDetailsArr=[];
-                kraDetailsArr.push(i);
-
-             
-                BatchInfo.findOne({_id: parseInt(kraWorkId[i]['batch_id']) }, function (err, batchInfoData) {
-                                if (err) {
-                                    return res.status(403).json({
-                                        title: 'There was an error, please try again later',
-                                        error: err
-                                    });
-                                }else{
-                                    kraDetailsArr.push(batchInfoData._id);
-
-                                    EmployeeInfo.findOne({_id: parseInt(kraWorkId[i]['emp_id']) }, function (err, employee) {
-
-                    if (err) {
-                        return res.status(403).json({
-                            title: 'There was an error, please try again later',
-                            error: err
-                         });
-                    }else{
-                            kraDetailsArr.push(employee._id);
-                            kraDetailsArr.push(employee.fullName);
-
-
-                EmployeeInfo.findOne({_id: parseInt(kraWorkId[i]['createdBy']) }, function (err, employeecreatedBy) {
-
-                    if (err) {
-                        return res.status(403).json({
-                            title: 'There was an error, please try again later',
-                            error: err
-                         });
-                    }else{
-                           // kraDetailsArr.push(employee._id);
-                             kraDetailsArr.push(employeecreatedBy.fullName);
-                          //  console.log('employeecreatedBy', employeecreatedBy);
-                           if(kraWorkId[i]['updatedBy']){
-                    EmployeeInfo.findOne({_id: parseInt(kraWorkId[i]['updatedBy']) }, function (err, employeeupdatedBy) {
-
-                        if (err) {
-                            return res.status(403).json({
-                                title: 'There was an error, please try again later',
-                                error: err
-                             });
-                        }else{
-                               // kraDetailsArr.push(employee._id);
-                                kraDetailsArr.push(employeeupdatedBy.fullName+"\n");
-                                
-                                console.log(i)
-                                kraDetailsArrCSV.push(kraDetailsArr)
-                                console.log('kraDetailsArr',kraDetailsArrCSV);
-                              //if(i==(kraWorkId.length-1)){
-                               
-                                  writer.write(kraDetailsArr);
-                                  // writer.end()
-                                    return res.status(200).json({
-                                title: 'File generated successfully',
-                                error: ''
-                             });
-                            //  }
-                              //  console.log('employeeupdatedBy', employeeupdatedBy);
-                              
-                        }
-                        
-                    });
+      /*  var writer = csvWriter()
+        writer.pipe(fs.createWriteStream('out.csv'))
+*/
+const fields = ['_id','batchName', 'Employee_Name', 'Employee_Id', 'KRA_intiated_on', 'KRA_initiated_by', 'Number_of_KRA`s', 'KRA_status', 'Last_updated_on', 'Last_updated_by'];
+        KraWorkFlowInfo.aggregate([
+        {
+              "$lookup": {
+                  "from": "batchdetails",
+                  "localField": "batch_id",
+                  "foreignField": "_id",
+                  "as": "batchdetails"
+              }
+        },
+        {
+            "$unwind": "$batchdetails"
+        },
+        {
+            "$lookup": {
+                "from": "employeedetails",
+                "localField": "createdBy",
+                "foreignField": "_id",
+                "as": "employeedetails"
+            }
+        },
+        {
+          "$unwind": "$employeedetails"
+        },
+        {
+            "$lookup": {
+                    "from": "employeedetails",
+                    "localField": "emp_id",
+                    "foreignField": "_id",
+                    "as": "employeedetailName"
                 }
-                    }
-                    
-                })
-                           // console.log('employee', employee);
-                    }
-                    
-                })
-                                  // console.log('batchInfoData', batchInfoData._id);
-                                }
+            },
+        {
+          "$unwind": "$employeedetailName"
+        },
+       /* { "$match": { "emp_id":parseInt(emp_id),"isDeleted":false,"employeedetails.isDeleted":false,"batchdetails.isDeleted":false} },
+        { "$sort": { "createdAt":-1,"updatedAt": -1 } },*/
+        {"$project":{
+            "_id":"$_id",
+            "batchName":"$batchdetails.batchName",
+            "Employee_Name":"$employeedetailName.fullName",
+            "Employee_Id":"$employeedetailName.userName",
+            "KRA_intiated_on":"$employeedetails.fullName",
+            "KRA_initiated_by":"$batchdetails.batchEndDate",
+            "KRA_status":"$status",
+            "Last_updated_on":"$createdAt",
+            "Last_updated_by":"$updatedAt",
+        }}
+      ]).exec(function(err, kraEmployeeWorkflowInfoData){
+        if (err) {
+            return res.status(403).json({
+                title: 'There was an error, please try again later',
+                error: err
+            });
+        }
+       // console.log(kraEmployeeWorkflowInfoData);
+   const json2csvParser = new Json2csvParser({ fields });
+    const csv = json2csvParser.parse(kraEmployeeWorkflowInfoData);
+   // console.log('test new demo',csv);
+  
+  fs.writeFile('KRA_report.csv', csv, function(err) { //currently saves file to app's root directory
+    if (err) throw err;
+    console.log('file saved');
 
-                            });
-
-                
-               /* SupervisorInfo.findOne({emp_id: parseInt(kraWorkId[i]['emp_id']) }, function (err, supervisor) {
-
-                   console.log(supervisor);
-                })*/
-
-               
-              /*  KraInfo.findOne({ kraWorkflow_id: parseInt(kraWorkId[i]['_id']) }, function (err, KraInfodetail) {
-                    if (err) {
-                        return res.status(403).json({
-                            title: 'There was an error, please try again later',
-                            error: err
-                         });
-                    }else{
-                           // kraDetailsArr.push(employee._id);
-                           // kraDetailsArr.push(employee.fullName);
-                       console.log('count', count);
-                      count++;
-                    }
+var file =   'KRA_report.csv';
+res.download(file, 'KRA_report.csv'); 
  
-                })*/
-                   
+  });
 
-            }
-                
-            }
 
-         })
+
+
+ }) 
+    
  
     },
  
