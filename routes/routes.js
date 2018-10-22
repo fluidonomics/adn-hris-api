@@ -267,9 +267,10 @@ let express  = require('express'),
         kraRoutes.delete('/deleteKraInfo',ensureAuthenticated, kra.functions.deleteKraInfo);
        // new api kra report by rajesh
 
-        kraRoutes.get('/getKraList', kra.functions.getKraList);
+        kraRoutes.get('/getKRA_Report_Supervisor', kra.functions.getKRA_Report_Supervisor);
         //kraRoutes.get('/getKraList',ensureAuthenticated, kra.functions.getKraList);
         // kraRoutes.get('/getKraInfo',ensureAuthenticated, kra.getKraInfo);
+        kraRoutes.get('/getKRA_Report', kra.functions.getKRA_Report);
 
         // kraRoutes.get('/getKraDetailsData',ensureAuthenticated, kra.getKraDetailsData);
 
