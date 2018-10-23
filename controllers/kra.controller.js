@@ -675,42 +675,84 @@ let functions = {
         {
           "$unwind": "$employeedetailName"
         },
-        {
-            "$lookup": {
-                "from": "KraInfo",
-                "localField": "_id",
-                "foreignField": "kraWorkflow_id",
-                "as": "KraInfoDetails"
-            }
-        },
             {
-                "$unwind": {
-                    path: "$KraInfoDetails",
-                    "preserveNullAndEmptyArrays": true
+                "$lookup": {
+                    "from": "employeesupervisordetails",
+                    "localField": "emp_id",
+                    "foreignField": "emp_id",
+                    "as": "supervisor"
                 }
             },
             {
-                $group: {
-                    _id: "$KraInfoDetails.kraWorkflow_id",
-                    totalKra: { $sum: 1 },
+                "$unwind": {
+                    "path":"$supervisor", "preserveNullAndEmptyArrays": true
                 }
-            },    
+            },
+            {
+                "$lookup": {
+                    "from": "employeedetails",
+                    "localField": "supervisor.primarySupervisorEmp_id",
+                    "foreignField": "_id",
+                    "as": "employees"
+                }
+            },
+            {
+                "$unwind": {
+                    "path": "$employees", "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "employeedetails",
+                    "localField": "supervisor.secondarySupervisorEmp_id",
+                    "foreignField": "_id",
+                    "as": "employeeSecondary"
+                }
+            },
+            {
+                "$unwind": {
+                    "path": "$employeeSecondary", "preserveNullAndEmptyArrays": true
+                }
+            },
+       /* {
+            "$lookup": {
+                "from": "KraInfo",
+                "localField": "_id",
+                "as": "KraInfoDetails"
+            }
+                "foreignField": "kraWorkflow_id",
+        },
+        {
+            "$unwind": {
+                path: "$KraInfoDetails",
+                "preserveNullAndEmptyArrays": true
+            }
+        },
+        {
+            $group: {
+                _id: "$KraInfoDetails.kraWorkflow_id",
+                totalKra: { $sum: 1 },
+            }
+        }, */   
        /* { "$match": { "emp_id":parseInt(emp_id),"isDeleted":false,"employeedetails.isDeleted":false,"batchdetails.isDeleted":false} },
         { "$sort": { "createdAt":-1,"updatedAt": -1 } },*/
         {"$project":{
+           // "secondarySupervisorDetails": 0,
             "_id":"$_id",
             "batchName":"$batchdetails.batchName",
             "Employee_Name":"$employeedetailName.fullName",
             "Employee_Id":"$employeedetailName.userName",
-            "KRA_intiated_on":"$employeedetails.fullName",
-            "KRA_initiated_by":"$batchdetails.batchEndDate",
-             "Number_of_KRA":"$totalKra",
+            "Primary_Supervisor":"$employees.fullName",
+            "Secondary_Supervisor":"$employeeSecondary.fullName",
+            "KRA_intiated_on":"$batchdetails.batchEndDate",
+            "KRA_initiated_by":"$employeedetails.fullName",
             "KRA_status":"$status",
             "Last_updated_on":"$createdAt",
             "Last_updated_by":"$updatedAt",
            
         }}
       ]).exec(function(err, kraEmployeeWorkflowInfoData){
+        console.log('test new demo',kraEmployeeWorkflowInfoData);
         if (err) {
             return res.status(403).json({
                 title: 'There was an error, please try again later',
