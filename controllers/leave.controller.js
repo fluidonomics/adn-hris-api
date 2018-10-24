@@ -1,7 +1,7 @@
 let express = require('express'),
     LeaveWorkflowHistory = require('../models/leave/leaveWorkflowHistory.model'),
     LeaveDetailsCarryForward = require('../models/master/leaveDetailsCarryForward.model');
-LeaveApply = require('../models/leave/leaveApply.model'),
+    LeaveApply = require('../models/leave/leaveApply.model'),
     LeaveHoliday = require('../models/leave/leaveHoliday.model'),
     LeaveTransactionType = require('../models/leave/leaveTransactioType.model'),
     PersonalInfo = require('../models/employee/employeePersonalDetails.model'),

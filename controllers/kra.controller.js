@@ -6,6 +6,9 @@ let express           = require('express'),
     EmployeeInfo = require('../models/employee/employeeDetails.model'),
     SupervisorInfo = require('../models/employee/employeeSupervisorDetails.model'),
     BatchInfo = require('../models/workflow/batch.model'),
+    Department = require('../models/master/department.model'),
+    LeaveTypes = require('../models/leave/leaveTypes.model'),
+    LeaveApply = require('../models/leave/leaveApply.model'),
     async             = require('async'),
     csvWriter = require('csv-write-stream'),
     Json2csvParser = require('json2csv').Parser;
@@ -774,6 +777,155 @@ let functions = {
             });
 
         }) 
+ 
+    },
+
+    getPrePost_Report:(req, res)=>
+    { 
+  
+        const fields = ['number_of_users','number_of_department','number_of_krs_pending', 'number_of_krs_close', 'number_of_leavedetails'];
+        EmployeeInfo.aggregate([
+        {
+            $group: {
+                _id: "_id",
+                count: { $sum: 1 },
+            }
+        }, 
+
+        {"$project":{
+            "count": "$count",
+           // "countdepartment":"$countdepartment",
+           
+        }}
+      ]).exec(function(err, kraEmployeeWorkflowInfoData){
+
+        Department.aggregate([
+        {
+            $group: {
+                _id: "_id",
+                countDepartment: { $sum: 1 },
+            }
+        }, 
+
+        {"$project":{
+            "countDepartment": "$countDepartment",
+        }}
+            ]).exec(function(err, DapartmentsData){
+               // console.log('test new DapartmentsData',DapartmentsData);
+
+
+                KraWorkFlowInfo.aggregate([
+                    { "$match": {
+                        $or: [
+                            { "status": "Submitted" }, //leave approved
+                            { "status": "Initiated" }, //leave approved and pending to approve cancellation
+                            { "status": "SendBack" },//apply for withdraw leave,
+                 
+                        ]
+                    }},
+                    {
+                        $group: {
+                            _id: "_id",
+                            countKraWorkFlowInfo: { $sum: 1 },
+                        }
+                    }, 
+
+                    {"$project":{
+                        "countKraWorkFlowInfo": "$countKraWorkFlowInfo",
+                       
+                    }}
+                    ]).exec(function(err, KraWorkFlowInfoData){
+                           
+
+                    LeaveApply.aggregate([
+                    { "$match": {
+                         $or: [
+                            { "status": "Applied" }, //leave approved
+                            { "status": "Pending Cancellation" }, //leave approved and pending to ap
+                 
+                        ]
+                    }},
+    
+                    {
+                        $group: {
+                            _id: "_id",
+                            countleave: { $sum: 1 },
+                        }
+                    }, 
+
+                    {"$project":{
+                        "countleave": "$countleave",
+                       
+                    }}
+                    ]).exec(function(err, leaveapplieddetailsData){
+
+                     KraWorkFlowInfo.aggregate([
+                    { "$match": {
+                         $or: [
+                            { "status": "Approved" }, //leave approved
+                 
+                        ]
+                    }},
+                    {
+                        $group: {
+                            _id: "_id",
+                            countKraWorkFlowClose: { $sum: 1 },
+                        }
+                    }, 
+
+                    {"$project":{
+                        "countKraWorkFlowClose": "$countKraWorkFlowClose",
+                       
+                    }}
+                    ]).exec(function(err, KraWorkFlowCloseData){ 
+                        
+                        let number_of_users=0;
+                        let number_of_department=0;
+                        let number_of_krs_pending=0;
+                        let number_of_krs_close=0;
+                        let number_of_leavedetails=0;
+
+                    if(kraEmployeeWorkflowInfoData)
+                      number_of_users = kraEmployeeWorkflowInfoData[0].count;   
+                    if(DapartmentsData)
+                       number_of_department = DapartmentsData[0].countDepartment;
+                    if(KraWorkFlowInfoData !== undefined && KraWorkFlowInfoData.length)
+                       number_of_krs_pending = KraWorkFlowInfoData[0].countKraWorkFlowInfo;
+                    if(KraWorkFlowCloseData !== undefined && KraWorkFlowCloseData.length)
+                       number_of_krs_close = KraWorkFlowCloseData[0].countKraWorkFlowClose;
+                    if(leaveapplieddetailsData !== undefined && leaveapplieddetailsData.length)
+                       number_of_leavedetails = leaveapplieddetailsData[0].countleave;
+
+                     let dataall = {
+                       'number_of_users':number_of_users,
+                       'number_of_department':number_of_department,
+                       'number_of_krs_pending':number_of_krs_pending,
+                       'number_of_krs_close':number_of_krs_close,
+                       'number_of_leavedetails': number_of_leavedetails,
+                        }
+                        const json2csvParser = new Json2csvParser({ fields });
+                        const csv = json2csvParser.parse(dataall);
+                         console.log('test new demo',csv);
+              
+                        fs.writeFile('PrePost_Report.csv', csv, function(err) { //currently saves file to app's root directory
+                            if (err) throw err;
+                           // console.log('file saved');
+
+                            var file =   'PrePost_Report.csv';
+                            res.download(file, 'PrePost_Report.csv'); 
+             
+                        });
+                    });
+
+                    }); 
+
+                    }) 
+                
+
+            }) 
+
+        }) 
+
  
     },
  
