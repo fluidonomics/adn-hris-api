@@ -242,7 +242,7 @@ let express  = require('express'),
 
           userRoutes.post('/changePassword', ensureAuthenticated, user.changePassword);
 
-          
+          userRoutes.post('/updateSupervisortransferInfo', user.updateSupervisortransferInfo);
           
       //= ========================
 
