@@ -2048,46 +2048,42 @@ function getCarInfoDetails(req, res) {
 }
 
 function updateSupervisortransfer(req,res,done){
-    console.log(req);
+    console.log(req.body);
     let _id = req.body.emp_id;
     console.log(_id);
-        let change_type = req.body.change_type;
+    let change_type = req.body.change_type;
     var query = {
         _id: _id,
         isDeleted: false
     }
-
     var queryUpdate = {};
-    if(req.body.primarySupervisorEmp_id!==req.body.secondarySupervisorEmp_id){
-        if(change_type==='transfer'){
-        queryUpdate = {
-            $set: {
-                primarySupervisorEmp_id: req.body.primarySupervisorEmp_id,
-                secondarySupervisorEmp_id: req.body.secondarySupervisorEmp_id,
-            }
-        };
-        }else{
-
+    if (req.body.primarySupervisorEmp_id !== req.body.secondarySupervisorEmp_id) {
+        if (change_type === 'transfer') {
+            queryUpdate = {
+                $set: {
+                    "primarySupervisorEmp_id": req.body.primarySupervisorEmp_id,
+                    "secondarySupervisorEmp_id": req.body.secondarySupervisorEmp_id,
+                }
+            };
         }
     }
     
-
     SupervisorInfo.findOneAndUpdate(query, queryUpdate, function (err, supervisorData) {
-        
-        return res.status(403).json({
-            title: 'There was a problem',
-            error: {
-                message: err
-            },
-            result: {
-                message: supervisorData
-            }
-        });
+        console.log(supervisorData)
+        if (err) {
+            return res.status(403).json({
+                title: 'There was a problem',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: supervisorData
+                }
+            });
+        } return res.status(200).json(supervisorData);
         /*return LeaveApply.findOneAndUpdate(query, queryUpdate, function (err, supervisorData){
-
         });*/
     })
-    
 };
 
 
