@@ -6,6 +6,9 @@ let express           = require('express'),
     EmployeeInfo = require('../models/employee/employeeDetails.model'),
     SupervisorInfo = require('../models/employee/employeeSupervisorDetails.model'),
     BatchInfo = require('../models/workflow/batch.model'),
+    Department = require('../models/master/department.model'),
+    LeaveTypes = require('../models/leave/leaveTypes.model'),
+    LeaveApply = require('../models/leave/leaveApply.model'),
     async             = require('async'),
     csvWriter = require('csv-write-stream'),
     Json2csvParser = require('json2csv').Parser;
@@ -578,6 +581,19 @@ let functions = {
         {
           "$unwind": "$employeedetailName"
         },
+        {
+            "$lookup": {
+                "from": "employeedetails",
+                "localField": "updatedBy",
+                "foreignField": "_id",
+                "as": "employeedetailsupdated"
+            }
+        },
+        {
+          "$unwind": {
+            "path":"$employeedetailsupdated", "preserveNullAndEmptyArrays": true
+            }
+        },
       /*  {
             "$lookup": {
                 "from": "KraInfo",
@@ -609,8 +625,8 @@ let functions = {
             "KRA_initiated_by":"$employeedetails.fullName",
             // "Number_of_KRA":"$totalKra",
             "KRA_status":"$status",
-            "Last_updated_on":"$createdAt",
-            "Last_updated_by":"$updatedAt",
+            "Last_updated_on":"$updatedAt",
+            "Last_updated_by":"$employeedetailsupdated.fullName",
            
         }}
       ]).exec(function(err, kraEmployeeWorkflowInfoData){
@@ -664,6 +680,7 @@ let functions = {
         {
           "$unwind": "$employeedetails"
         },
+
         {
             "$lookup": {
                     "from": "employeedetails",
@@ -714,6 +731,20 @@ let functions = {
                     "path": "$employeeSecondary", "preserveNullAndEmptyArrays": true
                 }
             },
+        {
+            "$lookup": {
+                "from": "employeedetails",
+                "localField": "updatedBy",
+                "foreignField": "_id",
+                "as": "employeedetailsupdated"
+            }
+        },
+        {
+          "$unwind": {
+            "path":"$employeedetailsupdated", "preserveNullAndEmptyArrays": true
+            }
+        },
+
        /* {
             "$lookup": {
                 "from": "KraInfo",
@@ -727,13 +758,13 @@ let functions = {
                 path: "$KraInfoDetails",
                 "preserveNullAndEmptyArrays": true
             }
-        },
-        {
+        },*/
+       /* {
             $group: {
-                _id: "$KraInfoDetails.kraWorkflow_id",
+                _id: "$kraDetails.kraWorkflow_id",
                 totalKra: { $sum: 1 },
             }
-        }, */   
+        },  */
        /* { "$match": { "emp_id":parseInt(emp_id),"isDeleted":false,"employeedetails.isDeleted":false,"batchdetails.isDeleted":false} },
         { "$sort": { "createdAt":-1,"updatedAt": -1 } },*/
         {"$project":{
@@ -746,9 +777,10 @@ let functions = {
             "Secondary_Supervisor":"$employeeSecondary.fullName",
             "KRA_intiated_on":"$batchdetails.batchEndDate",
             "KRA_initiated_by":"$employeedetails.fullName",
+            "Number_of_KRA":"$totalKra",
             "KRA_status":"$status",
-            "Last_updated_on":"$createdAt",
-            "Last_updated_by":"$updatedAt",
+            "Last_updated_on":"$updatedAt",
+            "Last_updated_by":"$employeedetailsupdated.fullName",
            
         }}
       ]).exec(function(err, kraEmployeeWorkflowInfoData){
@@ -774,6 +806,169 @@ let functions = {
             });
 
         }) 
+ 
+    },
+
+    getPrePost_Report:(req, res)=>
+    { 
+  
+        const fields = ['Description','Count'];
+        EmployeeInfo.aggregate([
+        {
+            $group: {
+                _id: "_id",
+                count: { $sum: 1 },
+            }
+        }, 
+
+        {"$project":{
+            "count": "$count",
+           // "countdepartment":"$countdepartment",
+           
+        }}
+      ]).exec(function(err, kraEmployeeWorkflowInfoData){
+
+        Department.aggregate([
+        {
+            $group: {
+                _id: "_id",
+                countDepartment: { $sum: 1 },
+            }
+        }, 
+
+        {"$project":{
+            "countDepartment": "$countDepartment",
+        }}
+            ]).exec(function(err, DapartmentsData){
+
+
+                KraWorkFlowInfo.aggregate([
+                    { "$match": {
+                        $or: [
+                            { "status": "Submitted" }, 
+                            { "status": "Initiated" }, 
+                            { "status": "SendBack" },
+                 
+                        ]
+                    }},
+                    {
+                        $group: {
+                            _id: "_id",
+                            countKraWorkFlowInfo: { $sum: 1 },
+                        }
+                    }, 
+
+                    {"$project":{
+                        "countKraWorkFlowInfo": "$countKraWorkFlowInfo",
+                       
+                    }}
+                    ]).exec(function(err, KraWorkFlowInfoData){
+                           
+
+                    LeaveApply.aggregate([
+                    { "$match": {
+                         $or: [
+                            { "status": "Applied" }, 
+                            { "status": "Pending Cancellation" }, 
+                 
+                        ]
+                    }},
+    
+                    {
+                        $group: {
+                            _id: "_id",
+                            countleave: { $sum: 1 },
+                        }
+                    }, 
+
+                    {"$project":{
+                        "countleave": "$countleave",
+                       
+                    }}
+                    ]).exec(function(err, leaveapplieddetailsData){
+
+                     KraWorkFlowInfo.aggregate([
+                    { "$match": {
+                         $or: [
+                            { "status": "Approved" }, 
+                 
+                        ]
+                    }},
+                    {
+                        $group: {
+                            _id: "_id",
+                            countKraWorkFlowClose: { $sum: 1 },
+                        }
+                    }, 
+
+                    {"$project":{
+                        "countKraWorkFlowClose": "$countKraWorkFlowClose",
+                       
+                    }}
+                    ]).exec(function(err, KraWorkFlowCloseData){ 
+                        
+                        let number_of_users=0;
+                        let number_of_department=0;
+                        let number_of_krs_pending=0;
+                        let number_of_krs_close=0;
+                        let number_of_leavedetails=0;
+
+                    if(kraEmployeeWorkflowInfoData)
+                      number_of_users = kraEmployeeWorkflowInfoData[0].count;   
+                    if(DapartmentsData)
+                       number_of_department = DapartmentsData[0].countDepartment;
+                    if(KraWorkFlowInfoData !== undefined && KraWorkFlowInfoData.length)
+                       number_of_krs_pending = KraWorkFlowInfoData[0].countKraWorkFlowInfo;
+                    if(KraWorkFlowCloseData !== undefined && KraWorkFlowCloseData.length)
+                       number_of_krs_close = KraWorkFlowCloseData[0].countKraWorkFlowClose;
+                    if(leaveapplieddetailsData !== undefined && leaveapplieddetailsData.length)
+                       number_of_leavedetails = leaveapplieddetailsData[0].countleave;
+
+                     let dataall = [
+                        {
+                            'Description':'Number of users on the system',
+                            'Count':number_of_users, 
+                        },
+                        {
+                            'Description':'Number of unique departments',
+                            'Count':number_of_department,
+                        },
+                        {
+                            'Description':'Number of KRA`s pending',
+                            'Count':number_of_krs_pending,
+                        },
+                        {
+                            'Description':'Number of KRA`s closed',
+                            'Count':number_of_krs_close,
+                        },
+                        {
+                            'Description':'Number of leaves pending',
+                            'Count': number_of_leavedetails,
+                        }
+                        ]
+                        const json2csvParser = new Json2csvParser({ fields });
+                        const csv = json2csvParser.parse(dataall);
+                         console.log('test new demo',csv);
+              
+                        fs.writeFile('PrePost_Report.csv', csv, function(err) { 
+                            if (err) throw err;
+                           // console.log('file saved');
+
+                            var file =   'PrePost_Report.csv';
+                            res.download(file, 'PrePost_Report.csv'); 
+             
+                        });
+                    });
+
+                    }); 
+
+                    }) 
+                
+
+            }) 
+
+        }) 
+
  
     },
  
