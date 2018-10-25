@@ -550,7 +550,7 @@ function applyLeave(req, res, done) {
                     leavedetails.emp_id = req.body.emp_id || req.query.emp_id;
                     leavedetails.status = req.body.status;
                     leavedetails.applyTo = req.body.supervisor_id;
-                    leavedetails.createdBy = parseInt(req.body.emp_id);
+                    leavedetails.createdBy = parseInt(req.body.apply_by_id);
                     leavedetails.fromDate = fromDateBody//moment(req.body.fromDate).format('MM/DD/YYYY');//new Date(req.body.fromDate).setUTCHours(0,0,0,0);
                     leavedetails.toDate = toDateBody//(new Date(req.body.toDate).setUTCHours(0,0,0,0));
                     leavedetails.updatedBy = parseInt(req.body.updatedBy);
@@ -888,7 +888,7 @@ let functions = {
     getLeaveTransactionDetails: (req, res) => {
         let queryObj = { '$match': {} };
         queryObj['$match']['$and'] = []
-        let projectQuery = { $project: { emp_id: 1, fiscalYearId: 1, leave_type: 1, fromDate: 1, toDate: 1, status: 1, reason: 1, days: 1, applyTo: 1, supervisorReason: 1, supervisorReason2: 1, monthStart: { $month: '$fromDate' }, yearStart: { $year: '$fromDate' } } };
+        let projectQuery = { $project: { emp_id: 1, fiscalYearId: 1, leave_type: 1, fromDate: 1, toDate: 1, status: 1, reason: 1, days: 1, applyTo: 1,createdBy:1, supervisorReason: 1, supervisorReason2: 1, monthStart: { $month: '$fromDate' }, yearStart: { $year: '$fromDate' } } };
         let empId;
         if (req.query.empId) {
             empId = parseInt(req.query.empId);
@@ -945,11 +945,26 @@ let functions = {
                 }
             },
             {
+                "$lookup": {
+                    "from": "employeedetails",
+                    "localField": "createdBy",
+                    "foreignField": "_id",
+                    "as": "createdByDetails"
+                }
+            },
+            {
+                "$unwind": {
+                    path: "$createdByDetails",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
                 $group: {
                     _id: "$_id",
                     leaveTypeName: { $first: "$leaveTypeDetails.type" },
                     leave_type: { $first: "$leaveTypeDetails._id" },
                     applyTo: { $first: "$applyToDetails._id" },
+                    createdBy: { $first: "$createdByDetails._id" },
                     emp_id: { $first: "$emp_id" },
                     fromDate: { $first: "$fromDate" },
                     toDate: { $first: "$toDate" },
@@ -958,6 +973,7 @@ let functions = {
                     reason: { $first: "$reason" },
                     reason2: { $first: "$reason2" },
                     applyToFullName: { $first: "$applyToDetails.fullName" },
+                    createdByFullName: { $first: "$createdByDetails.fullName" },
                     supervisorReason: { $first: "$supervisorReason" },
                     supervisorReason2: { $first: "$supervisorReason2" },
                     remark: { $first: "$remark" },
