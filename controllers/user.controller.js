@@ -18,6 +18,7 @@ let express = require('express'),
     ProfileProcessInfo = require('../models/employee/employeeProfileProcessDetails.model'),
     PerformanceRatingMaster = require('../models/master/performanceRating.model'),
     ExternalDocument = require('../models/employee/employeeExternalDocumentDetails.model'),
+    leaveApply = require('../models/leave/leaveApply.model'),
 
     AuditTrail = require('../class/auditTrail'),
     SendEmail = require('../class/sendEmail'),
@@ -1138,7 +1139,7 @@ function updatepositionInfoDetails(req, res) {
                     "vertical_id": req.body.vertical_id,
                     "subVertical_id": req.body.subVertical_id,
                     "managementType_id": req.body.managementType_id,
-                    "employmentStatus_id":req.body.employmentStatus_id,
+                    "employmentStatus_id": req.body.employmentStatus_id,
                     "tenureOfContract": req.body.tenureOfContract,
                     "groupHrHead_id": req.body.groupHrHead_id,
                     "businessHrHead_id": req.body.businessHrHead_id,
@@ -1156,7 +1157,7 @@ function updatepositionInfoDetails(req, res) {
                         $set: {
                             "emp_id": req.body.emp_id,
                             "primarySupervisorEmp_id": req.body.primarySupervisorEmp_id,
-                            
+
                         }
                     }
                     SupervisorInfo.findOneAndUpdate(query, queryUpdate, function (err, supervisorData) {
@@ -2047,43 +2048,49 @@ function getCarInfoDetails(req, res) {
     });
 }
 
-function updateSupervisortransfer(req,res,done){
+function updateSupervisortransfer(req, res, done) {
     console.log(req.body);
     let _id = req.body.emp_id;
     console.log(_id);
     let change_type = req.body.change_type;
     var query = {
-        _id: _id,
-        isDeleted: false
+        emp_id: _id,
+        isActive: true
     }
     var queryUpdate = {};
-    if (req.body.primarySupervisorEmp_id !== req.body.secondarySupervisorEmp_id) {
-        if (change_type === 'transfer') {
+    var existingSupervisorInfo = {};
+
+    SupervisorInfo.findOne(query, (err, res) => {
+        checkError(err);
+        existingSupervisorInfo = res;
+
+        if (existingSupervisorInfo.primarySupervisorEmp_id != req.body.primarySupervisorEmp_id
+            && (existingSupervisorInfo.secondarySupervisorEmp_id != null || existingSupervisorInfo.secondarySupervisorEmp_id != req.body.secondarySupervisorEmp_id)
+            && req.body.primarySupervisorEmp_id != req.body.secondarySupervisorEmp_id) {
             queryUpdate = {
                 $set: {
                     "primarySupervisorEmp_id": req.body.primarySupervisorEmp_id,
                     "secondarySupervisorEmp_id": req.body.secondarySupervisorEmp_id,
                 }
             };
+            if (change_type == "correction") {
+                leaveApply.find({ emp_id: _id }, (err, leaves) => {
+                    checkError(res, leaves);
+
+                });
+            } else {
+                return res.status(200).json(false);
+            }
+
+            // SupervisorInfo.findOneAndUpdate(query, queryUpdate, function (err, supervisorData) {
+            //     console.log(supervisorData)
+            //     checkError(err, supervisorData);
+            //     return res.status(200).json(supervisorData);
+            // });
+        } else {
+            return res.status(200).json(false);
         }
-    }
-    
-    SupervisorInfo.findOneAndUpdate(query, queryUpdate, function (err, supervisorData) {
-        console.log(supervisorData)
-        if (err) {
-            return res.status(403).json({
-                title: 'There was a problem',
-                error: {
-                    message: err
-                },
-                result: {
-                    message: supervisorData
-                }
-            });
-        } return res.status(200).json(supervisorData);
-        /*return LeaveApply.findOneAndUpdate(query, queryUpdate, function (err, supervisorData){
-        });*/
-    })
+    });
 };
 
 
@@ -2208,14 +2215,14 @@ let functions = {
             {
                 "$unwind": "$kraWorkflowDetails"
             },
-            
+
             {
                 "$project": {
                     "employees": "$employees",
                     "kra": "$kraWorkflowDetails",
                     "emp_id": "$employeedetails._id",
-                    "fullName": "$employeedetails.fullName",                   
-                    "userName": "$employeedetails.userName",                  
+                    "fullName": "$employeedetails.fullName",
+                    "userName": "$employeedetails.userName",
                     "profileImage": "$employeedetails.profileImage",
                 }
             }
@@ -2792,7 +2799,7 @@ let functions = {
             }
         });
     },
-    updateSupervisortransferInfo:(req,res) => {
+    updateSupervisortransferInfo: (req, res) => {
         async.waterfall([
             function (done) {
                 updateSupervisortransfer(req, res, done);
@@ -2801,7 +2808,21 @@ let functions = {
                 return res.status(200).json(supervisorTransferInfo);
             }
         ]);
-        
+
+    }
+};
+
+function checkError(err, res) {
+    if (err) {
+        return res.status(403).json({
+            title: 'There was a problem',
+            error: {
+                message: err
+            },
+            result: {
+                message: res
+            }
+        });
     }
 };
 
