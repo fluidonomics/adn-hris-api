@@ -730,13 +730,13 @@ let functions = {
                 path: "$KraInfoDetails",
                 "preserveNullAndEmptyArrays": true
             }
-        },
-        {
+        },*/
+       /* {
             $group: {
-                _id: "$KraInfoDetails.kraWorkflow_id",
+                _id: "$kraDetails.kraWorkflow_id",
                 totalKra: { $sum: 1 },
             }
-        }, */   
+        },  */
        /* { "$match": { "emp_id":parseInt(emp_id),"isDeleted":false,"employeedetails.isDeleted":false,"batchdetails.isDeleted":false} },
         { "$sort": { "createdAt":-1,"updatedAt": -1 } },*/
         {"$project":{
@@ -749,6 +749,7 @@ let functions = {
             "Secondary_Supervisor":"$employeeSecondary.fullName",
             "KRA_intiated_on":"$batchdetails.batchEndDate",
             "KRA_initiated_by":"$employeedetails.fullName",
+            "Number_of_KRA":"$totalKra",
             "KRA_status":"$status",
             "Last_updated_on":"$createdAt",
             "Last_updated_by":"$updatedAt",
@@ -783,7 +784,7 @@ let functions = {
     getPrePost_Report:(req, res)=>
     { 
   
-        const fields = ['number_of_users','number_of_department','number_of_krs_pending', 'number_of_krs_close', 'number_of_leavedetails'];
+        const fields = ['Description','Count'];
         EmployeeInfo.aggregate([
         {
             $group: {
@@ -811,15 +812,14 @@ let functions = {
             "countDepartment": "$countDepartment",
         }}
             ]).exec(function(err, DapartmentsData){
-               // console.log('test new DapartmentsData',DapartmentsData);
 
 
                 KraWorkFlowInfo.aggregate([
                     { "$match": {
                         $or: [
-                            { "status": "Submitted" }, //leave approved
-                            { "status": "Initiated" }, //leave approved and pending to approve cancellation
-                            { "status": "SendBack" },//apply for withdraw leave,
+                            { "status": "Submitted" }, 
+                            { "status": "Initiated" }, 
+                            { "status": "SendBack" },
                  
                         ]
                     }},
@@ -840,8 +840,8 @@ let functions = {
                     LeaveApply.aggregate([
                     { "$match": {
                          $or: [
-                            { "status": "Applied" }, //leave approved
-                            { "status": "Pending Cancellation" }, //leave approved and pending to ap
+                            { "status": "Applied" }, 
+                            { "status": "Pending Cancellation" }, 
                  
                         ]
                     }},
@@ -862,7 +862,7 @@ let functions = {
                      KraWorkFlowInfo.aggregate([
                     { "$match": {
                          $or: [
-                            { "status": "Approved" }, //leave approved
+                            { "status": "Approved" }, 
                  
                         ]
                     }},
@@ -896,18 +896,33 @@ let functions = {
                     if(leaveapplieddetailsData !== undefined && leaveapplieddetailsData.length)
                        number_of_leavedetails = leaveapplieddetailsData[0].countleave;
 
-                     let dataall = {
-                       'number_of_users':number_of_users,
-                       'number_of_department':number_of_department,
-                       'number_of_krs_pending':number_of_krs_pending,
-                       'number_of_krs_close':number_of_krs_close,
-                       'number_of_leavedetails': number_of_leavedetails,
+                     let dataall = [
+                        {
+                            'Description':'Number of users on the system',
+                            'Count':number_of_users, 
+                        },
+                        {
+                            'Description':'Number of unique departments',
+                            'Count':number_of_department,
+                        },
+                        {
+                            'Description':'Number of KRA`s pending',
+                            'Count':number_of_krs_pending,
+                        },
+                        {
+                            'Description':'Number of KRA`s closed',
+                            'Count':number_of_krs_close,
+                        },
+                        {
+                            'Description':'Number of leaves pending',
+                            'Count': number_of_leavedetails,
                         }
+                        ]
                         const json2csvParser = new Json2csvParser({ fields });
                         const csv = json2csvParser.parse(dataall);
                          console.log('test new demo',csv);
               
-                        fs.writeFile('PrePost_Report.csv', csv, function(err) { //currently saves file to app's root directory
+                        fs.writeFile('PrePost_Report.csv', csv, function(err) { 
                             if (err) throw err;
                            // console.log('file saved');
 
