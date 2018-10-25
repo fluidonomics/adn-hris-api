@@ -19,6 +19,9 @@ let express = require('express'),
     PerformanceRatingMaster = require('../models/master/performanceRating.model'),
     ExternalDocument = require('../models/employee/employeeExternalDocumentDetails.model'),
     leaveApply = require('../models/leave/leaveApply.model'),
+    kraWorkflow = require('../models/kra/kraWorkFlowDetails.model'),
+    kraDetails= require('../models/kra/kraDetails.model'),
+    
 
     AuditTrail = require('../class/auditTrail'),
     SendEmail = require('../class/sendEmail'),
@@ -2049,9 +2052,9 @@ function getCarInfoDetails(req, res) {
 }
 
 function updateSupervisortransfer(req, res, done) {
-    console.log(req.body);
+    //console.log(req.body);
     let _id = req.body.emp_id;
-    console.log(_id);
+    //console.log(_id);
     let change_type = req.body.change_type;
     var query = {
         emp_id: _id,
@@ -2061,8 +2064,10 @@ function updateSupervisortransfer(req, res, done) {
     var existingSupervisorInfo = {};
 
     SupervisorInfo.findOne(query, (err, res) => {
+        // console.log(res)
         checkError(err);
         existingSupervisorInfo = res;
+        // console.log(existingSupervisorInfo)
 
         if (existingSupervisorInfo.primarySupervisorEmp_id != req.body.primarySupervisorEmp_id
             && (existingSupervisorInfo.secondarySupervisorEmp_id != null || existingSupervisorInfo.secondarySupervisorEmp_id != req.body.secondarySupervisorEmp_id)
@@ -2073,20 +2078,40 @@ function updateSupervisortransfer(req, res, done) {
                     "secondarySupervisorEmp_id": req.body.secondarySupervisorEmp_id,
                 }
             };
-            if (change_type == "correction") {
+
+            SupervisorInfo.findOneAndUpdate(query, queryUpdate, function (err, supervisorData) {
                 leaveApply.find({ emp_id: _id }, (err, leaves) => {
-                    checkError(res, leaves);
+                    //checkError(res, leaves);
+                    if(leaves.applyTo!==supervisorData.primarySupervisorEmp_id){
+                        var leave_queryUpdate = {};
+                        if(req.body.change_type==="transfer"){
+                            leave_queryUpdate = {
+                                $set: {
+                                    "applyTo": supervisorData.primarySupervisorEmp_id
+                                }
+                            };
+                        }
+                        leaveApply.findOneAndUpdate({emp_id: _id}, leave_queryUpdate, function(err, doc) {
+                            kraWorkflow.find({emp_id:_id},(err,kra_work_flow)=>{
+                                    for (var i = 0; i < kra_work_flow.length; i++) {
+                                        kraDetails.findOneAndUpdate({kraWorkflow_id:kra_work_flow[i]._id},
+                                            {$set:{"supervisor_id":supervisorData.primarySupervisorEmp_id}},
+                                        function(err,kra_detail){
+                                            checkError(res, kradetails);
+                                            return res.status(200).json(kradetails);
+                                        })
+                                    }
+                            })
+                            checkError(res, doc);
+                            return res.status(200).json(doc);
+                            
+                        });
+                    }
 
                 });
-            } else {
-                return res.status(200).json(false);
-            }
-
-            // SupervisorInfo.findOneAndUpdate(query, queryUpdate, function (err, supervisorData) {
-            //     console.log(supervisorData)
-            //     checkError(err, supervisorData);
-            //     return res.status(200).json(supervisorData);
-            // });
+                
+                return res.status(200).json(supervisorData);
+            });
         } else {
             return res.status(200).json(false);
         }
