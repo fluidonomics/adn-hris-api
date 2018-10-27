@@ -20,8 +20,8 @@ let express = require('express'),
     ExternalDocument = require('../models/employee/employeeExternalDocumentDetails.model'),
     leaveApply = require('../models/leave/leaveApply.model'),
     kraWorkflow = require('../models/kra/kraWorkFlowDetails.model'),
-    kraDetails= require('../models/kra/kraDetails.model'),
-    
+    kraDetails = require('../models/kra/kraDetails.model'),
+
 
     AuditTrail = require('../class/auditTrail'),
     SendEmail = require('../class/sendEmail'),
@@ -2052,10 +2052,9 @@ function getCarInfoDetails(req, res) {
 }
 
 function updateSupervisortransfer(req, res, done) {
-    //console.log(req.body);
+    debugger;
     let _id = req.body.emp_id;
-    //console.log(_id);
-    let change_type = req.body.change_type;
+    let changeType = req.body.change_type;
     var query = {
         emp_id: _id,
         isActive: true
@@ -2063,11 +2062,8 @@ function updateSupervisortransfer(req, res, done) {
     var queryUpdate = {};
     var existingSupervisorInfo = {};
 
-    SupervisorInfo.findOne(query, (err, res) => {
-        // console.log(res)
+    SupervisorInfo.findOne(query, (err, existingSupervisorInfo) => {
         checkError(err);
-        existingSupervisorInfo = res;
-        // console.log(existingSupervisorInfo)
 
         if (existingSupervisorInfo.primarySupervisorEmp_id != req.body.primarySupervisorEmp_id
             && (existingSupervisorInfo.secondarySupervisorEmp_id != null || existingSupervisorInfo.secondarySupervisorEmp_id != req.body.secondarySupervisorEmp_id)
@@ -2080,40 +2076,45 @@ function updateSupervisortransfer(req, res, done) {
             };
 
             SupervisorInfo.findOneAndUpdate(query, queryUpdate, function (err, supervisorData) {
-                leaveApply.find({ emp_id: _id }, (err, leaves) => {
-                    //checkError(res, leaves);
-                    if(leaves.applyTo!==supervisorData.primarySupervisorEmp_id){
-                        var leave_queryUpdate = {};
-                        if(req.body.change_type==="transfer"){
+                checkError(err, supervisorData);
+                if (changeType == "correction") {
+                    async.waterfall([
+                        (leaveApplyCallback) => {
+                            var leave_queryUpdate = {};
                             leave_queryUpdate = {
                                 $set: {
-                                    "applyTo": supervisorData.primarySupervisorEmp_id
+                                    "applyTo": req.body.primarySupervisorEmp_id
                                 }
                             };
-                        }
-                        leaveApply.findOneAndUpdate({emp_id: _id}, leave_queryUpdate, function(err, doc) {
-                            kraWorkflow.find({emp_id:_id},(err,kra_work_flow)=>{
-                                    for (var i = 0; i < kra_work_flow.length; i++) {
-                                        kraDetails.findOneAndUpdate({kraWorkflow_id:kra_work_flow[i]._id},
-                                            {$set:{"supervisor_id":supervisorData.primarySupervisorEmp_id}},
-                                        function(err,kra_detail){
-                                            checkError(res, kradetails);
-                                            return res.status(200).json(kradetails);
-                                        })
-                                    }
+                            leaveApply.updateMany({ emp_id: _id }, leave_queryUpdate, function (err, doc) {
+                                checkError(err, doc);
+                                return leaveApplyCallback(true);
+                            });
+                        },
+                        (kraCallback) => {
+                            kraWorkflow.find({ emp_id: _id }, (err, kraWorkflows) => {
+                                checkError(err, kraWorkflow);
+                                let bulkOps = [];
+                                kraWorkflows.forEach(kraWorkflow => {
+                                    let op = kraDetails.updateMany(
+                                        { kraWorkflow_id: kraWorkflow._id },
+                                        { "$set": { "supervisor_id": req.body.primarySupervisorEmp_id } }
+                                    );
+                                    bulkOps.push(op);
+                                });
+                                let kraBulk = kraDetails.bulkWrite(bulkOps).then(res => {
+                                    debugger;
+                                    return kraCallback(true);
+                                });
                             })
-                            checkError(res, doc);
-                            return res.status(200).json(doc);
-                            
-                        });
-                    }
-
-                });
-                
-                return res.status(200).json(supervisorData);
+                        }
+                    ]);
+                } else {
+                    done(null, true);
+                }
             });
         } else {
-            return res.status(200).json(false);
+            done(null, false);
         }
     });
 };
