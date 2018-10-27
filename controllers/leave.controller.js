@@ -446,7 +446,7 @@ getLeaveTransaction: (req, res) => {
         });
         return res.status(200).json(response);
     }
-function applyLeave(req, res, done) {
+function applyLeave(req, res, done,validateAdvanceLeave) {
     let fromDateBody = moment(req.body.fromDate + ' UTC').utc().format();
     let toDateBody = moment(req.body.toDate + ' UTC').utc().format();
     let startd = new Date(new Date(req.body.fromDate).getTime() + 86400000),
@@ -541,7 +541,7 @@ function applyLeave(req, res, done) {
                 }
                 let d = moment(moment().add(7, 'days').format('YYYY-MM-DD') + ' UTC').utc().format();
 
-                if (((moment(toDateBody).diff(fromDateBody, 'days') + 1) > 3) && (req.body.leave_type == 1) && fromDateBody <= d) {
+                if (((moment(toDateBody).diff(fromDateBody, 'days') + 1) > 3) && (req.body.leave_type == 1) && fromDateBody <= d && validateAdvanceLeave) {
                     flag = false;
                     message = "Annual Leave should be applied in seven days advance";
                 }
@@ -794,7 +794,17 @@ let functions = {
     postApplyLeave: (req, res) => {
         async.waterfall([
             function (done) {
-                applyLeave(req, res, done);
+                applyLeave(req, res, done,true);
+            },
+            function (_applyLeaveDetails, done) {
+                return res.status(200).json(_applyLeaveDetails);
+            }
+        ])
+    },
+    HrPostApplyLeave: (req, res) => {
+        async.waterfall([
+            function (done) {
+                applyLeave(req, res, done,false);
             },
             function (_applyLeaveDetails, done) {
                 return res.status(200).json(_applyLeaveDetails);
