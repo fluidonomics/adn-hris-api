@@ -272,9 +272,6 @@ let express  = require('express'),
         
         // kraRoutes.get('/getKraInfo',ensureAuthenticated, kra.getKraInfo);
         kraRoutes.get('/getKRA_Report', kra.functions.getKRA_Report);
-
-        kraRoutes.get('/getPrePost_Report', kra.functions.getPrePost_Report);
-
         // kraRoutes.get('/getKraDetailsData',ensureAuthenticated, kra.getKraDetailsData);
 
         kraRoutes.post('/addKraCategoryInfo',ensureAuthenticated, kra.functions.addKraCategoryInfo);
@@ -516,6 +513,7 @@ let express  = require('express'),
            
           commonRoutes.get('/getFinincialYear', ensureAuthenticated,  common.getFinincialYear);
           // commonRoutes.get('/sendNotification',ensureAuthenticated, common.sendNotification);
+          commonRoutes.get('/getPrePost_Report', common.getPrePost_Report);
         
       //= ========================
 
