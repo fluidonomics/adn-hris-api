@@ -2053,70 +2053,85 @@ function getCarInfoDetails(req, res) {
 
 function updateSupervisortransfer(req, res, done) {
     debugger;
-    let _id = req.body.emp_id;
-    let changeType = req.body.change_type;
-    var query = {
-        emp_id: _id,
-        isActive: true
-    }
-    var queryUpdate = {};
-    var existingSupervisorInfo = {};
-
-    SupervisorInfo.findOne(query, (err, existingSupervisorInfo) => {
-        checkError(err);
-
-        if (existingSupervisorInfo.primarySupervisorEmp_id != req.body.primarySupervisorEmp_id
-            && (existingSupervisorInfo.secondarySupervisorEmp_id != null || existingSupervisorInfo.secondarySupervisorEmp_id != req.body.secondarySupervisorEmp_id)
-            && req.body.primarySupervisorEmp_id != req.body.secondarySupervisorEmp_id) {
-            queryUpdate = {
-                $set: {
-                    "primarySupervisorEmp_id": req.body.primarySupervisorEmp_id,
-                    "secondarySupervisorEmp_id": req.body.secondarySupervisorEmp_id,
-                }
-            };
-
-            SupervisorInfo.findOneAndUpdate(query, queryUpdate, function (err, supervisorData) {
-                checkError(err, supervisorData);
-                if (changeType == "correction") {
-                    async.waterfall([
-                        (leaveApplyCallback) => {
-                            var leave_queryUpdate = {};
-                            leave_queryUpdate = {
-                                $set: {
-                                    "applyTo": req.body.primarySupervisorEmp_id
-                                }
-                            };
-                            leaveApply.updateMany({ emp_id: _id }, leave_queryUpdate, function (err, doc) {
-                                checkError(err, doc);
-                                return leaveApplyCallback(true);
-                            });
-                        },
-                        (kraCallback) => {
-                            kraWorkflow.find({ emp_id: _id }, (err, kraWorkflows) => {
-                                checkError(err, kraWorkflow);
-                                let bulkOps = [];
-                                kraWorkflows.forEach(kraWorkflow => {
-                                    let op = kraDetails.updateMany(
-                                        { kraWorkflow_id: kraWorkflow._id },
-                                        { "$set": { "supervisor_id": req.body.primarySupervisorEmp_id } }
-                                    );
-                                    bulkOps.push(op);
-                                });
-                                let kraBulk = kraDetails.bulkWrite(bulkOps).then(res => {
-                                    debugger;
-                                    return kraCallback(true);
-                                });
-                            })
-                        }
-                    ]);
-                } else {
-                    done(null, true);
-                }
-            });
-        } else {
-            done(null, false);
+    try {
+        let _id = req.body.emp_id;
+        let changeType = req.body.change_type;
+        var query = {
+            emp_id: _id,
+            isActive: true
         }
-    });
+        var queryUpdate = {};
+
+        SupervisorInfo.findOne(query, (err, existingSupervisorInfo) => {
+            checkError(err);
+
+            if (existingSupervisorInfo.primarySupervisorEmp_id != req.body.primarySupervisorEmp_id
+                && (existingSupervisorInfo.secondarySupervisorEmp_id != null || existingSupervisorInfo.secondarySupervisorEmp_id != req.body.secondarySupervisorEmp_id)
+                && req.body.primarySupervisorEmp_id != req.body.secondarySupervisorEmp_id) {
+                queryUpdate = {
+                    $set: {
+                        "primarySupervisorEmp_id": req.body.primarySupervisorEmp_id,
+                        "secondarySupervisorEmp_id": req.body.secondarySupervisorEmp_id,
+                    }
+                };
+
+                SupervisorInfo.findOneAndUpdate(query, queryUpdate, function (err, supervisorData) {
+                    checkError(err, supervisorData);
+                    if (changeType == "correction") {
+                        async.waterfall([
+                            (leaveApplyCallback) => {
+                                var leave_queryUpdate = {};
+                                leave_queryUpdate = {
+                                    $set: {
+                                        "applyTo": req.body.primarySupervisorEmp_id
+                                    }
+                                };
+                                leaveApply.updateMany({ emp_id: _id }, leave_queryUpdate, function (err, doc) {
+                                    checkError(err, doc);
+                                    leaveApplyCallback(null, true);
+                                });
+                            },
+                            (leaveResult, kraCallback) => {
+                                if (!leaveResult) {
+                                    kraCallback(null, false);
+                                }
+                                kraWorkflow.find({ emp_id: _id }, (err, kraWorkflows) => {
+                                    checkError(err, kraWorkflow);
+                                    let bulkOps = [];
+                                    kraWorkflows.forEach(kraWorkflow => {
+                                        let op = {
+                                            'updateMany': {
+                                                'filter': { kraWorkflow_id: kraWorkflow._id },
+                                                'update': { "$set": { "supervisor_id": req.body.primarySupervisorEmp_id } }
+                                            }
+                                        };
+                                        bulkOps.push(op);
+                                    });
+                                    let kraBulk = kraDetails.bulkWrite(bulkOps, (err, res) => {
+                                        if (err) {
+                                            kraCallback(false);
+                                        }
+                                        kraCallback(true);
+                                    });
+                                })
+                            }
+                        ], function (res) {
+                            if (!res) {
+                                return done(null, false);
+                            }
+                            return done(null, true);
+                        });
+                    } else {
+                        return done(null, true);
+                    }
+                });
+            } else {
+                return done(null, false);
+            }
+        });
+    } catch (error) {
+        return done(null, false);
+    }
 };
 
 
