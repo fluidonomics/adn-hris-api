@@ -2066,12 +2066,12 @@ function updateSupervisortransfer(req, res, done) {
             checkError(err);
 
             if (existingSupervisorInfo.primarySupervisorEmp_id != req.body.primarySupervisorEmp_id
-                && (existingSupervisorInfo.secondarySupervisorEmp_id != null || existingSupervisorInfo.secondarySupervisorEmp_id != req.body.secondarySupervisorEmp_id)
+                && (existingSupervisorInfo.secondarySupervisorEmp_id == null || existingSupervisorInfo.secondarySupervisorEmp_id != req.body.secondarySupervisorEmp_id)
                 && req.body.primarySupervisorEmp_id != req.body.secondarySupervisorEmp_id) {
                 queryUpdate = {
                     $set: {
                         "primarySupervisorEmp_id": req.body.primarySupervisorEmp_id,
-                        "secondarySupervisorEmp_id": req.body.secondarySupervisorEmp_id,
+                        "secondarySupervisorEmp_id": req.body.secondarySupervisorEmp_id || null,
                     }
                 };
 
