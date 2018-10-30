@@ -1302,8 +1302,8 @@ let functions = {
     
     checkEmailExists: (req, res) => {
       Promise.all([
-        PersonalDetails.find({personalEmail:req.query.email}).count().exec(),
-        OfficeDetails.find({officeEmail:req.query.email}).count().exec()
+        PersonalDetails.find({personalEmail:req.query.email,emp_id:{$ne:req.query.emp_id}}).count().exec(),
+        OfficeDetails.find({officeEmail:req.query.email,emp_id:{$ne:req.query.emp_id}}).count().exec()
       ]).then(function(counts) {
           if(counts[0] > 0 || counts[1] > 0)
           {
