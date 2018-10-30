@@ -18,6 +18,10 @@ let express = require('express'),
     ProfileProcessInfo = require('../models/employee/employeeProfileProcessDetails.model'),
     PerformanceRatingMaster = require('../models/master/performanceRating.model'),
     ExternalDocument = require('../models/employee/employeeExternalDocumentDetails.model'),
+    leaveApply = require('../models/leave/leaveApply.model'),
+    kraWorkflow = require('../models/kra/kraWorkFlowDetails.model'),
+    kraDetails = require('../models/kra/kraDetails.model'),
+
 
     AuditTrail = require('../class/auditTrail'),
     SendEmail = require('../class/sendEmail'),
@@ -1138,7 +1142,7 @@ function updatepositionInfoDetails(req, res) {
                     "vertical_id": req.body.vertical_id,
                     "subVertical_id": req.body.subVertical_id,
                     "managementType_id": req.body.managementType_id,
-                    "employmentStatus_id":req.body.employmentStatus_id,
+                    "employmentStatus_id": req.body.employmentStatus_id,
                     "tenureOfContract": req.body.tenureOfContract,
                     "groupHrHead_id": req.body.groupHrHead_id,
                     "businessHrHead_id": req.body.businessHrHead_id,
@@ -1156,7 +1160,7 @@ function updatepositionInfoDetails(req, res) {
                         $set: {
                             "emp_id": req.body.emp_id,
                             "primarySupervisorEmp_id": req.body.primarySupervisorEmp_id,
-                            
+
                         }
                     }
                     SupervisorInfo.findOneAndUpdate(query, queryUpdate, function (err, supervisorData) {
@@ -2047,6 +2051,90 @@ function getCarInfoDetails(req, res) {
     });
 }
 
+function updateSupervisortransfer(req, res, done) {
+    debugger;
+    try {
+        let _id = req.body.emp_id;
+        let changeType = req.body.change_type;
+        var query = {
+            emp_id: _id,
+            isActive: true
+        }
+        var queryUpdate = {};
+
+        SupervisorInfo.findOne(query, (err, existingSupervisorInfo) => {
+            checkError(err);
+
+            if (existingSupervisorInfo.primarySupervisorEmp_id != req.body.primarySupervisorEmp_id
+                && (existingSupervisorInfo.secondarySupervisorEmp_id != null || existingSupervisorInfo.secondarySupervisorEmp_id != req.body.secondarySupervisorEmp_id)
+                && req.body.primarySupervisorEmp_id != req.body.secondarySupervisorEmp_id) {
+                queryUpdate = {
+                    $set: {
+                        "primarySupervisorEmp_id": req.body.primarySupervisorEmp_id,
+                        "secondarySupervisorEmp_id": req.body.secondarySupervisorEmp_id,
+                    }
+                };
+
+                SupervisorInfo.findOneAndUpdate(query, queryUpdate, function (err, supervisorData) {
+                    checkError(err, supervisorData);
+                    if (changeType == "correction") {
+                        async.waterfall([
+                            (leaveApplyCallback) => {
+                                var leave_queryUpdate = {};
+                                leave_queryUpdate = {
+                                    $set: {
+                                        "applyTo": req.body.primarySupervisorEmp_id
+                                    }
+                                };
+                                leaveApply.updateMany({ emp_id: _id }, leave_queryUpdate, function (err, doc) {
+                                    checkError(err, doc);
+                                    leaveApplyCallback(null, true);
+                                });
+                            },
+                            (leaveResult, kraCallback) => {
+                                if (!leaveResult) {
+                                    kraCallback(null, false);
+                                }
+                                kraWorkflow.find({ emp_id: _id }, (err, kraWorkflows) => {
+                                    checkError(err, kraWorkflow);
+                                    let bulkOps = [];
+                                    kraWorkflows.forEach(kraWorkflow => {
+                                        let op = {
+                                            'updateMany': {
+                                                'filter': { kraWorkflow_id: kraWorkflow._id },
+                                                'update': { "$set": { "supervisor_id": req.body.primarySupervisorEmp_id } }
+                                            }
+                                        };
+                                        bulkOps.push(op);
+                                    });
+                                    let kraBulk = kraDetails.bulkWrite(bulkOps, (err, res) => {
+                                        if (err) {
+                                            kraCallback(false);
+                                        }
+                                        kraCallback(true);
+                                    });
+                                })
+                            }
+                        ], function (res) {
+                            if (!res) {
+                                return done(null, false);
+                            }
+                            return done(null, true);
+                        });
+                    } else {
+                        return done(null, true);
+                    }
+                });
+            } else {
+                return done(null, false);
+            }
+        });
+    } catch (error) {
+        return done(null, false);
+    }
+};
+
+
 let functions = {
     addEmployee: (req, res) => {
         //uncomment below line to add user from backend.
@@ -2168,14 +2256,14 @@ let functions = {
             {
                 "$unwind": "$kraWorkflowDetails"
             },
-            
+
             {
                 "$project": {
                     "employees": "$employees",
                     "kra": "$kraWorkflowDetails",
                     "emp_id": "$employeedetails._id",
-                    "fullName": "$employeedetails.fullName",                   
-                    "userName": "$employeedetails.userName",                  
+                    "fullName": "$employeedetails.fullName",
+                    "userName": "$employeedetails.userName",
                     "profileImage": "$employeedetails.profileImage",
                 }
             }
@@ -2749,6 +2837,31 @@ let functions = {
                         });
                     }
                 });
+            }
+        });
+    },
+    updateSupervisortransferInfo: (req, res) => {
+        async.waterfall([
+            function (done) {
+                updateSupervisortransfer(req, res, done);
+            },
+            function (supervisorTransferInfo, done) {
+                return res.status(200).json(supervisorTransferInfo);
+            }
+        ]);
+
+    }
+};
+
+function checkError(err, res) {
+    if (err) {
+        return res.status(403).json({
+            title: 'There was a problem',
+            error: {
+                message: err
+            },
+            result: {
+                message: res
             }
         });
     }
