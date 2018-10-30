@@ -541,13 +541,71 @@ let functions = {
             }
         ]);
     },
-    getKRA_Report_Supervisor: (req, res) => {
-        const fields = ['_id', 'batchName', 'Employee_Name', 'Employee_Id', 'KRA_intiated_on', 'KRA_initiated_by', 'Number_of_KRA', 'KRA_status', 'Last_updated_on', 'Last_updated_by'];
-        KraWorkFlowInfo.aggregate([
+    getKraReportSupervisor: (req, res) => {
+        const fields = [
+            {
+                label: 'Kra WorkflowId',
+                value: '_id'
+            },
+            {
+                label: 'Batch Name',
+                value: 'batchName'
+            },
+            {
+                label: 'Employee Name',
+                value: 'Employee_Name'
+            },
+            {
+                label: 'EmployeeId',
+                value: 'Employee_Id'
+            },
+            {
+                label: 'KRA Intiated On',
+                value: 'KRA_intiated_on'
+            },
+            {
+                label: 'KRA Initiated By',
+                value: 'KRA_initiated_by'
+            },
+            {
+                label: 'Number of KRA',
+                value: 'kraCount'
+            },
+            {
+                label: 'KRA Status',
+                value: 'KRA_status'
+            },
+            {
+                label: 'Last Updated On',
+                value: 'Last_updated_on'
+            },
+            {
+                label: 'Last Updated By',
+                value: 'Last_updated_by'
+            }
+        ];
+
+        SupervisorInfo.aggregate([
+            {
+                "$match": {
+                    primarySupervisorEmp_id: parseInt(req.query.supervisorId)
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "kraworkflowdetails",
+                    "localField": "emp_id",
+                    "foreignField": "emp_id",
+                    "as": "kraWorkflowDetails"
+                }
+            },
+            {
+                "$unwind": "$kraWorkflowDetails"
+            },
             {
                 "$lookup": {
                     "from": "batchdetails",
-                    "localField": "batch_id",
+                    "localField": "kraWorkflowDetails.batch_id",
                     "foreignField": "_id",
                     "as": "batchdetails"
                 }
@@ -558,7 +616,7 @@ let functions = {
             {
                 "$lookup": {
                     "from": "employeedetails",
-                    "localField": "createdBy",
+                    "localField": "kraWorkflowDetails.createdBy",
                     "foreignField": "_id",
                     "as": "employeedetails"
                 }
@@ -569,7 +627,7 @@ let functions = {
             {
                 "$lookup": {
                     "from": "employeedetails",
-                    "localField": "emp_id",
+                    "localField": "kraWorkflowDetails.emp_id",
                     "foreignField": "_id",
                     "as": "employeedetailName"
                 }
@@ -580,7 +638,7 @@ let functions = {
             {
                 "$lookup": {
                     "from": "employeedetails",
-                    "localField": "updatedBy",
+                    "localField": "kraWorkflowDetails.updatedBy",
                     "foreignField": "_id",
                     "as": "employeedetailsupdated"
                 }
@@ -591,42 +649,80 @@ let functions = {
                 }
             },
             {
-                "$project": {
-                    "_id": "$_id",
-                    "batchName": "$batchdetails.batchName",
-                    "Employee_Name": "$employeedetailName.fullName",
-                    "Employee_Id": "$employeedetailName.userName",
-                    "KRA_intiated_on": "$batchdetails.batchEndDate",
-                    "KRA_initiated_by": "$employeedetails.fullName",
-                    // "Number_of_KRA":"$totalKra",
-                    "KRA_status": "$status",
-                    "Last_updated_on": "$updatedAt",
-                    "Last_updated_by": "$employeedetailsupdated.fullName",
-
+                "$lookup": {
+                    "from": "kradetails",
+                    "localField": "kraWorkflowDetails._id",
+                    "foreignField": "kraWorkflow_id",
+                    "as": "kradetails"
+                }
+            },
+            {
+                "$unwind": {
+                    "path": "$kradetails", "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                $group: {
+                    "_id": "$kraWorkflowDetails._id",
+                    "batchName": { "$first": "$batchdetails.batchName" },
+                    "Employee_Name": { "$first": "$employeedetailName.fullName" },
+                    "Employee_Id": { "$first": "$employeedetailName.userName" },
+                    "Primary_Supervisor": { "$first": "$employees.fullName" },
+                    "Secondary_Supervisor": { "$first": "$employeeSecondary.fullName" },
+                    "KRA_intiated_on": { "$first": "$createdAt" },
+                    "KRA_initiated_by": { "$first": "$employeedetails.fullName" },
+                    "kradetails": { "$first": "$kradetails" },
+                    "KRA_status": { "$first": "$status" },
+                    "Last_updated_on": { "$first": "$updatedAt" },
+                    "Last_updated_by": { "$first": "$employeedetailsupdated.fullName" },
                 }
             }
         ]).exec(function (err, kraEmployeeWorkflowInfoData) {
+            debugger;
             if (err) {
                 return res.status(403).json({
                     title: 'There was an error, please try again later',
                     error: err
                 });
             }
-            // console.log(kraEmployeeWorkflowInfoData);
-            const json2csvParser = new Json2csvParser({ fields });
-            const csv = json2csvParser.parse(kraEmployeeWorkflowInfoData);
-            // console.log('test new demo',csv);
 
-            fs.writeFile('KRA_Report_Supervisor.csv', csv, function (err) { //currently saves file to app's root directory
-                if (err) throw err;
-                console.log('file saved');
-
-                var file = 'KRA_Report_Supervisor.csv';
-                res.download(file, 'KRA_Report_Supervisor.csv');
+            kraEmployeeWorkflowInfoData.forEach(kra => {
+                if (kra.kradetails && kra.kradetails.length > 0) {
+                    kra.kraCount = kra
+                }
             });
+            // const json2csvParser = new Json2csvParser({ fields });
+            // const csv = json2csvParser.parse(kraEmployeeWorkflowInfoData);
+
+            // fs.writeFile('KRA_Report_Supervisor.csv', csv, function (err) { //currently saves file to app's root directory
+            //     if (err) throw err;
+            //     var file = 'KRA_Report_Supervisor.csv';
+            //     res.download(file, 'KRA_Report_Supervisor.csv');
+            // });
         })
+
+
+        // KraWorkFlowInfo.aggregate([
+        //    
+        // ]).exec(function (err, kraEmployeeWorkflowInfoData) {
+        //     debugger;
+        //     if (err) {
+        //         return res.status(403).json({
+        //             title: 'There was an error, please try again later',
+        //             error: err
+        //         });
+        //     }
+        //     const json2csvParser = new Json2csvParser({ fields });
+        //     const csv = json2csvParser.parse(kraEmployeeWorkflowInfoData);
+
+        //     fs.writeFile('KRA_Report_Supervisor.csv', csv, function (err) { //currently saves file to app's root directory
+        //         if (err) throw err;
+        //         var file = 'KRA_Report_Supervisor.csv';
+        //         res.download(file, 'KRA_Report_Supervisor.csv');
+        //     });
+        // })
     },
-    getKRA_Report: (req, res) => {
+    getKraReportHr: (req, res) => {
         const fields = [
             {
                 label: 'Kra WorkflowId',
@@ -794,7 +890,6 @@ let functions = {
                 }
             }
         ]).exec(function (err, kraEmployeeWorkflowInfoData) {
-            debugger;
             if (err) {
                 return res.status(403).json({
                     title: 'There was an error, please try again later',
