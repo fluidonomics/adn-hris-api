@@ -1,7 +1,7 @@
 let express = require('express'),
     LeaveWorkflowHistory = require('../models/leave/leaveWorkflowHistory.model'),
     LeaveDetailsCarryForward = require('../models/master/leaveDetailsCarryForward.model');
-LeaveApply = require('../models/leave/leaveApply.model'),
+    LeaveApply = require('../models/leave/leaveApply.model'),
     LeaveHoliday = require('../models/leave/leaveHoliday.model'),
     LeaveTransactionType = require('../models/leave/leaveTransactioType.model'),
     PersonalInfo = require('../models/employee/employeePersonalDetails.model'),
@@ -30,8 +30,8 @@ config = require('../config/config'),
     SendEmail = require('../class/sendEmail');
 // json2xls = require('json2xls');
 // fs = require('fs');
-xlsx2json = require('xlsx2json');
-XLSX = require('xlsx');
+   xlsx2json = require('xlsx2json');
+   XLSX = require('xlsx');
 require('dotenv').load()
 function getAllLeaveBalance(req, res) {
     let _fiscalYearId = (req.query.fiscalYearId);

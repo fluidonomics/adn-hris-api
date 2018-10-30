@@ -23,6 +23,7 @@ let express           = require('express'),
     
     KraWeightageInfo   = require('../models/kra/kraWeightage.model'),
     KraCategoryInfo   = require('../models/kra/kraCategory.model'),
+    KraWorkFlowInfo   = require('../models/kra/kraWorkFlowDetails.model'),
 
     Employee          = require('../models/employee/employeeDetails.model'),
     SupervisorDetails = require('../models/employee/employeeSupervisorDetails.model'),
@@ -49,6 +50,7 @@ let express           = require('express'),
     async             = require('async')
     awaitEach         = require('await-each');
     sendEmailInfo     =require('../class/sendEmail');
+    Json2csvParser = require('json2csv').Parser;
     Notify     =require('../class/notify');
     require('dotenv').load()
     // const multer = require('multer');
@@ -2012,6 +2014,164 @@ let functions = {
           });
       })
     },
+    
+    getPrePost_Report:(req, res)=>
+    { 
+  
+        const fields = ['Description','Count'];
+        EmployeeInfo.aggregate([
+        {
+            $group: {
+                _id: "_id",
+                count: { $sum: 1 },
+            }
+        }, 
+
+        {"$project":{
+            "count": "$count",
+           // "countdepartment":"$countdepartment",
+           
+        }}
+      ]).exec(function(err, kraEmployeeWorkflowInfoData){
+
+        Department.aggregate([
+        {
+            $group: {
+                _id: "_id",
+                countDepartment: { $sum: 1 },
+            }
+        }, 
+
+        {"$project":{
+            "countDepartment": "$countDepartment",
+        }}
+            ]).exec(function(err, DapartmentsData){
+
+
+                KraWorkFlowInfo.aggregate([
+                    { "$match": {
+                        $or: [
+                            { "status": "Submitted" }, 
+                            { "status": "Initiated" }, 
+                            { "status": "SendBack" },
+                 
+                        ]
+                    }},
+                    {
+                        $group: {
+                            _id: "_id",
+                            countKraWorkFlowInfo: { $sum: 1 },
+                        }
+                    }, 
+
+                    {"$project":{
+                        "countKraWorkFlowInfo": "$countKraWorkFlowInfo",
+                       
+                    }}
+                    ]).exec(function(err, KraWorkFlowInfoData){
+                           
+
+                    LeaveApply.aggregate([
+                    { "$match": {
+                         $or: [
+                            { "status": "Applied" }, 
+                            { "status": "Pending Cancellation" }, 
+                 
+                        ]
+                    }},
+    
+                    {
+                        $group: {
+                            _id: "_id",
+                            countleave: { $sum: 1 },
+                        }
+                    }, 
+
+                    {"$project":{
+                        "countleave": "$countleave",
+                       
+                    }}
+                    ]).exec(function(err, leaveapplieddetailsData){
+
+                     KraWorkFlowInfo.aggregate([
+                    { "$match": {
+                         $or: [
+                            { "status": "Approved" }, 
+                 
+                        ]
+                    }},
+                    {
+                        $group: {
+                            _id: "_id",
+                            countKraWorkFlowClose: { $sum: 1 },
+                        }
+                    }, 
+
+                    {"$project":{
+                        "countKraWorkFlowClose": "$countKraWorkFlowClose",
+                       
+                    }}
+                    ]).exec(function(err, KraWorkFlowCloseData){ 
+                        
+                        let number_of_users=0;
+                        let number_of_department=0;
+                        let number_of_krs_pending=0;
+                        let number_of_krs_close=0;
+                        let number_of_leavedetails=0;
+
+                    if(kraEmployeeWorkflowInfoData)
+                      number_of_users = kraEmployeeWorkflowInfoData[0].count;   
+                    if(DapartmentsData)
+                       number_of_department = DapartmentsData[0].countDepartment;
+                    if(KraWorkFlowInfoData !== undefined && KraWorkFlowInfoData.length)
+                       number_of_krs_pending = KraWorkFlowInfoData[0].countKraWorkFlowInfo;
+                    if(KraWorkFlowCloseData !== undefined && KraWorkFlowCloseData.length)
+                       number_of_krs_close = KraWorkFlowCloseData[0].countKraWorkFlowClose;
+                    if(leaveapplieddetailsData !== undefined && leaveapplieddetailsData.length)
+                       number_of_leavedetails = leaveapplieddetailsData[0].countleave;
+
+                     let dataall = [
+                        {
+                            'Description':'Number of users on the system',
+                            'Count':number_of_users, 
+                        },
+                        {
+                            'Description':'Number of unique departments',
+                            'Count':number_of_department,
+                        },
+                        {
+                            'Description':'Number of KRA`s pending',
+                            'Count':number_of_krs_pending,
+                        },
+                        {
+                            'Description':'Number of KRA`s closed',
+                            'Count':number_of_krs_close,
+                        },
+                        {
+                            'Description':'Number of leaves pending',
+                            'Count': number_of_leavedetails,
+                        }
+                        ]
+                        const json2csvParser = new Json2csvParser({ fields });
+                        const csv = json2csvParser.parse(dataall);
+                         console.log('test new demo',csv);
+              
+                        fs.writeFile('PrePost_Report.csv', csv, function(err) { 
+                            if (err) throw err;
+                           // console.log('file saved');
+
+                            var file =   'PrePost_Report.csv';
+                            res.download(file, 'PrePost_Report.csv'); 
+             
+                        });
+                    });
+
+                    }); 
+
+                    }) 
+            }) 
+        }) 
+    }
 };
 
 module.exports = functions;
