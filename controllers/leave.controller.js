@@ -446,7 +446,7 @@ getLeaveTransaction: (req, res) => {
         });
         return res.status(200).json(response);
     }
-function applyLeave(req, res, done,validateAdvanceLeave) {
+function applyLeave(req, res, done) {
     let fromDateBody = moment(req.body.fromDate + ' UTC').utc().format();
     let toDateBody = moment(req.body.toDate + ' UTC').utc().format();
     let startd = new Date(new Date(req.body.fromDate).getTime() + 86400000),
@@ -541,7 +541,7 @@ function applyLeave(req, res, done,validateAdvanceLeave) {
                 }
                 let d = moment(moment().add(7, 'days').format('YYYY-MM-DD') + ' UTC').utc().format();
 
-                if (((moment(toDateBody).diff(fromDateBody, 'days') + 1) > 3) && (req.body.leave_type == 1) && fromDateBody <= d && validateAdvanceLeave) {
+                if (((moment(toDateBody).diff(fromDateBody, 'days') + 1) > 3) && (req.body.leave_type == 1) && fromDateBody <= d && req.body.emp_id == req.body.apply_by_id) {
                     flag = false;
                     message = "Annual Leave should be applied in seven days advance";
                 }
@@ -629,7 +629,23 @@ function applyLeave(req, res, done,validateAdvanceLeave) {
                                                     toDate: req.body.toDate,
                                                     action_link: linktoSend
                                                 }
+                                                
+                                                
                                                 SendEmail.sendEmailToSuprsvrNotifyAppliedLeave(supervisorOfficeDetail[0]['officeEmail'], data);
+                                                if(req.body.apply_by_id!=req.body.emp_id){
+                                                    let queryForEmployeeOfficeDetails = {
+                                                        _id: req.body.emp_id,
+                                                        isDeleted: false
+                                                    }
+                                                    OfficeDetails.findOne(queryForEmployeeOfficeDetails,function(err,officeDetails){
+                                                    if(err){
+
+                                                    }
+                                                    SendEmail.sendEmailToEmployeeNotifyAppliedLeave(officeDetails['officeEmail'], data);
+                                                })
+                                                   
+                                                    
+                                                }
                                             });                                            
                                         }
                                     })                                
@@ -794,7 +810,7 @@ let functions = {
     postApplyLeave: (req, res) => {
         async.waterfall([
             function (done) {
-                applyLeave(req, res, done,true);
+                applyLeave(req, res, done);
             },
             function (_applyLeaveDetails, done) {
                 return res.status(200).json(_applyLeaveDetails);
@@ -804,7 +820,7 @@ let functions = {
     HrPostApplyLeave: (req, res) => {
         async.waterfall([
             function (done) {
-                applyLeave(req, res, done,false);
+                applyLeave(req, res, done);
             },
             function (_applyLeaveDetails, done) {
                 return res.status(200).json(_applyLeaveDetails);
@@ -2240,6 +2256,30 @@ let functions = {
                                                                 action_link: linktoSend
                                                             }
                                                             SendEmail.sendEmailToSuprsvrNotifyWithdrawnLeave(supervisorEmailDetails.officeEmail, data);
+                                                            if(leaveapplydetails.emp_id!=leaveapplydetails.createdBy){
+                                                                let queryForFindCreatedBy = {
+                                                                    _id: leaveapplydetails.createdBy,
+                                                                    isDeleted: false
+                                                                }
+                                                                OfficeDetails.findOne(queryForFindCreatedBy,function(err,officeDetails){
+                                                                    if(err){
+
+                                                                    }
+                                                                    EmployeeInfo.findOne(queryForFindCreatedBy,function(err,CreatedByInfo){
+                                                                        let dataCreatedBy = {
+                                                                            fullName: CreatedByInfo.fullName,
+                                                                            empName: empDetails.fullName,
+                                                                            leaveType: leaveType.type,
+                                                                            appliedDate: leaveapplydetails.createdAt.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
+                                                                            fromDate: leaveapplydetails.fromDate.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
+                                                                            toDate: leaveapplydetails.toDate.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
+                                                                            action_link: linktoSend
+                                                                        }
+                                                                        SendEmail.sendEmailToSuprsvrNotifyWithdrawnLeave(officeDetails.officeEmail, dataCreatedBy);
+                                                                    });
+                                                                    
+                                                                })
+                                                            }
                                                         }
                                                         else {
                                                             let data = {
@@ -2252,6 +2292,29 @@ let functions = {
                                                                 action_link: linktoSend
                                                             }
                                                             SendEmail.sendEmailToSuprsvrNotifyCancelLeave(supervisorEmailDetails.officeEmail, data);
+                                                            if(leaveapplydetails.emp_id!=leaveapplydetails.createdBy){
+                                                                let queryForFindCreatedBy = {
+                                                                    _id: leaveapplydetails.createdBy,
+                                                                    isDeleted: false
+                                                                }
+                                                                OfficeDetails.findOne(queryForFindCreatedBy,function(err,officeDetails){
+                                                                    if(err){
+
+                                                                    }
+                                                                    EmployeeInfo.findOne(queryForFindCreatedBy,function(err,CreatedByInfo){
+                                                                        let dataCreatedBy = {
+                                                                            fullName: CreatedByInfo.fullName,
+                                                                            empName: empDetails.fullName,
+                                                                            leaveType: leaveType.type,
+                                                                            appliedDate: leaveapplydetails.createdAt.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
+                                                                            fromDate: leaveapplydetails.fromDate.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
+                                                                            toDate: leaveapplydetails.toDate.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
+                                                                            action_link: linktoSend
+                                                                        }
+                                                                        SendEmail.sendEmailToSuprsvrNotifyCancelLeave(officeDetails.officeEmail, dataCreatedBy);
+                                                                    });
+                                                                })
+                                                            }
                                                         }
 
                                                     });
@@ -2584,6 +2647,31 @@ let functions = {
                                 }
                                 if(req.body.status == 'Applied' && req.body.approved) {
                                     SendEmail.sendEmailToEmployeeForLeaveRequestApproved(employeeOfficeDetails[0]['officeEmail'], data);
+                                    if(_leaveDetails.emp_id != _leaveDetails.createdBy){
+                                       let queryForCreatedBy = {
+                                             _id: _leaveDetails.createdBy,
+                                            isDeleted: false
+                                        }
+                                        OfficeDetails.findOne(queryForCreatedBy,function(err,createdByOfficeDetails){
+                                            if(err){
+
+                                            }
+                                            EmployeeInfo.findOne(queryForCreatedBy,function(err,createdByDetails){
+                                                    if(err){
+                                                        
+                                                    }
+                                                    let CrteatedBydata = {
+                                                        fullName: createdByDetails.fullName,
+                                                        leaveType: leaveType.type,
+                                                        fromDate: _leaveDetails.fromDate.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
+                                                        toDate: _leaveDetails.toDate.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
+                                                        action_link: linktoSend
+                                                    }
+                                                    SendEmail.sendEmailToEmployeeForLeaveRequestApproved(createdByOfficeDetails.officeEmail, CrteatedBydata);
+
+                                            });
+                                        });
+                                    }
                                 } else if(req.body.status == 'Applied' && req.body.rejected) {
                                     SendEmail.sendEmailToEmployeeForLeaveRequestRejected(employeeOfficeDetails[0]['officeEmail'], data)
                                 } else if(req.body.status == 'Pending Cancellation' && !req.body.cancelled && (req.body.cancelled != undefined)) {
