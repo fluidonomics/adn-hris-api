@@ -2065,9 +2065,7 @@ function updateSupervisortransfer(req, res, done) {
         SupervisorInfo.findOne(query, (err, existingSupervisorInfo) => {
             checkError(err);
 
-            if (existingSupervisorInfo.primarySupervisorEmp_id != req.body.primarySupervisorEmp_id
-                && (existingSupervisorInfo.secondarySupervisorEmp_id == null || existingSupervisorInfo.secondarySupervisorEmp_id != req.body.secondarySupervisorEmp_id)
-                && req.body.primarySupervisorEmp_id != req.body.secondarySupervisorEmp_id) {
+            if (req.body.primarySupervisorEmp_id != null && req.body.primarySupervisorEmp_id != req.body.secondarySupervisorEmp_id) {
                 queryUpdate = {
                     $set: {
                         "primarySupervisorEmp_id": req.body.primarySupervisorEmp_id,
