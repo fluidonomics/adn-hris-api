@@ -2708,6 +2708,30 @@ let functions = {
                 }
             })
         }
+    },
+    getEmployeeProbationDetails: (req, res) => {
+        let query = {
+            'isDeleted': false,
+            'emp_id': parseInt(req.query.id)
+        };
+        OfficeDetails.find(query, function (err, OfficeDetailsData) {
+            if (OfficeDetailsData) {
+                var employementStatusId = OfficeDetailsData[0].employmentStatus_id;
+                if (employementStatusId == 2 || employementStatusId == 3)
+                    return res.status(200).json({ "result": true });
+                else
+                    return res.status(200).json({ "result": false });
+            }
+            return res.status(403).json({
+                title: 'Error',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: result
+                }
+            });
+        })
     }
 
 }
