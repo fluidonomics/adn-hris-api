@@ -266,8 +266,12 @@ let express  = require('express'),
 
         kraRoutes.delete('/deleteKraInfo',ensureAuthenticated, kra.functions.deleteKraInfo);
 
-        // kraRoutes.get('/getKraInfo',ensureAuthenticated, kra.getKraInfo);
+       // new api kra report by rajesh
 
+        kraRoutes.get('/getKRA_Report_Supervisor', kra.functions.getKRA_Report_Supervisor);
+        
+        // kraRoutes.get('/getKraInfo',ensureAuthenticated, kra.getKraInfo);
+        kraRoutes.get('/getKRA_Report', kra.functions.getKRA_Report);
         // kraRoutes.get('/getKraDetailsData',ensureAuthenticated, kra.getKraDetailsData);
 
         kraRoutes.post('/addKraCategoryInfo',ensureAuthenticated, kra.functions.addKraCategoryInfo);
@@ -304,6 +308,7 @@ let express  = require('express'),
         leaveRoutes.post('/uploadSickLeaveDocument', leave.uploadSickLeaveDocument);
 //        leaveRoutes.get('/leaveTransactionDetails', leave.getLeaveTransaction);
         leaveRoutes.get('/getLeaveTypes', leave.getLeaveTypes);
+
        leaveRoutes.post('/cancelLeave', leave.postCancelLeave);
 //        leaveRoutes.get('/getCancelEmployeeLeaveDetails', leave.getCancelEmployeeLeaveDetails);
 //        leaveRoutes.get('/getLeaveWorkflowDetails', leave.getLeaveWorkflowDetails);
@@ -508,6 +513,7 @@ let express  = require('express'),
            
           commonRoutes.get('/getFinincialYear', ensureAuthenticated,  common.getFinincialYear);
           // commonRoutes.get('/sendNotification',ensureAuthenticated, common.sendNotification);
+          commonRoutes.get('/getPrePost_Report', common.getPrePost_Report);
         
       //= ========================
 
