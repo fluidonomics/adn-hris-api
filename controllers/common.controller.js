@@ -1314,7 +1314,7 @@ let functions = {
                 PersonalDetails.find({personalEmail:req.query.email,emp_id:{$eq:req.query.emp_id}}).count().exec(),
                 OfficeDetails.find({officeEmail:req.query.email,emp_id:{$eq:req.query.emp_id}}).count().exec() 
               ]).then (function(equalChkCounts){
-                    if(equalChkCounts[0]==1 && equalChkCounts[1]==1){
+                    if(equalChkCounts[0]==1 || equalChkCounts[1]==1){
                         return res.status(200).json(true);
                     }else{
                         return res.status(200).json(false);
