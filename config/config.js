@@ -50,6 +50,10 @@ module.exports = {
       from:'"Team HRIS" <hris@adnsl.net>',
       subject:'Leave cancel application of '
     },
+    'emailToHRForCancelLeave': {
+      from:'"Team HRIS" <hris@adnsl.net>',
+      subject:'Leave cancelled of '
+    },
     'emailToEmployeeForLeaveRequestApproved': {
       from:'"Team HRIS" <hris@adnsl.net>',
       subject:'Application Approved'

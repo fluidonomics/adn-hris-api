@@ -302,7 +302,7 @@
                                   class="fullCenter">
                                   <!--[if !mso]><!-->
                                   <span style="font-family: 'proxima_novathin', Helvetica; font-weight: normal;">
-                                    <!--<![endif]-->Leave Request of {{fullName}}({{empId}}) is Rejected
+                                    <!--<![endif]-->Leave cancelled of
                                     <!--[if !mso]><!-->
                                   </span>
                                   <!--<![endif]-->
@@ -322,6 +322,23 @@
                         <tr>
                           <td width="402" valign="middle" align="center">
 
+                            <table width="350" border="0" cellpadding="0" cellspacing="0" align="center" style="text-align: center; border-collapse:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt;"
+                              class="fullCenter">
+                              <tr>
+                                <td width="100%" height="15"></td>
+                              </tr>
+                              <tr>
+                                <td valign="middle" width="100%" style="text-align: center; font-family: Helvetica, Arial, sans-serif; font-size: 31px; color: rgb(255, 255, 255); line-height: 38px; font-weight: bold; text-transform: uppercase;"
+                                  class="fullCenter">
+                                  <!--[if !mso]><!-->
+                                  <span style="font-family: 'proxima_novablack', Helvetica; font-weight: normal;">
+                                    <!--<![endif]-->{{empName}}({{empId}})
+                                    <!--[if !mso]><!-->
+                                  </span>
+                                  <!--<![endif]-->
+                                </td>
+                              </tr>
+                            </table>
 
                           </td>
                         </tr>
@@ -381,7 +398,7 @@
                                 class="fullCenter">
                                 <!--[if !mso]><!-->
                                 <span style="font-family: 'proxima_novathin', Helvetica; font-weight: normal;">
-                                  <!--<![endif]-->Hi, {{appliedBy}}!
+                                  <!--<![endif]-->Hi, {{fullName}}!
                                   <!--[if !mso]><!-->
                                 </span>
                                 <!--<![endif]-->
@@ -417,10 +434,10 @@
                                 class="fullCenter">
                                 <!--[if !mso]><!-->
                                 <span style="font-family: 'proxima_nova_rgregular', Helvetica; font-weight: normal;">
-                                  <!--<![endif]-->Regret to inform that
-                                  <strong>{{leaveType}}</strong> application of <strong>{{fullName}}({{empId}})</strong> form
+                                  <!--<![endif]-->It is to inform that leave cancellations request of <strong>{{empName}}</strong>                                 
+                                  From
                                   <strong>{{fromDate}}</strong> to
-                                  <strong>{{toDate}}</strong> has been rejected by Supervisor {{supervisorName}}.
+                                  <strong>{{toDate}}</strong> has been Rejected by supervisor.
                                   <!--[if !mso]><!-->
                                 </span>
                                 <!--<![endif]-->
@@ -432,7 +449,7 @@
                                 <!--[if !mso]><!-->
                                 
                                 <span style="font-family: 'proxima_nova_rgregular', Helvetica; font-weight: normal;">
-                                  <!--<![endif]-->Link:- {{link}}
+                                  <!--<![endif]-->Link of Approval:- {{link}}
                                   <!--[if !mso]><!-->
                                 </span> 
                                 <!--<![endif]-->

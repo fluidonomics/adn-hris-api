@@ -146,6 +146,7 @@ let functions =
             context: {
                 fullName: data.fullName,
                 empName: data.empName,
+                appliedBy: data.empName,
                 leaveType: data.leaveType,
                 appliedDate: moment(data.appliedDate).format('L'),
                 fromDate: moment(data.fromDate).format('L'),
@@ -179,7 +180,7 @@ let functions =
         let mailOptions = {
             from: config.email.emailToEmployeeForLeaveRequestApproved.from, // sender address
             to: toEmail,
-            subject: data.leaveType + " " + config.email.emailToEmployeeForLeaveRequestApproved.subject + " " + data.formDate + " " + data.toDate, // Subject line
+            subject: data.leaveType + " " + config.email.emailToEmployeeForLeaveRequestApproved.subject + " " + data.fromDate + " " + data.toDate, // Subject line
             template: 'email-notify-to-emp-for-applied-leave-approved',
             context: {
                 fullName: data.fullName,
@@ -216,7 +217,7 @@ let functions =
         let mailOptions = {
             from: config.email.emailTohrForAppliedLeaveRejected.from, // sender address
             to: toEmail,
-            subject:  config.email.emailTohrForAppliedLeaveRejected.subject + data.fullName + " is Rejected",
+            subject:  config.email.emailTohrForAppliedLeaveRejected.subject + data.fullName +"("+data.empId+") is Rejected",
             template: 'email-notify-to-hr-for-applied-leave-rejected',
             context: {
                 fullName: data.fullName,
@@ -320,7 +321,48 @@ let functions =
         };
         transporter.sendMail(mailOptions);
 
+    },
+    sendEmailToHRNotifyCancelLeave: (toEmail, data) => {
+        let mailOptions = {
+            from: config.email.forget.from, // sender address
+            to: toEmail,
+            subject: config.email.emailToHRForCancelLeave.subject + data.empName +"("+data.empId+")", // Subject line
+            template: 'email-notify-to-hr-for-leave-cancellation',
+            context: {
+                fullName: data.fullName,
+                empName: data.empName,
+                empId:data.empId,
+                leaveType: data.leaveType,
+                appliedDate: moment(data.appliedDate).format('L'),
+                fromDate: moment(data.fromDate).format('L'),
+                toDate: moment(data.toDate).format('L'),
+                link: data.action_link
+            }
+        };
+        transporter.sendMail(mailOptions);
+
+    },
+    sendEmailToHRNotifyCancelLeaveRejected: (toEmail, data) => {
+        let mailOptions = {
+            from: config.email.forget.from, // sender address
+            to: toEmail,
+            subject: config.email.emailToHRForCancelLeave.subject + data.empName +"("+data.empId+")", // Subject line
+            template: 'email-notify-to-hr-for-leave-cancellation-rejected',
+            context: {
+                fullName: data.fullName,
+                empName: data.empName,
+                empId:data.empId,
+                leaveType: data.leaveType,
+                appliedDate: moment(data.appliedDate).format('L'),
+                fromDate: moment(data.fromDate).format('L'),
+                toDate: moment(data.toDate).format('L'),
+                link: data.action_link
+            }
+        };
+        transporter.sendMail(mailOptions);
+
     }
+
 
 }
 
