@@ -1791,6 +1791,7 @@ function getOfficeInfoDetails(req, res) {
                         emp_id: results[0].employees[0]._id,
                         fullName: results[0].employees[0].fullName,
                         userName: results[0].employees[0].userName,
+                        managementTypeId: results[0].managementType_id,
                         idCardNumber: results[0].idCardNumber,
                         officeEmail: results[0].officeEmail,
                         officePhone: results[0].officePhone,
