@@ -160,11 +160,11 @@ let functions =
         let mailOptions = {
             from: config.email.emailToEmployeeForLeaveRequestRejected.from, // sender address
             to: toEmail,
-            subject: config.email.emailToSupvsrForAppliedLeave.subject + data.empName, // Subject line
-            template: 'email-notify-to-supvsr-for-applied-leave',
+            subject:  data. leaveType + config.email.emailToEmployeeForAppliedLeaveOnBehalf.subject + data.appliedBy, // Subject line
+            template: 'email-notify-leave-applied-on-behalf',
             context: {
-                fullName: data.fullName,
-                empName: data.empName,
+                fullName: data.fullName,               
+                appliedBy: data.appliedBy,
                 leaveType: data.leaveType,
                 appliedDate: moment(data.appliedDate).format('L'),
                 fromDate: moment(data.fromDate).format('L'),
@@ -183,6 +183,46 @@ let functions =
             template: 'email-notify-to-emp-for-applied-leave-approved',
             context: {
                 fullName: data.fullName,
+                leaveType: data.leaveType,
+                appliedDate: moment(data.appliedDate).format('L'),
+                fromDate: moment(data.fromDate).format('L'),
+                toDate: moment(data.toDate).format('L'),
+                link: data.action_link
+            }
+        };
+        transporter.sendMail(mailOptions);
+    },
+    sendEmailToAppliedByForLeaveRequestApproved: (toEmail, data) => {
+        let mailOptions = {
+            from: config.email.emailTohrForAppliedLeaveApproved.from, // sender address
+            to: toEmail,
+            subject: config.email.emailTohrForAppliedLeaveApproved.subject + data.fullName +"("+data.empId+") has been approved",
+            template: 'email-notify-to-hr-for-applied-leave-approved',
+            context: {
+                fullName: data.fullName,
+                empId:data.empId,
+                appliedBy: data.appliedBy,
+                leaveType: data.leaveType,
+                appliedDate: moment(data.appliedDate).format('L'),
+                fromDate: moment(data.fromDate).format('L'),
+                toDate: moment(data.toDate).format('L'),
+                link: data.action_link
+            }
+        };
+        transporter.sendMail(mailOptions);
+    },
+    sendEmailToAppliedByForLeaveRequestRejected: (toEmail, data) => {        
+
+        let mailOptions = {
+            from: config.email.emailTohrForAppliedLeaveRejected.from, // sender address
+            to: toEmail,
+            subject:  config.email.emailTohrForAppliedLeaveRejected.subject + data.fullName + " is Rejected",
+            template: 'email-notify-to-hr-for-applied-leave-rejected',
+            context: {
+                fullName: data.fullName,
+                empId: data.empId,
+                appliedBy: data.appliedBy,
+                supervisorName: data.supervisorName,
                 leaveType: data.leaveType,
                 appliedDate: moment(data.appliedDate).format('L'),
                 fromDate: moment(data.fromDate).format('L'),
