@@ -649,7 +649,7 @@ function applyLeave(req, res, done) {
                                                             action_link: linktoSend
                                                         }                                                        
                                                         SendEmail.sendEmailToSuprsvrNotifyAppliedLeave(supervisorOfficeDetail[0]['officeEmail'], data);                                                        
-                                                        let data = {
+                                                        data = {
                                                             fullName: employeee.fullName,                                                            
                                                             appliedBy: appliedByDetails.fullName,
                                                             leaveType: leaveType.type,
