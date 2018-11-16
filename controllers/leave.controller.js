@@ -2347,7 +2347,7 @@ let functions = {
                                                                             toDate: leaveapplydetails.toDate.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
                                                                             action_link: linktoSend
                                                                         }
-                                                                        SendEmail.sendEmailToHRNotifyCancelLeave(officeDetails.officeEmail, dataCreatedBy);
+                                                                       // SendEmail.sendEmailToHRNotifyCancelLeave(officeDetails.officeEmail, dataCreatedBy);
                                                                     });
                                                                 })
                                                             }
@@ -2681,8 +2681,7 @@ let functions = {
                                     toDate: _leaveDetails.toDate.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
                                     action_link: linktoSend
                                 }
-                                if(req.body.status == 'Applied' && req.body.approved) {
-                                    SendEmail.sendEmailToEmployeeForLeaveRequestApproved(employeeOfficeDetails[0]['officeEmail'], data);
+                                if(req.body.status == 'Applied' && req.body.approved) {                                    
                                     if(_leaveDetails.emp_id != _leaveDetails.createdBy){
                                        let queryForCreatedBy = {
                                              _id: _leaveDetails.createdBy,
@@ -2705,14 +2704,19 @@ let functions = {
                                                         toDate: _leaveDetails.toDate.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
                                                         action_link: linktoSend
                                                     }
+                                                    data.appliedBy=createdByDetails.fullName;
+                                                    SendEmail.sendEmailToEmployeeForLeaveRequestApprovedOnBehalf(employeeOfficeDetails[0]['officeEmail'], data);
                                                     SendEmail.sendEmailToAppliedByForLeaveRequestApproved(createdByOfficeDetails.officeEmail, CrteatedBydata);
 
                                             });
                                         });
                                     }
+                                    else{
+                                        SendEmail.sendEmailToEmployeeForLeaveRequestApproved(employeeOfficeDetails[0]['officeEmail'], data);
+                                    }
                                 } else if(req.body.status == 'Applied' && req.body.rejected) {
                                     //rohan
-                                    SendEmail.sendEmailToEmployeeForLeaveRequestRejected(employeeOfficeDetails[0]['officeEmail'], data)
+                                    
                                     if(_leaveDetails.emp_id != _leaveDetails.createdBy){
                                         let queryForCreatedBy = {
                                               _id: _leaveDetails.createdBy,
@@ -2743,12 +2747,17 @@ let functions = {
                                                             toDate: _leaveDetails.toDate.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
                                                             action_link: linktoSend
                                                         }
+                                                        data.appliedBy=createdByDetails.fullName;
+                                                        SendEmail.sendEmailToEmployeeForLeaveRequestRejectedOnBehalf(employeeOfficeDetails[0]['officeEmail'], data);
                                                         SendEmail.sendEmailToAppliedByForLeaveRequestRejected(createdByOfficeDetails.officeEmail, CrteatedBydata);
                                                      })
                                                     
  
                                              });
                                          });
+                                     }
+                                     else{
+                                        SendEmail.sendEmailToEmployeeForLeaveRequestRejected(employeeOfficeDetails[0]['officeEmail'], data)
                                      }
                                 } else if(req.body.status == 'Pending Cancellation' && !req.body.cancelled && (req.body.cancelled != undefined)) {
                                     SendEmail.sendEmailToEmployeeForLeaveCancellationRejected(employeeOfficeDetails[0]['officeEmail'], data);
@@ -2767,9 +2776,9 @@ let functions = {
                                                     empName: employeeDetail.fullName,
                                                     empId: employeeDetail.userName,
                                                     leaveType: leaveType.type,
-                                                    appliedDate: leaveapplydetails.createdAt.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
-                                                    fromDate: leaveapplydetails.fromDate.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
-                                                    toDate: leaveapplydetails.toDate.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
+                                                    appliedDate: _leaveDetails.createdAt.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
+                                                    fromDate: _leaveDetails.fromDate.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
+                                                    toDate: _leaveDetails.toDate.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
                                                     action_link: linktoSend
                                                 }
                                                 SendEmail.sendEmailToHRNotifyCancelLeaveRejected(officeDetails.officeEmail, dataCreatedBy);
@@ -2795,9 +2804,9 @@ let functions = {
                                                     empName: employeeDetail.fullName,
                                                     empId: employeeDetail.userName,
                                                     leaveType: leaveType.type,
-                                                    appliedDate: leaveapplydetails.createdAt.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
-                                                    fromDate: leaveapplydetails.fromDate.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
-                                                    toDate: leaveapplydetails.toDate.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
+                                                    appliedDate: _leaveDetails.createdAt.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
+                                                    fromDate: _leaveDetails.fromDate.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
+                                                    toDate: _leaveDetails.toDate.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
                                                     action_link: linktoSend
                                                 }
                                                 SendEmail.sendEmailToHRNotifyCancelLeave(officeDetails.officeEmail, dataCreatedBy);
