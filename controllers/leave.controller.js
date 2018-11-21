@@ -18,7 +18,7 @@ LeaveApply = require('../models/leave/leaveApply.model'),
     FinancialYear = require('../models/master/financialYear.model'),
     SupervisorInfo = require('../models/employee/employeeSupervisorDetails.model'),
     uploadController = require('./upload.controller');
-    uploadClass = require('../class/upload');
+uploadClass = require('../class/upload');
 moment = require('moment');
 config = require('../config/config'),
     crypto = require('crypto'),
@@ -517,7 +517,7 @@ function applyLeave(req, res, done) {
             });
 
         } else {
-            
+
             LeaveApply.find(query, function (err, details) {
                 for (let i = 0; i < details.length; i++) {
                     let fromDate = moment(details[i].fromDate + ' UTC').utc().format(),
@@ -582,40 +582,40 @@ function applyLeave(req, res, done) {
                             })
                         }
 
-                        let queryForFindEmployee  = {
+                        let queryForFindEmployee = {
                             _id: req.body.emp_id,
                             isDeleted: false
                         }
-                        EmployeeInfo.findOne(queryForFindEmployee, function(err, employeee) {
-                            if(err) {
+                        EmployeeInfo.findOne(queryForFindEmployee, function (err, employeee) {
+                            if (err) {
                                 // Do nothing
                             }
                             let queryForFindSupervisor = {
                                 _id: req.body.supervisor_id,
                                 isDeleted: false
                             }
-                            EmployeeInfo.findOne(queryForFindSupervisor, function(err, supervisor) {
-                                if(err) {
+                            EmployeeInfo.findOne(queryForFindSupervisor, function (err, supervisor) {
+                                if (err) {
                                     // Nothing
                                 }
-                                if(supervisor != null) {
+                                if (supervisor != null) {
                                     let queryForFindSupervisorOfficeDetail = {
                                         emp_id: supervisor._id,
                                         isDeleted: false
                                     }
-                                    OfficeDetails.find(queryForFindSupervisorOfficeDetail, function(err, supervisorOfficeDetail){
-                                        if(err) {
+                                    OfficeDetails.find(queryForFindSupervisorOfficeDetail, function (err, supervisorOfficeDetail) {
+                                        if (err) {
                                             // Nothing
                                         }
-                                        if(supervisorOfficeDetail.length > 0 && supervisorOfficeDetail[0]['officeEmail'] != null) {
+                                        if (supervisorOfficeDetail.length > 0 && supervisorOfficeDetail[0]['officeEmail'] != null) {
 
                                             let queryForFindLeaveType = {
                                                 _id: req.body.leave_type,
                                                 isDeleted: false
                                             }
 
-                                            LeaveTypes.findOne(queryForFindLeaveType, function(err, leaveType) {
-                                                if(err) {
+                                            LeaveTypes.findOne(queryForFindLeaveType, function (err, leaveType) {
+                                                if (err) {
                                                     // Do nothing
                                                 }
                                                 let appliedLeaveId = leavesInfoData._id;
@@ -630,9 +630,9 @@ function applyLeave(req, res, done) {
                                                     action_link: linktoSend
                                                 }
                                                 SendEmail.sendEmailToSuprsvrNotifyAppliedLeave(supervisorOfficeDetail[0]['officeEmail'], data);
-                                            });                                            
+                                            });
                                         }
-                                    })                                
+                                    })
                                 }
                             });
                         });
@@ -808,7 +808,7 @@ let functions = {
             isDeleted: false
         }
         LeaveApply.findOne(query, function (err, leaveApplyResult) {
-            if(err) {
+            if (err) {
                 return res.status(403).json({
                     title: "ERROR",
                     error: {
@@ -816,7 +816,7 @@ let functions = {
                     },
                 });
             }
-            if(leaveApplyResult != null && leaveApplyResult.attachment != null) {
+            if (leaveApplyResult != null && leaveApplyResult.attachment != null) {
                 uploadController.downloadLeaveAttachment(leaveApplyResult.attachment, res);
             } else {
                 return res.status(200).json({
@@ -1373,13 +1373,12 @@ let functions = {
         let status = req.query.status;
         let projectQuery = {
             $project: {
-                isActive: 1, primarySupervisorEmp_id: 1, emp_id: 1, leaveTypeName: {
-                    _id: 1, type: 1
-                }, leavedetails: { days: 1, leave_type: 1, fromDate: 1, status: 1 }, monthStart: { $month: '$leavedetails.fromDate' }, yearStart: { $year: '$leavedetails.fromDate' }
+                days: 1, leave_type: 1, fromDate: 1, status: 1, emp_id: 1,
+                leaveTypeName: { _id: 1, type: 1 }
             }
         };
         let queryObj = { '$match': {} };
-        queryObj['$match']['$and'] = [{ "isActive": true }]
+        queryObj['$match']['$and'] = [{ 'applyTo': parseInt(primaryEmpId) }];
 
         let filterQuery;
         if (month) {
@@ -1389,38 +1388,22 @@ let functions = {
             queryObj['$match']["$and"].push({ yearStart: parseInt(year) })
         }
         if (status) {
-            queryObj['$match']["$and"].push({ 'leavedetails.status': status })
+            queryObj['$match']["$and"].push({ 'status': status })
         }
         if (req.query.fromDate && req.query.toDate) {
             queryObj['$match']["$and"].push({
                 $and:
-                    [{ "leavedetails.fromDate": { $gte: new Date(req.query.fromDate) } },
-                    { "leavedetails.fromDate": { $lte: new Date(req.query.toDate) } }]
+                    [{ "fromDate": { $gte: new Date(req.query.fromDate) } },
+                    { "fromDate": { $lte: new Date(req.query.toDate) } }]
             })
         }
-        SupervisorInfo.aggregate([
-            { "$match": { "isActive": true, "primarySupervisorEmp_id": parseInt(primaryEmpId) } },
 
-            {
-                "$lookup": {
-                    "from": "leaveapplieddetails",
-                    "localField": "emp_id",
-                    "foreignField": "emp_id",
-                    "as": "leavedetails"
-                }
-            },
-            // filterQuery,
-
-            {
-                "$unwind": {
-                    path: "$leavedetails",
-                    "preserveNullAndEmptyArrays": true
-                }
-            },
+        LeaveApply.aggregate([
+            queryObj,
             {
                 "$lookup": {
                     "from": "leaveTypes",
-                    "localField": "leavedetails.leave_type",
+                    "localField": "leave_type",
                     "foreignField": "_id",
                     "as": "leaveTypeName"
                 }
@@ -1432,31 +1415,13 @@ let functions = {
                 }
             },
             projectQuery,
-            // {
-            //     $group: {
-            //         _id:"$leaveTypeName._id",
-            //         leaveTypeName:{$first:"$leaveTypeName.type"},
-            //         yearStart:{$first:"$yearStart"},
-            //         monthStart:{$first:"$monthStart"},
-            //         isActive:{$first:"$isActive"},
-            //         status: { $first: "$leavedetails.status" },
-            //         totalAppliedLeaves: { $sum: "$leavedetails.days" },
-
-            //     }
-            // },
-            queryObj
-            , {
+            {
                 $group: {
                     _id: "$leaveTypeName._id",
                     leaveTypeName: { $first: "$leaveTypeName.type" },
-                    yearStart: { $first: "$yearStart" },
-                    monthStart: { $first: "$monthStart" },
-                    isActive: { $first: "$isActive" },
-                    status: { $first: "$leavedetails.status" },
-                    totalAppliedLeaves: { $sum: "$leavedetails.days" },
+                    totalAppliedLeaves: { $sum: "$days" }
                 }
             }
-
         ]).exec(function (err, results) {
             if (err) {
                 return res.status(403).json({
@@ -1478,11 +1443,9 @@ let functions = {
                     response.push({
                         _id: index + 1,
                         leaveTypeName: x,
-                        status: null,
                         totalAppliedLeaves: 0
                     })
                 }
-
             })
 
             return res.status(200).json({ "data": response });
@@ -2200,7 +2163,7 @@ let functions = {
                                                         _id: leaveapplydetails.leave_type,
                                                         isDeleted: false
                                                     }
-                                                    LeaveTypes.findOne(queryForFindLeaveType, function(err, leaveType) {
+                                                    LeaveTypes.findOne(queryForFindLeaveType, function (err, leaveType) {
                                                         let appliedLeaveId = req.body._id;
                                                         let linktoSend = req.body.link + '/' + appliedLeaveId;
                                                         if ((new Date(leaveapplydetails.fromDate) > new Date()) && leaveapplydetails.status == "Applied") {
@@ -2229,7 +2192,7 @@ let functions = {
                                                         }
 
                                                     });
-                                                    
+
                                                     return res.status(200).json(_leaveDetails);
                                                 }
                                             })
@@ -2537,14 +2500,14 @@ let functions = {
                         if (err) {
                             // Do nothing
                         }
-                        if(employeeOfficeDetails.length > 0 && employeeOfficeDetails[0]['officeEmail'] != null) {                        
-                            
+                        if (employeeOfficeDetails.length > 0 && employeeOfficeDetails[0]['officeEmail'] != null) {
+
                             let queryForFindLeaveType = {
                                 _id: _leaveDetails.leave_type,
                                 isDeleted: false
                             }
-                            LeaveTypes.findOne(queryForFindLeaveType, function(err, leaveType) {
-                                if(err) {
+                            LeaveTypes.findOne(queryForFindLeaveType, function (err, leaveType) {
+                                if (err) {
                                     // Do nothing
                                 }
                                 let appliedLeaveId = req.body.id;
@@ -2556,18 +2519,18 @@ let functions = {
                                     toDate: _leaveDetails.toDate.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
                                     action_link: linktoSend
                                 }
-                                if(req.body.status == 'Applied' && req.body.approved) {
+                                if (req.body.status == 'Applied' && req.body.approved) {
                                     SendEmail.sendEmailToEmployeeForLeaveRequestApproved(employeeOfficeDetails[0]['officeEmail'], data);
-                                } else if(req.body.status == 'Applied' && req.body.rejected) {
+                                } else if (req.body.status == 'Applied' && req.body.rejected) {
                                     SendEmail.sendEmailToEmployeeForLeaveRequestRejected(employeeOfficeDetails[0]['officeEmail'], data)
-                                } else if(req.body.status == 'Pending Cancellation' && !req.body.cancelled && (req.body.cancelled != undefined)) {
+                                } else if (req.body.status == 'Pending Cancellation' && !req.body.cancelled && (req.body.cancelled != undefined)) {
                                     SendEmail.sendEmailToEmployeeForLeaveCancellationRejected(employeeOfficeDetails[0]['officeEmail'], data);
-                                } else if(req.body.status == 'Pending Cancellation' && req.body.cancelled) {
+                                } else if (req.body.status == 'Pending Cancellation' && req.body.cancelled) {
                                     SendEmail.sendEmailToEmployeeForLeaveCancellationApprove(employeeOfficeDetails[0]['officeEmail'], data);
                                 }
                             })
-                        }                      
-                    })                                        
+                        }
+                    })
                 }
             });
 
