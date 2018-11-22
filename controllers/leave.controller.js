@@ -1453,32 +1453,13 @@ let functions = {
     },
     getSupervisorTeamMember: (req, res) => {
         let primaryEmpId = req.query.empId;
-        let month = req.query.month;
-        let year = req.query.year;
-        let status = req.query.status;
 
-        let queryObj = { '$match': {} };
         let matchQuery = { '$match': { "isActive": true } };
-        queryObj['$match']['$and'] = [{ "isActive": true }]
-        if (month) {
-            queryObj['$match']['$and'].push({ month: parseInt(month) })
-        }
-        if (year) {
-            queryObj['$match']['$and'].push({ year: parseInt(year) })
-        }
-        // if (status){
-        //     queryObj['$match']['$and'].push({status:status})
-        // }
+
         if (primaryEmpId) {
             matchQuery = { '$match': { "isActive": true, "primarySupervisorEmp_id": parseInt(primaryEmpId) } };
         }
-        if (req.query.fromDate && req.query.toDate) {
-            queryObj['$match']["$and"].push({
-                $and:
-                    [{ "leavedetails.fromDate": { $gte: new Date(req.query.fromDate) } },
-                    { "leavedetails.fromDate": { $lte: new Date(req.query.toDate) } }]
-            })
-        }
+
         SupervisorInfo.aggregate([
             matchQuery,
             {
@@ -1496,23 +1477,85 @@ let functions = {
                 }
             },
             {
+                "$project": {
+                    _id: 1,
+                    isActive: 1,
+                    employeeDetails: {
+                        "_id": 1,
+                        "userName": 1,
+                        "grade_id": 1,
+                        "company_id": 1,
+                        "designation_id": 1,
+                        "employmentType_id": 1,
+                        "fullName": 1,
+                        "isAccountActive": 1,
+                        "isDeleted": 1,
+                        "profileImage": 1
+                    }
+                }
+            }
+        ]).exec(function (err, results) {
+            if (err) {
+                return res.status(403).json({
+                    title: 'There is a problem',
+                    error: {
+                        message: err
+                    },
+                    result: {
+                        message: results
+                    }
+                });
+            }
+            return res.status(200).json({ "data": results });
+        });
+    },
+    getTeamOnLeave: (req, res) => {
+        let primaryEmpId = req.query.empId;
+        let month = req.query.month;
+        let year = req.query.year;
+        let status = req.query.status;
+
+        let queryObj = { '$match': {} };
+        queryObj['$match']['$and'] = [];
+        if (month) {
+            queryObj['$match']['$and'].push({ month: parseInt(month) })
+        }
+        if (year) {
+            queryObj['$match']['$and'].push({ year: parseInt(year) })
+        }
+        if (status) {
+            queryObj['$match']['$and'].push({ status: status })
+        }
+        if (primaryEmpId) {
+            queryObj['$match']['$and'].push({ applyTo: parseInt(primaryEmpId) })
+        }
+        if (req.query.fromDate && req.query.toDate) {
+            queryObj['$match']["$and"].push({
+                $and:
+                    [{ "fromDate": { $gte: new Date(req.query.fromDate) } },
+                    { "fromDate": { $lte: new Date(req.query.toDate) } }]
+            })
+        }
+
+        LeaveApply.aggregate([
+            queryObj,
+            {
                 "$lookup": {
-                    "from": "leaveapplieddetails",
+                    "from": "employeedetails",
                     "localField": "emp_id",
-                    "foreignField": "emp_id",
-                    "as": "leavedetails"
+                    "foreignField": "_id",
+                    "as": "employeeDetails"
                 }
             },
             {
                 "$unwind": {
-                    path: "$leavedetails",
+                    path: "$employeeDetails",
                     "preserveNullAndEmptyArrays": true
                 }
             },
             {
                 "$project": {
                     _id: 1,
-                    isActive: 1,
                     // "month" :{$month:"$leavedetails.fromDate"},
                     // "year" :{$year:"$leavedetails.fromDate"},
                     // "status" :"$leavedetails.status",
@@ -1529,16 +1572,14 @@ let functions = {
                         "profileImage": 1
                     },
                     leavedetails: {
-                        "fromDate": 1,
-                        "toDate": 1,
-                        "days": 1,
-                        "leave_type": 1,
-                        "status": 1,
-
+                        "fromDate": "$fromDate",
+                        "toDate": "$toDate",
+                        "days": "$days",
+                        "leave_type": "$leave_type",
+                        "status": "$status",
                     }
                 }
-            },
-            queryObj,
+            }
         ]).exec(function (err, results) {
             if (err) {
                 return res.status(403).json({
@@ -1551,26 +1592,23 @@ let functions = {
                     }
                 });
             }
-            let filteredResults = results.filter(f => {
-                return f.leavedetails && f.leavedetails.status === 'Approved';
-            });
-            return res.status(200).json({ "data": filteredResults });
+            return res.status(200).json({ "data": results });
         });
+
     },
     getLeaveDetailsByFilter: (req, res) => {
-        let primaryEmpId, empId, matchQuery;
-        if (req.query.empId) {
-            empId = req.query.empId;
-            matchQuery = { '$match': { "emp_id": parseInt(empId) } };
-        } else {
-            primaryEmpId = req.query.supervisorId
-            matchQuery = { '$match': { "primarySupervisorEmp_id": parseInt(primaryEmpId) } };
+        let primaryEmpId, empId;
 
-
-        }
         let month, year, leave_type;
         let queryObj = { '$match': {} };
-        queryObj['$match']['$and'] = [{ "isActive": true }]
+        queryObj['$match']['$and'] = []
+        if (req.query.empId) {
+            empId = req.query.empId;
+            queryObj['$match']['$and'].push({ emp_id: parseInt(empId) })
+        } else {
+            primaryEmpId = req.query.supervisorId
+            queryObj['$match']['$and'].push({ applyTo: parseInt(primaryEmpId) })
+        }
         if (req.query.month) {
             month = req.query.month;
             queryObj['$match']['$and'].push({ month: parseInt(month) })
@@ -1584,17 +1622,18 @@ let functions = {
             queryObj['$match']['$and'].push({ leave_type: parseInt(leave_type) })
         }
         if (req.query.status) {
-            queryObj['$match']['$and'].push({ leaveStatus: req.query.status })
+            queryObj['$match']['$and'].push({ status: req.query.status })
         }
         if (req.query.fromDate && req.query.toDate) {
             queryObj['$match']["$and"].push({
                 $and:
-                    [{ "leavedetails.fromDate": { $gte: new Date(req.query.fromDate) } },
-                    { "leavedetails.fromDate": { $lte: new Date(req.query.toDate) } }]
+                    [{ "fromDate": { $gte: new Date(req.query.fromDate) } },
+                    { "fromDate": { $lte: new Date(req.query.toDate) } }]
             })
         }
-        SupervisorInfo.aggregate([
-            matchQuery,
+
+        LeaveApply.aggregate([
+            queryObj,
             {
                 "$lookup": {
                     "from": "employeedetails",
@@ -1611,71 +1650,57 @@ let functions = {
             },
             {
                 "$lookup": {
-                    "from": "leaveapplieddetails",
-                    "localField": "emp_id",
-                    "foreignField": "emp_id",
-                    "as": "leavedetails"
+                    "from": "employeedetails",
+                    "localField": "createdBy",
+                    "foreignField": "_id",
+                    "as": "createdByName"
                 }
             },
             {
                 "$unwind": {
-                    path: "$leavedetails",
+                    path: "$createdByName",
                     "preserveNullAndEmptyArrays": true
                 }
             },
             {
                 "$lookup": {
                     "from": "employeedetails",
-                    "localField": "leavedetails.createdBy",
+                    "localField": "updatedBy",
                     "foreignField": "_id",
-                    "as": "leavedetails.createdByName"
+                    "as": "updatedByName"
                 }
             },
             {
                 "$unwind": {
-                    path: "$leavedetails.createdByName",
+                    path: "$updatedByName",
                     "preserveNullAndEmptyArrays": true
                 }
             },
             {
                 "$lookup": {
                     "from": "employeedetails",
-                    "localField": "leavedetails.updatedBy",
+                    "localField": "applyTo",
                     "foreignField": "_id",
-                    "as": "leavedetails.updatedByName"
+                    "as": "supervisorDetails"
                 }
             },
             {
                 "$unwind": {
-                    path: "$leavedetails.updatedByName",
-                    "preserveNullAndEmptyArrays": true
-                }
-            },
-            {
-                "$lookup": {
-                    "from": "employeedetails",
-                    "localField": "leavedetails.applyTo",
-                    "foreignField": "_id",
-                    "as": "leavedetails.supervisorDetails"
-                }
-            },
-            {
-                "$unwind": {
-                    path: "$leavedetails.applyTo",
+                    path: "$supervisorDetails",
                     "preserveNullAndEmptyArrays": true
                 }
             },
             {
                 "$lookup": {
                     "from": "leaveTypes",
-                    "localField": "leavedetails.leave_type",
+                    "localField": "leave_type",
                     "foreignField": "_id",
-                    "as": "leavedetails.leaveTypeName"
+                    "as": "leaveTypeName"
                 }
             },
             {
                 "$unwind": {
-                    path: "$leavedetails.leaveTypeName",
+                    path: "$leaveTypeName",
                     "preserveNullAndEmptyArrays": true
                 }
             },
@@ -1683,46 +1708,44 @@ let functions = {
                 "$project": {
                     _id: 1,
                     isActive: 1,
-                    "month": { $month: "$leavedetails.fromDate" },
-                    "year": { $year: "$leavedetails.fromDate" },
-                    "leave_type": "$leavedetails.leaveTypeName._id",
-                    "leaveTypeName": "$leavedetails.leaveTypeName.type",
-                    "leaveStatus": "$leavedetails.status",
+                    "month": { $month: "$fromDate" },
+                    "year": { $year: "$fromDate" },
+                    "leave_type": "$leaveTypeName._id",
+                    "leaveTypeName": "$leaveTypeName.type",
+                    "leaveStatus": "$status",
                     employeeDetails: {
                         "_id": 1,
                         "userName": 1,
                         "fullName": 1,
                     },
                     leavedetails: {
-                        "_id": 1,
-                        "fromDate": 1,
-                        "toDate": 1,
-                        "days": 1,
-                        "leave_type": 1,
-                        "createdAt": 1,
-                        "updatedAt": 1,
-                        "attachment": 1,
-
+                        "_id": "$_id",
+                        "fromDate": "$fromDate",
+                        "toDate": "$toDate",
+                        "days": "$days",
+                        "leave_type": "$leave_type",
+                        "createdAt": "$createdAt",
+                        "updatedAt": "$updatedAt",
+                        "attachment": "$attachment",
                         "createdByName": {
-                            "_id": 1,
-                            "fullName": 1
+                            "_id": "$createdByName._id",
+                            "fullName": "$createdByName.fullName"
                         },
                         "updatedByName": {
-                            "_id": 1,
-                            "fullName": 1
+                            "_id": "$updatedByName._id",
+                            "fullName": "$updatedByName.fullName"
                         },
-                        "updatedBy": 1,
-                        "createdBy": 1,
-                        "status": 1,
-                        "reason": 1,
+                        "updatedBy": "$updatedBy",
+                        "createdBy": "$createdBy",
+                        "status": "$status",
+                        "reason": "$reason",
                         "supervisorDetails": {
-                            "_id": 1,
-                            "fullName": 1
+                            "_id": "$supervisorDetails._id",
+                            "fullName": "$supervisorDetails.fullName"
                         }
                     }
                 }
-            },
-            queryObj,
+            }
         ]).exec(function (err, results) {
             if (err) {
                 return res.status(403).json({
