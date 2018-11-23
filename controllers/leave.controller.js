@@ -1,7 +1,7 @@
 let express = require('express'),
     LeaveWorkflowHistory = require('../models/leave/leaveWorkflowHistory.model'),
     LeaveDetailsCarryForward = require('../models/master/leaveDetailsCarryForward.model');
-    LeaveApply = require('../models/leave/leaveApply.model'),
+LeaveApply = require('../models/leave/leaveApply.model'),
     LeaveHoliday = require('../models/leave/leaveHoliday.model'),
     LeaveTransactionType = require('../models/leave/leaveTransactioType.model'),
     PersonalInfo = require('../models/employee/employeePersonalDetails.model'),
@@ -18,7 +18,7 @@ let express = require('express'),
     FinancialYear = require('../models/master/financialYear.model'),
     SupervisorInfo = require('../models/employee/employeeSupervisorDetails.model'),
     uploadController = require('./upload.controller');
-    uploadClass = require('../class/upload');
+uploadClass = require('../class/upload');
 moment = require('moment');
 config = require('../config/config'),
     crypto = require('crypto'),
@@ -30,8 +30,8 @@ config = require('../config/config'),
     SendEmail = require('../class/sendEmail');
 // json2xls = require('json2xls');
 // fs = require('fs');
-   xlsx2json = require('xlsx2json');
-   XLSX = require('xlsx');
+xlsx2json = require('xlsx2json');
+XLSX = require('xlsx');
 require('dotenv').load()
 function getAllLeaveBalance(req, res) {
     let _fiscalYearId = (req.query.fiscalYearId);
@@ -517,7 +517,7 @@ function applyLeave(req, res, done) {
             });
 
         } else {
-            
+
             LeaveApply.find(query, function (err, details) {
                 for (let i = 0; i < details.length; i++) {
                     let fromDate = moment(details[i].fromDate + ' UTC').utc().format(),
@@ -582,40 +582,40 @@ function applyLeave(req, res, done) {
                             })
                         }
 
-                        let queryForFindEmployee  = {
+                        let queryForFindEmployee = {
                             _id: req.body.emp_id,
                             isDeleted: false
                         }
-                        EmployeeInfo.findOne(queryForFindEmployee, function(err, employeee) {
-                            if(err) {
+                        EmployeeInfo.findOne(queryForFindEmployee, function (err, employeee) {
+                            if (err) {
                                 // Do nothing
                             }
                             let queryForFindSupervisor = {
                                 _id: req.body.supervisor_id,
                                 isDeleted: false
                             }
-                            EmployeeInfo.findOne(queryForFindSupervisor, function(err, supervisor) {
-                                if(err) {
+                            EmployeeInfo.findOne(queryForFindSupervisor, function (err, supervisor) {
+                                if (err) {
                                     // Nothing
                                 }
-                                if(supervisor != null) {
+                                if (supervisor != null) {
                                     let queryForFindSupervisorOfficeDetail = {
                                         emp_id: supervisor._id,
                                         isDeleted: false
                                     }
-                                    OfficeDetails.find(queryForFindSupervisorOfficeDetail, function(err, supervisorOfficeDetail){
-                                        if(err) {
+                                    OfficeDetails.find(queryForFindSupervisorOfficeDetail, function (err, supervisorOfficeDetail) {
+                                        if (err) {
                                             // Nothing
                                         }
-                                        if(supervisorOfficeDetail.length > 0 && supervisorOfficeDetail[0]['officeEmail'] != null) {
+                                        if (supervisorOfficeDetail.length > 0 && supervisorOfficeDetail[0]['officeEmail'] != null) {
 
                                             let queryForFindLeaveType = {
                                                 _id: req.body.leave_type,
                                                 isDeleted: false
                                             }
 
-                                            LeaveTypes.findOne(queryForFindLeaveType, function(err, leaveType) {
-                                                if(err) {
+                                            LeaveTypes.findOne(queryForFindLeaveType, function (err, leaveType) {
+                                                if (err) {
                                                     // Do nothing
                                                 }
                                                 let appliedLeaveId = leavesInfoData._id;
@@ -630,9 +630,9 @@ function applyLeave(req, res, done) {
                                                     action_link: linktoSend
                                                 }
                                                 SendEmail.sendEmailToSuprsvrNotifyAppliedLeave(supervisorOfficeDetail[0]['officeEmail'], data);
-                                            });                                            
+                                            });
                                         }
-                                    })                                
+                                    })
                                 }
                             });
                         });
@@ -755,6 +755,43 @@ function updateSickLeaveDocumentDetails(req, res, done) {
         return done(err, req);
     });
 }
+function GrantMaternityValidCase(data, res) {
+    let leaveBalance = new LeaveBalance();
+    leaveBalance.startDate = data.startDate;
+    leaveBalance.endDate = data.endDate;
+    leaveBalance.isDeleted = false;
+    leaveBalance.balance = data.balance;
+    leaveBalance.leave_type = 4
+    leaveBalance.emp_id = data.empId;
+    leaveBalance.fiscalYearId = data.fiscalYearId;
+    leaveBalance.createdBy = data.createdBy;
+    leaveBalance.save(function (err, leavedata) {
+        if (err) {
+            return res.status(403).json({
+                title: 'Error',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: leavedata
+                }
+            });
+        } else {
+            return res.status(200).json({ "result": true });
+        }
+    });
+}
+function GrantMaternityInValidCase(res) {
+    return res.status(403).json({
+        title: 'Error',
+        error: {
+            message: 'user already have maternity leave granted that is not availed yet'
+        },
+        result: {
+            message: 'user already have maternity leave granted that is not availed yet'
+        }
+    });
+}
 let functions = {
     uploadSickLeaveDocument: (req, res) => {
         async.waterfall([
@@ -801,14 +838,13 @@ let functions = {
             }
         ])
     },
-
     downloadLeaveAttachment: (req, res) => {
         let query = {
             _id: req.query.id,
             isDeleted: false
         }
         LeaveApply.findOne(query, function (err, leaveApplyResult) {
-            if(err) {
+            if (err) {
                 return res.status(403).json({
                     title: "ERROR",
                     error: {
@@ -816,7 +852,7 @@ let functions = {
                     },
                 });
             }
-            if(leaveApplyResult != null && leaveApplyResult.attachment != null) {
+            if (leaveApplyResult != null && leaveApplyResult.attachment != null) {
                 uploadController.downloadLeaveAttachment(leaveApplyResult.attachment, res);
             } else {
                 return res.status(200).json({
@@ -825,7 +861,6 @@ let functions = {
             }
         })
     },
-
     getHolidays: (req, res) => {
         let queryYear = req.query.year;
         let queryMonth = req.query.month;
@@ -2200,7 +2235,7 @@ let functions = {
                                                         _id: leaveapplydetails.leave_type,
                                                         isDeleted: false
                                                     }
-                                                    LeaveTypes.findOne(queryForFindLeaveType, function(err, leaveType) {
+                                                    LeaveTypes.findOne(queryForFindLeaveType, function (err, leaveType) {
                                                         let appliedLeaveId = req.body._id;
                                                         let linktoSend = req.body.link + '/' + appliedLeaveId;
                                                         if ((new Date(leaveapplydetails.fromDate) > new Date()) && leaveapplydetails.status == "Applied") {
@@ -2229,7 +2264,7 @@ let functions = {
                                                         }
 
                                                     });
-                                                    
+
                                                     return res.status(200).json(_leaveDetails);
                                                 }
                                             })
@@ -2537,14 +2572,14 @@ let functions = {
                         if (err) {
                             // Do nothing
                         }
-                        if(employeeOfficeDetails.length > 0 && employeeOfficeDetails[0]['officeEmail'] != null) {                        
-                            
+                        if (employeeOfficeDetails.length > 0 && employeeOfficeDetails[0]['officeEmail'] != null) {
+
                             let queryForFindLeaveType = {
                                 _id: _leaveDetails.leave_type,
                                 isDeleted: false
                             }
-                            LeaveTypes.findOne(queryForFindLeaveType, function(err, leaveType) {
-                                if(err) {
+                            LeaveTypes.findOne(queryForFindLeaveType, function (err, leaveType) {
+                                if (err) {
                                     // Do nothing
                                 }
                                 let appliedLeaveId = req.body.id;
@@ -2556,18 +2591,18 @@ let functions = {
                                     toDate: _leaveDetails.toDate.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
                                     action_link: linktoSend
                                 }
-                                if(req.body.status == 'Applied' && req.body.approved) {
+                                if (req.body.status == 'Applied' && req.body.approved) {
                                     SendEmail.sendEmailToEmployeeForLeaveRequestApproved(employeeOfficeDetails[0]['officeEmail'], data);
-                                } else if(req.body.status == 'Applied' && req.body.rejected) {
+                                } else if (req.body.status == 'Applied' && req.body.rejected) {
                                     SendEmail.sendEmailToEmployeeForLeaveRequestRejected(employeeOfficeDetails[0]['officeEmail'], data)
-                                } else if(req.body.status == 'Pending Cancellation' && !req.body.cancelled && (req.body.cancelled != undefined)) {
+                                } else if (req.body.status == 'Pending Cancellation' && !req.body.cancelled && (req.body.cancelled != undefined)) {
                                     SendEmail.sendEmailToEmployeeForLeaveCancellationRejected(employeeOfficeDetails[0]['officeEmail'], data);
-                                } else if(req.body.status == 'Pending Cancellation' && req.body.cancelled) {
+                                } else if (req.body.status == 'Pending Cancellation' && req.body.cancelled) {
                                     SendEmail.sendEmailToEmployeeForLeaveCancellationApprove(employeeOfficeDetails[0]['officeEmail'], data);
                                 }
                             })
-                        }                      
-                    })                                        
+                        }
+                    })
                 }
             });
 
@@ -2731,6 +2766,96 @@ let functions = {
                     message: result
                 }
             });
+        })
+    },
+    grantMaternityLeave: (req, res) => {
+        let empId = parseInt(req.body.emp_id);
+        let fiscalYearId = req.body.fiscalYearId;
+        let startDate = moment(req.body.startDate + ' UTC').utc().format();
+        let endDate = moment(req.body.endDate + ' UTC').utc().format();
+        let createdBy = parseInt(req.body.createdBy);
+        let balance = parseInt(req.body.balance);
+        let leaveBalanceQuery = {
+            'isDeleted': false,
+            'emp_id': empId,
+            'leave_type': 4
+        }
+
+        LeaveBalance.find(leaveBalanceQuery, function (err, leaveBalanceDetails) {
+            debugger;
+            if (leaveBalanceDetails.length > 0) {
+                let leaveApplyQuery = {
+                    'isDeleted': false,
+                    'emp_id': empId,
+                    'leave_type': 4
+                };
+
+                LeaveApply.find(leaveApplyQuery, function (err, leaveApplyResult) {
+                    //case when maternity is granted but not applied by user
+                    if (leaveApplyResult.length != leaveBalanceDetails.length) {
+                        // do not allow user to grant
+                        GrantMaternityInValidCase(res);
+                    } else {
+                        let cancelledMaternity = leaveApplyResult.filter(f => f.status === 'Cancelled').length;
+                        let rejectedMaternity = leaveApplyResult.filter(f => f.status === 'Rejected').length;
+                        let approvedMaternity = leaveApplyResult.filter(f => f.status === 'Approved').length;
+                        if ((approvedMaternity + rejectedMaternity + cancelledMaternity) === leaveApplyResult.length) {
+                            //all maternity leaves are availed, allow user to grant 
+                            let data = {
+                                startDate : startDate,
+                                endDate : endDate,
+                                balance : balance,
+                                empId : empId,
+                                fiscalYearId : fiscalYearId,
+                                createdBy : createdBy
+                            }
+                            GrantMaternityValidCase(data, res);
+                        } else {
+                            // do not allow user to grant
+                            GrantMaternityInValidCase(res);
+                        }
+                    }
+                });
+            } else {
+                let data = {
+                    startDate : startDate,
+                    endDate : endDate,
+                    balance : balance,
+                    empId : empId,
+                    fiscalYearId : fiscalYearId,
+                    createdBy : createdBy
+                }
+                GrantMaternityValidCase(data, res);
+            }
+        })
+    },
+    applyMaternityLeave: (req, res) => {
+        let leavedetails = new LeaveApply();
+        leavedetails.emp_id = parseInt(req.body.emp_id);
+        leavedetails.fiscalYearId = req.body.fiscalYearId;
+        leavedetails.leave_type = 4;
+        leavedetails.leave_id = parseInt(req.body.leave_id);
+        leavedetails.applyTo = parseInt(req.body.apply_to);
+        leavedetails.fromDate = moment(req.body.fromDate + ' UTC').utc().format();
+        leavedetails.toDate = moment(req.body.toDate + ' UTC').utc().format();
+        leavedetails.days = parseInt(req.body.days);
+        leavedetails.reason = req.body.reason;
+        leavedetails.status = "Applied";
+        leavedetails.createdBy = parseInt(req.body.emp_id);
+        leavedetails.save(function (err, response) {
+            if (err) {
+                return res.status(403).json({
+                    title: 'Error',
+                    error: {
+                        message: err
+                    },
+                    result: {
+                        message: response
+                    }
+                });
+            } else {
+                return res.status(200).json({ "result": true });
+            }
         })
     }
 

@@ -347,6 +347,8 @@ let express  = require('express'),
 //        leaveRoutes.post('/grantMaternityLeave', leave.grantMaternityLeave);
        leaveRoutes.get('/getEmpMaternityLeaveDetails', leave.getEmpMaternityLeaveDetails);
        leaveRoutes.get('/downloadFile', leave.downloadLeaveAttachment);
+       leaveRoutes.post('/grantMaternityLeave', leave.grantMaternityLeave);
+       leaveRoutes.post('/applyMaternityLeave', leave.applyMaternityLeave);
       //= ========================
       //hr dashboard routes
 

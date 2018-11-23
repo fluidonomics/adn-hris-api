@@ -29,7 +29,9 @@ let mongoose                = require('mongoose'),
         createdBy:{type: Number, ref:'employeedetails', default:null},
         isDeleted:{type:Boolean,default:false},
         fiscalYearId: {type: Number, default: null},
-        systemApproved: {type: Boolean, default: false}
+        systemApproved: {type: Boolean, default: false},
+        //added for special and metarnity leave reference
+        leave_id: {type: Number, default: null}
     },
     {
         timestamps: true,
