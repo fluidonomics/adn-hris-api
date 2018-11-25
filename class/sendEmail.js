@@ -46,7 +46,6 @@ let functions =
         });
 
     },
-
     sendEmailWithAttachment: (toEmail, subject, htmlBody, attachment) => {
         let mailOptions = {
             from: config.email.welcome.from, // sender address
@@ -57,7 +56,6 @@ let functions =
         };
         this.transporter.sendMail(mailOptions);
     },
-
     sendEmailWelcomeUser: (toEmail, employeeData) => {
         let mailOptions = {
             from: config.email.welcome.from, // sender address
@@ -73,7 +71,6 @@ let functions =
         };
         transporter.sendMail(mailOptions);
     },
-
     sendEmailResetPassword: (toEmail, redirectUrl) => {
         let mailOptions = {
             from: config.email.forget.from, // sender address
@@ -88,7 +85,6 @@ let functions =
         transporter.sendMail(mailOptions);
 
     },
-
     sendEmailResetPasswordComplete: (toEmail, fullName, userName) => {
         let mailOptions = {
             from: config.email.resetPassword.from, // sender address
@@ -261,6 +257,29 @@ let functions =
         };
         transporter.sendMail(mailOptions);
 
+    },
+    sendEmailToEmployeeForMaternityLeaveQuotaProvided: (data) => {
+        let mailOptions = {
+            from: config.email.emailToEmployeeForLeaveRequestRejected.from, // sender address
+            to: data.userEmail,
+            subject: config.email.emailToEmployeeForLeaveRequestRejected.subject, // Subject line
+            template: 'email-notify-to-emp-for-applied-leave-rejected',
+            context: {
+                fullName: data.fullName,
+                leaveType: 'Maternity Leave',
+                appliedDate: moment(new Date()).format('L'),
+                fromDate: moment(data.startDate).format('L'),
+                toDate: moment(data.endDate).format('L'),
+                link: data.action_link
+            }
+        };
+        transporter.sendMail(mailOptions, function(err, response) {
+            if(err) {
+                return err;
+            } else {
+                return response;
+            }
+        });
     }
 
 }

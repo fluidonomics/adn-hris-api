@@ -1,7 +1,7 @@
 let express = require('express'),
     LeaveWorkflowHistory = require('../models/leave/leaveWorkflowHistory.model'),
     LeaveDetailsCarryForward = require('../models/master/leaveDetailsCarryForward.model');
-LeaveApply = require('../models/leave/leaveApply.model'),
+    LeaveApply = require('../models/leave/leaveApply.model'),
     LeaveHoliday = require('../models/leave/leaveHoliday.model'),
     LeaveTransactionType = require('../models/leave/leaveTransactioType.model'),
     PersonalInfo = require('../models/employee/employeePersonalDetails.model'),
@@ -18,9 +18,9 @@ LeaveApply = require('../models/leave/leaveApply.model'),
     FinancialYear = require('../models/master/financialYear.model'),
     SupervisorInfo = require('../models/employee/employeeSupervisorDetails.model'),
     uploadController = require('./upload.controller');
-uploadClass = require('../class/upload');
-moment = require('moment');
-config = require('../config/config'),
+    uploadClass = require('../class/upload');
+    moment = require('moment');
+    config = require('../config/config'),
     crypto = require('crypto'),
     async = require('async'),
     nodemailer = require('nodemailer'),
@@ -435,17 +435,17 @@ getLeaveTransaction: (req, res) => {
     })
 },
 
-    function getLeavesByType(leaveTypesData, appliedLeaves, res) {
-        let response = [];
-        leaveTypesData.forEach((type) => {
-            const leaves = appliedLeaves.filter(leave => (leave.leave_type == type.id));
-            response.push({
-                "types": type.type,
-                "leaves": leaves
-            })
-        });
-        return res.status(200).json(response);
-    }
+function getLeavesByType(leaveTypesData, appliedLeaves, res) {
+    let response = [];
+    leaveTypesData.forEach((type) => {
+        const leaves = appliedLeaves.filter(leave => (leave.leave_type == type.id));
+        response.push({
+            "types": type.type,
+            "leaves": leaves
+        })
+    });
+    return res.status(200).json(response);
+}
 function applyLeave(req, res, done) {
     let fromDateBody = moment(req.body.fromDate + ' UTC').utc().format();
     let toDateBody = moment(req.body.toDate + ' UTC').utc().format();
@@ -757,18 +757,16 @@ function updateSickLeaveDocumentDetails(req, res, done) {
 }
 function GrantMaternityValidCase(data, res) {
     let leaveBalance = new LeaveBalance();
-    leaveBalance.startDate = data.startDate;
-    leaveBalance.endDate = data.endDate;
     leaveBalance.isDeleted = false;
     leaveBalance.balance = data.balance;
-    leaveBalance.leave_type = 4
+    leaveBalance.leave_type = 3
     leaveBalance.emp_id = data.empId;
     leaveBalance.fiscalYearId = data.fiscalYearId;
     leaveBalance.createdBy = data.createdBy;
     leaveBalance.save(function (err, leavedata) {
         if (err) {
             return res.status(403).json({
-                title: 'Error',
+                title: 'Error while adding leave balance',
                 error: {
                     message: err
                 },
@@ -777,7 +775,13 @@ function GrantMaternityValidCase(data, res) {
                 }
             });
         } else {
-            return res.status(200).json({ "result": true });
+            SendEmail.sendEmailToEmployeeForMaternityLeaveQuotaProvided(data)
+            return res.status(200).json({
+                title: 'leave balance added',
+                result: {
+                    message: leavedata
+                }
+            });
         }
     });
 }
@@ -2771,23 +2775,20 @@ let functions = {
     grantMaternityLeave: (req, res) => {
         let empId = parseInt(req.body.emp_id);
         let fiscalYearId = req.body.fiscalYearId;
-        let startDate = moment(req.body.startDate + ' UTC').utc().format();
-        let endDate = moment(req.body.endDate + ' UTC').utc().format();
         let createdBy = parseInt(req.body.createdBy);
         let balance = parseInt(req.body.balance);
         let leaveBalanceQuery = {
             'isDeleted': false,
             'emp_id': empId,
-            'leave_type': 4
+            'leave_type': 3
         }
 
         LeaveBalance.find(leaveBalanceQuery, function (err, leaveBalanceDetails) {
-            debugger;
             if (leaveBalanceDetails.length > 0) {
                 let leaveApplyQuery = {
                     'isDeleted': false,
                     'emp_id': empId,
-                    'leave_type': 4
+                    'leave_type': 3
                 };
 
                 LeaveApply.find(leaveApplyQuery, function (err, leaveApplyResult) {
@@ -2802,8 +2803,6 @@ let functions = {
                         if ((approvedMaternity + rejectedMaternity + cancelledMaternity) === leaveApplyResult.length) {
                             //all maternity leaves are availed, allow user to grant 
                             let data = {
-                                startDate : startDate,
-                                endDate : endDate,
                                 balance : balance,
                                 empId : empId,
                                 fiscalYearId : fiscalYearId,
@@ -2818,8 +2817,6 @@ let functions = {
                 });
             } else {
                 let data = {
-                    startDate : startDate,
-                    endDate : endDate,
                     balance : balance,
                     empId : empId,
                     fiscalYearId : fiscalYearId,
@@ -2833,8 +2830,7 @@ let functions = {
         let leavedetails = new LeaveApply();
         leavedetails.emp_id = parseInt(req.body.emp_id);
         leavedetails.fiscalYearId = req.body.fiscalYearId;
-        leavedetails.leave_type = 4;
-        leavedetails.leave_id = parseInt(req.body.leave_id);
+        leavedetails.leave_type = 3;
         leavedetails.applyTo = parseInt(req.body.apply_to);
         leavedetails.fromDate = moment(req.body.fromDate + ' UTC').utc().format();
         leavedetails.toDate = moment(req.body.toDate + ' UTC').utc().format();
@@ -2854,7 +2850,7 @@ let functions = {
                     }
                 });
             } else {
-                return res.status(200).json({ "result": true });
+                return res.status(200).json({ "result": true, data: response });
             }
         })
     }

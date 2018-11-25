@@ -31,7 +31,7 @@ let mongoose                = require('mongoose'),
         fiscalYearId: {type: Number, default: null},
         systemApproved: {type: Boolean, default: false},
         //added for special and metarnity leave reference
-        leave_id: {type: Number, default: null}
+        // leave_id: {type: Number, default: null}
     },
     {
         timestamps: true,
