@@ -1,15 +1,16 @@
-let express           = require('express'),
-    KraInfo           = require('../models/kra/kraDetails.model'),
-    KraWorkFlowInfo   = require('../models/kra/kraWorkFlowDetails.model'),
-    KraWeightageInfo   = require('../models/kra/kraWeightage.model'),
-    KraCategoryInfo   = require('../models/kra/kraCategory.model'),
-    async             = require('async'),
+let express = require('express'),
+    KraInfo = require('../models/kra/kraDetails.model'),
+    KraWorkFlowInfo = require('../models/kra/kraWorkFlowDetails.model'),
+    KraWeightageInfo = require('../models/kra/kraWeightage.model'),
+    KraCategoryInfo = require('../models/kra/kraCategory.model'),
+    async = require('async'),
 
-    BatchCtrl= require('./batch.controller'),
-    TimeLineCtrl= require('./timeline.controller'),
-    AuditTrail  = require('../class/auditTrail');
+    BatchCtrl = require('./batch.controller'),
+    TimeLineCtrl = require('./timeline.controller'),
+    AuditTrail = require('../class/auditTrail'),
+    EmployeeSupervisors = require('../models/employee/employeeSupervisorDetails.model');
 
-    require('dotenv').load();
+require('dotenv').load();
 
 
 // function addKraWorkFlowInfoDetails(req, res, done) {
@@ -36,16 +37,15 @@ let express           = require('express'),
 //     });
 // }
 
-function updateKraWorkFlowInfoDetails(req, res,done) {
-    let batch_id= req.query.batch_id;
-    let query={_id:parseInt(req.body._id),isDeleted:false}
-    if(batch_id)
-    {
-       query={batch_id:parseInt(req.query.batch_id),isDeleted:false}
+function updateKraWorkFlowInfoDetails(req, res, done) {
+    let batch_id = req.query.batch_id;
+    let query = { _id: parseInt(req.body._id), isDeleted: false }
+    if (batch_id) {
+        query = { batch_id: parseInt(req.query.batch_id), isDeleted: false }
     }
-    let queryUpdate={ $set: {"status":req.body.status, "updatedBy":parseInt(req.headers.uid) }};
+    let queryUpdate = { $set: { "status": req.body.status, "updatedBy": parseInt(req.headers.uid) } };
 
-    KraWorkFlowInfo.update(query,queryUpdate,{new: true}, function(err, kraWorkFlowInfoData) {
+    KraWorkFlowInfo.update(query, queryUpdate, { new: true }, function (err, kraWorkFlowInfoData) {
         if (err) {
             return res.status(403).json({
                 title: 'There was a problem',
@@ -63,16 +63,15 @@ function updateKraWorkFlowInfoDetails(req, res,done) {
 }
 
 function addBulkKraInfoDetails(req, res, done) {
-    let arr_emp_id=req.body.emp_id;
-    var insertData=[];
+    let arr_emp_id = req.body.emp_id;
+    var insertData = [];
     Promise.all([
         KraWorkFlowInfo.find({}).count().exec(),
-      ]).then(function(counts) {
+    ]).then(function (counts) {
         arr_emp_id.forEach(function (element, index) {
-            insertData.push({batch_id:req.body.batch_id,emp_id:element,status:'Initiated',_id:counts[0]+(index + 1),createdBy:parseInt(req.headers.uid)});
+            insertData.push({ batch_id: req.body.batch_id, emp_id: element, status: 'Initiated', _id: counts[0] + (index + 1), createdBy: parseInt(req.headers.uid) });
         });
-        KraWorkFlowInfo.insertMany(insertData,function(err,results)
-        {
+        KraWorkFlowInfo.insertMany(insertData, function (err, results) {
             if (err) {
                 return res.status(403).json({
                     title: 'There was a problem',
@@ -94,12 +93,12 @@ function getEmployeeKraWorkFlowInfoDetails(req, res) {
     let emp_id = req.query.emp_id;
     KraWorkFlowInfo.aggregate([
         {
-              "$lookup": {
-                  "from": "batchdetails",
-                  "localField": "batch_id",
-                  "foreignField": "_id",
-                  "as": "batchdetails"
-              }
+            "$lookup": {
+                "from": "batchdetails",
+                "localField": "batch_id",
+                "foreignField": "_id",
+                "as": "batchdetails"
+            }
         },
         {
             "$unwind": "$batchdetails"
@@ -113,20 +112,22 @@ function getEmployeeKraWorkFlowInfoDetails(req, res) {
             }
         },
         {
-          "$unwind": "$employeedetails"
+            "$unwind": "$employeedetails"
         },
-        { "$match": { "emp_id":parseInt(emp_id),"isDeleted":false,"employeedetails.isDeleted":false,"batchdetails.isDeleted":false} },
-        { "$sort": { "createdAt":-1,"updatedAt": -1 } },
-        {"$project":{
-            "_id":"$_id",
-            "status":"$status",
-            "createdAt":"$createdAt",
-            "updatedAt":"$updatedAt",
-            "createdBy":"$employeedetails.fullName",
-            "batchEndDate":"$batchdetails.batchEndDate",
-            "batchName":"$batchdetails.batchName",
-        }}
-      ]).exec(function(err, kraEmployeeWorkflowInfoData){
+        { "$match": { "emp_id": parseInt(emp_id), "isDeleted": false, "employeedetails.isDeleted": false, "batchdetails.isDeleted": false } },
+        { "$sort": { "createdAt": -1, "updatedAt": -1 } },
+        {
+            "$project": {
+                "_id": "$_id",
+                "status": "$status",
+                "createdAt": "$createdAt",
+                "updatedAt": "$updatedAt",
+                "createdBy": "$employeedetails.fullName",
+                "batchEndDate": "$batchdetails.batchEndDate",
+                "batchName": "$batchdetails.batchName",
+            }
+        }
+    ]).exec(function (err, kraEmployeeWorkflowInfoData) {
         if (err) {
             return res.status(403).json({
                 title: 'There was an error, please try again later',
@@ -134,17 +135,17 @@ function getEmployeeKraWorkFlowInfoDetails(req, res) {
             });
         }
         return res.status(200).json(kraEmployeeWorkflowInfoData);
-      })
+    })
 }
 
 function addKraWeightageInfoDetails(req, res, done) {
     let kraWeightageDetails = new KraWeightageInfo(req.body);
     kraWeightageDetails.emp_id = req.body.emp_id || req.query.emp_id;
-    kraWeightageDetails.timeline_id=1;
-    kraWeightageDetails.batch_id=1;
+    kraWeightageDetails.timeline_id = 1;
+    kraWeightageDetails.batch_id = 1;
     kraWeightageDetails.createdBy = parseInt(req.headers.uid);;
 
-    kraWeightageDetails.save(function(err, kraWeightageInfoData) {
+    kraWeightageDetails.save(function (err, kraWeightageInfoData) {
         if (err) {
             return res.status(403).json({
                 title: 'There was a problem',
@@ -164,11 +165,11 @@ function addKraWeightageInfoDetails(req, res, done) {
 function addKraCategoryInfoDetails(req, res, done) {
     let kraCategoryDetails = new KraCategoryInfo(req.body);
     kraCategoryDetails.emp_id = req.body.emp_id || req.query.emp_id;
-    kraCategoryDetails.timeline_id=1;
-    kraCategoryDetails.batch_id=1;
+    kraCategoryDetails.timeline_id = 1;
+    kraCategoryDetails.batch_id = 1;
     kraCategoryDetails.createdBy = 1;
 
-    kraCategoryDetails.save(function(err, kraCategoryInfoData) {
+    kraCategoryDetails.save(function (err, kraCategoryInfoData) {
         if (err) {
             return res.status(403).json({
                 title: 'There was a problem',
@@ -187,8 +188,8 @@ function addKraCategoryInfoDetails(req, res, done) {
 
 function addKraInfoDetails(req, res, done) {
     let kraDetails = new KraInfo(req.body);
-    kraDetails.createdBy=parseInt(req.headers.uid);
-    kraDetails.save(function(err, kraData) {
+    kraDetails.createdBy = parseInt(req.headers.uid);
+    kraDetails.save(function (err, kraData) {
         if (err) {
             return res.status(403).json({
                 title: 'There was a problem',
@@ -201,15 +202,15 @@ function addKraInfoDetails(req, res, done) {
             });
         }
         AuditTrail.auditTrailEntry(0, "kraDetails", kraDetails, "kra", "kraDetails", "ADDED");
-        return done(null,kraData)
+        return done(null, kraData)
     });
 }
 
 function updateKraInfoDetails(req, res, done) {
     let kraDetails = new KraInfo(req.body);
-    kraDetails.updatedBy=parseInt(req.headers.uid);
-    
-    KraInfo.findOneAndUpdate({_id:parseInt(req.body._id)},kraDetails,{new: true},function(err, kraData) {
+    kraDetails.updatedBy = parseInt(req.headers.uid);
+
+    KraInfo.findOneAndUpdate({ _id: parseInt(req.body._id) }, kraDetails, { new: true }, function (err, kraData) {
         if (err) {
             return res.status(403).json({
                 title: 'There was a problem',
@@ -222,14 +223,12 @@ function updateKraInfoDetails(req, res, done) {
             });
         }
         AuditTrail.auditTrailEntry(0, "kraDetails", kraDetails, "user", "kraDetails", "UPDATE");
-        return done(err,kraData);
+        return done(err, kraData);
     });
 }
 
-function deleteKraInfoDetails(req,res,done)
-{
-    KraInfo.remove({_id:parseInt(req.query._id)},function(err,data)
-    {
+function deleteKraInfoDetails(req, res, done) {
+    KraInfo.remove({ _id: parseInt(req.query._id) }, function (err, data) {
         if (err) {
             return res.status(403).json({
                 title: 'There was a problem',
@@ -241,7 +240,7 @@ function deleteKraInfoDetails(req,res,done)
                 }
             });
         }
-        return done(err,data);
+        return done(err, data);
     })
 }
 
@@ -266,45 +265,45 @@ function deleteKraInfoDetails(req,res,done)
 
 
 function getKraInfoDetails(req, res) {
-  let kraWorkflow_id = req.query.kraWorkflow_id;
-  let query = {
-      isDeleted: false
-  };
-  if (kraWorkflow_id) {
-      query = {
-          kraWorkflow_id: parseInt(kraWorkflow_id),
-          isDeleted: false
-      };
-  }
-  var kraProjection = {
-      createdAt: false,
-      updatedAt: false,
-      isDeleted: false,
-      updatedBy: false,
-      createdBy: false,
-  };
-  KraInfo.find(query, kraProjection, function(err, kraInfoData) {
-      if (err) {
-          return res.status(403).json({
-              title: 'There was an error, please try again later',
-              error: err
-          });
-      }
-      else{
-         KraWorkFlowInfo.findOne({_id:parseInt(kraWorkflow_id),isDeleted:false}).select('status').exec(function(err,kraWorkFlow){
-            if (err) {
-                return res.status(403).json({
-                    title: 'There was an error, please try again later',
-                    error: err
-                });
-            }
-            return res.status(200).json({
-                'data': kraInfoData,'status':kraWorkFlow.status
+    let kraWorkflow_id = req.query.kraWorkflow_id;
+    let query = {
+        isDeleted: false
+    };
+    if (kraWorkflow_id) {
+        query = {
+            kraWorkflow_id: parseInt(kraWorkflow_id),
+            isDeleted: false
+        };
+    }
+    var kraProjection = {
+        createdAt: false,
+        updatedAt: false,
+        isDeleted: false,
+        updatedBy: false,
+        createdBy: false,
+    };
+    KraInfo.find(query, kraProjection, function (err, kraInfoData) {
+        if (err) {
+            return res.status(403).json({
+                title: 'There was an error, please try again later',
+                error: err
             });
+        }
+        else {
+            KraWorkFlowInfo.findOne({ _id: parseInt(kraWorkflow_id), isDeleted: false }).select('status').exec(function (err, kraWorkFlow) {
+                if (err) {
+                    return res.status(403).json({
+                        title: 'There was an error, please try again later',
+                        error: err
+                    });
+                }
+                return res.status(200).json({
+                    'data': kraInfoData, 'status': kraWorkFlow.status
+                });
 
-         })
-      }
-  });
+            })
+        }
+    });
 }
 
 function getKraWorkFlowInfoDetails(req, res) {
@@ -329,8 +328,7 @@ function getKraWorkFlowInfoDetails(req, res) {
     });
 }
 
-function getKraWorkFlowInfoDetailsByBatch(req, res)
-{
+function getKraWorkFlowInfoDetailsByBatch(req, res) {
     let batch_id = req.query.batch_id;
     KraWorkFlowInfo.aggregate([
         {
@@ -342,7 +340,7 @@ function getKraWorkFlowInfoDetailsByBatch(req, res)
             }
         },
         {
-          "$unwind": "$employeedetails"
+            "$unwind": "$employeedetails"
         },
         {
             "$lookup": {
@@ -353,28 +351,239 @@ function getKraWorkFlowInfoDetailsByBatch(req, res)
             }
         },
         {
-          "$unwind": "$employeeUserDetails"
+            "$unwind": "$employeeUserDetails"
         },
-        { "$match": { "batch_id":parseInt(batch_id),"isDeleted":false,"employeedetails.isDeleted":false,"employeeUserDetails.isDeleted":false} },
-        { "$sort": { "createdAt":-1,"updatedAt": -1 } },
-        {"$project":{
-            "_id":"$_id",
-            "status":"$status",
-            "createdAt":"$createdAt",
-            "updatedAt":"$updatedAt",
-            "createdBy":"$employeedetails.fullName",
-            "userName" :"$employeeUserDetails.fullName",
-            "timeline_id":"$timeline_id"
-        }}
-      ]).exec(function(err, kraflowInfoDataByBatch){
+        { "$match": { "batch_id": parseInt(batch_id), "isDeleted": false, "employeedetails.isDeleted": false, "employeeUserDetails.isDeleted": false } },
+        { "$sort": { "createdAt": -1, "updatedAt": -1 } },
+        {
+            "$project": {
+                "_id": "$_id",
+                "status": "$status",
+                "createdAt": "$createdAt",
+                "updatedAt": "$updatedAt",
+                "createdBy": "$employeedetails.fullName",
+                "userName": "$employeeUserDetails.fullName",
+                "timeline_id": "$timeline_id"
+            }
+        }
+    ]).exec(function (err, kraflowInfoDataByBatch) {
         if (err) {
             return res.status(403).json({
                 title: 'There was an error, please try again later',
                 error: err
             });
         }
-        return res.status(200).json({data:kraflowInfoDataByBatch});
-      }) 
+        return res.status(200).json({ data: kraflowInfoDataByBatch });
+    })
+}
+
+function getKraForApproval(req, res) {
+    let supervisorId = parseInt(req.query.supervisorId);
+
+    KraInfo.aggregate([
+        { "$match": { "isDeleted": false, "supervisor_id": supervisorId } },
+        {
+            "$lookup": {
+                "from": "kraworkflowdetails",
+                "localField": "kraWorkflow_id",
+                "foreignField": "_id",
+                "as": "kraWorkflow"
+            }
+        },
+        {
+            "$unwind": {
+                path: "$kraWorkflow",
+                "preserveNullAndEmptyArrays": true
+            }
+        },
+        {
+            "$lookup": {
+                "from": "employeedetails",
+                "localField": "kraWorkflow.emp_id",
+                "foreignField": "_id",
+                "as": "employeedetails"
+            }
+        },
+        {
+            "$unwind": {
+                path: "$employeedetails",
+                "preserveNullAndEmptyArrays": true
+            }
+        },
+        {
+            "$project": {
+                "_id": "$kraWorkflow._id",
+                "emp_id": "$kraWorkflow.emp_id",
+                "updatedAt": "$kraWorkflow.updatedAt",
+                "status": "$kraWorkflow.status",
+                "emp_name": "$employeedetails.fullName",
+                "userName": "$employeedetails.userName",
+                "profileImage": "$employeedetails.profileImage",
+            }
+        },
+        {
+            $group: {
+                _id: "$_id",
+                emp_id: { $first: "$emp_id" },
+                updatedAt: { $first: "$updatedAt" },
+                status: { $first: "$status" },
+                emp_name: { $first: "$emp_name" },
+                userName: { $first: "$userName" },
+                profileImage: { $first: "$profileImage" },
+            }
+        }
+    ]).exec((err, kraDetails) => {
+        if (err) {
+            return res.status(403).json({
+                title: 'There was an error, please try again later',
+                error: err
+            });
+        }
+        return res.status(200).json({ data: kraDetails });
+    });
+}
+
+function getKraForReviewer(req, res) {
+    let supervisorId = parseInt(req.query.supervisorId);
+
+    EmployeeSupervisors.aggregate([
+        { "$match": { "isActive": true, "primarySupervisorEmp_id": supervisorId } },
+        {
+            "$lookup": {
+                "from": "kradetails",
+                "localField": "supervisor_id",
+                "foreignField": "emp_id",
+                "as": "kradetails"
+            }
+        },
+        {
+            "$unwind": {
+                path: "$kradetails",
+                "preserveNullAndEmptyArrays": true
+            }
+        },
+        {
+            "$lookup": {
+                "from": "kraworkflowdetails",
+                "localField": "kradetails.kraWorkflow_id",
+                "foreignField": "_id",
+                "as": "kraWorkflow"
+            }
+        },
+        {
+            "$unwind": {
+                path: "$kraWorkflow",
+                "preserveNullAndEmptyArrays": true
+            }
+        },
+        {
+            "$lookup": {
+                "from": "employeedetails",
+                "localField": "kraWorkflow.emp_id",
+                "foreignField": "_id",
+                "as": "employeedetails"
+            }
+        },
+        {
+            "$unwind": {
+                path: "$employeedetails",
+                "preserveNullAndEmptyArrays": true
+            }
+        },
+        {
+            "$project": {
+                "_id": "$kraWorkflow._id",
+                "emp_id": "$kraWorkflow.emp_id",
+                "updatedAt": "$kraWorkflow.updatedAt",
+                "status": "$kraWorkflow.status",
+                "emp_name": "$employeedetails.fullName",
+                "userName": "$employeedetails.userName",
+                "profileImage": "$employeedetails.profileImage",
+            }
+        },
+        {
+            $group: {
+                _id: "$_id",
+                emp_id: { $first: "$emp_id" },
+                updatedAt: { $first: "$updatedAt" },
+                status: { $first: "$status" },
+                emp_name: { $first: "$emp_name" },
+                userName: { $first: "$userName" },
+                profileImage: { $first: "$profileImage" },
+            }
+        }
+    ]).exec((err, kraDetails) => {
+        if (err) {
+            return res.status(403).json({
+                title: 'There was an error, please try again later',
+                error: err
+            });
+        }
+        return res.status(200).json({ data: kraDetails });
+    });
+
+    // KraInfo.aggregate([
+    //     { "$match": { "isDeleted": false, "supervisor_id": supervisorId } },
+    //     {
+    //         "$lookup": {
+    //             "from": "kraworkflowdetails",
+    //             "localField": "kraWorkflow_id",
+    //             "foreignField": "_id",
+    //             "as": "kraWorkflow"
+    //         }
+    //     },
+    //     {
+    //         "$unwind": {
+    //             path: "$kraWorkflow",
+    //             "preserveNullAndEmptyArrays": true
+    //         }
+    //     },
+    //     {
+    //         "$lookup": {
+    //             "from": "employeedetails",
+    //             "localField": "kraWorkflow.emp_id",
+    //             "foreignField": "_id",
+    //             "as": "employeedetails"
+    //         }
+    //     },
+    //     {
+    //         "$unwind": {
+    //             path: "$employeedetails",
+    //             "preserveNullAndEmptyArrays": true
+    //         }
+    //     },
+    //     {
+    //         "$project": {
+    //             "_id": "$kraWorkflow._id",
+    //             "emp_id": "$kraWorkflow.emp_id",
+    //             "updatedAt": "$kraWorkflow.updatedAt",
+    //             "status": "$kraWorkflow.status",
+    //             "emp_name": "$employeedetails.fullName",
+    //             "userName": "$employeedetails.userName",
+    //             "profileImage": "$employeedetails.profileImage",
+    //         }
+    //     },
+    //     {
+    //         $group: {
+    //             _id: "$_id",
+    //             emp_id: { $first: "$emp_id" },
+    //             updatedAt: { $first: "$updatedAt" },
+    //             status: { $first: "$status" },
+    //             emp_name: { $first: "$emp_name" },
+    //             userName: { $first: "$userName" },
+    //             profileImage: { $first: "$profileImage" },
+    //         }
+    //     }
+    // ]).exec((err, kraDetails) => {
+    //     debugger;
+    //     if (err) {
+    //         return res.status(403).json({
+    //             title: 'There was an error, please try again later',
+    //             error: err
+    //         });
+    //     }
+    //     return res.status(200).json({ data: kraDetails });
+    // });
 }
 
 // function updateBatchStatus(req, res)
@@ -399,25 +608,25 @@ function getKraWorkFlowInfoDetailsByBatch(req, res)
 
 
 let functions = {
-    addKraWeightageInfo:(req,res )=> {
+    addKraWeightageInfo: (req, res) => {
         async.waterfall([
-          function(done) {
-            addKraWeightageInfoDetails(req,res,done);
-          },
-          function(kraWeightageInfoData,done) {
-            return res.status(200).json(kraWeightageInfoData);
-          }
+            function (done) {
+                addKraWeightageInfoDetails(req, res, done);
+            },
+            function (kraWeightageInfoData, done) {
+                return res.status(200).json(kraWeightageInfoData);
+            }
         ]);
     },
 
-    addKraCategoryInfo:(req,res )=> {
+    addKraCategoryInfo: (req, res) => {
         async.waterfall([
-          function(done) {
-            addKraCategoryInfoDetails(req,res,done);
-          },
-          function(kraCategoryInfoData,done) {
-            return res.status(200).json(kraCategoryInfoData);
-          }
+            function (done) {
+                addKraCategoryInfoDetails(req, res, done);
+            },
+            function (kraCategoryInfoData, done) {
+                return res.status(200).json(kraCategoryInfoData);
+            }
         ]);
     },
 
@@ -458,10 +667,10 @@ let functions = {
 
     getEmployeeKraWorkFlowInfo: (req, res) => {
         async.waterfall([
-            function(done) {
+            function (done) {
                 getEmployeeKraWorkFlowInfoDetails(req, res, done);
             },
-            function(employeeKraWorkFlowDetailsData, done) {
+            function (employeeKraWorkFlowDetailsData, done) {
                 return res.status(200).json({
                     "data": employeeKraWorkFlowDetailsData
                 });
@@ -471,10 +680,10 @@ let functions = {
 
     getKraWorkFlowInfoByBatch: (req, res) => {
         async.waterfall([
-            function(done) {
+            function (done) {
                 getKraWorkFlowInfoDetailsByBatch(req, res, done);
             },
-            function(kraflowInfoDataByBatch, done) {
+            function (kraflowInfoDataByBatch, done) {
                 return res.status(200).json({
                     "data": kraflowInfoDataByBatch
                 });
@@ -483,15 +692,15 @@ let functions = {
     },
 
 
-    addBulkKra:(req,res )=> {
+    addBulkKra: (req, res) => {
         async.waterfall([
-          function(done) {
-            BatchCtrl.addBatchInfoDetails(req,res,done)
-          },
-          function(batchData,done) {
-             req.body.batch_id=batchData._id;
-             addBulkKraInfoDetails(req,res,done);
-          }
+            function (done) {
+                BatchCtrl.addBatchInfoDetails(req, res, done)
+            },
+            function (batchData, done) {
+                req.body.batch_id = batchData._id;
+                addBulkKraInfoDetails(req, res, done);
+            }
         ]);
     },
 
@@ -508,39 +717,58 @@ let functions = {
         ]);
     },
 
-    addKraInfo:(req,res )=> {
+    addKraInfo: (req, res) => {
         async.waterfall([
-          function(done) {
-             addKraInfoDetails(req,res,done);
-          },
-          function(kraInfoData,done) {
-            return res.status(200).json(kraInfoData);
-          }
+            function (done) {
+                addKraInfoDetails(req, res, done);
+            },
+            function (kraInfoData, done) {
+                return res.status(200).json(kraInfoData);
+            }
         ]);
     },
 
     updateKraInfo: (req, res) => {
-          async.waterfall([
-              function (done) {
-                  updateKraInfoDetails(req, res, done);
-              },
-              function (kraInfoData, done) {
-                  return res.status(200).json(kraInfoData);
-              }
-          ]);
-    },
-
-    deleteKraInfo:(req, res)=>
-    {
         async.waterfall([
-            function(done) {
-               deleteKraInfoDetails(req,res,done);
+            function (done) {
+                updateKraInfoDetails(req, res, done);
             },
-            function(kraInfoData,done) {
-              return res.status(200).json(kraInfoData);
+            function (kraInfoData, done) {
+                return res.status(200).json(kraInfoData);
             }
         ]);
     },
- 
+
+    deleteKraInfo: (req, res) => {
+        async.waterfall([
+            function (done) {
+                deleteKraInfoDetails(req, res, done);
+            },
+            function (kraInfoData, done) {
+                return res.status(200).json(kraInfoData);
+            }
+        ]);
+    },
+
+    getKraForApproval: (req, res) => {
+        async.waterfall([
+            function (done) {
+                getKraForApproval(req, res, done);
+            },
+            function (kraInfoData, done) {
+                return res.status(200).json(kraInfoData);
+            }
+        ]);
+    },
+    getKraForReviewer: (req, res) => {
+        async.waterfall([
+            function (done) {
+                getKraForReviewer(req, res, done);
+            },
+            function (kraInfoData, done) {
+                return res.status(200).json(kraInfoData);
+            }
+        ]);
+    },
 }
-module.exports = {functions,updateKraWorkFlowInfoDetails};
+module.exports = { functions, updateKraWorkFlowInfoDetails };
