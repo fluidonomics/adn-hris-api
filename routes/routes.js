@@ -291,6 +291,8 @@ let express  = require('express'),
         kraRoutes.post('/addBulkKra',ensureAuthenticated, kra.functions.addBulkKra);
 
         kraRoutes.get('/getKraWorkFlowInfoByBatch',ensureAuthenticated, kra.functions.getKraWorkFlowInfoByBatch);
+        kraRoutes.get('/getKraForApproval',ensureAuthenticated, kra.functions.getKraForApproval);
+        kraRoutes.get('/getKraForReviewer',ensureAuthenticated, kra.functions.getKraForReviewer);
 
         //kraRoutes.post('/updateBatchStatus',ensureAuthenticated, kra.updateBatchStatus);
         

@@ -2053,7 +2053,6 @@ function getCarInfoDetails(req, res) {
 }
 
 function updateSupervisortransfer(req, res, done) {
-    debugger;
     try {
         let _id = req.body.emp_id;
         let changeType = req.body.change_type;
