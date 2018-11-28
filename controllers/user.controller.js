@@ -2843,6 +2843,7 @@ let functions = {
                 updateSupervisortransfer(req, res, done);
             },
             function (supervisorTransferInfo, done) {
+                AuditTrail.auditTrailEntry(req.body.user_id, "employeesupervisordetails", req.body, "user", "SuerVisorResponsibilityTransfer", "transferred");              
                 return res.status(200).json(supervisorTransferInfo);
             }
         ]);
