@@ -2060,12 +2060,16 @@ function updateSupervisortransfer(req, res, done) {
             emp_id: _id,
             isActive: true
         }
+        let responseObject={
+            previousSupervisorInfo:null,
+            apiStatus:false
+        };
         var queryUpdate = {};
 
         SupervisorInfo.findOne(query, (err, existingSupervisorInfo) => {
             checkError(err);
-
-            if (req.body.primarySupervisorEmp_id != null && req.body.primarySupervisorEmp_id != req.body.secondarySupervisorEmp_id) {
+            responseObject.previousSupervisorInfo=existingSupervisorInfo;
+            if (req.body.primarySupervisorEmp_id != null && req.body.primarySupervisorEmp_id != req.body.secondarySupervisorEmp_id) {                
                 queryUpdate = {
                     $set: {
                         "primarySupervisorEmp_id": req.body.primarySupervisorEmp_id,
@@ -2115,20 +2119,26 @@ function updateSupervisortransfer(req, res, done) {
                             }
                         ], function (res) {
                             if (!res) {
-                                return done(null, false);
+                                responseObject.apiStatus=false;
+                                return done(null, responseObject);
                             }
-                            return done(null, true);
+                            responseObject.apiStatus=true;
+                            return done(null, responseObject);
                         });
                     } else {
-                        return done(null, true);
-                    }
+                        responseObject.apiStatus=true;
+                        return done(null, responseObject);
+                    }                    
                 });
             } else {
-                return done(null, false);
+                responseObject.apiStatus=false;
+                return done(null, responseObject);
             }
+
         });
     } catch (error) {
-        return done(null, false);
+        responseObject.apiStatus=false;
+        return done(null, responseObject);
     }
 };
 
@@ -2843,8 +2853,113 @@ let functions = {
             function (done) {
                 updateSupervisortransfer(req, res, done);
             },
-            function (supervisorTransferInfo, done) {
-                return res.status(200).json(supervisorTransferInfo);
+            
+            function (responseObject, done) {
+                AuditTrail.auditTrailEntry(req.body.user_id, "employeesupervisordetails", req.body, "user", "SuerVisorResponsibilityTransfer", "transferred");
+                 if(responseObject.apiStatus){                              
+                let queryforHR  = {
+                    _id: req.body.user_id,
+                    isDeleted: false
+                }
+                OfficeInfo.findOne(queryforHR,function(err,hrDetails){
+                    if(hrDetails!=null){
+                        EmployeeInfo.findOne(queryforHR,function(err,hrPersonalDetails){                                                     
+                            let queryforEmployee  = {
+                                _id: req.body.emp_id,
+                                isDeleted: false
+                            }
+                            OfficeInfo.findOne(queryforEmployee,function(err,empDetails){
+                                if(empDetails!=null){
+                                    EmployeeInfo.findOne(queryforEmployee,function(err,empPersonalDetails){                                                                                        
+                                    let queryforNewPriSupvsr  = {
+                                        _id: req.body.primarySupervisorEmp_id,
+                                        isDeleted: false
+                                    } 
+                                    OfficeInfo.findOne(queryforNewPriSupvsr,function(err,NewPriSupvsr){                                        
+                                        if(NewPriSupvsr!=null){
+                                            EmployeeInfo.findOne(queryforNewPriSupvsr,function(err,NewPersonalPriSupvsr){                                             
+                                            let queryforNewSecSupvsr  = {
+                                                _id: req.body.secondarySupervisorEmp_id,
+                                                isDeleted: false
+                                            }
+                                            OfficeInfo.findOne(queryforNewSecSupvsr,function(err,NewSecSupvsr){
+                                                if(NewSecSupvsr!=null){
+                                                    EmployeeInfo.findOne(queryforNewSecSupvsr,function(err,NewPersonalSecSupvsr){
+                                                    let queryforOldPriSupvsr  = {
+                                                        _id: responseObject.previousSupervisorInfo.primarySupervisorEmp_id,
+                                                        isDeleted: false
+                                                    }
+                                                    OfficeInfo.findOne(queryforOldPriSupvsr,function(err,OldPriSupvsr){
+                                                        if(OldPriSupvsr!=null){
+                                                            EmployeeInfo.findOne(queryforOldPriSupvsr,function(err,OldPersonalPriSupvsr){
+                                                            let queryforOldSecSupvsr  = {
+                                                                _id: responseObject.previousSupervisorInfo.secondarySupervisorEmp_id,
+                                                                isDeleted: false
+                                                            }
+                                                            OfficeInfo.findOne(queryforOldSecSupvsr,function(err,OldSecSupvsr){
+                                                                if(OldSecSupvsr!=null){                                                                
+                                                                    EmployeeInfo.findOne(queryforOldSecSupvsr,function(err,OldPersonalSecSupvsr){
+                                                                    if(req.body.primarySupervisorEmp_id!=responseObject.previousSupervisorInfo.primarySupervisorEmp_id){
+                                                                        let data={
+                                                                            fullName: empPersonalDetails.fullName,
+                                                                            hrFullName:hrPersonalDetails.fullName,
+                                                                            hrUserId:hrPersonalDetails.userName,
+                                                                            empUserId: empPersonalDetails.userName,
+                                                                            transferType: "Supervisor "+req.body.change_type,
+                                                                            supervisorType: "Primary Supervisor",
+                                                                            oldSupName:OldPersonalPriSupvsr.fullName,
+                                                                            oldSupUserId:OldPersonalPriSupvsr.userName,
+                                                                            newSupName:NewPersonalPriSupvsr.fullName,
+                                                                            newSupUserId:NewPersonalPriSupvsr.userName ,
+                                                                            appliedDate: new Date().toISOString().replace(/T/, ' ').replace(/\..+/, ''),
+                                                                        }
+                                                                        SendEmail.sendEmailToEmployeeNotifySupervsrTransfer(empDetails["officeEmail"],data);
+                                                                        SendEmail.sendEmailToHRNotifySupervsrTransfer(hrDetails["officeEmail"],data);
+                                                                        SendEmail.sendEmailToPrevSupervsrNotifySupervsrTransfer(OldPriSupvsr["officeEmail"],data);
+                                                                        SendEmail.sendEmailToNewSupervsrNotifySupervsrTransfer(NewPriSupvsr["officeEmail"],data);
+                                                                        
+                                                                    }
+                                                                    if(req.body.secondarySupervisorEmp_id!=responseObject.previousSupervisorInfo.secondarySupervisorEmp_id){
+                                                                        let data={
+                                                                            fullName: empPersonalDetails.fullName,
+                                                                            empUserId: empPersonalDetails.userName,
+                                                                            hrFullName:hrPersonalDetails.fullName,
+                                                                            hrUserId:hrPersonalDetails.userName,
+                                                                            transferType: "Supervisor "+req.body.change_type,
+                                                                            supervisorType: "Secondary Supervisor",
+                                                                            oldSupName:OldPersonalSecSupvsr.fullName,
+                                                                            oldSupUserId:OldPersonalSecSupvsr.userName,
+                                                                            newSupName:NewPersonalSecSupvsr.fullName,
+                                                                            newSupUserId:NewPersonalSecSupvsr.userName,
+                                                                            appliedDate: new Date().toISOString().replace(/T/, ' ').replace(/\..+/, ''),
+                                                                        }
+                                                                        SendEmail.sendEmailToEmployeeNotifySupervsrTransfer(empDetails["officeEmail"],data);
+                                                                        SendEmail.sendEmailToHRNotifySupervsrTransfer(hrDetails["officeEmail"],data);
+                                                                        SendEmail.sendEmailToPrevSupervsrNotifySupervsrTransfer(OldSecSupvsr["officeEmail"],data);
+                                                                        SendEmail.sendEmailToNewSupervsrNotifySupervsrTransfer(NewSecSupvsr["officeEmail"],data);
+                                                                    }
+                                                                });
+                                                                }
+                                                            });
+                                                        });
+                                                        }
+                                                    
+                                                    });
+                                                });
+                                                }
+                                            });
+                                        });
+                                        }
+                                    });
+                                });
+                                }
+                            });
+                        });
+                    }
+                });
+            }
+               
+                return res.status(200).json(responseObject.apiStatus);
             }
         ]);
 

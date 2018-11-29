@@ -70,6 +70,18 @@ module.exports = {
       from:'"Team HRIS" <hris@adnsl.net>',
       subject:'Leave Cancellation Rejected'
     },
+    'emailToEmployeeForSupervsrTransfer': {
+      from:'"Team HRIS" <hris@adnsl.net>',
+      subject:' is done by HR'
+    }, 
+    'emailToPrevSupervsrForSupervsrTransfer': {
+      from:'"Team HRIS" <hris@adnsl.net>',
+      subject:'Subordinate Transferred to New Supervisor'
+    } ,
+    'emailToNewSupervsrForSupervsrTransfer': {
+      from:'"Team HRIS" <hris@adnsl.net>',
+      subject:'New Subordinate is added'
+    }    
   },
   'aws':
   {

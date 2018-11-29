@@ -397,6 +397,94 @@ let functions =
         };
         transporter.sendMail(mailOptions);
 
+    },
+    sendEmailToEmployeeNotifySupervsrTransfer: (toEmail, data) => {
+        let mailOptions = {
+            from: config.email.forget.from, // sender address
+            to: toEmail,
+            subject: data.transferType + config.email.emailToEmployeeForSupervsrTransfer.subject, // Subject line
+            template: 'email-notify-to-emp-for-supvsr-transfer',
+            context: {                
+                fullName: data.fullName,
+                transferType:data.transferType,
+                supervisorType: data.supervisorType,
+                oldSupName:data.oldSupName,
+                oldSupUserId:data.oldSupUserId,
+                newSupName:data.newSupName,
+                newSupUserId:data.newSupUserId                              
+            }
+        };
+        transporter.sendMail(mailOptions);
+
+    },
+    sendEmailToHRNotifySupervsrTransfer: (toEmail, data) => {
+        let mailOptions = {
+            from: config.email.forget.from, // sender address
+            to: toEmail,
+            subject: data.transferType + " Succesful for "+data.fullName +"("+data.empUserId+")", // Subject line
+            template: 'email-notify-to-hr-for-supvsr-transfer',
+            context: {                
+                fullName: data.fullName,
+                empUserId: data.empUserId,
+                hrFullName:data.hrFullName,
+                hrUserId:data.hrUserId,
+                transferType: data.transferType,
+                supervisorType:data.supervisorType,
+                oldSupName:data.oldSupName,
+                oldSupUserId:data.oldSupUserId,
+                newSupName:data.newSupName,
+                newSupUserId:data.newSupUserId,
+                appliedDate: data.appliedDate,                             
+            }
+        };
+        transporter.sendMail(mailOptions);
+
+    },
+    sendEmailToPrevSupervsrNotifySupervsrTransfer: (toEmail, data) => {
+        let mailOptions = {
+            from: config.email.forget.from, // sender address
+            to: toEmail,
+            subject: config.email.emailToPrevSupervsrForSupervsrTransfer.subject,// Subject line
+            template: 'email-notify-to-prev-supervsr-for-supvsr-transfer',
+            context: {                
+                fullName: data.fullName,
+                empUserId: data.empUserId,
+                hrFullName:data.hrFullName,
+                hrUserId:data.hrUserId,
+                transferType: data.transferType,
+                supervisorType:data.supervisorType,
+                oldSupName:data.oldSupName,
+                oldSupUserId:data.oldSupUserId,
+                newSupName:data.newSupName,
+                newSupUserId:data.newSupUserId,
+                appliedDate: data.appliedDate,                             
+            }
+        };
+        transporter.sendMail(mailOptions);
+
+    },
+    sendEmailToNewSupervsrNotifySupervsrTransfer: (toEmail, data) => {
+        let mailOptions = {
+            from: config.email.forget.from, // sender address
+            to: toEmail,
+            subject: config.email.emailToNewSupervsrForSupervsrTransfer.subject,// Subject line
+            template: 'email-notify-to-new-supervsr-for-supvsr-transfer',
+            context: {                
+                fullName: data.fullName,
+                empUserId: data.empUserId,
+                hrFullName:data.hrFullName,
+                hrUserId:data.hrUserId,
+                transferType: data.transferType,
+                supervisorType:data.supervisorType,
+                oldSupName:data.oldSupName,
+                oldSupUserId:data.oldSupUserId,
+                newSupName:data.newSupName,
+                newSupUserId:data.newSupUserId,
+                appliedDate: data.appliedDate,                             
+            }
+        };
+        transporter.sendMail(mailOptions);
+
     }
 
 
