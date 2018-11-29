@@ -23,7 +23,6 @@ s3 = new aws.S3();
 let tempStorage=multerS3({
   s3: s3,
   bucket: process.env.BucketName,
-  acl: 'public-read',
   key: function (req, file, cb) {
         crypto.pseudoRandomBytes(4, (err, raw) => {
           let filename = file.originalname.replace(/_/gi, '');
@@ -78,7 +77,6 @@ let avatarTemp = multer({
     storage: multerS3({
       s3: s3,
       bucket: process.env.BucketName,
-      acl: 'public-read',
       key: function (req, file, cb) {
             crypto.pseudoRandomBytes(4, (err, raw) => {
               let filename = file.originalname.replace(/_/gi, '');
@@ -152,7 +150,6 @@ let functions = {
         Bucket : process.env.BucketName, 
         CopySource : '/' + process.env.BucketName +'/' + image, 
         Key : destination + image.replace('tmp/',''),
-        ACL : 'public-read',
     };
     s3.copyObject(params, function(err, data) {
         if (err)

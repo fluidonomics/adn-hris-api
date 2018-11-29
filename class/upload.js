@@ -17,7 +17,6 @@ s3 = new aws.S3();
 let imageTempStorage = multerS3({
     s3: s3,
     bucket: process.env.BucketName,
-    acl: 'public-read',
     key: function (req, file, cb) {
         crypto.pseudoRandomBytes(4, (err, raw) => {
             let filename = file.originalname.replace(/_/gi, '');
@@ -29,7 +28,6 @@ let imageTempStorage = multerS3({
 let documentStorage = multerS3({
     s3: s3,
     bucket: process.env.BucketName,
-    acl: 'public-read',
     key: function (req, file, cb) {
         crypto.pseudoRandomBytes(4, (err, raw) => {
             let filename = file.originalname.replace(/_/gi, '');
