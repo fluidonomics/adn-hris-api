@@ -30,6 +30,18 @@ module.exports = {
       from:'"Team HRIS" <hris@adnsl.net>',
       subject:'Leave application of '
     },
+    'emailToEmployeeForAppliedLeaveOnBehalf': {
+      from:'"Team HRIS" <hris@adnsl.net>',
+      subject:' is applied on your behalf by '
+    },
+    'emailTohrForAppliedLeaveRejected': {
+      from:'"Team HRIS" <hris@adnsl.net>',
+      subject:' Leave Request of '
+    },
+    'emailTohrForAppliedLeaveApproved': {
+      from:'"Team HRIS" <hris@adnsl.net>',
+      subject:' Leave application of '
+    },
     'emailToSupvsrForWithdrawnLeave': {
       from:'"Team HRIS" <hris@adnsl.net>',
       subject:'Leave withdrawn application of '
@@ -37,6 +49,10 @@ module.exports = {
     'emailToSupvsrForCancelLeave': {
       from:'"Team HRIS" <hris@adnsl.net>',
       subject:'Leave cancel application of '
+    },
+    'emailToHRForCancelLeave': {
+      from:'"Team HRIS" <hris@adnsl.net>',
+      subject:'Leave cancelled of '
     },
     'emailToEmployeeForLeaveRequestApproved': {
       from:'"Team HRIS" <hris@adnsl.net>',
