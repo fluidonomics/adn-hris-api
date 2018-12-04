@@ -434,7 +434,6 @@ getLeaveTransaction: (req, res) => {
         });
     })
 },
-
 function getLeavesByType(leaveTypesData, appliedLeaves, res) {
     let response = [];
     leaveTypesData.forEach((type) => {
@@ -755,7 +754,7 @@ function updateSickLeaveDocumentDetails(req, res, done) {
         return done(err, req);
     });
 }
-function GrantMaternityValidCase(data, res) {
+function GrantMaternityValidCase(data,results, res) {
     let leaveBalance = new LeaveBalance();
     leaveBalance.isDeleted = false;
     leaveBalance.balance = data.balance;
@@ -775,13 +774,24 @@ function GrantMaternityValidCase(data, res) {
                 }
             });
         } else {
-            SendEmail.sendEmailToEmployeeForMaternityLeaveQuotaProvided(data)
-            return res.status(200).json({
-                title: 'leave balance added',
-                result: {
-                    message: leavedata
+            SendEmail.sendEmailToEmployeeForMaternityLeaveQuotaProvided(data, function(emailErr, email_response) {
+                if(emailErr) {
+                    return res.status(200).json({
+                        title: 'leave balance added and but failed while sending mail to user',
+                        result: {
+                            message: results
+                        }
+                    });
+                } else {
+                    return res.status(200).json({
+                        title: 'leave balance added and mail send to user successfully',
+                        result: {
+                            message: results
+                        }
+                    });
                 }
             });
+            
         }
     });
 }
@@ -794,6 +804,519 @@ function GrantMaternityInValidCase(res) {
         result: {
             message: 'user already have maternity leave granted that is not availed yet'
         }
+    });
+}
+function grantSpecialLeaveToAllEmployee(data, res) {
+    getEmployeeList(function(err, employeeData) {
+        if(err) {
+            console.log(err);
+        } else {
+            employeeData.forEach(f => {
+                grantSpecialLeaveToSingleEmployee(f._id, data, function(err, leaveData) {
+                    if(err) {
+                        console.log(err);
+                    } else {
+
+                    }
+                });
+            })
+            console.log(employeeData);
+        }
+    })
+}
+function grantSpecialLeaveToSingleEmployee(empId, data, callback) {
+    let leaveBalance = new LeaveBalance();
+    leaveBalance.isDeleted = false;
+    leaveBalance.balance = data.balance;
+    leaveBalance.leave_type = data.leaveType
+    leaveBalance.emp_id = empId;
+    leaveBalance.fiscalYearId = data.fiscalYearId;
+    leaveBalance.createdBy = data.createdBy;
+    leaveBalance.startDate = data.startDate;
+    leaveBalance.endDate = data.endDate;
+    leaveBalance.save(callback);
+}
+function getEmployeeListManagementType(req, res) {
+    EmployeeInfo.aggregate([ { 
+        "$lookup" : {
+            "from" : "designations", 
+            "localField" : "designation_id", 
+            "foreignField" : "_id", 
+            "as" : "designations"
+        }
+    }, 
+    { 
+        "$lookup" : {
+            "from" : "employeeofficedetails", 
+            "localField" : "_id", 
+            "foreignField" : "emp_id", 
+            "as" : "officeDetails"
+        }
+    }, 
+    { 
+        "$lookup" : {
+            "from" : "employeesupervisordetails", 
+            "localField" : "_id", 
+            "foreignField" : "emp_id", 
+            "as" : "supervisor"
+        }
+    }, 
+    { 
+        "$lookup" : {
+            "from" : "employeedetails", 
+            "localField" : "supervisor.primarySupervisorEmp_id", 
+            "foreignField" : "_id", 
+            "as" : "employees"
+        }
+    }, 
+    { 
+        "$lookup" : {
+            "from" : "employeeprofileprocessdetails", 
+            "localField" : "_id", 
+            "foreignField" : "emp_id", 
+            "as" : "employeeprofileProcessDetails"
+        }
+    }, 
+    { 
+        "$lookup" : {
+            "from" : "employeeprofileprocessdetails", 
+            "localField" : "_id", 
+            "foreignField" : "emp_id", 
+            "as" : "employeeprofileProcessDetails"
+        }
+    }, 
+    { 
+        "$lookup" : {
+            "from" : "employeepersonaldetails", 
+            "localField" : "_id", 
+            "foreignField" : "emp_id", 
+            "as" : "employeePersonalDetails"
+        }
+    }, 
+    { 
+        "$unwind" : {
+            "path" : "$designations"
+        }
+    }, 
+    { 
+        "$unwind" : {
+            "path" : "$officeDetails"
+        }
+    }, 
+    { 
+        "$unwind" : {
+            "path" : "$supervisor"
+        }
+    }, 
+    { 
+        "$unwind" : {
+            "path" : "$employees"
+        }
+    }, 
+    { 
+        "$unwind" : {
+            "path" : "$employeeprofileProcessDetails"
+        }
+    }, 
+    { 
+        "$unwind" : {
+            "path" : "$employeePersonalDetails"
+        }
+    }, 
+    { 
+        "$match" : {
+            "isDeleted" : false, 
+            "designations.isActive" : true, 
+            "officeDetails.isDeleted" : false, 
+            "officeDetails.managementType_id" : "1"
+        }
+    }, 
+    { 
+        "$lookup" : {
+            "from" : "employeeofficedetails", 
+            "localField" : "supervisor.emp_id", 
+            "foreignField" : "emp_id", 
+            "as" : "supervisorDetails"
+        }
+    }, 
+    { 
+        "$unwind" : {
+            "path" : "$supervisorDetails"
+        }
+    }, 
+    { 
+        "$lookup" : {
+            "from" : "leavebalance", 
+            "localField" : "_id", 
+            "foreignField" : "emp_id", 
+            "as" : "leavebalancedetails"
+        }
+    },
+    {
+        "$unwind" : {
+            "path" : "$leavebalancedetails"
+        }
+    }, 
+    { 
+        "$project" : {
+            "_id" : "$_id", 
+            "fullName" : "$fullName", 
+            "userName" : "$userName", 
+            "isAccountActive" : "$isAccountActive", 
+            "profileImage" : "$profileImage", 
+            "officeEmail" : "$officeDetails.officeEmail", 
+            "designation" : "$designations.designationName", 
+            "supervisor" : "$employees.fullName", 
+            "hrScope_id" : "$officeDetails.hrspoc_id", 
+            "joiningDate" : "$officeDetails.dateOfJoining", 
+            "supervisor_id" : "$employees._id", 
+            //"profileProcessDetails" : "$employeeprofileProcessDetails", 
+            "department_id" : "$officeDetails.department_id", 
+            "grade_id" : "$grade_id", 
+            "gender" : "$employeePersonalDetails.gender", 
+            "supervisor_email" : "$supervisorDetails.officeEmail", 
+            "leaveType" : "$leavebalancedetails.leave_type", 
+            "leavebalance" : "$leavebalancedetails.balance"
+        }
+    } ]).exec(function (err, employeeDetails) {
+        if (err) {
+            return res.status(403).json({
+                title: 'Error',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: employeeDetails
+                }
+            });
+        }
+        return res.status(200).json(employeeDetails);
+    });
+}
+function employeeLeaveDetails (req, res) {
+    LeaveBalance.aggregate([ { 
+        "$project" : {
+            "_id" : "$emp_id", 
+            "leave_type" : "$leave_type", 
+            "balance" : "$balance"
+        }
+    }, 
+    { 
+        "$sort" : {
+            "_id" : 1.0
+        }
+    }, 
+    { 
+        "$lookup" : {
+            "from" : "leaveapplieddetails", 
+            "localField" : "_id", 
+            "foreignField" : "emp_id", 
+            "as" : "leaveapplieddetails_data"
+        }
+    }, 
+    { 
+        "$project" : {
+            "_id" : "$_id", 
+            "leave_type" : "$leave_type", 
+            "balance" : "$balance", 
+            "leaveapplieddetails_data" : "$leaveapplieddetails_data"
+        }
+    }, 
+    { 
+        "$project" : {
+            "_id" : "$_id", 
+            "leave_type" : "$leave_type", 
+            "balance" : "$balance", 
+            "items" : {
+                "$filter" : {
+                    "input" : "$leaveapplieddetails_data", 
+                    "as" : "item", 
+                    "cond" : {
+                        "$eq" : [
+                            "$$item.leave_type", 
+                            "$leave_type"
+                        ]
+                    }
+                }
+            }
+        }
+    }, 
+    { 
+        "$project" : {
+            "_id" : "$_id", 
+            "leave_type" : "$leave_type", 
+            "balance" : "$balance", 
+            "items" : {
+                "$filter" : {
+                    "input" : "$items", 
+                    "as" : "item", 
+                    "cond" : {
+                        "$or" : [
+                            {
+                                "$eq" : [
+                                    "$$item.status", 
+                                    "Approved"
+                                ]
+                            }, 
+                            {
+                                "$eq" : [
+                                    "$$item.status", 
+                                    "Applied"
+                                ]
+                            }, 
+                            {
+                                "$eq" : [
+                                    "$$item.status", 
+                                    "Pending Cancellation"
+                                ]
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    }, 
+    { 
+        "$project" : {
+            "_id" : "$_id", 
+            "leave_type" : "$leave_type", 
+            "balance" : "$balance", 
+            "days" : "$items.days"
+        }
+    }, 
+    { 
+        "$unwind" : {
+            "path" : "$days", 
+            "preserveNullAndEmptyArrays" : true
+        }
+    }, 
+    { 
+        "$group" : {
+            "_id" : {
+                "_id" : "$_id", 
+                "leave_type" : "$leave_type", 
+                "balance" : "$balance"
+            }, 
+            "days" : {
+                "$sum" : "$days"
+            }
+        }
+    }, 
+    { 
+        "$project" : {
+            "_id" : "$_id._id", 
+            "leave_type" : "$_id.leave_type", 
+            "balance" : "$_id.balance", 
+            "days" : "$days"
+        }
+    }, 
+    { 
+        "$sort" : {
+            "_id" : 1.0
+        }
+    }, 
+    { 
+        "$project" : {
+            "_id" : "$_id", 
+            "leave_type" : "$leave_type", 
+            "balance" : "$balance", 
+            "availed_balance" : "$days", 
+            "remaining_balance" : {
+                "$subtract" : [
+                    "$balance", 
+                    "$days"
+                ]
+            }
+        }
+    }, 
+    { 
+        "$lookup" : {
+            "from" : "employeedetails", 
+            "localField" : "_id", 
+            "foreignField" : "_id", 
+            "as" : "employee_details_data"
+        }
+    }, 
+    { 
+        "$unwind" : {
+            "path" : "$employee_details_data"
+        }
+    }, 
+    { 
+        "$lookup" : {
+            "from" : "employeeofficedetails", 
+            "localField" : "_id", 
+            "foreignField" : "emp_id", 
+            "as" : "officeDetails"
+        }
+    }, 
+    { 
+        "$unwind" : {
+            "path" : "$officeDetails"
+        }
+    }, 
+    { 
+        "$lookup" : {
+            "from" : "employeesupervisordetails", 
+            "localField" : "_id", 
+            "foreignField" : "emp_id", 
+            "as" : "supervisorDetails"
+        }
+    }, 
+    { 
+        "$unwind" : {
+            "path" : "$supervisorDetails"
+        }
+    }, 
+    { 
+        "$lookup" : {
+            "from" : "employeepersonaldetails", 
+            "localField" : "_id", 
+            "foreignField" : "emp_id", 
+            "as" : "employee_personal_details"
+        }
+    }, 
+    { 
+        "$lookup" : {
+            "from" : "designations", 
+            "localField" : "employee_details_data.designation_id", 
+            "foreignField" : "_id", 
+            "as" : "designation_details"
+        }
+    }, 
+    { 
+        "$unwind" : {
+            "path" : "$designation_details"
+        }
+    }, 
+    { 
+        "$unwind" : {
+            "path" : "$employee_personal_details"
+        }
+    }, 
+    { 
+        "$project" : {
+            "_id" : "$_id", 
+            "leave_type" : "$leave_type", 
+            "balance" : "$balance", 
+            "availed_balance" : "$availed_balance", 
+            "remaining_balance" : "$remaining_balance", 
+            "userName" : "$employee_details_data.userName", 
+            "fullName" : "$employee_details_data.fullName", 
+            "gradeId" : "$employee_details_data.grade_id", 
+            "isDeleted" : "$employee_details_data.isDeleted", 
+            "profileImage" : "$employee_details_data.profileImage", 
+            "designationId" : "$employee_details_data.designation_id", 
+            "isAccountActive" : "$employee_details_data.isAccountActive", 
+            "officeEmail" : "$officeDetails.officeEmail", 
+            "departmentId" : "$officeDetails.department_id", 
+            "hrScope_id" : "$officeDetails.hrspoc_id", 
+            "joiningDate" : "$officeDetails.dateOfJoining", 
+            "gender" : "$employee_personal_details.gender", 
+            "supervisorId" : "$supervisorDetails.primarySupervisorEmp_id", 
+            "designation" : "$designation_details.designationName",
+            "management_type_id": "$officeDetails.managementType_id",
+        }
+    }, 
+    { 
+        "$lookup" : {
+            "from" : "employeedetails", 
+            "localField" : "supervisorId", 
+            "foreignField" : "_id", 
+            "as" : "supervisorPersonalDetails"
+        }
+    }, 
+    { 
+        "$unwind" : {
+            "path" : "$supervisorPersonalDetails"
+        }
+    }, 
+    { 
+        "$lookup" : {
+            "from" : "employeeofficedetails", 
+            "localField" : "supervisorPersonalDetails._id", 
+            "foreignField" : "emp_id", 
+            "as" : "supervisor_office_details"
+        }
+    }, 
+    { 
+        "$unwind" : {
+            "path" : "$supervisor_office_details"
+        }
+    }, 
+    { 
+        "$project" : {
+            "_id" : "$_id", 
+            "leave_type" : "$leave_type", 
+            "balance" : "$balance", 
+            "availed_balance" : "$availed_balance", 
+            "remaining_balance" : "$remaining_balance", 
+            "userName" : "$userName", 
+            "fullName" : "$fullName", 
+            "gradeId" : "$gradeId", 
+            "isDeleted" : "$isDeleted", 
+            "profileImage" : "$profileImage", 
+            "designationId" : "$designationId", 
+            "isAccountActive" : "$isAccountActive", 
+            "officeEmail" : "$officeEmail", 
+            "hrScope_id" : "$hrScope_id", 
+            "joiningDate" : "$joiningDate", 
+            "supervisorId" : "$supervisorId", 
+            "departmentId" : "$departmentId", 
+            "gender" : "$gender", 
+            "supervisorName" : "$supervisorPersonalDetails.fullName", 
+            "supervisorEmail" : "$supervisor_office_details.officeEmail", 
+            "designation" : "$designation",
+            "management_type_id": "$management_type_id"
+        }
+    },
+    { 
+        "$match" : {
+            "$or": [{"management_type_id": 1},{"management_type_id": "1"}]
+        }
+    }
+    ]).exec(function (err, employeeLeaveDetails) {
+        if (err) {
+            return res.status(403).json({
+                title: 'Error',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: employeeLeaveDetails
+                }
+            });
+        }
+        return res.status(200).json(employeeLeaveDetails);
+    })
+}
+function sendBulkMail(emp_Data, res) {
+    let emp_success_array= [];
+    let emp_failure_array= [];
+    emp_Data.forEach(function (emp_data, index) {
+        SendEmail.sendEmailToEmployeeForSpecialLeaveQuotaProvided(emp_data, function(emailErr, email_response) {
+            if(emailErr) {
+                emp_failure_array.push(emailErr);
+                if (parseInt(emp_success_array.length) + parseInt(emp_failure_array.length) === parseInt(emp_Data.length)) {
+                    return res.status(200).json({
+                        title: 'leave balance added and but failed while sending mail to user',
+                        result: {
+                            message: leavedata
+                        }
+                    });
+                }
+            } else {
+                emp_success_array.push(email_response);
+                if (parseInt(emp_success_array.length) + parseInt(emp_failure_array.length) === parseInt(emp_Data.length)) {
+                    return res.status(200).json({
+                        title: 'leave balance added and but failed while sending mail to user',
+                        result: {
+                            message: leavedata
+                        }
+                    });
+                }
+            }
+        })       
     });
 }
 let functions = {
@@ -2777,6 +3300,10 @@ let functions = {
         let fiscalYearId = req.body.fiscalYearId;
         let createdBy = parseInt(req.body.createdBy);
         let balance = parseInt(req.body.balance);
+        let userName = req.body.fullName;
+        let officeEmail = req.body.officeEmail;
+        let supervisorName = req.body.supervisor;
+        let supervisorEmail = req.body.supervisor_email;
         let leaveBalanceQuery = {
             'isDeleted': false,
             'emp_id': empId,
@@ -2806,7 +3333,11 @@ let functions = {
                                 balance : balance,
                                 empId : empId,
                                 fiscalYearId : fiscalYearId,
-                                createdBy : createdBy
+                                createdBy : createdBy,
+                                userName: userName,
+                                officeEmail: officeEmail,
+                                supervisorName: supervisorName,
+                                supervisorEmail: supervisorEmail
                             }
                             GrantMaternityValidCase(data, res);
                         } else {
@@ -2820,7 +3351,11 @@ let functions = {
                     balance : balance,
                     empId : empId,
                     fiscalYearId : fiscalYearId,
-                    createdBy : createdBy
+                    createdBy : createdBy,
+                    userName: userName,
+                    officeEmail: officeEmail,
+                    supervisorName: supervisorName,
+                    supervisorEmail: supervisorEmail
                 }
                 GrantMaternityValidCase(data, res);
             }
@@ -2853,8 +3388,88 @@ let functions = {
                 return res.status(200).json({ "result": true, data: response });
             }
         })
-    }
+    },
+    grantSpecialLeave: (req, res) => {
+        // provider can be All, Single, Division, Department, Grade
+        let providerType = req.body.provider;
+        let leaveType =  Boolean(req.body.isPaid) ? 4 : 5;
+        let data = {
+         
+            leaveType: leaveType,
+            balance: parseInt(req.body.balance),
+            createdBy: parseInt(req.body.createdBy),
+            fiscalYearId: parseInt(req.body.fiscalYearId),
+            isDeleted: false, 
+            id: req.body.id //will be null in case of Type All
+        }
+        switch(providerType){
+            case "All":
+                grantSpecialLeaveToAllEmployee(data, res);
+                break;
+            case "Single":
+                grantSpecialLeaveToAllEmployee(data, res);
+                break;
+            case "Division":
+                grantSpecialLeaveToDivisionEmployee(data, res);
+                break;
+            case "Department":
+                grantSpecialLeaveToDepartmentEmployee(data, res);
+                break;
+            case "Grade":
+                grantSpecialLeaveToGradeEmployee(data, res);
+                break;
+        }
+    },
+    getEmployeeListManagementType: (req, res) => {
+        getEmployeeListManagementType(req, res);
+    },
+    getEmployeeDetailsWithLeaveDetails: (req, res) => {
+        employeeLeaveDetails(req, res);
+    },
+    grantSpecialLeaveBulk: (req, res) => {
+        let empId_array = req.body.emp_id_array;
+        let fiscalYearId = req.body.fiscalYearId;
+        let createdBy = parseInt(req.body.createdBy);
+        let balance = parseInt(req.body.balance);
+        let leaveType= parseInt(req.body.leave_type);
+        var insertData = [];
+        Promise.all([
+            LeaveBalance.aggregate([{ 
+                "$sort" : {
+                    "_id" : -1.0
+                }
+            }, 
+            { 
+                "$project" : {
+                    "_id" : "$_id"
+                }
+            }, 
+            { 
+                "$limit" : 1.0
+            }]).exec(),
+        ]).then(function (counts) {
+            empId_array.forEach(function (element, index) {
+                insertData.push({ emp_id: element._id, _id: counts[0][0]._id + (index + 1), createdBy: createdBy, leave_type: leaveType, fiscalYearId: fiscalYearId, balance: balance });
+            });
+            LeaveBalance.insertMany(insertData, function (err, results) {
+                if (err) {
+                    return res.status(403).json({
+                        title: 'Error while granting special leave',
+                        error: {
+                            message: err
+                        },
+                        result: {
+                            message: results
+                        }
+                    });
+                } else {
+                    sendBulkMail(empId_array, results, res);
+                }
+                
+            })
+        });
 
+    },
 }
 
 

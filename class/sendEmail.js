@@ -258,28 +258,37 @@ let functions =
         transporter.sendMail(mailOptions);
 
     },
-    sendEmailToEmployeeForMaternityLeaveQuotaProvided: (data) => {
+    sendEmailToEmployeeForMaternityLeaveQuotaProvided: (data, callback) => {
         let mailOptions = {
-            from: config.email.emailToEmployeeForLeaveRequestRejected.from, // sender address
-            to: data.userEmail,
-            subject: config.email.emailToEmployeeForLeaveRequestRejected.subject, // Subject line
-            template: 'email-notify-to-emp-for-applied-leave-rejected',
+            from: config.email.emailToEmployeeForMaternityLeaveGrant.from, // sender address
+            to: data.officeEmail,
+            subject: config.email.emailToEmployeeForMaternityLeaveGrant.subject, // Subject line
+            template: 'email-notify-to-emp-for-maternity-leave-grant',
+            context: {
+                fullName: data.userName,
+                leaveType: 'Maternity Leave',
+                appliedDate: moment(new Date()).format('L'),
+                link: data.action_link,
+                days: data.balance
+            }
+        };
+        transporter.sendMail(mailOptions, callback);
+    },
+    sendEmailToEmployeeForSpecialLeaveQuotaProvided: (data, callback) => {
+        let mailOptions = {
+            from: config.email.emailToEmployeeForMaternityLeaveGrant.from, // sender address
+            to: data.officeEmail,
+            subject: config.email.emailToEmployeeForMaternityLeaveGrant.subject, // Subject line
+            template: 'email-notify-to-emp-for-maternity-leave-grant',
             context: {
                 fullName: data.fullName,
                 leaveType: 'Maternity Leave',
                 appliedDate: moment(new Date()).format('L'),
-                fromDate: moment(data.startDate).format('L'),
-                toDate: moment(data.endDate).format('L'),
-                link: data.action_link
+                link: data.action_link,
+                days: data.balance
             }
         };
-        transporter.sendMail(mailOptions, function(err, response) {
-            if(err) {
-                return err;
-            } else {
-                return response;
-            }
-        });
+        transporter.sendMail(mailOptions, callback);
     }
 
 }

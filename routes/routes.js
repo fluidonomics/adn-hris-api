@@ -349,6 +349,14 @@ let express  = require('express'),
        leaveRoutes.get('/downloadFile', leave.downloadLeaveAttachment);
        leaveRoutes.post('/grantMaternityLeave', leave.grantMaternityLeave);
        leaveRoutes.post('/applyMaternityLeave', leave.applyMaternityLeave);
+       leaveRoutes.post('/grantSpecialLeave', leave.grantSpecialLeave);
+       leaveRoutes.get('/getEmployeeListManagementType', leave.getEmployeeListManagementType);
+       leaveRoutes.get('/getEmployeeDetailsWithLeaveDetails', leave.getEmployeeDetailsWithLeaveDetails);
+       leaveRoutes.post('/grantSpecialLeaveBulk', leave.grantSpecialLeaveBulk);
+       
+       
+       
+
       //= ========================
       //hr dashboard routes
 
@@ -439,8 +447,6 @@ let express  = require('express'),
 
           commonRoutes.get('/getRole',ensureAuthenticated, common.getRole);
           commonRoutes.get('/getEmployeeEmailDetails', common.getAllEmployeeEmails);
-          
-
           commonRoutes.get('/getCompany',ensureAuthenticated, common.getCompany);
 
           commonRoutes.get('/getDocuments',ensureAuthenticated, common.getDocuments);
@@ -451,7 +457,7 @@ let express  = require('express'),
 
           commonRoutes.get('/getDivision',ensureAuthenticated, common.getDivision);
 
-          commonRoutes.get('/getDepartment',ensureAuthenticated, common.getDepartment);
+          commonRoutes.get('/getDepartment', ensureAuthenticated, common.getDepartment);
 
           commonRoutes.get('/getVertical',ensureAuthenticated, common.getVertical);
 
@@ -516,7 +522,6 @@ let express  = require('express'),
           commonRoutes.get('/getFinincialYear', ensureAuthenticated,  common.getFinincialYear);
           // commonRoutes.get('/sendNotification',ensureAuthenticated, common.sendNotification);
           commonRoutes.get('/getPrePost_Report', common.getPrePost_Report);
-        
       //= ========================
 
 

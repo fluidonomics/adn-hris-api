@@ -54,6 +54,10 @@ module.exports = {
       from:'"Team HRIS" <hris@adnsl.net>',
       subject:'Leave Cancellation Rejected'
     },
+    'emailToEmployeeForMaternityLeaveGrant': {
+      from:'"Team HRIS" <hris@adnsl.net>',
+      subject:'Maternity Leave Granted'
+    },
   },
   'aws':
   {
