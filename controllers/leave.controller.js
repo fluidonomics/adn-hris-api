@@ -806,6 +806,58 @@ function GrantMaternityInValidCase(res) {
         }
     });
 }
+function GrantSpecialLeaveValidCase(data,results, res) {
+    let leaveBalance = new LeaveBalance();
+    leaveBalance.isDeleted = false;
+    leaveBalance.balance = data.balance;
+    leaveBalance.leave_type = data.leave_type;
+    leaveBalance.emp_id = data.empId;
+    leaveBalance.fiscalYearId = data.fiscalYearId;
+    leaveBalance.createdBy = data.createdBy;
+    leaveBalance.save(function (err, leavedata) {
+        if (err) {
+            return res.status(403).json({
+                title: 'Error while adding leave balance',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: leavedata
+                }
+            });
+        } else {
+            SendEmail.sendEmailToEmployeeForSpecialLeaveQuotaProvided(data, function(emailErr, email_response) {
+                if(emailErr) {
+                    return res.status(200).json({
+                        title: 'leave balance added and but failed while sending mail to user',
+                        result: {
+                            message: results
+                        }
+                    });
+                } else {
+                    return res.status(200).json({
+                        title: 'leave balance added and mail send to user successfully',
+                        result: {
+                            message: results
+                        }
+                    });
+                }
+            });
+            
+        }
+    });
+}
+function GrantSpecialLeaveInValidCase(res) {
+    return res.status(403).json({
+        title: 'Error',
+        error: {
+            message: 'user already have special leave granted that is not availed yet'
+        },
+        result: {
+            message: 'user already have special leave granted that is not availed yet'
+        }
+    });
+}
 function grantSpecialLeaveToAllEmployee(data, res) {
     getEmployeeList(function(err, employeeData) {
         if(err) {
@@ -1287,7 +1339,7 @@ function employeeLeaveDetails (req, res) {
                 }
             });
         }
-        return res.status(200).json(employeeLeaveDetails);
+        return res.status(200).json(employeeLeaveDetails.filter(f => f.management_type_id === 1));
     })
 }
 function sendBulkMail(emp_Data, res) {
@@ -3469,6 +3521,75 @@ let functions = {
             })
         });
 
+    },
+    grantSpecialLeaveSingleEmp: (req, res) => {
+        let empId = parseInt(req.body.emp_id);
+        let fiscalYearId = req.body.fiscalYearId;
+        let createdBy = parseInt(req.body.createdBy);
+        let balance = parseInt(req.body.balance);
+        let userName = req.body.fullName;
+        let officeEmail = req.body.officeEmail;
+        let supervisorName = req.body.supervisor;
+        let supervisorEmail = req.body.supervisor_email;
+        let leave_type = req.body.leave_type
+        let leaveBalanceQuery = {
+            'isDeleted': false,
+            'emp_id': empId,
+            'leave_type': leave_type
+        }
+
+        LeaveBalance.find(leaveBalanceQuery, function (err, leaveBalanceDetails) {
+            if (leaveBalanceDetails.length > 0) {
+                let leaveApplyQuery = {
+                    'isDeleted': false,
+                    'emp_id': empId,
+                    'leave_type': leave_type
+                };
+
+                LeaveApply.find(leaveApplyQuery, function (err, leaveApplyResult) {
+                    //case when maternity is granted but not applied by user
+                    if (leaveApplyResult.length != leaveBalanceDetails.length) {
+                        // do not allow user to grant
+                        GrantSpecialLeaveInValidCase(res);
+                    } else {
+                        let cancelledSpecialLeave = leaveApplyResult.filter(f => f.status === 'Cancelled').length;
+                        let rejectedSpecialLeave = leaveApplyResult.filter(f => f.status === 'Rejected').length;
+                        let approvedSpecialLeave = leaveApplyResult.filter(f => f.status === 'Approved').length;
+                        if ((approvedSpecialLeave + rejectedSpecialLeave + cancelledSpecialLeave) === leaveApplyResult.length) {
+                            //all maternity leaves are availed, allow user to grant 
+                            let data = {
+                                balance : balance,
+                                empId : empId,
+                                fiscalYearId : fiscalYearId,
+                                createdBy : createdBy,
+                                fullName: userName,
+                                officeEmail: officeEmail,
+                                supervisorName: supervisorName,
+                                supervisorEmail: supervisorEmail,
+                                leave_type: leave_type
+                            }
+                            GrantSpecialLeaveValidCase(data, res);
+                        } else {
+                            // do not allow user to grant
+                            GrantSpecialLeaveInValidCase(res);
+                        }
+                    }
+                });
+            } else {
+                let data = {
+                    balance : balance,
+                    empId : empId,
+                    fiscalYearId : fiscalYearId,
+                    createdBy : createdBy,
+                    fullName: userName,
+                    officeEmail: officeEmail,
+                    supervisorName: supervisorName,
+                    supervisorEmail: supervisorEmail,
+                    leave_type: leave_type
+                }
+                GrantSpecialLeaveValidCase(data, res);
+            }
+        })
     },
 }
 

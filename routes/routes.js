@@ -353,6 +353,7 @@ let express  = require('express'),
        leaveRoutes.get('/getEmployeeListManagementType', leave.getEmployeeListManagementType);
        leaveRoutes.get('/getEmployeeDetailsWithLeaveDetails', leave.getEmployeeDetailsWithLeaveDetails);
        leaveRoutes.post('/grantSpecialLeaveBulk', leave.grantSpecialLeaveBulk);
+       leaveRoutes.post('/grantSpecialLeaveSingleEmp', leave.grantSpecialLeaveSingleEmp);
        
        
        

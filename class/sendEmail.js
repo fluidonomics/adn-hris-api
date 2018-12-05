@@ -275,6 +275,9 @@ let functions =
         transporter.sendMail(mailOptions, callback);
     },
     sendEmailToEmployeeForSpecialLeaveQuotaProvided: (data, callback) => {
+        if(data.officeEmail === null ||data.officeEmail === "") {
+            return 
+        }
         let mailOptions = {
             from: config.email.emailToEmployeeForMaternityLeaveGrant.from, // sender address
             to: data.officeEmail,
