@@ -60,6 +60,7 @@ function EmpDetailsForMidTermInitiate(req, res) {
             "emp_employmentType_id": "$employee_details.employmentType_id",
             "emp_isDeleted": "$employee_details.isDeleted",
             "emp_department_id": "$employee_office_details.department_id",
+            "emp_HRSpoc_id": "$employee_office_details.htspoc_id",
             "emp_officeEmail": "$employee_office_details.officeEmail",
             "mtr_status": "$mtr_master_details.status",
             "mtr_batch_id": "$mtr_master_details.batch_id"
