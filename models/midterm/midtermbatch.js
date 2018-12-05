@@ -4,16 +4,15 @@ let mongoose                = require('mongoose'),
     bcrypt                  = require('bcrypt');
     autoIncrement           = require('mongoose-sequence')(mongoose);
 
-      let MidTermMasterSchema = new Schema(
+      let MidTermBatchSchema = new Schema(
       {
         _id:{type:Number},
-        batch_id:{type: Number,ref: 'batchdetails'},
-        timeline_id:{type: Number,ref: 'timelinedetails',default:null},
-        emp_id:{type: Number,ref: 'employeedetails'},
-        status: {type: String,default:null},
-        updatedBy: {type: Number, default:null},
-        createdBy: {type: Number, default:null},
-        isDeleted: {type: Boolean,default:false} 
+        batchName:{type:String, default:null},
+        batchEndDate: {type:Date, default:new Date() + 860000},
+        createdBy: {type: Number,default:null},
+        updatedBy: {type: Number,default:null},
+        status:{type:String,default:'Active'},
+        isDeleted: {type: Boolean,default:false}, 
       },
       {
         timestamps: true,
@@ -22,11 +21,11 @@ let mongoose                = require('mongoose'),
       });
 
    // Update the Emp_id Hash user password when registering or when changing password
-   MidTermMasterSchema.pre('save', function (next) {
+   MidTermBatchSchema.pre('save', function (next) {
     var _this=this;
     if (_this.isNew) {
     //Check the Count of Collection and add 1 to the Count and Assign it to Emp_id 
-    mongoose.model('midtermmaster', MidTermMasterSchema).find().sort({_id:-1}).limit(1)
+    mongoose.model('midtermbatch', MidTermBatchSchema).find().sort({_id:-1}).limit(1)
     .exec(function(err, doc)
     {
       if(doc.length >0)
@@ -40,9 +39,8 @@ let mongoose                = require('mongoose'),
       }
     });
   }
- });
+});
 
+MidTermBatchSchema.plugin(mongooseUniqueValidator);
 
-MidTermMasterSchema.plugin(mongooseUniqueValidator);
-
-module.exports = mongoose.model('midtermmaster',MidTermMasterSchema);
+module.exports = mongoose.model('midtermbatch',MidTermBatchSchema);

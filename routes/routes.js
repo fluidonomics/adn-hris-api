@@ -357,6 +357,7 @@ let express  = require('express'),
       //=======================
       apiRoutes.use('/midterm', midtermRoutes);
       midtermRoutes.get('/getEmpDetailsForMidTermInitiate', midterm.getEmpDetailsForMidTermInitiate);
+      midtermRoutes.post('/initiateMidTermProcess', midterm.initiateMidTermProcess);
 
       //hr dashboard routes
 

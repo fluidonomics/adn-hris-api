@@ -1,4 +1,6 @@
-let KraWorkFlowInfo = require("../models/kra/kraWorkFlowDetails.model");
+let KraWorkFlowInfo = require("../models/kra/kraWorkFlowDetails.model"),
+  MidTermBatch = require("../models/midterm/midtermbatch"),
+  MidTermMaster = require("../models/midterm/midtermmaster");
 function EmpDetailsForMidTermInitiate(req, res) {
   KraWorkFlowInfo.aggregate([
     {
@@ -126,10 +128,31 @@ function EmpDetailsForMidTermInitiate(req, res) {
     }
   });
 }
-
+function InitiateMtrProcess(req, res) {
+  let MidTermBatchDetails = new MidTermBatch();
+  MidTermBatchDetails.batchName = req.body.batchName;
+  MidTermBatchDetails.batchEndDate = new Date(new Date(req.body.batchEndDate).getTime());
+  MidTermBatchDetails.status = req.body.status;
+  MidTermBatchDetails.isDeleted = false;
+  MidTermBatchDetails.createdBy = parseInt(req.body.createdBy);
+  let emp_id_array = req.body.emp_id_array;
+  MidTermBatchDetails.save(function (err, midtermbatchresp) {
+    if (err) {
+      console.log(err);
+    } else {
+      let batch_id = midtermbatchresp.id;
+      emp_id_array.forEach(function (element, index) {
+        insertData.push({ batch_id: batch_id, emp_id: element.emp_id, status: 'Initiated', _id: counts[0] + (index + 1), createdBy: parseInt(req.headers.uid) });
+      });
+    }
+  })
+}
 let functions = {
   getEmpDetailsForMidTermInitiate: (req, res) => {
     EmpDetailsForMidTermInitiate(req, res);
+  },
+  initiateMidTermProcess: (req, res) => {
+    InitiateMtrProcess(req, res);
   }
 };
 module.exports = functions;
