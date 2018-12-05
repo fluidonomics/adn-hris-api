@@ -8,7 +8,6 @@ let mongoose                = require('mongoose'),
       {
         _id:{type:Number},
         batch_id:{type: Number,ref: 'batchdetails'},
-        timeline_id:{type: Number,ref: 'timelinedetails',default:null},
         emp_id:{type: Number,ref: 'employeedetails'},
         status: {type: String,default:null},
         updatedBy: {type: Number, default:null},
