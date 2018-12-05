@@ -7,6 +7,7 @@ let express  = require('express'),
     upload   = require('../controllers/upload.controller'),
     kra      = require('../controllers/kra.controller'),
     leave    = require('../controllers/leave.controller'),
+    midterm  = require('../controllers/midterm.controller')
     externalDocument = require('../controllers/externalDocument.controller'),
     Employee = require('../models/employee/employeeDetails.model'),
     batch = require('../controllers/batch.controller'),
@@ -69,6 +70,7 @@ let express  = require('express'),
           uploadRoutes= express.Router(),
           kraRoutes   = express.Router(),
           leaveRoutes = express.Router(),
+          midtermRoutes = express.Router(),
           hrRoutes = express.Router(),
           externalDocumentRoutes = express.Router(),
           batchRoutes=express.Router(),
@@ -301,7 +303,7 @@ let express  = require('express'),
       //= ========================
       // Leave Routes 
       //= ========================
-
+       
         apiRoutes.use('/leave', leaveRoutes);
 
         leaveRoutes.post('/applyLeave', leave.postApplyLeave);
@@ -349,6 +351,13 @@ let express  = require('express'),
        leaveRoutes.get('/getEmpMaternityLeaveDetails', leave.getEmpMaternityLeaveDetails);
        leaveRoutes.get('/downloadFile', leave.downloadLeaveAttachment);
       //= ========================
+
+      //=======================
+      // Mid term API's
+      //=======================
+      apiRoutes.use('/midterm', midtermRoutes);
+      midtermRoutes.get('/getEmpDetailsForMidTermInitiate', midterm.getEmpDetailsForMidTermInitiate);
+
       //hr dashboard routes
 
       //= ========================
