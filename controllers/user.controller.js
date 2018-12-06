@@ -21,6 +21,8 @@ let express = require('express'),
     leaveApply = require('../models/leave/leaveApply.model'),
     kraWorkflow = require('../models/kra/kraWorkFlowDetails.model'),
     kraDetails = require('../models/kra/kraDetails.model'),
+    LeaveBalance = require('../models/leave/EmployeeLeaveBalance.model'),
+    FinancialYearDetails = require('../models/master/financialYearDetails.model'),
 
 
     AuditTrail = require('../class/auditTrail'),
@@ -32,7 +34,8 @@ let express = require('express'),
     // nodemailer        = require('nodemailer'),
     // hbs               = require('nodemailer-express-handlebars'),
     // sgTransport       = require('nodemailer-sendgrid-transport'),
-    uploadCtrl = require('./upload.controller');
+    uploadCtrl = require('./upload.controller'),
+    dateFn = require('date-fns');
 // uuidV1            = require('uuid/v1');
 require('dotenv').load()
 
@@ -2143,6 +2146,74 @@ function updateSupervisortransfer(req, res, done) {
 };
 
 
+function addLeaveQuota(req, res, done) {
+    let empId = req.body.emp_id;
+    FinancialYearDetails.findOne({ "isYearActive": true }, (err, fyDetail) => {
+        let fiscalYearId = fyDetail.id;
+        let startDate = fyDetail.starDate;
+        let endDate = fyDetail.endDate;
+
+        let joiningDate = new Date();
+        let dateResult = dateFn.compareDesc(joiningDate, startDate);
+        if (dateResult >= 0) {
+            joiningDate = startDatel;
+        }
+        let proRataDays = dateFn.differenceInDays(endDate, joiningDate) + 1;
+
+        let quotaAnnualLeave = Math.round(proRataDays / 18);
+        let quotaSickLeave = Math.round(proRataDays / 26);
+
+        let annualLeaveBalance = new LeaveBalance();
+        annualLeaveBalance.isDeleted = false;
+        annualLeaveBalance.balance = quotaAnnualLeave;
+        annualLeaveBalance.leave_type = 1
+        annualLeaveBalance.emp_id = empId;
+        annualLeaveBalance.fiscalYearId = fiscalYearId;
+        annualLeaveBalance.createdBy = parseInt(req.headers.uid);
+
+        annualLeaveBalance.save(function (err, annualLeavedata) {
+            if (err) {
+                return done(err, annualLeavedata);
+            }
+
+            AuditTrail.auditTrailEntry(empId, "leaveBalance", annualLeaveBalance, "user", "addEmployee", "ADDED");
+            let mailData = {
+                officeEmail: req.body.personalEmail,
+                subject: 'Annual Leave Granted',
+                fullName: req.body.fullName,
+                LeaveType: 'Annual Leave',
+                balance: quotaAnnualLeave
+            }
+            SendEmail.sendEmailToEmployeeForAnnualSickLeaveQuotaProvided(mailData);
+
+            let sickLeaveBalance = new LeaveBalance();
+            sickLeaveBalance.isDeleted = false;
+            sickLeaveBalance.balance = quotaSickLeave;
+            sickLeaveBalance.leave_type = 2
+            sickLeaveBalance.emp_id = empId;
+            sickLeaveBalance.fiscalYearId = fiscalYearId;
+            sickLeaveBalance.createdBy = parseInt(req.headers.uid);
+
+            sickLeaveBalance.save(function (err, sickLeavedata) {
+                if (err) {
+                    return done(err, sickLeavedata);
+                }
+
+                AuditTrail.auditTrailEntry(empId, "leaveBalance", sickLeaveBalance, "user", "addEmployee", "ADDED");
+                let mailData = {
+                    officeEmail: req.body.personalEmail,
+                    subject: 'Sick Leave Granted',
+                    fullName: req.body.fullName,
+                    LeaveType: 'Sick Leave',
+                    balance: quotaSickLeave
+                }
+                SendEmail.sendEmailToEmployeeForAnnualSickLeaveQuotaProvided(mailData);
+                done(err, null);
+            });
+        });
+    });
+}
+
 let functions = {
     addEmployee: (req, res) => {
         //uncomment below line to add user from backend.
@@ -2195,6 +2266,10 @@ let functions = {
                             function (done) {
                                 addProfileProcessInfoDetails(req, res, done);
                                 Notify.sendNotifications(req.body.emp_id, 'Please Fill Profile', 'Submit your profile', parseInt(req.headers.uid), req.body._id, 1, null, parseInt(req.headers.uid));
+                            },
+                            function (done) {
+                                addLeaveQuota(req, res, done);
+                                Notify.sendNotifications(req.body.emp_id, 'Leave Quota Provided', 'Leave Quota Provided', parseInt(req.headers.uid), req.body._id, 1, null, parseInt(req.headers.uid));
                             }
                         ],
                             function (done) {
@@ -2964,6 +3039,19 @@ let functions = {
         ]);
 
     }
+    },
+    provideQuota: (req, res) => {
+        async.waterfall([
+            function (done) {
+                addLeaveQuota(req, res, done);
+            },
+            function (data, done) {
+                return res.status(200).json(true);
+            }
+        ], (err, result) => {
+            return res.status(400).json(err);
+        });
+    },
 };
 
 function checkError(err, res) {
