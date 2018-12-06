@@ -18,6 +18,8 @@ let express = require('express'),
     ProfileProcessInfo = require('../models/employee/employeeProfileProcessDetails.model'),
     PerformanceRatingMaster = require('../models/master/performanceRating.model'),
     ExternalDocument = require('../models/employee/employeeExternalDocumentDetails.model'),
+    LeaveBalance = require('../models/leave/EmployeeLeaveBalance.model'),
+    FinancialYearDetails = require('../models/master/financialYearDetails.model'),
 
     AuditTrail = require('../class/auditTrail'),
     SendEmail = require('../class/sendEmail'),
@@ -28,7 +30,8 @@ let express = require('express'),
     // nodemailer        = require('nodemailer'),
     // hbs               = require('nodemailer-express-handlebars'),
     // sgTransport       = require('nodemailer-sendgrid-transport'),
-    uploadCtrl = require('./upload.controller');
+    uploadCtrl = require('./upload.controller'),
+    dateFn = require('date-fns');
 // uuidV1            = require('uuid/v1');
 require('dotenv').load()
 
@@ -1138,7 +1141,7 @@ function updatepositionInfoDetails(req, res) {
                     "vertical_id": req.body.vertical_id,
                     "subVertical_id": req.body.subVertical_id,
                     "managementType_id": req.body.managementType_id,
-                    "employmentStatus_id":req.body.employmentStatus_id,
+                    "employmentStatus_id": req.body.employmentStatus_id,
                     "tenureOfContract": req.body.tenureOfContract,
                     "groupHrHead_id": req.body.groupHrHead_id,
                     "businessHrHead_id": req.body.businessHrHead_id,
@@ -1156,7 +1159,7 @@ function updatepositionInfoDetails(req, res) {
                         $set: {
                             "emp_id": req.body.emp_id,
                             "primarySupervisorEmp_id": req.body.primarySupervisorEmp_id,
-                            
+
                         }
                     }
                     SupervisorInfo.findOneAndUpdate(query, queryUpdate, function (err, supervisorData) {
@@ -2048,6 +2051,61 @@ function getCarInfoDetails(req, res) {
     });
 }
 
+function addLeaveQuota(req, res, done) {
+    debugger;
+    let empId = req.body.emp_id;
+    FinancialYearDetails.findOne({ "isYearActive": true }, (err, fyDetail) => {
+        let fiscalYearId = fyDetail.id;
+        let startDate = fyDetail.starDate;
+        let endDate = fyDetail.endDate;
+
+        let joiningDate = new Date();
+        let dateResult = dateFn.compareDesc(joiningDate, startDate);
+        if (dateResult >= 0) {
+            joiningDate = startDatel;
+        }
+        let proRataDays = dateFn.differenceInDays(endDate, joiningDate) + 1;
+
+        let quotaAnnualLeave = Math.round(proRataDays / 18);
+        let quotaSickLeave = Math.round(proRataDays / 26);
+
+        let leaveBalance = new LeaveBalance();
+        leaveBalance.isDeleted = false;
+        leaveBalance.balance = quotaAnnualLeave;
+        leaveBalance.leave_type = 1
+        leaveBalance.emp_id = empId;
+        leaveBalance.fiscalYearId = fiscalYearId;
+        leaveBalance.createdBy = parseInt(req.headers.uid);
+
+        leaveBalance.save(function (err, leavedata) {
+            if (err) {
+                return done(err, leavedata);
+            }
+
+            AuditTrail.auditTrailEntry(empId, "leaveBalance", leaveBalance, "user", "addEmployee", "ADDED");
+            SendEmail.sendEmailToEmployeeForMaternityLeaveQuotaProvided(data, function (emailErr, email_response) {
+                if (emailErr) {
+                    return res.status(200).json({
+                        title: 'leave balance added and but failed while sending mail to user',
+                        result: {
+                            message: leavedata
+                        }
+                    });
+                } else {
+                    return res.status(200).json({
+                        title: 'leave balance added and mail send to user successfully',
+                        result: {
+                            message: leavedata
+                        }
+                    });
+                }
+            });
+        });
+
+        done(err, fyDetail);
+    });
+}
+
 let functions = {
     addEmployee: (req, res) => {
         //uncomment below line to add user from backend.
@@ -2100,6 +2158,10 @@ let functions = {
                             function (done) {
                                 addProfileProcessInfoDetails(req, res, done);
                                 Notify.sendNotifications(req.body.emp_id, 'Please Fill Profile', 'Submit your profile', parseInt(req.headers.uid), req.body._id, 1, null, parseInt(req.headers.uid));
+                            },
+                            function (done) {
+                                addLeaveQuota(req, res, done);
+                                Notify.sendNotifications(req.body.emp_id, 'Leave Quota Provided', 'Leave Quota Provided', parseInt(req.headers.uid), req.body._id, 1, null, parseInt(req.headers.uid));
                             }
                         ],
                             function (done) {
@@ -2169,14 +2231,14 @@ let functions = {
             {
                 "$unwind": "$kraWorkflowDetails"
             },
-            
+
             {
                 "$project": {
                     "employees": "$employees",
                     "kra": "$kraWorkflowDetails",
                     "emp_id": "$employeedetails._id",
-                    "fullName": "$employeedetails.fullName",                   
-                    "userName": "$employeedetails.userName",                  
+                    "fullName": "$employeedetails.fullName",
+                    "userName": "$employeedetails.userName",
                     "profileImage": "$employeedetails.profileImage",
                 }
             }
@@ -2752,7 +2814,17 @@ let functions = {
                 });
             }
         });
-    }
+    },
+    provideQuota: (req, res) => {
+        async.waterfall([
+            function (done) {
+                addLeaveQuota(req, res, done);
+            },
+            function (data, done) {
+                return res.status(200).json(data);
+            }
+        ]);
+    },
 };
 
 module.exports = functions;
