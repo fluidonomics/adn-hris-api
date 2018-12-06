@@ -241,7 +241,7 @@ let express  = require('express'),
           userRoutes.get('/getEmployeeDetails', ensureAuthenticated, user.getEmployeeDetails);
 
           userRoutes.post('/changePassword', ensureAuthenticated, user.changePassword);
-          userRoutes.post('/provideQuota', user.provideQuota);
+          // userRoutes.post('/provideQuota', user.provideQuota);
 
           
           

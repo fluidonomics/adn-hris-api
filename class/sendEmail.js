@@ -161,10 +161,10 @@ let functions =
         let mailOptions = {
             from: config.email.emailToEmployeeForLeaveRequestRejected.from, // sender address
             to: toEmail,
-            subject:  data. leaveType + config.email.emailToEmployeeForAppliedLeaveOnBehalf.subject + data.appliedBy, // Subject line
+            subject: data.leaveType + config.email.emailToEmployeeForAppliedLeaveOnBehalf.subject + data.appliedBy, // Subject line
             template: 'email-notify-leave-applied-on-behalf',
             context: {
-                fullName: data.fullName,               
+                fullName: data.fullName,
                 appliedBy: data.appliedBy,
                 leaveType: data.leaveType,
                 appliedDate: moment(data.appliedDate).format('L'),
@@ -202,7 +202,7 @@ let functions =
             context: {
                 fullName: data.fullName,
                 leaveType: data.leaveType,
-                appliedBy:data.appliedBy,
+                appliedBy: data.appliedBy,
                 appliedDate: moment(data.appliedDate).format('L'),
                 fromDate: moment(data.fromDate).format('L'),
                 toDate: moment(data.toDate).format('L'),
@@ -215,11 +215,11 @@ let functions =
         let mailOptions = {
             from: config.email.emailTohrForAppliedLeaveApproved.from, // sender address
             to: toEmail,
-            subject: config.email.emailTohrForAppliedLeaveApproved.subject + data.fullName +"("+data.empId+") has been approved",
+            subject: config.email.emailTohrForAppliedLeaveApproved.subject + data.fullName + "(" + data.empId + ") has been approved",
             template: 'email-notify-to-hr-for-applied-leave-approved',
             context: {
                 fullName: data.fullName,
-                empId:data.empId,
+                empId: data.empId,
                 appliedBy: data.appliedBy,
                 leaveType: data.leaveType,
                 appliedDate: moment(data.appliedDate).format('L'),
@@ -230,12 +230,12 @@ let functions =
         };
         transporter.sendMail(mailOptions);
     },
-    sendEmailToAppliedByForLeaveRequestRejected: (toEmail, data) => {        
+    sendEmailToAppliedByForLeaveRequestRejected: (toEmail, data) => {
 
         let mailOptions = {
             from: config.email.emailTohrForAppliedLeaveRejected.from, // sender address
             to: toEmail,
-            subject:  config.email.emailTohrForAppliedLeaveRejected.subject + data.fullName +"("+data.empId+") is Rejected",
+            subject: config.email.emailTohrForAppliedLeaveRejected.subject + data.fullName + "(" + data.empId + ") is Rejected",
             template: 'email-notify-to-hr-for-applied-leave-rejected',
             context: {
                 fullName: data.fullName,
@@ -277,7 +277,7 @@ let functions =
             context: {
                 fullName: data.fullName,
                 leaveType: data.leaveType,
-                appliedBy:data.appliedBy,
+                appliedBy: data.appliedBy,
                 appliedDate: moment(data.appliedDate).format('L'),
                 fromDate: moment(data.fromDate).format('L'),
                 toDate: moment(data.toDate).format('L'),
@@ -362,12 +362,12 @@ let functions =
         let mailOptions = {
             from: config.email.forget.from, // sender address
             to: toEmail,
-            subject: config.email.emailToHRForCancelLeave.subject + data.empName +"("+data.empId+")", // Subject line
+            subject: config.email.emailToHRForCancelLeave.subject + data.empName + "(" + data.empId + ")", // Subject line
             template: 'email-notify-to-hr-for-leave-cancellation',
             context: {
                 fullName: data.fullName,
                 empName: data.empName,
-                empId:data.empId,
+                empId: data.empId,
                 leaveType: data.leaveType,
                 appliedDate: moment(data.appliedDate).format('L'),
                 fromDate: moment(data.fromDate).format('L'),
@@ -382,12 +382,12 @@ let functions =
         let mailOptions = {
             from: config.email.forget.from, // sender address
             to: toEmail,
-            subject: config.email.emailToHRForCancelLeave.subject + data.empName +"("+data.empId+")", // Subject line
+            subject: config.email.emailToHRForCancelLeave.subject + data.empName + "(" + data.empId + ")", // Subject line
             template: 'email-notify-to-hr-for-leave-cancellation-rejected',
             context: {
                 fullName: data.fullName,
                 empName: data.empName,
-                empId:data.empId,
+                empId: data.empId,
                 leaveType: data.leaveType,
                 appliedDate: moment(data.appliedDate).format('L'),
                 fromDate: moment(data.fromDate).format('L'),
@@ -397,9 +397,25 @@ let functions =
         };
         transporter.sendMail(mailOptions);
 
+    },
+    sendEmailToEmployeeForAnnualSickLeaveQuotaProvided: (data, callback) => {
+        if (data.officeEmail === null || data.officeEmail === "") {
+            return
+        }
+        let mailOptions = {
+            from: config.email.emailToEmployeeForAnnualLeaveGrant.from, // sender address
+            to: data.officeEmail,
+            subject: data.subject, // Subject line - 'Annual Leave Granted'
+            template: 'email-notify-to-emp-for-annual-leave-grant',
+            context: {
+                fullName: data.fullName,
+                leaveType: data.LeaveType,
+                appliedDate: moment(new Date()).format('L'),
+                days: data.balance
+            }
+        };
+        transporter.sendMail(mailOptions, callback);
     }
-
-
 }
 
 module.exports = functions;

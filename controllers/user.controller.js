@@ -2052,7 +2052,6 @@ function getCarInfoDetails(req, res) {
 }
 
 function addLeaveQuota(req, res, done) {
-    debugger;
     let empId = req.body.emp_id;
     FinancialYearDetails.findOne({ "isYearActive": true }, (err, fyDetail) => {
         let fiscalYearId = fyDetail.id;
@@ -2069,40 +2068,54 @@ function addLeaveQuota(req, res, done) {
         let quotaAnnualLeave = Math.round(proRataDays / 18);
         let quotaSickLeave = Math.round(proRataDays / 26);
 
-        let leaveBalance = new LeaveBalance();
-        leaveBalance.isDeleted = false;
-        leaveBalance.balance = quotaAnnualLeave;
-        leaveBalance.leave_type = 1
-        leaveBalance.emp_id = empId;
-        leaveBalance.fiscalYearId = fiscalYearId;
-        leaveBalance.createdBy = parseInt(req.headers.uid);
+        let annualLeaveBalance = new LeaveBalance();
+        annualLeaveBalance.isDeleted = false;
+        annualLeaveBalance.balance = quotaAnnualLeave;
+        annualLeaveBalance.leave_type = 1
+        annualLeaveBalance.emp_id = empId;
+        annualLeaveBalance.fiscalYearId = fiscalYearId;
+        annualLeaveBalance.createdBy = parseInt(req.headers.uid);
 
-        leaveBalance.save(function (err, leavedata) {
+        annualLeaveBalance.save(function (err, annualLeavedata) {
             if (err) {
-                return done(err, leavedata);
+                return done(err, annualLeavedata);
             }
 
-            AuditTrail.auditTrailEntry(empId, "leaveBalance", leaveBalance, "user", "addEmployee", "ADDED");
-            SendEmail.sendEmailToEmployeeForMaternityLeaveQuotaProvided(data, function (emailErr, email_response) {
-                if (emailErr) {
-                    return res.status(200).json({
-                        title: 'leave balance added and but failed while sending mail to user',
-                        result: {
-                            message: leavedata
-                        }
-                    });
-                } else {
-                    return res.status(200).json({
-                        title: 'leave balance added and mail send to user successfully',
-                        result: {
-                            message: leavedata
-                        }
-                    });
+            AuditTrail.auditTrailEntry(empId, "leaveBalance", annualLeaveBalance, "user", "addEmployee", "ADDED");
+            let mailData = {
+                officeEmail: req.body.personalEmail,
+                subject: 'Annual Leave Granted',
+                fullName: req.body.fullName,
+                LeaveType: 'Annual Leave',
+                balance: quotaAnnualLeave
+            }
+            SendEmail.sendEmailToEmployeeForAnnualSickLeaveQuotaProvided(mailData);
+
+            let sickLeaveBalance = new LeaveBalance();
+            sickLeaveBalance.isDeleted = false;
+            sickLeaveBalance.balance = quotaSickLeave;
+            sickLeaveBalance.leave_type = 2
+            sickLeaveBalance.emp_id = empId;
+            sickLeaveBalance.fiscalYearId = fiscalYearId;
+            sickLeaveBalance.createdBy = parseInt(req.headers.uid);
+
+            sickLeaveBalance.save(function (err, sickLeavedata) {
+                if (err) {
+                    return done(err, sickLeavedata);
                 }
+
+                AuditTrail.auditTrailEntry(empId, "leaveBalance", sickLeaveBalance, "user", "addEmployee", "ADDED");
+                let mailData = {
+                    officeEmail: req.body.personalEmail,
+                    subject: 'Sick Leave Granted',
+                    fullName: req.body.fullName,
+                    LeaveType: 'Sick Leave',
+                    balance: quotaSickLeave
+                }
+                SendEmail.sendEmailToEmployeeForAnnualSickLeaveQuotaProvided(mailData);
+                done(err, null);
             });
         });
-
-        done(err, fyDetail);
     });
 }
 
@@ -2821,9 +2834,11 @@ let functions = {
                 addLeaveQuota(req, res, done);
             },
             function (data, done) {
-                return res.status(200).json(data);
+                return res.status(200).json(true);
             }
-        ]);
+        ], (err, result) => {
+            return res.status(400).json(err);
+        });
     },
 };
 
