@@ -13,6 +13,7 @@ let MidTermDetailsSchema = new Schema(
     supervisor_comment: { type: String },
     supervisor_id: { type: Number },
     mtr_batch_id: { type: Number, required: true },
+    mtr_master_id: { type: Number, required: true },
     status: { type: String },
     isDeleted: { type: Boolean, default: false },
     createdBy: { type: Number, default: null },
