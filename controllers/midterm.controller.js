@@ -427,7 +427,11 @@ function GetMtrKraSingleDetails(req, res) {
         emp_full_name: "$emp_details.fullName",
         supervisor_userName: "$emp_supervisor_details.userName",
         supervisor_full_name: "$emp_supervisor_details.fullName",
-        kra_details: "$kra_details"
+        kra_details: "$kra_details",
+        mtr_kra: "$mtr_kra",
+        weightage_id: "$weightage_id",
+        unitOfSuccess: "$unitOfSuccess",
+        measureOfSuccess: "$measureOfSuccess"
       }
     },
     {
