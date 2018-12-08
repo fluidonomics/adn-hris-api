@@ -272,7 +272,7 @@ function InitiateMtrProcess(req, res) {
                 let kraWorklowResp = responses[0];
                 let mtrDetailsMaxId = responses[1][0] === undefined ? 1 : responses[1][0]._id;
                 kraWorklowResp.forEach((f) => {
-                  f.mtr_batch_id = midTermMasterResult.find(f1 => f1.emp_id === f.kra_emp_id)._id;
+                  f.mtr_batch_id = midTermMasterResult.find(f1 => f1.emp_id === f.kra_emp_id).batch_id;
                   f.emp_supervisor_id = emp_id_array.find(f1 => f1.emp_id === f.kra_emp_id).supervisor_id;
                 });
                 console.log(kraWorklowResp);
@@ -315,6 +315,9 @@ function InitiateMtrProcess(req, res) {
       });
     }
   });
+}
+function GetMtrKraSingleDetails(req, res) {
+
 }
 let functions = {
   getEmpDetailsForMidTermInitiate: (req, res) => {
