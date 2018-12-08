@@ -319,7 +319,99 @@ function InitiateMtrProcess(req, res) {
   });
 }
 function GetMtrKraSingleDetails(req, res) {
-
+  let emp_id = parseInt(req.body.emp_id);
+  MidTermDetails.aggregate([
+    {
+      "$lookup": {
+        "from": "midtermmasters",
+        "localField": "mtr_master_id",
+        "foreignField": "_id",
+        "as": "mtr_master_details"
+      }
+    },
+    {
+      "$unwind": {
+        "path": "$mtr_master_details"
+      }
+    },
+    {
+      "$lookup": {
+        "from": "kradetails",
+        "localField": "kraDetailId",
+        "foreignField": "_id",
+        "as": "kra_details"
+      }
+    },
+    {
+      "$lookup": {
+        "from": "employeedetails",
+        "localField": "mtr_master_details.emp_id",
+        "foreignField": "_id",
+        "as": "emp_details"
+      }
+    },
+    {
+      "$unwind": {
+        "path": "$emp_details"
+      }
+    },
+    {
+      "$lookup": {
+        "from": "employeedetails",
+        "localField": "supervisor_id",
+        "foreignField": "_id",
+        "as": "emp_supervisor_details"
+      }
+    },
+    {
+      "$unwind": {
+        "path": "$emp_supervisor_details"
+      }
+    },
+    {
+      "$project": {
+        "_id": "$_id",
+        "mtr_master_kraWorkflow_id": "$kraWorkflow_id",
+        "mtr_master_kraDetailId": "$kraDetailId",
+        "mtr_master_emp_comment": "$emp_comment",
+        "mtr_master_supervisor_comment": "$supervisor_comment",
+        "mtr_master_supervisor_id": "$supervisor_id",
+        "mtr_batch_id": "$mtr_batch_id",
+        "mtr_master_id": "$mtr_master_id",
+        "mtr_master_status": "$status",
+        "emp_id": "$mtr_master_details.emp_id",
+        "emp_userName": "$emp_details.userName",
+        "emp_full_name": "$emp_details.fullName",
+        "supervisor_userName": "$emp_supervisor_details.userName",
+        "supervisor_full_name": "$emp_supervisor_details.fullName",
+        "kra_details": "$kra_details"
+      }
+    },
+    {
+      "$match": {
+        "emp_id": emp_id
+      }
+    }
+  ]).exec(function (err, data) {
+    if (err) {
+      return res.status(403).json({
+        title: "There was a problem",
+        error: {
+          message: err
+        },
+        result: {
+          message: data
+        }
+      });
+    } else {
+      return res.status(200).json({
+        title: "Mid term master details",
+        result: {
+          message: data
+        }
+      });
+    }
+  });
 }
 let functions = {
   getEmpDetailsForMidTermInitiate: (req, res) => {
@@ -327,6 +419,9 @@ let functions = {
   },
   initiateMidTermProcess: (req, res) => {
     InitiateMtrProcess(req, res);
+  },
+  getMtrDetailsSingleEmployee: (req, res) => {
+    GetMtrKraSingleDetails(req, res);
   }
 };
 module.exports = functions;
