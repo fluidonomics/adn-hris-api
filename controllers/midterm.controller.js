@@ -104,7 +104,7 @@ function EmpDetailsForMidTermInitiate(req, res) {
         emp_employmentType_id: "$employee_details.employmentType_id",
         emp_isDeleted: "$employee_details.isDeleted",
         emp_department_id: "$employee_office_details.department_id",
-        emp_HRSpoc_id: "$employee_office_details.htspoc_id",
+        emp_HRSpoc_id: "$employee_office_details.hrspoc_id",
         emp_officeEmail: "$employee_office_details.officeEmail",
         emp_designation_id: "$employee_details.designation_id",
         emp_designation_name: "$designation_details.designationName",
@@ -151,7 +151,7 @@ function InitiateMtrProcess(req, res) {
           message: err
         },
         result: {
-          message: midTermMasterResult
+          message: midtermbatchresp
         }
       });
     } else {
@@ -362,7 +362,7 @@ function InitiateMtrProcess(req, res) {
   });
 }
 function GetMtrKraSingleDetails(req, res) {
-  let emp_id = parseInt(req.body.emp_id);
+  let emp_id = parseInt(req.query.emp_id);
   MidTermDetails.aggregate([
     {
       $lookup: {
