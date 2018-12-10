@@ -392,6 +392,19 @@ function GetMtrKraSingleDetails(req, res) {
     },
     {
       $lookup: {
+        from: "employeedetails",
+        localField: "mtr_batch.createdBy",
+        foreignField: "_id",
+        as: "mtr_batch_creator"
+      }
+    },
+    {
+      $unwind: {
+        path: "$mtr_batch_creator"
+      }
+    },
+    {
+      $lookup: {
         from: "kradetails",
         localField: "kraDetailId",
         foreignField: "_id",
@@ -435,6 +448,11 @@ function GetMtrKraSingleDetails(req, res) {
         mtr_master_supervisor_id: "$supervisor_id",
         mtr_batch_id: "$mtr_batch_id",
         mtr_batch: "$mtr_batch",
+        mtr_batch_creator: {
+          "_id": 1,
+          "userName": 1,
+          "fullName": 1
+        },
         mtr_master_id: "$mtr_master_id",
         mtr_master_status: "$status",
         emp_id: "$mtr_master_details.emp_id",
