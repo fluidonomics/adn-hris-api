@@ -115,7 +115,7 @@ function EmpDetailsForMidTermInitiate(req, res) {
         mtr_batch_id: "$mtr_master_details.batch_id"
       }
     }
-  ]).exec(function(err, response) {
+  ]).exec(function (err, response) {
     if (err) {
       return res.status(403).json({
         title: "There is a problem",
@@ -143,7 +143,7 @@ function InitiateMtrProcess(req, res) {
   MidTermBatchDetails.createdBy = createdBy;
   let emp_id_array = req.body.emp_id_array;
   MidTermBatchDetails.transac;
-  MidTermBatchDetails.save(function(err, midtermbatchresp) {
+  MidTermBatchDetails.save(function (err, midtermbatchresp) {
     if (err) {
       return res.status(403).json({
         title: "There was a problem",
@@ -180,11 +180,11 @@ function InitiateMtrProcess(req, res) {
             $limit: 1.0
           }
         ]).exec()
-      ]).then(function(counts) {
+      ]).then(function (counts) {
         let insertData = [];
         let midtermMaster_id =
           counts[0][0] === undefined ? 1 : counts[0][0]._id;
-        emp_id_array.forEach(function(element, index) {
+        emp_id_array.forEach(function (element, index) {
           insertData.push({
             batch_id: batch_id,
             emp_id: element.emp_id,
@@ -193,7 +193,7 @@ function InitiateMtrProcess(req, res) {
             createdBy: createdBy
           });
         });
-        MidTermMaster.insertMany(insertData, function(
+        MidTermMaster.insertMany(insertData, function (
           err,
           midTermMasterResult
         ) {
@@ -279,7 +279,7 @@ function InitiateMtrProcess(req, res) {
                   $limit: 1.0
                 }
               ])
-            ]).then(function(responses, err) {
+            ]).then(function (responses, err) {
               if (err) {
                 return res.status(403).json({
                   title: "There was a problem",
@@ -326,7 +326,7 @@ function InitiateMtrProcess(req, res) {
                   } else {
                   }
                 });
-                MidTermDetails.insertMany(mtrDetailsInsertData, function(
+                MidTermDetails.insertMany(mtrDetailsInsertData, function (
                   err,
                   midTermDetails
                 ) {
@@ -379,6 +379,19 @@ function GetMtrKraSingleDetails(req, res) {
     },
     {
       $lookup: {
+        from: "midtermbatches",
+        localField: "mtr_batch_id",
+        foreignField: "_id",
+        as: "mtr_batch"
+      }
+    },
+    {
+      $unwind: {
+        path: "$mtr_batch"
+      }
+    },
+    {
+      $lookup: {
         from: "kradetails",
         localField: "kraDetailId",
         foreignField: "_id",
@@ -408,7 +421,8 @@ function GetMtrKraSingleDetails(req, res) {
     },
     {
       $unwind: {
-        path: "$emp_supervisor_details"
+        path: "$emp_supervisor_details",
+        preserveNullAndEmptyArrays: true
       }
     },
     {
@@ -420,6 +434,7 @@ function GetMtrKraSingleDetails(req, res) {
         mtr_master_supervisor_comment: "$supervisor_comment",
         mtr_master_supervisor_id: "$supervisor_id",
         mtr_batch_id: "$mtr_batch_id",
+        mtr_batch: "$mtr_batch",
         mtr_master_id: "$mtr_master_id",
         mtr_master_status: "$status",
         emp_id: "$mtr_master_details.emp_id",
@@ -439,7 +454,7 @@ function GetMtrKraSingleDetails(req, res) {
         emp_id: emp_id
       }
     }
-  ]).exec(function(err, data) {
+  ]).exec(function (err, data) {
     if (err) {
       return res.status(403).json({
         title: "There was a problem",
