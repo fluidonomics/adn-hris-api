@@ -475,6 +475,80 @@ function GetMtrKraSingleDetails(req, res) {
     }
   });
 }
+
+function getMtrBySupervisor(req, res) {
+  let supervisorId = parseInt(req.query.supervisorId);
+  let status = req.query.status;
+  MidTermDetails.aggregate([
+    {
+      $match: {
+        supervisor_id: supervisorId
+      }
+    },
+    {
+      $lookup: {
+        from: "midtermmasters",
+        localField: "mtr_master_id",
+        foreignField: "_id",
+        as: "mtr_master_details"
+      }
+    },
+    {
+      $unwind: {
+        path: "$mtr_master_details"
+      }
+    },
+    {
+      $lookup: {
+        from: "employeedetails",
+        localField: "mtr_master_details.emp_id",
+        foreignField: "_id",
+        as: "emp_details"
+      }
+    },
+    {
+      $unwind: {
+        path: "$emp_details"
+      }
+    },
+    {
+      $project: {
+        "mtrMasterId": "$mtr_master_id",
+        "emp_details": "$emp_details",
+        "mtr_master_details": "$mtr_master_details",
+        "status": "$mtr_master_details.status"
+      }
+    },
+    { $match: { "status": status } },
+    {
+      $group: {
+        "_id": "$mtrMasterId",
+        "emp_details": { $first: "$emp_details" },
+        "mtr_master_details": { $first: "$mtr_master_details" }
+      }
+    }
+  ]).exec(function (err, data) {
+    if (err) {
+      return res.status(403).json({
+        title: "There was a problem",
+        error: {
+          message: err
+        },
+        result: {
+          message: data
+        }
+      });
+    } else {
+      return res.status(200).json({
+        title: "Mid term master data",
+        result: {
+          message: data
+        }
+      });
+    }
+  });
+}
+
 let functions = {
   getEmpDetailsForMidTermInitiate: (req, res) => {
     EmpDetailsForMidTermInitiate(req, res);
@@ -484,6 +558,10 @@ let functions = {
   },
   getMtrDetailsSingleEmployee: (req, res) => {
     GetMtrKraSingleDetails(req, res);
+  },
+  getMtrBySupervisor: (req, res) => {
+    getMtrBySupervisor(req, res);
   }
 };
+
 module.exports = functions;
