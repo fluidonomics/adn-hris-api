@@ -567,6 +567,103 @@ function getMtrBySupervisor(req, res) {
   });
 }
 
+function getMtrBatches(req, res) {
+  let currentUserId = parseInt(req.query.empId);
+  MidTermBatch.aggregate([
+    {
+      $match: {
+        createdBy: currentUserId
+      }
+    },
+    {
+      $lookup: {
+        from: "midtermmasters",
+        localField: "_id",
+        foreignField: "batch_id",
+        as: "mtr_master"
+      }
+    },
+    {
+      $unwind: {
+        path: "$mtr_master",
+        preserveNullAndEmptyArrays: true
+      }
+    },
+    {
+      $lookup: {
+        from: "employeedetails",
+        localField: "mtr_master.emp_id",
+        foreignField: "_id",
+        as: "emp_details"
+      }
+    },
+    {
+      $unwind: {
+        path: "$emp_details",
+        preserveNullAndEmptyArrays: true
+      }
+    },
+    {
+      $project: {
+        "_id": 1,
+        "updatedAt": 1,
+        "createdAt": 1,
+        "isDeleted": 1,
+        "status": 1,
+        "updatedBy": 1,
+        "createdBy": 1,
+        "batchEndDate": 1,
+        "batchName": 1,
+        "mtr_master": {
+          "_id": 1,
+          "updatedAt": 1,
+          "createdAt": 1,
+          "batch_id": 1,
+          "emp_id": 1,
+          "isDeleted": 1,
+          "createdBy": 1,
+          "updatedBy": 1,
+          "status": 1,
+          "emp_details": "$emp_details"
+        },
+      }
+    },
+    {
+      $group: {
+        "_id": "$_id",
+        "updatedAt": { $first: "$updatedAt" },
+        "createdAt": { $first: "$createdAt" },
+        "isDeleted": { $first: "$isDeleted" },
+        "status": { $first: "$status" },
+        "updatedBy": { $first: "$updatedBy" },
+        "createdBy": { $first: "$createdBy" },
+        "batchEndDate": { $first: "$batchEndDate" },
+        "batchName": { $first: "$batchName" },
+        "mtr_master": { $push: "$mtr_master" }
+      }
+    }
+  ]).exec(function (err, data) {
+    if (err) {
+      return res.status(403).json({
+        title: "There was a problem",
+        error: {
+          message: err
+        },
+        result: {
+          message: data
+        }
+      });
+    } else {
+      return res.status(200).json({
+        title: "Mid term master data",
+        result: {
+          message: data
+        }
+      });
+    }
+  });
+}
+
 let functions = {
   getEmpDetailsForMidTermInitiate: (req, res) => {
     EmpDetailsForMidTermInitiate(req, res);
@@ -579,6 +676,9 @@ let functions = {
   },
   getMtrBySupervisor: (req, res) => {
     getMtrBySupervisor(req, res);
+  },
+  getMtrBatches: (req, res) => {
+    getMtrBatches(req, res);
   }
 };
 
