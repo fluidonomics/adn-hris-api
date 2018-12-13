@@ -1,23 +1,23 @@
-let express           = require('express'),
-    KraInfo           = require('../models/kra/kraDetails.model'),
-    KraWorkFlowInfo   = require('../models/kra/kraWorkFlowDetails.model'),
-    KraWeightageInfo   = require('../models/kra/kraWeightage.model'),
-    KraCategoryInfo   = require('../models/kra/kraCategory.model'),
+let express = require('express'),
+    KraInfo = require('../models/kra/kraDetails.model'),
+    KraWorkFlowInfo = require('../models/kra/kraWorkFlowDetails.model'),
+    KraWeightageInfo = require('../models/kra/kraWeightage.model'),
+    KraCategoryInfo = require('../models/kra/kraCategory.model'),
     EmployeeInfo = require('../models/employee/employeeDetails.model'),
     EmployeeSupervisors = require('../models/employee/employeeSupervisorDetails.model'),
     BatchInfo = require('../models/workflow/batch.model'),
     Department = require('../models/master/department.model'),
     LeaveTypes = require('../models/leave/leaveTypes.model'),
     LeaveApply = require('../models/leave/leaveApply.model'),
-    async             = require('async'),
+    async = require('async'),
     csvWriter = require('csv-write-stream'),
     Json2csvParser = require('json2csv').Parser;
-    path = require('path');
-    mime = require('mime');
-    fs = require('fs');
-    BatchCtrl= require('./batch.controller'),
-    TimeLineCtrl= require('./timeline.controller'),
-    AuditTrail  = require('../class/auditTrail');
+path = require('path');
+mime = require('mime');
+fs = require('fs');
+BatchCtrl = require('./batch.controller'),
+    TimeLineCtrl = require('./timeline.controller'),
+    AuditTrail = require('../class/auditTrail');
 
 require('dotenv').load();
 
@@ -75,10 +75,11 @@ function addBulkKraInfoDetails(req, res, done) {
     let arr_emp_id = req.body.emp_id;
     var insertData = [];
     Promise.all([
-        KraWorkFlowInfo.find({}).count().exec(),
-    ]).then(function (counts) {
+        KraWorkFlowInfo.find({}).exec(),
+    ]).then(function (kraData) {
+        let maxId = Math.max.apply(Math, kraData[0].map(k => { return parseInt(k._id); }))
         arr_emp_id.forEach(function (element, index) {
-            insertData.push({ batch_id: req.body.batch_id, emp_id: element, status: 'Initiated', _id: counts[0] + (index + 1), createdBy: parseInt(req.headers.uid) });
+            insertData.push({ batch_id: req.body.batch_id, emp_id: element, status: 'Initiated', _id: maxId + (index + 1), createdBy: parseInt(req.headers.uid) });
         });
         KraWorkFlowInfo.insertMany(insertData, function (err, results) {
             if (err) {
@@ -326,7 +327,7 @@ function getKraWorkFlowInfoDetails(req, res) {
             isDeleted: false
         };
     }
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
+
 }
 
 function getKraWorkFlowInfoDetailsByBatch(req, res) {
@@ -776,136 +777,137 @@ let functions = {
   
         const fields = ['_id','batchName', 'Employee_Name', 'Employee_Id', 'KRA_intiated_on', 'KRA_initiated_by', 'Number_of_KRA', 'KRA_status', 'Last_updated_on', 'Last_updated_by'];
         KraWorkFlowInfo.aggregate([
-        {
-              "$lookup": {
-                  "from": "batchdetails",
-                  "localField": "batch_id",
-                  "foreignField": "_id",
-                  "as": "batchdetails"
-              }
-        },
-        {
-            "$unwind": "$batchdetails"
-        },
-        {
-            "$lookup": {
-                "from": "employeedetails",
-                "localField": "createdBy",
-                "foreignField": "_id",
-                "as": "employeedetails"
-            }
-        },
-        {
-          "$unwind": "$employeedetails"
-        },
-        {
-            "$lookup": {
+            {
+                "$lookup": {
+                    "from": "batchdetails",
+                    "localField": "batch_id",
+                    "foreignField": "_id",
+                    "as": "batchdetails"
+                }
+            },
+            {
+                "$unwind": "$batchdetails"
+            },
+            {
+                "$lookup": {
+                    "from": "employeedetails",
+                    "localField": "createdBy",
+                    "foreignField": "_id",
+                    "as": "employeedetails"
+                }
+            },
+            {
+                "$unwind": "$employeedetails"
+            },
+            {
+                "$lookup": {
                     "from": "employeedetails",
                     "localField": "emp_id",
                     "foreignField": "_id",
                     "as": "employeedetailName"
                 }
             },
-        {
-          "$unwind": "$employeedetailName"
-        },
-      /*  {
-            "$lookup": {
-                "from": "KraInfo",
-                "localField": "_id",
-                "foreignField": "kraWorkflow_id",
-                "as": "KraInfoDetails"
-            }
-        },
             {
-                "$unwind": {
-                    path: "$KraInfoDetails",
-                    "preserveNullAndEmptyArrays": true
-                }
+                "$unwind": "$employeedetailName"
             },
+            /*  {
+                  "$lookup": {
+                      "from": "KraInfo",
+                      "localField": "_id",
+                      "foreignField": "kraWorkflow_id",
+                      "as": "KraInfoDetails"
+                  }
+              },
+                  {
+                      "$unwind": {
+                          path: "$KraInfoDetails",
+                          "preserveNullAndEmptyArrays": true
+                      }
+                  },
+                  {
+                      $group: {
+                          kraWorkflow_id: "$KraInfoDetails.kraWorkflow_id",
+                          totalKra: { $sum: 1 },
+                      }
+                  },*/
+            /* { "$match": { "emp_id":parseInt(emp_id),"isDeleted":false,"employeedetails.isDeleted":false,"batchdetails.isDeleted":false} },
+             { "$sort": { "createdAt":-1,"updatedAt": -1 } },*/
             {
-                $group: {
-                    kraWorkflow_id: "$KraInfoDetails.kraWorkflow_id",
-                    totalKra: { $sum: 1 },
+                "$project": {
+                    "_id": "$_id",
+                    "batchName": "$batchdetails.batchName",
+                    "Employee_Name": "$employeedetailName.fullName",
+                    "Employee_Id": "$employeedetailName.userName",
+                    "KRA_intiated_on": "$batchdetails.batchEndDate",
+                    "KRA_initiated_by": "$employeedetails.fullName",
+                    // "Number_of_KRA":"$totalKra",
+                    "KRA_status": "$status",
+                    "Last_updated_on": "$createdAt",
+                    "Last_updated_by": "$updatedAt",
+
                 }
-            },*/    
-       /* { "$match": { "emp_id":parseInt(emp_id),"isDeleted":false,"employeedetails.isDeleted":false,"batchdetails.isDeleted":false} },
-        { "$sort": { "createdAt":-1,"updatedAt": -1 } },*/
-        {"$project":{
-            "_id":"$_id",
-            "batchName":"$batchdetails.batchName",
-            "Employee_Name":"$employeedetailName.fullName",
-            "Employee_Id":"$employeedetailName.userName",
-            "KRA_intiated_on":"$batchdetails.batchEndDate",
-            "KRA_initiated_by":"$employeedetails.fullName",
-            // "Number_of_KRA":"$totalKra",
-            "KRA_status":"$status",
-            "Last_updated_on":"$createdAt",
-            "Last_updated_by":"$updatedAt",
-           
-        }}
-      ]).exec(function(err, kraEmployeeWorkflowInfoData){
-        if (err) {
-            return res.status(403).json({
-                title: 'There was an error, please try again later',
-                error: err
-            });
-        }
+            }
+        ]).exec(function (err, kraEmployeeWorkflowInfoData) {
+            if (err) {
+                return res.status(403).json({
+                    title: 'There was an error, please try again later',
+                    error: err
+                });
+            }
             // console.log(kraEmployeeWorkflowInfoData);
             const json2csvParser = new Json2csvParser({ fields });
             const csv = json2csvParser.parse(kraEmployeeWorkflowInfoData);
             // console.log('test new demo',csv);
-  
-            fs.writeFile('KRA_Report_Supervisor.csv', csv, function(err) { //currently saves file to app's root directory
+
+            fs.writeFile('KRA_Report_Supervisor.csv', csv, function (err) { //currently saves file to app's root directory
                 if (err) throw err;
                 console.log('file saved');
 
-                var file =   'KRA_Report_Supervisor.csv';
-                res.download(file, 'KRA_Report_Supervisor.csv'); 
- 
+                var file = 'KRA_Report_Supervisor.csv';
+                res.download(file, 'KRA_Report_Supervisor.csv');
+
             });
 
-        }) 
- 
+        })
+
     },
-    getKRA_Report:(req, res)=>
-    { 
-  
-        const fields = [ '_id','batchName', 'Employee_Name', 'Employee_Id', 'Primary_Supervisor', 'Secondary_Supervisor', 'KRA_intiated_on', 'KRA_initiated_by', 'Number_of_KRA', 'KRA_status', 'Last_updated_on', 'Last_updated_by'];
+    getKRA_Report: (req, res) => {
+
+        const fields = ['_id', 'batchName', 'Employee_Name', 'Employee_Id', 'Primary_Supervisor', 'Secondary_Supervisor', 'KRA_intiated_on', 'KRA_initiated_by', 'Number_of_KRA', 'KRA_status', 'Last_updated_on', 'Last_updated_by'];
         KraWorkFlowInfo.aggregate([
-        {
-              "$lookup": {
-                  "from": "batchdetails",
-                  "localField": "batch_id",
-                  "foreignField": "_id",
-                  "as": "batchdetails"
-              }
-        },
-        {
-            "$unwind": "$batchdetails"
-        },
-        {
-            "$lookup": {
-                "from": "employeedetails",
-                "localField": "createdBy",
-                "foreignField": "_id",
-                "as": "employeedetails"
-            }
-        },
-        {
-          "$unwind": "$employeedetails"
-        },
-        {
-            "$lookup": {
+            {
+                "$lookup": {
+                    "from": "batchdetails",
+                    "localField": "batch_id",
+                    "foreignField": "_id",
+                    "as": "batchdetails"
+                }
+            },
+            {
+                "$unwind": "$batchdetails"
+            },
+            {
+                "$lookup": {
+                    "from": "employeedetails",
+                    "localField": "createdBy",
+                    "foreignField": "_id",
+                    "as": "employeedetails"
+                }
+            },
+            {
+                "$unwind": "$employeedetails"
+            },
+            {
+                "$lookup": {
                     "from": "employeedetails",
                     "localField": "emp_id",
                     "foreignField": "_id",
                     "as": "employeedetailName"
                 }
             },
-        {
-          "$unwind": "$employeedetailName"
-        },
+            {
+                "$unwind": "$employeedetailName"
+            },
             {
                 "$lookup": {
                     "from": "employeesupervisordetails",
@@ -916,7 +918,7 @@ let functions = {
             },
             {
                 "$unwind": {
-                    "path":"$supervisor", "preserveNullAndEmptyArrays": true
+                    "path": "$supervisor", "preserveNullAndEmptyArrays": true
                 }
             },
             {
@@ -945,68 +947,70 @@ let functions = {
                     "path": "$employeeSecondary", "preserveNullAndEmptyArrays": true
                 }
             },
-       /* {
-            "$lookup": {
-                "from": "KraInfo",
-                "localField": "_id",
-                "as": "KraInfoDetails"
+            /* {
+                 "$lookup": {
+                     "from": "KraInfo",
+                     "localField": "_id",
+                     "as": "KraInfoDetails"
+                 }
+                     "foreignField": "kraWorkflow_id",
+             },
+             {
+                 "$unwind": {
+                     path: "$KraInfoDetails",
+                     "preserveNullAndEmptyArrays": true
+                 }
+             },*/
+            /* {
+                 $group: {
+                     _id: "$kraDetails.kraWorkflow_id",
+                     totalKra: { $sum: 1 },
+                 }
+             },  */
+            /* { "$match": { "emp_id":parseInt(emp_id),"isDeleted":false,"employeedetails.isDeleted":false,"batchdetails.isDeleted":false} },
+             { "$sort": { "createdAt":-1,"updatedAt": -1 } },*/
+            {
+                "$project": {
+                    // "secondarySupervisorDetails": 0,
+                    "_id": "$_id",
+                    "batchName": "$batchdetails.batchName",
+                    "Employee_Name": "$employeedetailName.fullName",
+                    "Employee_Id": "$employeedetailName.userName",
+                    "Primary_Supervisor": "$employees.fullName",
+                    "Secondary_Supervisor": "$employeeSecondary.fullName",
+                    "KRA_intiated_on": "$batchdetails.batchEndDate",
+                    "KRA_initiated_by": "$employeedetails.fullName",
+                    "Number_of_KRA": "$totalKra",
+                    "KRA_status": "$status",
+                    "Last_updated_on": "$createdAt",
+                    "Last_updated_by": "$updatedAt",
+
+                }
             }
-                "foreignField": "kraWorkflow_id",
-        },
-        {
-            "$unwind": {
-                path: "$KraInfoDetails",
-                "preserveNullAndEmptyArrays": true
+        ]).exec(function (err, kraEmployeeWorkflowInfoData) {
+            console.log('test new demo', kraEmployeeWorkflowInfoData);
+            if (err) {
+                return res.status(403).json({
+                    title: 'There was an error, please try again later',
+                    error: err
+                });
             }
-        },*/
-       /* {
-            $group: {
-                _id: "$kraDetails.kraWorkflow_id",
-                totalKra: { $sum: 1 },
-            }
-        },  */
-       /* { "$match": { "emp_id":parseInt(emp_id),"isDeleted":false,"employeedetails.isDeleted":false,"batchdetails.isDeleted":false} },
-        { "$sort": { "createdAt":-1,"updatedAt": -1 } },*/
-        {"$project":{
-           // "secondarySupervisorDetails": 0,
-            "_id":"$_id",
-            "batchName":"$batchdetails.batchName",
-            "Employee_Name":"$employeedetailName.fullName",
-            "Employee_Id":"$employeedetailName.userName",
-            "Primary_Supervisor":"$employees.fullName",
-            "Secondary_Supervisor":"$employeeSecondary.fullName",
-            "KRA_intiated_on":"$batchdetails.batchEndDate",
-            "KRA_initiated_by":"$employeedetails.fullName",
-            "Number_of_KRA":"$totalKra",
-            "KRA_status":"$status",
-            "Last_updated_on":"$createdAt",
-            "Last_updated_by":"$updatedAt",
-           
-        }}
-      ]).exec(function(err, kraEmployeeWorkflowInfoData){
-        console.log('test new demo',kraEmployeeWorkflowInfoData);
-        if (err) {
-            return res.status(403).json({
-                title: 'There was an error, please try again later',
-                error: err
-            });
-        }
             // console.log(kraEmployeeWorkflowInfoData);
             const json2csvParser = new Json2csvParser({ fields });
             const csv = json2csvParser.parse(kraEmployeeWorkflowInfoData);
             // console.log('test new demo',csv);
-  
-            fs.writeFile('KRA_Report.csv', csv, function(err) { //currently saves file to app's root directory
-                if (err) throw err;
-               // console.log('file saved');
 
-                var file =   'KRA_Report.csv';
-                res.download(file, 'KRA_Report.csv'); 
- 
+            fs.writeFile('KRA_Report.csv', csv, function (err) { //currently saves file to app's root directory
+                if (err) throw err;
+                // console.log('file saved');
+
+                var file = 'KRA_Report.csv';
+                res.download(file, 'KRA_Report.csv');
+
             });
 
-        }) 
- 
+        })
+
     }
 }
 module.exports = { functions, updateKraWorkFlowInfoDetails };
