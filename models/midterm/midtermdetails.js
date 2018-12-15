@@ -7,7 +7,7 @@ autoIncrement = require("mongoose-sequence")(mongoose);
 let MidTermDetailsSchema = new Schema(
   {
     _id: { type: Number },
-    kraWorkflow_id: { type: Number, ref: "kraworkflowdetails", required: true },
+    kraWorkflow_id: { type: Number, ref: "kraworkflowdetails"},
     kraDetailId: { type: Number, ref: "kradetails", default: null },
     emp_comment: { type: String },
     supervisor_comment: { type: String },

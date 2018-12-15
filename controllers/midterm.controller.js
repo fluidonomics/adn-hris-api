@@ -115,7 +115,7 @@ function EmpDetailsForMidTermInitiate(req, res) {
         mtr_batch_id: "$mtr_master_details.batch_id"
       }
     }
-  ]).exec(function (err, response) {
+  ]).exec(function(err, response) {
     if (err) {
       return res.status(403).json({
         title: "There is a problem",
@@ -143,7 +143,7 @@ function InitiateMtrProcess(req, res) {
   MidTermBatchDetails.createdBy = createdBy;
   let emp_id_array = req.body.emp_id_array;
   MidTermBatchDetails.transac;
-  MidTermBatchDetails.save(function (err, midtermbatchresp) {
+  MidTermBatchDetails.save(function(err, midtermbatchresp) {
     if (err) {
       return res.status(403).json({
         title: "There was a problem",
@@ -180,11 +180,11 @@ function InitiateMtrProcess(req, res) {
             $limit: 1.0
           }
         ]).exec()
-      ]).then(function (counts) {
+      ]).then(function(counts) {
         let insertData = [];
         let midtermMaster_id =
           counts[0][0] === undefined ? 1 : counts[0][0]._id;
-        emp_id_array.forEach(function (element, index) {
+        emp_id_array.forEach(function(element, index) {
           insertData.push({
             batch_id: batch_id,
             emp_id: element.emp_id,
@@ -193,7 +193,7 @@ function InitiateMtrProcess(req, res) {
             createdBy: createdBy
           });
         });
-        MidTermMaster.insertMany(insertData, function (
+        MidTermMaster.insertMany(insertData, function(
           err,
           midTermMasterResult
         ) {
@@ -279,7 +279,7 @@ function InitiateMtrProcess(req, res) {
                   $limit: 1.0
                 }
               ])
-            ]).then(function (responses, err) {
+            ]).then(function(responses, err) {
               if (err) {
                 return res.status(403).json({
                   title: "There was a problem",
@@ -326,7 +326,7 @@ function InitiateMtrProcess(req, res) {
                   } else {
                   }
                 });
-                MidTermDetails.insertMany(mtrDetailsInsertData, function (
+                MidTermDetails.insertMany(mtrDetailsInsertData, function(
                   err,
                   midTermDetails
                 ) {
@@ -449,9 +449,9 @@ function GetMtrKraSingleDetails(req, res) {
         mtr_batch_id: "$mtr_batch_id",
         mtr_batch: "$mtr_batch",
         mtr_batch_creator: {
-          "_id": 1,
-          "userName": 1,
-          "fullName": 1
+          _id: 1,
+          userName: 1,
+          fullName: 1
         },
         mtr_master_id: "$mtr_master_id",
         mtr_master_status: "$status",
@@ -472,7 +472,7 @@ function GetMtrKraSingleDetails(req, res) {
         emp_id: emp_id
       }
     }
-  ]).exec(function (err, data) {
+  ]).exec(function(err, data) {
     if (err) {
       return res.status(403).json({
         title: "There was a problem",
@@ -493,7 +493,6 @@ function GetMtrKraSingleDetails(req, res) {
     }
   });
 }
-
 function getMtrBySupervisor(req, res) {
   let supervisorId = parseInt(req.query.supervisorId);
   let status = req.query.status;
@@ -531,21 +530,21 @@ function getMtrBySupervisor(req, res) {
     },
     {
       $project: {
-        "mtrMasterId": "$mtr_master_id",
-        "emp_details": "$emp_details",
-        "mtr_master_details": "$mtr_master_details",
-        "status": "$mtr_master_details.status"
+        mtrMasterId: "$mtr_master_id",
+        emp_details: "$emp_details",
+        mtr_master_details: "$mtr_master_details",
+        status: "$mtr_master_details.status"
       }
     },
-    { $match: { "status": status } },
+    { $match: { status: status } },
     {
       $group: {
-        "_id": "$mtrMasterId",
-        "emp_details": { $first: "$emp_details" },
-        "mtr_master_details": { $first: "$mtr_master_details" }
+        _id: "$mtrMasterId",
+        emp_details: { $first: "$emp_details" },
+        mtr_master_details: { $first: "$mtr_master_details" }
       }
     }
-  ]).exec(function (err, data) {
+  ]).exec(function(err, data) {
     if (err) {
       return res.status(403).json({
         title: "There was a problem",
@@ -566,7 +565,6 @@ function getMtrBySupervisor(req, res) {
     }
   });
 }
-
 function getMtrBatches(req, res) {
   let currentUserId = parseInt(req.query.empId);
   MidTermBatch.aggregate([
@@ -605,44 +603,44 @@ function getMtrBatches(req, res) {
     },
     {
       $project: {
-        "_id": 1,
-        "updatedAt": 1,
-        "createdAt": 1,
-        "isDeleted": 1,
-        "status": 1,
-        "updatedBy": 1,
-        "createdBy": 1,
-        "batchEndDate": 1,
-        "batchName": 1,
-        "mtr_master": {
-          "_id": 1,
-          "updatedAt": 1,
-          "createdAt": 1,
-          "batch_id": 1,
-          "emp_id": 1,
-          "isDeleted": 1,
-          "createdBy": 1,
-          "updatedBy": 1,
-          "status": 1,
-          "emp_details": "$emp_details"
-        },
+        _id: 1,
+        updatedAt: 1,
+        createdAt: 1,
+        isDeleted: 1,
+        status: 1,
+        updatedBy: 1,
+        createdBy: 1,
+        batchEndDate: 1,
+        batchName: 1,
+        mtr_master: {
+          _id: 1,
+          updatedAt: 1,
+          createdAt: 1,
+          batch_id: 1,
+          emp_id: 1,
+          isDeleted: 1,
+          createdBy: 1,
+          updatedBy: 1,
+          status: 1,
+          emp_details: "$emp_details"
+        }
       }
     },
     {
       $group: {
-        "_id": "$_id",
-        "updatedAt": { $first: "$updatedAt" },
-        "createdAt": { $first: "$createdAt" },
-        "isDeleted": { $first: "$isDeleted" },
-        "status": { $first: "$status" },
-        "updatedBy": { $first: "$updatedBy" },
-        "createdBy": { $first: "$createdBy" },
-        "batchEndDate": { $first: "$batchEndDate" },
-        "batchName": { $first: "$batchName" },
-        "mtr_master": { $push: "$mtr_master" }
+        _id: "$_id",
+        updatedAt: { $first: "$updatedAt" },
+        createdAt: { $first: "$createdAt" },
+        isDeleted: { $first: "$isDeleted" },
+        status: { $first: "$status" },
+        updatedBy: { $first: "$updatedBy" },
+        createdBy: { $first: "$createdBy" },
+        batchEndDate: { $first: "$batchEndDate" },
+        batchName: { $first: "$batchName" },
+        mtr_master: { $push: "$mtr_master" }
       }
     }
-  ]).exec(function (err, data) {
+  ]).exec(function(err, data) {
     if (err) {
       return res.status(403).json({
         title: "There was a problem",
@@ -663,7 +661,46 @@ function getMtrBatches(req, res) {
     }
   });
 }
-
+function InsertNewKRAInMtr(req, res) {
+  let mtrDetails = new MidTermDetails();
+  mtrDetails.mtr_master_id = parseInt(req.body.mtr_master_id);
+  mtrDetails.mtr_kra = req.body.mtr_kra;
+  mtrDetails.supervisor_id = parseInt(req.body.supervisor_id);
+  mtrDetails.mtr_batch_id = parseInt(req.body.mtr_batch_id);
+  mtrDetails.weightage_id = parseInt(req.body.weightage_id);
+  mtrDetails.unitOfSuccess = req.body.unitOfSuccess;
+  mtrDetails.measureOfSuccess = req.body.measureOfSuccess;
+  mtrDetails.isDeleted = req.body.isDeleted;
+  mtrDetails.createdBy = parseInt(req.body.createdBy);
+  mtrDetails.save(function(err, response) {
+    if (err) {
+      return res.status(403).json({
+        title: "There is a problem",
+        error: {
+          message: err
+        },
+        result: {
+          message: response
+        }
+      });
+    } else {
+      AuditTrail.auditTrailEntry(
+        0,
+        "MidTermDetails",
+        response,
+        "user",
+        "MidTermDetails",
+        "ADDED"
+      );
+      return res.status(200).json({
+        title: "New KRA added",
+        result: {
+          message: response
+        }
+      });
+    }
+  });
+}
 let functions = {
   getEmpDetailsForMidTermInitiate: (req, res) => {
     EmpDetailsForMidTermInitiate(req, res);
@@ -679,6 +716,9 @@ let functions = {
   },
   getMtrBatches: (req, res) => {
     getMtrBatches(req, res);
+  },
+  postNewMtrKra: (req, res) => {
+    InsertNewKRAInMtr(req, res);
   }
 };
 

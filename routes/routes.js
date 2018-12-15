@@ -358,6 +358,8 @@ module.exports = (app) => {
   midtermRoutes.get('/getMtrDetailsSingleEmployee', midterm.getMtrDetailsSingleEmployee);
   midtermRoutes.get('/getMtrBySupervisor', midterm.getMtrBySupervisor);
   midtermRoutes.get('/getMtrBatches', midterm.getMtrBatches);
+  midtermRoutes.post('/postNewMtrKra', midterm.postNewMtrKra);
+  
 
   //hr dashboard routes
 
