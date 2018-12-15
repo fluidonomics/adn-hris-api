@@ -359,6 +359,7 @@ module.exports = (app) => {
   midtermRoutes.get('/getMtrBySupervisor', midterm.getMtrBySupervisor);
   midtermRoutes.get('/getMtrBatches', midterm.getMtrBatches);
   midtermRoutes.post('/postNewMtrKra', midterm.postNewMtrKra);
+  midtermRoutes.post('/deleteMtrKra', midterm.deleteMtrKra);
   
 
   //hr dashboard routes
