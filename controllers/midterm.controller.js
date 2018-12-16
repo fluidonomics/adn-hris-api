@@ -724,13 +724,39 @@ function DeleteKraInMtr(req, res) {
         "Deleted"
       );
       return res.status(200).json({
-        title: "KRA deleted",
+        title: "Midterm Kra deleted",
         result: {
           message: response
         }
       });
     }
   });
+}
+function SubmitMidTermReview(req, res) {
+    let mtrDetailId = parseInt(req.body.id);
+    let emp_id= parseInt(req.body.empId);
+    let updateCondition  = {mtr_master_id: mtrDetailId};
+    let updateQuery = {status: "Submitted", updatedBy: emp_id}
+    MidTermDetails.updateMany(updateCondition, updateQuery , function(err, response) {
+      if(err) {
+        return res.status(403).json({
+          title: "There is a problem",
+          error: {
+            message: err
+          },
+          result: {
+            message: response
+          }
+        });
+      } else {
+        return res.status(200).json({
+          title: "Midterm review submitted",
+          result: {
+            message: response
+          }
+        });
+      }
+    })
 }
 let functions = {
   getEmpDetailsForMidTermInitiate: (req, res) => {
@@ -753,6 +779,9 @@ let functions = {
   },
   deleteMtrKra: (req, res) => {
     DeleteKraInMtr(req, res);
+  },
+  mtrSubmit: (req, res) => {
+    SubmitMidTermReview(req, res);
   }
 };
 

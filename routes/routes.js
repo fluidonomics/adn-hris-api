@@ -360,6 +360,8 @@ module.exports = (app) => {
   midtermRoutes.get('/getMtrBatches', midterm.getMtrBatches);
   midtermRoutes.post('/postNewMtrKra', midterm.postNewMtrKra);
   midtermRoutes.post('/deleteMtrKra', midterm.deleteMtrKra);
+  midtermRoutes.post('/mtrSubmit', midterm.mtrSubmit);
+  
   
 
   //hr dashboard routes
