@@ -702,8 +702,7 @@ function InsertNewKRAInMtr(req, res) {
   });
 }
 function DeleteKraInMtr(req, res) {
-  let queryUpdate = { $set: { isDeleted: true, updatedBy: parseInt(req.body.updatedBy) } };
-  MidTermDetails.findOneAndUpdate({ _id: parseInt(req.body.id) }, queryUpdate, function (err, response) {
+  MidTermDetails.remove({ _id: parseInt(req.body.id) }, function (err, response) {
     if (err) {
       return res.status(403).json({
         title: "There is a problem",
