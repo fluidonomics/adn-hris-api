@@ -21,7 +21,9 @@ let MidTermDetailsSchema = new Schema(
     measureOfSuccess: { type: String, default: null },
     isDeleted: { type: Boolean, default: false },
     createdBy: { type: Number, default: null },
-    updatedBy: { type: Number, default: null }
+    updatedBy: { type: Number, default: null },
+    employeeComment: { type: String },
+    supervisorComment: { type: String }
   },
   {
     timestamps: true,

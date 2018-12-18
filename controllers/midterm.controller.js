@@ -672,6 +672,7 @@ function InsertNewKRAInMtr(req, res) {
   mtrDetails.measureOfSuccess = req.body.measureOfSuccess;
   mtrDetails.isDeleted = req.body.isDeleted;
   mtrDetails.createdBy = parseInt(req.body.createdBy);
+  mtrDetails.employeeComment = req.body.employeeComment;
   mtrDetails.save(function (err, response) {
     if (err) {
       return res.status(403).json({
@@ -736,7 +737,18 @@ function SubmitMidTermReview(req, res) {
   let emp_id = parseInt(req.body.empId);
   let updateCondition = { mtr_master_id: mtrDetailId };
   let updateQuery = { status: "Submitted", updatedBy: emp_id }
-  MidTermDetails.updateMany(updateCondition, updateQuery, function (err, response) {
+  async.waterfall([
+    (done) => {
+      MidTermDetails.updateMany(updateCondition, updateQuery, function (err, response) {
+        done(err, response);
+      })
+    },
+    (response1, done) => {
+      MidTermMaster.findOneAndUpdate({ _id: mtrDetailId }, updateQuery, (err, doc) => {
+        done(err, doc);
+      });
+    }
+  ], (err, result) => {
     if (err) {
       return res.status(403).json({
         title: "There is a problem",
@@ -744,19 +756,20 @@ function SubmitMidTermReview(req, res) {
           message: err
         },
         result: {
-          message: response
+          message: result
         }
       });
     } else {
       return res.status(200).json({
         title: "Midterm review submitted",
         result: {
-          message: response
+          message: result
         }
       });
     }
   })
 }
+
 let functions = {
   getEmpDetailsForMidTermInitiate: (req, res) => {
     EmpDetailsForMidTermInitiate(req, res);
