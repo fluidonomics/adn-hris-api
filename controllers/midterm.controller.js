@@ -115,7 +115,7 @@ function EmpDetailsForMidTermInitiate(req, res) {
         mtr_batch_id: "$mtr_master_details.batch_id"
       }
     }
-  ]).exec(function(err, response) {
+  ]).exec(function (err, response) {
     if (err) {
       return res.status(403).json({
         title: "There is a problem",
@@ -143,7 +143,7 @@ function InitiateMtrProcess(req, res) {
   MidTermBatchDetails.createdBy = createdBy;
   let emp_id_array = req.body.emp_id_array;
   MidTermBatchDetails.transac;
-  MidTermBatchDetails.save(function(err, midtermbatchresp) {
+  MidTermBatchDetails.save(function (err, midtermbatchresp) {
     if (err) {
       return res.status(403).json({
         title: "There was a problem",
@@ -180,11 +180,11 @@ function InitiateMtrProcess(req, res) {
             $limit: 1.0
           }
         ]).exec()
-      ]).then(function(counts) {
+      ]).then(function (counts) {
         let insertData = [];
         let midtermMaster_id =
-          counts[0][0] === undefined ? 1 : counts[0][0]._id;
-        emp_id_array.forEach(function(element, index) {
+          counts[0][0] === undefined ? 0 : counts[0][0]._id;
+        emp_id_array.forEach(function (element, index) {
           insertData.push({
             batch_id: batch_id,
             emp_id: element.emp_id,
@@ -193,7 +193,7 @@ function InitiateMtrProcess(req, res) {
             createdBy: createdBy
           });
         });
-        MidTermMaster.insertMany(insertData, function(
+        MidTermMaster.insertMany(insertData, function (
           err,
           midTermMasterResult
         ) {
@@ -228,7 +228,7 @@ function InitiateMtrProcess(req, res) {
                     emp_id: {
                       $in: emp_id_collection
                     },
-                    status: "Initiated"
+                    status: "Approved"
                   }
                 },
                 {
@@ -279,7 +279,7 @@ function InitiateMtrProcess(req, res) {
                   $limit: 1.0
                 }
               ])
-            ]).then(function(responses, err) {
+            ]).then(function (responses, err) {
               if (err) {
                 return res.status(403).json({
                   title: "There was a problem",
@@ -294,7 +294,7 @@ function InitiateMtrProcess(req, res) {
                 let mtrDetailsInsertData = [];
                 let kraWorklowResp = responses[0];
                 let mtrDetailsMaxId =
-                  responses[1][0] === undefined ? 1 : responses[1][0]._id;
+                  responses[1][0] === undefined ? 0 : responses[1][0]._id;
                 kraWorklowResp.forEach(f => {
                   f.mtr_batch_id = midTermMasterResult.find(
                     f1 => f1.emp_id === f.kra_emp_id
@@ -326,7 +326,7 @@ function InitiateMtrProcess(req, res) {
                   } else {
                   }
                 });
-                MidTermDetails.insertMany(mtrDetailsInsertData, function(
+                MidTermDetails.insertMany(mtrDetailsInsertData, function (
                   err,
                   midTermDetails
                 ) {
@@ -472,7 +472,7 @@ function GetMtrKraSingleDetails(req, res) {
         emp_id: emp_id
       }
     }
-  ]).exec(function(err, data) {
+  ]).exec(function (err, data) {
     if (err) {
       return res.status(403).json({
         title: "There was a problem",
@@ -544,7 +544,7 @@ function getMtrBySupervisor(req, res) {
         mtr_master_details: { $first: "$mtr_master_details" }
       }
     }
-  ]).exec(function(err, data) {
+  ]).exec(function (err, data) {
     if (err) {
       return res.status(403).json({
         title: "There was a problem",
@@ -640,7 +640,7 @@ function getMtrBatches(req, res) {
         mtr_master: { $push: "$mtr_master" }
       }
     }
-  ]).exec(function(err, data) {
+  ]).exec(function (err, data) {
     if (err) {
       return res.status(403).json({
         title: "There was a problem",
@@ -672,7 +672,7 @@ function InsertNewKRAInMtr(req, res) {
   mtrDetails.measureOfSuccess = req.body.measureOfSuccess;
   mtrDetails.isDeleted = req.body.isDeleted;
   mtrDetails.createdBy = parseInt(req.body.createdBy);
-  mtrDetails.save(function(err, response) {
+  mtrDetails.save(function (err, response) {
     if (err) {
       return res.status(403).json({
         title: "There is a problem",
@@ -733,30 +733,30 @@ function DeleteKraInMtr(req, res) {
   });
 }
 function SubmitMidTermReview(req, res) {
-    let mtrDetailId = parseInt(req.body.id);
-    let emp_id= parseInt(req.body.empId);
-    let updateCondition  = {mtr_master_id: mtrDetailId};
-    let updateQuery = {status: "Submitted", updatedBy: emp_id}
-    MidTermDetails.updateMany(updateCondition, updateQuery , function(err, response) {
-      if(err) {
-        return res.status(403).json({
-          title: "There is a problem",
-          error: {
-            message: err
-          },
-          result: {
-            message: response
-          }
-        });
-      } else {
-        return res.status(200).json({
-          title: "Midterm review submitted",
-          result: {
-            message: response
-          }
-        });
-      }
-    })
+  let mtrDetailId = parseInt(req.body.id);
+  let emp_id = parseInt(req.body.empId);
+  let updateCondition = { mtr_master_id: mtrDetailId };
+  let updateQuery = { status: "Submitted", updatedBy: emp_id }
+  MidTermDetails.updateMany(updateCondition, updateQuery, function (err, response) {
+    if (err) {
+      return res.status(403).json({
+        title: "There is a problem",
+        error: {
+          message: err
+        },
+        result: {
+          message: response
+        }
+      });
+    } else {
+      return res.status(200).json({
+        title: "Midterm review submitted",
+        result: {
+          message: response
+        }
+      });
+    }
+  })
 }
 let functions = {
   getEmpDetailsForMidTermInitiate: (req, res) => {
