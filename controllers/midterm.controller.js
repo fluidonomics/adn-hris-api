@@ -812,6 +812,42 @@ function SubmitMidTermReview(req, res) {
   })
 }
 
+function getMtrDetails(req, res) {
+  let mtrMasterId = parseInt(req.query.mtrMasterId);
+  MidTermMaster.aggregate([
+    {
+      $match: { _id: mtrMasterId }
+    },
+    {
+      $lookup: {
+        from: "midtermdetails",
+        localField: "_id",
+        foreignField: "mtr_master_id",
+        as: "mtr_details"
+      }
+    }
+  ]).exec(function (err, data) {
+    if (err) {
+      return res.status(403).json({
+        title: "There was a problem",
+        error: {
+          message: err
+        },
+        result: {
+          message: data
+        }
+      });
+    } else {
+      return res.status(200).json({
+        title: "Mid term Master & Details",
+        result: {
+          message: data
+        }
+      });
+    }
+  });
+}
+
 let functions = {
   getEmpDetailsForMidTermInitiate: (req, res) => {
     EmpDetailsForMidTermInitiate(req, res);
@@ -839,6 +875,9 @@ let functions = {
   },
   mtrSubmit: (req, res) => {
     SubmitMidTermReview(req, res);
+  },
+  getMtrDetails: (req, res) => {
+    getMtrDetails(req, res);
   }
 };
 

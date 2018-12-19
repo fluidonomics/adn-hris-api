@@ -362,6 +362,7 @@ module.exports = (app) => {
   midtermRoutes.post('/updateMtr', midterm.updateMtr);
   midtermRoutes.post('/deleteMtrKra', midterm.deleteMtrKra);
   midtermRoutes.post('/mtrSubmit', midterm.mtrSubmit);
+  midtermRoutes.get('/getMtrDetails', midterm.getMtrDetails);
 
 
 
