@@ -7,7 +7,7 @@ autoIncrement = require("mongoose-sequence")(mongoose);
 let MidTermDetailsSchema = new Schema(
   {
     _id: { type: Number },
-    kraWorkflow_id: { type: Number, ref: "kraworkflowdetails"},
+    kraWorkflow_id: { type: Number, ref: "kraworkflowdetails" },
     kraDetailId: { type: Number, ref: "kradetails", default: null },
     emp_comment: { type: String },
     supervisor_comment: { type: String },
@@ -16,14 +16,15 @@ let MidTermDetailsSchema = new Schema(
     mtr_master_id: { type: Number, required: true },
     status: { type: String },
     mtr_kra: { type: String, default: null },
-    weightage_id: { type: Number, default: null },
+    weightage_id: { type: Number, default: null, ref: "kraweightagedetails" },
+    category_id: { type: Number, default: null, ref: "kracategorydetails" },
     unitOfSuccess: { type: String, default: null },
     measureOfSuccess: { type: String, default: null },
     isDeleted: { type: Boolean, default: false },
     createdBy: { type: Number, default: null },
     updatedBy: { type: Number, default: null },
-    employeeComment: { type: String },
-    supervisorComment: { type: String }
+    employeeComment: { type: String, default: null },
+    supervisorComment: { type: String, default: null }
   },
   {
     timestamps: true,
@@ -33,7 +34,7 @@ let MidTermDetailsSchema = new Schema(
 );
 
 // Update the Emp_id Hash user password when registering or when changing password
-MidTermDetailsSchema.pre("save", function(next) {
+MidTermDetailsSchema.pre("save", function (next) {
   var _this = this;
   if (_this.isNew) {
     //Check the Count of Collection and add 1 to the Count and Assign it to Emp_id
@@ -42,7 +43,7 @@ MidTermDetailsSchema.pre("save", function(next) {
       .find()
       .sort({ _id: -1 })
       .limit(1)
-      .exec(function(err, doc) {
+      .exec(function (err, doc) {
         if (doc.length > 0) {
           _this._id = doc[0]._id + 1;
           next();

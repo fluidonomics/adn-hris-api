@@ -320,6 +320,7 @@ function InitiateMtrProcess(req, res) {
                       isDeleted: false,
                       mtr_kra: f.kra_details_kra,
                       weightage_id: f.kra_details_weightage_id,
+                      category_id: f.kra_details_category_id,
                       unitOfSuccess: f.kra_details_unitOfSuccess,
                       measureOfSuccess: f.kra_details_measureOfSuccess
                     });
@@ -454,7 +455,7 @@ function GetMtrKraSingleDetails(req, res) {
           fullName: 1
         },
         mtr_master_id: "$mtr_master_id",
-        mtr_master_status: "$status",
+        mtr_master_status: "$mtr_master_details.status",
         emp_id: "$mtr_master_details.emp_id",
         emp_userName: "$emp_details.userName",
         emp_full_name: "$emp_details.fullName",
@@ -463,8 +464,12 @@ function GetMtrKraSingleDetails(req, res) {
         kra_details: "$kra_details",
         mtr_kra: "$mtr_kra",
         weightage_id: "$weightage_id",
+        category_id: "$category_id",
         unitOfSuccess: "$unitOfSuccess",
-        measureOfSuccess: "$measureOfSuccess"
+        measureOfSuccess: "$measureOfSuccess",
+        status: "$status",
+        employeeComment: "$employeeComment",
+        supervisorComment: "$supervisorComment"
       }
     },
     {
