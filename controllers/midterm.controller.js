@@ -673,11 +673,13 @@ function InsertNewKRAInMtr(req, res) {
   mtrDetails.supervisor_id = parseInt(req.body.supervisor_id);
   mtrDetails.mtr_batch_id = parseInt(req.body.mtr_batch_id);
   mtrDetails.weightage_id = parseInt(req.body.weightage_id);
+  mtrDetails.category_id = parseInt(req.body.category_id);
   mtrDetails.unitOfSuccess = req.body.unitOfSuccess;
   mtrDetails.measureOfSuccess = req.body.measureOfSuccess;
   mtrDetails.isDeleted = req.body.isDeleted;
   mtrDetails.createdBy = parseInt(req.body.createdBy);
   mtrDetails.employeeComment = req.body.employeeComment;
+  mtrDetails.status = "Pending";
   mtrDetails.save(function (err, response) {
     if (err) {
       return res.status(403).json({
@@ -715,7 +717,7 @@ function updateMtr(req, res) {
     updatedAt: new Date()
   };
 
-  MidTermDetails.findOneAndUpdate({ _id: parseInt(req.body.mtrDetailId) }, updateQuery, (err, response) => {
+  MidTermDetails.findOneAndUpdate({ _id: parseInt(req.body._id) }, updateQuery, (err, response) => {
     if (err) {
       return res.status(403).json({
         title: "There is a problem",
@@ -778,7 +780,7 @@ function SubmitMidTermReview(req, res) {
   let mtrDetailId = parseInt(req.body.id);
   let emp_id = parseInt(req.body.empId);
   let updateCondition = { mtr_master_id: mtrDetailId };
-  let updateQuery = { status: "Submitted", updatedBy: emp_id }
+  let updateQuery = { status: "Submitted", updatedBy: emp_id, updatedAt: new Date() }
   async.waterfall([
     (done) => {
       MidTermDetails.updateMany(updateCondition, updateQuery, function (err, response) {
