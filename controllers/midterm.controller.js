@@ -909,8 +909,8 @@ function getMtrByReviewer(req, res) {
     {
       $lookup: {
         from: "midtermmasters",
-        localField: "mtr_master_id",
-        foreignField: "mtr_details._id",
+        localField: "mtr_details.mtr_master_id",
+        foreignField: "_id",
         as: "mtr_master_details"
       }
     },
