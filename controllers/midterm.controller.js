@@ -707,6 +707,43 @@ function InsertNewKRAInMtr(req, res) {
     }
   });
 }
+function updateMtr(req, res) {
+  let updateQuery = {
+    weightage_id: parseInt(req.body.weightage_id),
+    employeeComment: req.body.employeeComment,
+    updatedBy: parseInt(req.body.empId),
+    updatedAt: new Date()
+  };
+
+  MidTermDetails.findOneAndUpdate({ _id: parseInt(req.body.mtrDetailId) }, updateQuery, (err, response) => {
+    if (err) {
+      return res.status(403).json({
+        title: "There is a problem",
+        error: {
+          message: err
+        },
+        result: {
+          message: response
+        }
+      });
+    } else {
+      AuditTrail.auditTrailEntry(
+        0,
+        "MidTermDetails",
+        response,
+        "user",
+        "MidTermDetails",
+        "UPDATED"
+      );
+      return res.status(200).json({
+        title: "MTR Updated",
+        result: {
+          message: response
+        }
+      });
+    }
+  });
+}
 function DeleteKraInMtr(req, res) {
   MidTermDetails.remove({ _id: parseInt(req.body.id) }, function (err, response) {
     if (err) {
@@ -793,6 +830,9 @@ let functions = {
   },
   postNewMtrKra: (req, res) => {
     InsertNewKRAInMtr(req, res);
+  },
+  updateMtr: (req, res) => {
+    updateMtr(req, res);
   },
   deleteMtrKra: (req, res) => {
     DeleteKraInMtr(req, res);
