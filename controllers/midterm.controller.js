@@ -2,7 +2,9 @@ let KraWorkFlowInfo = require("../models/kra/kraWorkFlowDetails.model"),
   MidTermBatch = require("../models/midterm/midtermbatch"),
   MidTermMaster = require("../models/midterm/midtermmaster"),
   MidTermDetails = require("../models/midterm/midtermdetails"),
-  AuditTrail = require("../class/auditTrail");
+  AuditTrail = require("../class/auditTrail"),
+  EmployeeSupervisorDetails = require("../models/employee/employeeSupervisorDetails.model");
+
 function EmpDetailsForMidTermInitiate(req, res) {
   KraWorkFlowInfo.aggregate([
     {
@@ -884,6 +886,90 @@ function mtrApproval(req, res) {
   })
 }
 
+function getMtrByReviewer(req, res) {
+  let reviewerId = parseInt(req.query.reviewerId);
+
+  EmployeeSupervisorDetails.aggregate([
+    {
+      $match: { primarySupervisorEmp_id: reviewerId }
+    },
+    {
+      $lookup: {
+        from: "midtermdetails",
+        localField: "emp_id",
+        foreignField: "supervisor_id",
+        as: "mtr_details"
+      }
+    },
+    {
+      $unwind: {
+        path: "$mtr_details"
+      }
+    },
+    {
+      $lookup: {
+        from: "midtermmasters",
+        localField: "mtr_master_id",
+        foreignField: "mtr_details._id",
+        as: "mtr_master_details"
+      }
+    },
+    {
+      $unwind: {
+        path: "$mtr_master_details"
+      }
+    },
+    {
+      $lookup: {
+        from: "employeedetails",
+        localField: "mtr_master_details.emp_id",
+        foreignField: "_id",
+        as: "emp_details"
+      }
+    },
+    {
+      $unwind: {
+        path: "$emp_details"
+      }
+    },
+    {
+      $project: {
+        mtrMasterId: "$mtr_master_id",
+        emp_details: "$emp_details",
+        mtr_master_details: "$mtr_master_details",
+        status: "$mtr_master_details.status"
+      }
+    },
+    // { $match: { status: status } },
+    {
+      $group: {
+        _id: "$mtrMasterId",
+        emp_details: { $first: "$emp_details" },
+        mtr_master_details: { $first: "$mtr_master_details" }
+      }
+    }
+  ]).exec(function (err, data) {
+    if (err) {
+      return res.status(403).json({
+        title: "There was a problem",
+        error: {
+          message: err
+        },
+        result: {
+          message: data
+        }
+      });
+    } else {
+      return res.status(200).json({
+        title: "Mid term Data by Reviewer",
+        result: {
+          message: data
+        }
+      });
+    }
+  });
+}
+
 let functions = {
   getEmpDetailsForMidTermInitiate: (req, res) => {
     EmpDetailsForMidTermInitiate(req, res);
@@ -917,6 +1003,9 @@ let functions = {
   },
   mtrApproval: (req, res) => {
     mtrApproval(req, res);
+  },
+  getMtrByReviewer: (req, res) => {
+    getMtrByReviewer(req, res);
   }
 };
 

@@ -364,6 +364,7 @@ module.exports = (app) => {
   midtermRoutes.post('/mtrSubmit', midterm.mtrSubmit);
   midtermRoutes.get('/getMtrDetails', midterm.getMtrDetails);
   midtermRoutes.post('/mtrApproval', midterm.mtrApproval);
+  midtermRoutes.get('/getMtrByReviewer', midterm.getMtrByReviewer);
 
 
 
