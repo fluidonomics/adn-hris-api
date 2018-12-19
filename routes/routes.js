@@ -363,6 +363,7 @@ module.exports = (app) => {
   midtermRoutes.post('/deleteMtrKra', midterm.deleteMtrKra);
   midtermRoutes.post('/mtrSubmit', midterm.mtrSubmit);
   midtermRoutes.get('/getMtrDetails', midterm.getMtrDetails);
+  midtermRoutes.post('/mtrApproval', midterm.mtrApproval);
 
 
 

@@ -850,6 +850,40 @@ function getMtrDetails(req, res) {
   });
 }
 
+function mtrApproval(req, res) {
+  let mtrDetailId = parseInt(req.body.mtrDetailId);
+  let updateQuery = {
+    supervisorComment: req.body.supervisorComment,
+    updatedBy: parseInt(req.body.empId),
+    updatedAt: new Date()
+  };
+  if (req.body.isApproved == true) {
+    updateQuery.status = 'Approved';
+  } else {
+    updateQuery.status = 'SendBack';
+  }
+  MidTermDetails.findOneAndUpdate({ _id: mtrDetailId }, updateQuery, (err, doc, resp) => {
+    if (err) {
+      return res.status(403).json({
+        title: "There is a problem",
+        error: {
+          message: err
+        },
+        result: {
+          message: doc
+        }
+      });
+    }
+
+    return res.status(200).json({
+      title: "Midterm Review Approved/SendBack",
+      result: {
+        message: doc
+      }
+    });
+  })
+}
+
 let functions = {
   getEmpDetailsForMidTermInitiate: (req, res) => {
     EmpDetailsForMidTermInitiate(req, res);
@@ -880,6 +914,9 @@ let functions = {
   },
   getMtrDetails: (req, res) => {
     getMtrDetails(req, res);
+  },
+  mtrApproval: (req, res) => {
+    mtrApproval(req, res);
   }
 };
 
