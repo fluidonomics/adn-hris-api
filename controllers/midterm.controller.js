@@ -15,6 +15,11 @@ function EmpDetailsForMidTermInitiate(req, res) {
       }
     },
     {
+      $match: {
+        "status": "Approved"
+      }
+    },
+    {
       $lookup: {
         from: "employeedetails",
         localField: "emp_id",
