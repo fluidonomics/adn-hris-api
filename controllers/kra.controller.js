@@ -588,6 +588,78 @@ function getKraForReviewer(req, res) {
     // });
 }
 
+function getKraByEmployeeId(req, res) {
+    let empId = parseInt(req.query.empId);
+    let queryObj = { '$match': {} };
+    queryObj['$match']['$or'] = []
+    queryObj['$match']["$or"].push({ supervisorStatus: null })
+    queryObj['$match']["$or"].push({ supervisorStatus: "SendBack" })
+    KraInfo.aggregate([
+        // queryObj,
+        {
+            "$lookup": {
+                "from": "kraworkflowdetails",
+                "localField": "kraWorkflow_id",
+                "foreignField": "_id",
+                "as": "kraWorkflow"
+            }
+        },
+        {
+            "$unwind": {
+                path: "$kraWorkflow"
+            }
+        },
+        {
+            "$match": {
+                "kraWorkflow.emp_id": empId
+            }
+        },
+        {
+            "$lookup": {
+                "from": "employeedetails",
+                "localField": "kraWorkflow.emp_id",
+                "foreignField": "_id",
+                "as": "employeedetails"
+            }
+        },
+        {
+            "$unwind": {
+                path: "$employeedetails"
+            }
+        },
+        {
+            "$project": {
+                "_id": 1,
+                "updatedAt": 1,
+                "createdAt": 1,
+                "supervisor_id": 1,
+                "kraWorkflow_id": 1,
+                "updatedBy": 1,
+                "createdBy": 1,
+                "isDeleted": 1,
+                "sendBackComment": 1,
+                "supervisorStatus": 1,
+                "measureOfSuccess": 1,
+                "unitOfSuccess": 1,
+                "weightage_id": 1,
+                "category_id": 1,
+                "kra": 1,
+                "empId": "$kraWorkflow.emp_id",
+                "kraWorkflow": 1,
+                "employeedetails": 1
+            }
+        }
+    ]).exec((err, kraDetails) => {
+        if (err) {
+            return res.status(403).json({
+                title: 'There was an error, please try again later',
+                error: err
+            });
+        }
+        return res.status(200).json({ data: kraDetails });
+    });
+}
+
 // function updateBatchStatus(req, res)
 // {
 //     let _id=parseInt(req.body._id);
@@ -772,10 +844,9 @@ let functions = {
             }
         ]);
     },
-    getKRA_Report_Supervisor:(req, res)=>
-    { 
-  
-        const fields = ['_id','batchName', 'Employee_Name', 'Employee_Id', 'KRA_intiated_on', 'KRA_initiated_by', 'Number_of_KRA', 'KRA_status', 'Last_updated_on', 'Last_updated_by'];
+    getKRA_Report_Supervisor: (req, res) => {
+
+        const fields = ['_id', 'batchName', 'Employee_Name', 'Employee_Id', 'KRA_intiated_on', 'KRA_initiated_by', 'Number_of_KRA', 'KRA_status', 'Last_updated_on', 'Last_updated_by'];
         KraWorkFlowInfo.aggregate([
             {
                 "$lookup": {
@@ -1011,6 +1082,16 @@ let functions = {
 
         })
 
+    },
+    getKraByEmployeeId: (req, res) => {
+        async.waterfall([
+            function (done) {
+                getKraByEmployeeId(req, res, done);
+            },
+            function (kraInfoData, done) {
+                return res.status(200).json(kraInfoData);
+            }
+        ]);
     }
 }
 module.exports = { functions, updateKraWorkFlowInfoDetails };

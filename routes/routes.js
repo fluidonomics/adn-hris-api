@@ -294,6 +294,7 @@ module.exports = (app) => {
   //kraRoutes.post('/updateBatchStatus',ensureAuthenticated, kra.updateBatchStatus);
   kraRoutes.get('/getKraForApproval', ensureAuthenticated, kra.functions.getKraForApproval);
   kraRoutes.get('/getKraForReviewer', ensureAuthenticated, kra.functions.getKraForReviewer);
+  kraRoutes.get('/getKraByEmployeeId', ensureAuthenticated, kra.functions.getKraByEmployeeId);
 
   //= ========================
 
