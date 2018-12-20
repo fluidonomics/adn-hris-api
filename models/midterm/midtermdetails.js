@@ -24,7 +24,9 @@ let MidTermDetailsSchema = new Schema(
     createdBy: { type: Number, default: null },
     updatedBy: { type: Number, default: null },
     employeeComment: { type: String, default: null },
-    supervisorComment: { type: String, default: null }
+    supervisorComment: { type: String, default: null },
+    progressStatus: { type: String, default: null },
+    colorStatus: { type: String, default: null }
   },
   {
     timestamps: true,
