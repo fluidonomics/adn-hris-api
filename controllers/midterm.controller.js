@@ -329,7 +329,9 @@ function InitiateMtrProcess(req, res) {
                       weightage_id: f.kra_details_weightage_id,
                       category_id: f.kra_details_category_id,
                       unitOfSuccess: f.kra_details_unitOfSuccess,
-                      measureOfSuccess: f.kra_details_measureOfSuccess
+                      measureOfSuccess: f.kra_details_measureOfSuccess,
+                      progressStatus: null,
+                      colorStatus: null
                     });
                   } else {
                   }
@@ -476,7 +478,9 @@ function GetMtrKraSingleDetails(req, res) {
         measureOfSuccess: "$measureOfSuccess",
         status: "$status",
         employeeComment: "$employeeComment",
-        supervisorComment: "$supervisorComment"
+        supervisorComment: "$supervisorComment",
+        colorStatus: "$colorStatus",
+        progressStatus: "$progressStatus",
       }
     },
     {
@@ -685,6 +689,8 @@ function InsertNewKRAInMtr(req, res) {
   mtrDetails.measureOfSuccess = req.body.measureOfSuccess;
   mtrDetails.isDeleted = req.body.isDeleted;
   mtrDetails.createdBy = parseInt(req.body.createdBy);
+  mtrDetails.progressStatus = req.body.progressStatus;
+  mtrDetails.colorStatus = req.body.colorStatus;
   mtrDetails.employeeComment = req.body.employeeComment;
   mtrDetails.status = "Pending";
   mtrDetails.save(function (err, response) {
@@ -719,6 +725,12 @@ function InsertNewKRAInMtr(req, res) {
 function updateMtr(req, res) {
   let updateQuery = {
     weightage_id: parseInt(req.body.weightage_id),
+    supervisor_id: parseInt(req.body.supervisor_id),
+    unitOfSuccess: req.body.unitOfSuccess,
+    measureOfSuccess: req.body.measureOfSuccess,
+    status: "Pending",
+    progressStatus: req.body.progressStatus,
+    colorStatus: req.body.colorStatus,
     employeeComment: req.body.employeeComment,
     updatedBy: parseInt(req.body.empId),
     updatedAt: new Date()
