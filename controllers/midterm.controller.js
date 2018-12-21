@@ -692,7 +692,7 @@ function InsertNewKRAInMtr(req, res) {
   mtrDetails.progressStatus = req.body.progressStatus;
   mtrDetails.colorStatus = req.body.colorStatus;
   mtrDetails.employeeComment = req.body.employeeComment;
-  mtrDetails.status = "Pending";
+  mtrDetails.status = "New";
   mtrDetails.save(function (err, response) {
     if (err) {
       return res.status(403).json({
@@ -724,7 +724,7 @@ function InsertNewKRAInMtr(req, res) {
 }
 function updateMtr(req, res) {
   let updateQuery = {
-    weightage_id: parseInt(req.body.weightage_id),
+    weightage_id: req.body.weightage_id ? parseInt(req.body.weightage_id) : null,
     supervisor_id: parseInt(req.body.supervisor_id),
     unitOfSuccess: req.body.unitOfSuccess,
     measureOfSuccess: req.body.measureOfSuccess,
@@ -735,6 +735,11 @@ function updateMtr(req, res) {
     updatedBy: parseInt(req.body.empId),
     updatedAt: new Date()
   };
+
+  if (req.body.progressStatus == "Dropped") {
+    updateQuery.weightage_id = null;
+    updateQuery.status = "Dropped";
+  }
 
   MidTermDetails.findOneAndUpdate({ _id: parseInt(req.body._id) }, updateQuery, (err, response) => {
     if (err) {
@@ -846,7 +851,35 @@ function getMtrDetails(req, res) {
         foreignField: "mtr_master_id",
         as: "mtr_details"
       }
-    }
+    },
+    // {
+    //   $unwind: "$mtr_details"
+    // },
+    // {
+    //   $match: {
+    //     "mtr_details.progressStatus": { $ne: "Dropped" }
+    //   }
+    // }
+    // {
+    //   $project: {
+    //     "_id": 1,
+    //     "updatedAt": 1,
+    //     "createdAt": 1,
+    //     "batch_id": 1,
+    //     "emp_id": 1,
+    //     "isDeleted": 1,
+    //     "createdBy": 1,
+    //     "updatedBy": 1,
+    //     "status": 1,
+    //     "mtr_details": {
+    //       $filter: {
+    //         input: "$mtr_details",
+    //         as: "mtr",
+    //         cond: { $ne: ["$$mtr.progressStatus", "Dropped"] }
+    //       }
+    //     }
+    //   }
+    // }
   ]).exec(function (err, data) {
     if (err) {
       return res.status(403).json({
@@ -870,18 +903,44 @@ function getMtrDetails(req, res) {
 }
 
 function mtrApproval(req, res) {
+  let mtrMasterId = parseInt(req.body.mtrMasterId);
   let mtrDetailId = parseInt(req.body.mtrDetailId);
-  let updateQuery = {
-    supervisorComment: req.body.supervisorComment,
-    updatedBy: parseInt(req.body.empId),
-    updatedAt: new Date()
-  };
-  if (req.body.isApproved == true) {
-    updateQuery.status = 'Approved';
-  } else {
-    updateQuery.status = 'SendBack';
-  }
-  MidTermDetails.findOneAndUpdate({ _id: mtrDetailId }, updateQuery, (err, doc, resp) => {
+
+  async.waterfall([
+    (done) => {
+      let masterUpdateQuery = {
+        updatedBy: parseInt(req.body.empId),
+        updatedAt: new Date(),
+        status: req.body.isApproved ? 'Approved' : 'SendBack'
+      };
+      //TODO : Set Approved status when all mtrDetails are approved, Sendback when even one of them is sent back
+      if (!req.body.isApproved) {
+        MidTermMaster.findByIdAndUpdate({ _id: mtrMasterId }, masterUpdateQuery, (err, res) => {
+          done(err, res);
+        });
+      } else {
+        done(null, null);
+      }
+    },
+    (mtrMasterResponse, done) => {
+      let mtrDetailUpdateQuery = {
+        supervisorComment: req.body.supervisorComment,
+        updatedBy: parseInt(req.body.empId),
+        updatedAt: new Date()
+      };
+      if (req.body.isApproved == true) {
+        mtrDetailUpdateQuery.status = 'Approved';
+        MidTermDetails.findOneAndUpdate({ _id: mtrDetailId }, mtrDetailUpdateQuery, (err, res) => {
+          done(err, res);
+        });
+      } else {
+        mtrDetailUpdateQuery.status = 'SendBack';
+        MidTermDetails.updateMany({ mtr_master_id: mtrMasterId }, mtrDetailUpdateQuery, (err, res) => {
+          done(err, res);
+        });
+      }
+    }
+  ], (err, result) => {
     if (err) {
       return res.status(403).json({
         title: "There is a problem",
@@ -889,18 +948,18 @@ function mtrApproval(req, res) {
           message: err
         },
         result: {
-          message: doc
+          message: result
+        }
+      });
+    } else {
+      return res.status(200).json({
+        title: "Midterm Review Approved/SendBack",
+        result: {
+          message: result
         }
       });
     }
-
-    return res.status(200).json({
-      title: "Midterm Review Approved/SendBack",
-      result: {
-        message: doc
-      }
-    });
-  })
+  });
 }
 
 function getMtrByReviewer(req, res) {
