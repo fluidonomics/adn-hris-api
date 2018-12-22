@@ -70,6 +70,10 @@ module.exports = {
       from:'"Team HRIS" <hris@adnsl.net>',
       subject:'Leave Cancellation Rejected'
     },
+    'sendEmailToSupervisorToApproveMtr': {
+      from:'"Team HRIS" <hris@adnsl.net>',
+      subject:'Midterm Review for Approval'
+    },
   },
   'aws':
   {
