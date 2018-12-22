@@ -515,6 +515,7 @@ let express  = require('express'),
           commonRoutes.get('/getFinincialYear', ensureAuthenticated,  common.getFinincialYear);
           // commonRoutes.get('/sendNotification',ensureAuthenticated, common.sendNotification);
           commonRoutes.get('/getPrePost_Report', common.getPrePost_Report);
+          commonRoutes.get('/prepareProdClone', common.prepareProdClone);
         
       //= ========================
 
