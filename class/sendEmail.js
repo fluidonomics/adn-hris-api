@@ -415,6 +415,44 @@ let functions =
             }
         };
         transporter.sendMail(mailOptions);
+    },
+    sendEmailToSupervisorToApproveMtr: (data, callback) => {
+        if(data.supervisor_email === null ||data.supervisor_email === "") {
+            return 
+        }
+        let mailOptions = {
+            from: config.email.sendEmailToSupervisorToApproveMtr.from, // sender address
+            to: data.supervisor_email,
+            subject: config.email.sendEmailToSupervisorToApproveMtr.subject, // Subject line
+            template: 'email-notify-to-supvsr-for-mtr-approve',
+            context: {
+                fullName: data.supervisor_name,
+                appliedDate: moment(new Date()).format('L'),
+                link: data.action_link,
+                empName: data.user_name
+            }
+        };
+        transporter.sendMail(mailOptions, callback);
+    },
+    sendEmailToUserAboutMtrStatus: (data, callback) => {
+        if(data.user_email === null ||data.user_email === "") {
+            return 
+        }
+        let mailOptions = {
+            from: config.email.sendEmailToEmployeeForMtrStatus.from, // sender address
+            to: data.user_email,
+            subject: config.email.sendEmailToEmployeeForMtrStatus.subject, // Subject line
+            template: 'email-notify-to-emp-for-mtr-status',
+            context: {
+                fullName: data.supervisor_name,
+                appliedDate: moment(new Date()).format('L'),
+                link: data.action_link,
+                empName: data.user_name,
+                isApproved: data.isApproved
+            }
+        };
+        transporter.sendMail(mailOptions, callback);
+    }
 
     },
     sendEmailToHRNotifySupervsrTransfer: (toEmail, data) => {

@@ -85,6 +85,16 @@ module.exports = {
       from:'"Team HRIS" <hris@adnsl.net>',
       subject:'New Subordinate is added'
     }    
+      subject:'Leave Cancellation Rejected'
+    },
+    'sendEmailToSupervisorToApproveMtr': {
+      from:'"Team HRIS" <hris@adnsl.net>',
+      subject:'Midterm Review for Approval'
+    },
+    'sendEmailToEmployeeForMtrStatus': {
+      from:'"Team HRIS" <hris@adnsl.net>',
+      subject:'Midterm Review Status'
+    },
   },
   'aws':
   {
