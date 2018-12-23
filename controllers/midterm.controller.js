@@ -4,7 +4,7 @@ let KraWorkFlowInfo = require("../models/kra/kraWorkFlowDetails.model"),
   MidTermDetails = require("../models/midterm/midtermdetails"),
   AuditTrail = require("../class/auditTrail"),
   EmployeeSupervisorDetails = require("../models/employee/employeeSupervisorDetails.model");
-  SendEmail = require('../class/sendEmail'),
+SendEmail = require('../class/sendEmail'),
   EmployeeDetails = require("../models/employee/employeeDetails.model");
 function EmpDetailsForMidTermInitiate(req, res) {
   KraWorkFlowInfo.aggregate([
@@ -123,7 +123,7 @@ function EmpDetailsForMidTermInitiate(req, res) {
         mtr_batch_id: "$mtr_master_details.batch_id"
       }
     }
-  ]).exec(function(err, response) {
+  ]).exec(function (err, response) {
     if (err) {
       return res.status(403).json({
         title: "There is a problem",
@@ -151,7 +151,7 @@ function InitiateMtrProcess(req, res) {
   MidTermBatchDetails.createdBy = createdBy;
   let emp_id_array = req.body.emp_id_array;
   MidTermBatchDetails.transac;
-  MidTermBatchDetails.save(function(err, midtermbatchresp) {
+  MidTermBatchDetails.save(function (err, midtermbatchresp) {
     if (err) {
       return res.status(403).json({
         title: "There was a problem",
@@ -188,11 +188,11 @@ function InitiateMtrProcess(req, res) {
             $limit: 1.0
           }
         ]).exec()
-      ]).then(function(counts) {
+      ]).then(function (counts) {
         let insertData = [];
         let midtermMaster_id =
           counts[0][0] === undefined ? 0 : counts[0][0]._id;
-        emp_id_array.forEach(function(element, index) {
+        emp_id_array.forEach(function (element, index) {
           insertData.push({
             batch_id: batch_id,
             emp_id: element.emp_id,
@@ -201,7 +201,7 @@ function InitiateMtrProcess(req, res) {
             createdBy: createdBy
           });
         });
-        MidTermMaster.insertMany(insertData, function(
+        MidTermMaster.insertMany(insertData, function (
           err,
           midTermMasterResult
         ) {
@@ -287,7 +287,7 @@ function InitiateMtrProcess(req, res) {
                   $limit: 1.0
                 }
               ])
-            ]).then(function(responses, err) {
+            ]).then(function (responses, err) {
               if (err) {
                 return res.status(403).json({
                   title: "There was a problem",
@@ -337,7 +337,7 @@ function InitiateMtrProcess(req, res) {
                   } else {
                   }
                 });
-                MidTermDetails.insertMany(mtrDetailsInsertData, function(
+                MidTermDetails.insertMany(mtrDetailsInsertData, function (
                   err,
                   midTermDetails
                 ) {
@@ -489,7 +489,7 @@ function GetMtrKraSingleDetails(req, res) {
         emp_id: emp_id
       }
     }
-  ]).exec(function(err, data) {
+  ]).exec(function (err, data) {
     if (err) {
       return res.status(403).json({
         title: "There was a problem",
@@ -561,7 +561,7 @@ function getMtrBySupervisor(req, res) {
         mtr_master_details: { $first: "$mtr_master_details" }
       }
     }
-  ]).exec(function(err, data) {
+  ]).exec(function (err, data) {
     if (err) {
       return res.status(403).json({
         title: "There was a problem",
@@ -657,7 +657,7 @@ function getMtrBatches(req, res) {
         mtr_master: { $push: "$mtr_master" }
       }
     }
-  ]).exec(function(err, data) {
+  ]).exec(function (err, data) {
     if (err) {
       return res.status(403).json({
         title: "There was a problem",
@@ -694,7 +694,7 @@ function InsertNewKRAInMtr(req, res) {
   mtrDetails.colorStatus = req.body.colorStatus;
   mtrDetails.employeeComment = req.body.employeeComment;
   mtrDetails.status = "New";
-  mtrDetails.save(function(err, response) {
+  mtrDetails.save(function (err, response) {
     if (err) {
       return res.status(403).json({
         title: "There is a problem",
@@ -778,7 +778,7 @@ function updateMtr(req, res) {
   );
 }
 function DeleteKraInMtr(req, res) {
-  MidTermDetails.remove({ _id: parseInt(req.body.id) }, function(
+  MidTermDetails.remove({ _id: parseInt(req.body.id) }, function (
     err,
     response
   ) {
@@ -829,7 +829,7 @@ function SubmitMidTermReview(req, res) {
   async.waterfall(
     [
       done => {
-        MidTermDetails.updateMany(updateCondition, updateQuery, function(
+        MidTermDetails.updateMany(updateCondition, updateQuery, function (
           err,
           response
         ) {
@@ -848,35 +848,35 @@ function SubmitMidTermReview(req, res) {
       (response2, done) => {
         EmployeeDetails.aggregate(
           [
-              { 
-                  "$lookup" : {
-                      "from" : "employeeofficedetails", 
-                      "localField" : "_id", 
-                      "foreignField" : "emp_id", 
-                      "as" : "office_details"
-                  }
-              }, 
-              { 
-                  "$unwind" : {
-                      "path" : "$office_details"
-                  }
-              }, 
-              { 
-                  "$match" : {
-                      "_id" : supervisor_id
-                  }
-              }, 
-              { 
-                  "$project" : {
-                      "_id" : "$_id", 
-                      "user_name" : "$fullName", 
-                      "officeEmail" : "$office_details.officeEmail"
-                  }
+            {
+              "$lookup": {
+                "from": "employeeofficedetails",
+                "localField": "_id",
+                "foreignField": "emp_id",
+                "as": "office_details"
               }
+            },
+            {
+              "$unwind": {
+                "path": "$office_details"
+              }
+            },
+            {
+              "$match": {
+                "_id": supervisor_id
+              }
+            },
+            {
+              "$project": {
+                "_id": "$_id",
+                "user_name": "$fullName",
+                "officeEmail": "$office_details.officeEmail"
+              }
+            }
           ]).then((doc, err) => {
-          let finalData = {mtrmaster: response2, emp:doc}
-          done(err, finalData);
-        });
+            let finalData = { mtrmaster: response2, emp: doc }
+            done(err, finalData);
+          });
       }
     ],
     (err, result) => {
@@ -894,7 +894,7 @@ function SubmitMidTermReview(req, res) {
         email_details.supervisor_name = result.emp[0].user_name;
         email_details.supervisor_email = result.emp[0].officeEmail;
         SendEmail.sendEmailToSupervisorToApproveMtr(email_details, (email_err, email_result) => {
-          if(email_err) {
+          if (email_err) {
             return res.status(300).json({
               title: "Midterm review submitted, failed sending email to supervisor",
               error: {
@@ -959,7 +959,7 @@ function getMtrDetails(req, res) {
     //     }
     //   }
     // }
-  ]).exec(function(err, data) {
+  ]).exec(function (err, data) {
     if (err) {
       return res.status(403).json({
         title: "There was a problem",
@@ -984,6 +984,7 @@ function mtrApproval(req, res) {
   let mtrMasterId = parseInt(req.body.mtrMasterId);
   let mtrDetailId = parseInt(req.body.mtrDetailId);
   let empId = parseInt(req.body.empId);
+  let supervisorId = parseInt(req.body.supervisorId);
   let email_details = {
     user_email: '',
     supervisor_name: req.body.supervisor_name,
@@ -995,12 +996,28 @@ function mtrApproval(req, res) {
     [
       done => {
         let masterUpdateQuery = {
-          updatedBy: empId,
+          updatedBy: supervisorId,
           updatedAt: new Date(),
           status: req.body.isApproved ? "Approved" : "SendBack"
         };
         //TODO : Set Approved status when all mtrDetails are approved, Sendback when even one of them is sent back
-        if (!req.body.isApproved) {
+        if (req.body.isApproved) {
+          MidTermDetails.find({ mtr_master_id: mtrMasterId }, (err, res) => {
+            debugger;
+            if (err)
+              done(err, null);
+            let pendingMtrs = res.filter(mtr => {
+              return mtr.progressStatus != "Dropped" && (!mtr.status || mtr.status == "SendBack" || mtr.status == "Submitted");
+            });
+            if (pendingMtrs.length <= 1 && pendingMtrs[0]._id == mtrDetailId) {
+              MidTermMaster.findByIdAndUpdate({ _id: mtrMasterId }, masterUpdateQuery, (err, res) => {
+                done(err, res);
+              });
+            } else {
+              done(null, null);
+            }
+          });
+        } else {
           MidTermMaster.findByIdAndUpdate(
             { _id: mtrMasterId },
             masterUpdateQuery,
@@ -1008,14 +1025,12 @@ function mtrApproval(req, res) {
               done(err, res);
             }
           );
-        } else {
-          done(null, null);
         }
       },
       (mtrMasterResponse, done) => {
         let mtrDetailUpdateQuery = {
           supervisorComment: req.body.supervisorComment,
-          updatedBy: parseInt(req.body.empId),
+          updatedBy: parseInt(req.body.supervisorId),
           updatedAt: new Date()
         };
         if (req.body.isApproved == true) {
@@ -1041,35 +1056,35 @@ function mtrApproval(req, res) {
       (response2, done) => {
         EmployeeDetails.aggregate(
           [
-              { 
-                  "$lookup" : {
-                      "from" : "employeeofficedetails", 
-                      "localField" : "_id", 
-                      "foreignField" : "emp_id", 
-                      "as" : "office_details"
-                  }
-              }, 
-              { 
-                  "$unwind" : {
-                      "path" : "$office_details"
-                  }
-              }, 
-              { 
-                  "$match" : {
-                      "_id" : empId
-                  }
-              }, 
-              { 
-                  "$project" : {
-                      "_id" : "$_id", 
-                      "user_name" : "$fullName", 
-                      "officeEmail" : "$office_details.officeEmail"
-                  }
+            {
+              "$lookup": {
+                "from": "employeeofficedetails",
+                "localField": "_id",
+                "foreignField": "emp_id",
+                "as": "office_details"
               }
+            },
+            {
+              "$unwind": {
+                "path": "$office_details"
+              }
+            },
+            {
+              "$match": {
+                "_id": empId
+              }
+            },
+            {
+              "$project": {
+                "_id": "$_id",
+                "user_name": "$fullName",
+                "officeEmail": "$office_details.officeEmail"
+              }
+            }
           ]).then((doc, err) => {
-          let finalData = {mtrmaster: response2, emp:doc}
-          done(err, finalData);
-        });
+            let finalData = { mtrmaster: response2, emp: doc }
+            done(err, finalData);
+          });
       }
     ],
     (err, result) => {
@@ -1087,7 +1102,7 @@ function mtrApproval(req, res) {
         email_details.user_name = result.emp[0].user_name;
         email_details.user_email = result.emp[0].officeEmail;
         SendEmail.sendEmailToUserAboutMtrStatus(email_details, (email_err, email_result) => {
-          if(email_err) {
+          if (email_err) {
             return res.status(300).json({
               title: "Midterm review submitted, failed sending email to employee",
               error: {
@@ -1172,7 +1187,7 @@ function getMtrByReviewer(req, res) {
         mtr_master_details: { $first: "$mtr_master_details" }
       }
     }
-  ]).exec(function(err, data) {
+  ]).exec(function (err, data) {
     if (err) {
       return res.status(403).json({
         title: "There was a problem",
