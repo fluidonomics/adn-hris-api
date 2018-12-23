@@ -1031,26 +1031,25 @@ function mtrApproval(req, res) {
         let mtrDetailUpdateQuery = {
           supervisorComment: req.body.supervisorComment,
           updatedBy: parseInt(req.body.supervisorId),
-          updatedAt: new Date()
+          updatedAt: new Date(),
+          status: req.body.isApproved ? "Approved" : "SendBack"
         };
-        if (req.body.isApproved == true) {
-          mtrDetailUpdateQuery.status = "Approved";
-          MidTermDetails.findOneAndUpdate(
-            { _id: mtrDetailId },
-            mtrDetailUpdateQuery,
-            (err, res) => {
-              done(err, res);
-            }
-          );
+        MidTermDetails.findOneAndUpdate({ _id: mtrDetailId }, mtrDetailUpdateQuery, (err, res) => {
+          done(err, res);
+        });
+      },
+      (resp, done) => {
+        if (req.body.isApproved != true) {
+          let mtrDetailUpdateQuery = {
+            updatedBy: parseInt(req.body.supervisorId),
+            updatedAt: new Date(),
+            status: "SendBack"
+          };
+          MidTermDetails.updateMany({ mtr_master_id: mtrMasterId }, mtrDetailUpdateQuery, (err, res) => {
+            done(err, res);
+          });
         } else {
-          mtrDetailUpdateQuery.status = "SendBack";
-          MidTermDetails.updateMany(
-            { mtr_master_id: mtrMasterId },
-            mtrDetailUpdateQuery,
-            (err, res) => {
-              done(err, res);
-            }
-          );
+          done(null, null);
         }
       },
       (response2, done) => {
