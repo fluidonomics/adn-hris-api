@@ -818,7 +818,7 @@ function SubmitMidTermReview(req, res) {
     supervisor_email: '',
     supervisor_name: '',
     user_name: req.body.emp_name,
-    action_link: ''
+    action_link: req.body.action_link
   };
   let updateCondition = { mtr_master_id: mtrDetailId };
   let updateQuery = {
@@ -983,12 +983,19 @@ function getMtrDetails(req, res) {
 function mtrApproval(req, res) {
   let mtrMasterId = parseInt(req.body.mtrMasterId);
   let mtrDetailId = parseInt(req.body.mtrDetailId);
-
+  let empId = parseInt(req.body.empId);
+  let email_details = {
+    user_email: '',
+    supervisor_name: req.body.supervisor_name,
+    user_name: '',
+    action_link: req.body.action_link,
+    isApproved: req.body.isApproved ? "Approved" : "SendBack"
+  };
   async.waterfall(
     [
       done => {
         let masterUpdateQuery = {
-          updatedBy: parseInt(req.body.empId),
+          updatedBy: empId,
           updatedAt: new Date(),
           status: req.body.isApproved ? "Approved" : "SendBack"
         };
@@ -1030,6 +1037,39 @@ function mtrApproval(req, res) {
             }
           );
         }
+      },
+      (response2, done) => {
+        EmployeeDetails.aggregate(
+          [
+              { 
+                  "$lookup" : {
+                      "from" : "employeeofficedetails", 
+                      "localField" : "_id", 
+                      "foreignField" : "emp_id", 
+                      "as" : "office_details"
+                  }
+              }, 
+              { 
+                  "$unwind" : {
+                      "path" : "$office_details"
+                  }
+              }, 
+              { 
+                  "$match" : {
+                      "_id" : empId
+                  }
+              }, 
+              { 
+                  "$project" : {
+                      "_id" : "$_id", 
+                      "user_name" : "$fullName", 
+                      "officeEmail" : "$office_details.officeEmail"
+                  }
+              }
+          ]).then((doc, err) => {
+          let finalData = {mtrmaster: response2, emp:doc}
+          done(err, finalData);
+        });
       }
     ],
     (err, result) => {
@@ -1044,10 +1084,26 @@ function mtrApproval(req, res) {
           }
         });
       } else {
-        return res.status(200).json({
-          title: "Midterm Review Approved/SendBack",
-          result: {
-            message: result
+        email_details.user_name = result.emp[0].user_name;
+        email_details.user_email = result.emp[0].officeEmail;
+        SendEmail.sendEmailToUserAboutMtrStatus(email_details, (email_err, email_result) => {
+          if(email_err) {
+            return res.status(300).json({
+              title: "Midterm review submitted, failed sending email to employee",
+              error: {
+                message: email_err
+              },
+              result: {
+                message: result
+              }
+            });
+          } else {
+            return res.status(200).json({
+              title: "Midterm review submitted, and email sent to employee",
+              result: {
+                message: result
+              }
+            });
           }
         });
       }
