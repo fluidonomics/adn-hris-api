@@ -74,26 +74,24 @@ module.exports = {
       from: '"Team HRIS" <hris@adnsl.net>'
     },
     'emailToEmployeeForSupervsrTransfer': {
-      from:'"Team HRIS" <hris@adnsl.net>',
-      subject:' is done by HR'
-    }, 
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: ' is done by HR'
+    },
     'emailToPrevSupervsrForSupervsrTransfer': {
-      from:'"Team HRIS" <hris@adnsl.net>',
-      subject:'Subordinate Transferred to New Supervisor'
-    } ,
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'Subordinate Transferred to New Supervisor'
+    },
     'emailToNewSupervsrForSupervsrTransfer': {
-      from:'"Team HRIS" <hris@adnsl.net>',
-      subject:'New Subordinate is added'
-    }    
-      subject:'Leave Cancellation Rejected'
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'New Subordinate is added'
     },
     'sendEmailToSupervisorToApproveMtr': {
-      from:'"Team HRIS" <hris@adnsl.net>',
-      subject:'Midterm Review for Approval'
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'Midterm Review for Approval'
     },
     'sendEmailToEmployeeForMtrStatus': {
-      from:'"Team HRIS" <hris@adnsl.net>',
-      subject:'Midterm Review Status'
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'Midterm Review Status'
     },
   },
   'aws':
