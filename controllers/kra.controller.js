@@ -628,6 +628,20 @@ function getKraByEmployeeId(req, res) {
             }
         },
         {
+            "$lookup": {
+                "from": "kraweightagedetails",
+                "localField": "kraWorkflow.weightage_id",
+                "foreignField": "_id",
+                "as": "kraweightagedetails"
+            }
+        },
+        {
+            "$unwind": {
+                path: "$kraweightagedetails",
+                preserveNullAndEmptyArrays: true
+            }
+        },
+        {
             "$project": {
                 "_id": 1,
                 "updatedAt": 1,
@@ -646,7 +660,8 @@ function getKraByEmployeeId(req, res) {
                 "kra": 1,
                 "empId": "$kraWorkflow.emp_id",
                 "kraWorkflow": 1,
-                "employeedetails": 1
+                "employeedetails": 1,
+                "kraweightagedetails": 1
             }
         }
     ]).exec((err, kraDetails) => {

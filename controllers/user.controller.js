@@ -2068,6 +2068,8 @@ function updateSupervisortransfer(req, res, done) {
             apiStatus: false
         };
         var queryUpdate = {};
+        let updatedBy = req.body.user_id;
+        let updatedAt = new Date();
 
         SupervisorInfo.findOne(query, (err, existingSupervisorInfo) => {
             checkError(err);
@@ -2077,6 +2079,8 @@ function updateSupervisortransfer(req, res, done) {
                     $set: {
                         "primarySupervisorEmp_id": req.body.primarySupervisorEmp_id,
                         "secondarySupervisorEmp_id": req.body.secondarySupervisorEmp_id || null,
+                        "updatedAt": updatedAt,
+                        "updatedBy": updatedBy
                     }
                 };
 
@@ -2088,7 +2092,9 @@ function updateSupervisortransfer(req, res, done) {
                                 var leave_queryUpdate = {};
                                 leave_queryUpdate = {
                                     $set: {
-                                        "applyTo": req.body.primarySupervisorEmp_id
+                                        "applyTo": req.body.primarySupervisorEmp_id,
+                                        "updatedAt": updatedAt,
+                                        "updatedBy": updatedBy
                                     }
                                 };
                                 leaveApply.updateMany({ emp_id: _id }, leave_queryUpdate, function (err, doc) {
@@ -2107,7 +2113,13 @@ function updateSupervisortransfer(req, res, done) {
                                         let op = {
                                             'updateMany': {
                                                 'filter': { kraWorkflow_id: kraWorkflow._id },
-                                                'update': { "$set": { "supervisor_id": req.body.primarySupervisorEmp_id } }
+                                                'update': {
+                                                    "$set": {
+                                                        "supervisor_id": req.body.primarySupervisorEmp_id,
+                                                        "updatedAt": updatedAt,
+                                                        "updatedBy": updatedBy
+                                                    }
+                                                }
                                             }
                                         };
                                         bulkOps.push(op);
@@ -2129,15 +2141,47 @@ function updateSupervisortransfer(req, res, done) {
                             return done(null, responseObject);
                         });
                     } else {
-                        responseObject.apiStatus = true;
-                        return done(null, responseObject);
+                        // If transferring supervisor then also transfer any pending request to new supervisor
+                        async.waterfall([
+                            (innerDone) => {
+                                if (req.body.kraIds && req.body.kraIds.length > 0) {
+                                    let updateQuery = {
+                                        "supervisor_id": req.body.primarySupervisorEmp_id,
+                                        "updatedAt": updatedAt,
+                                        "updatedBy": updatedBy
+                                    };
+                                    kraDetails.updateMany({ _id: { $in: req.body.kraIds } }, updateQuery, (err, res) => {
+                                        innerDone(err, res);
+                                    });
+                                } else {
+                                    innerDone(null, null);
+                                }
+                            },
+                            (kras, innerDone) => {
+                                if (req.body.leaveIds && req.body.leaveIds.length > 0) {
+                                    let updateQuery = {
+                                        "applyTo": req.body.primarySupervisorEmp_id,
+                                        "updatedAt": updatedAt,
+                                        "updatedBy": updatedBy
+                                    };
+                                    LeaveApply.updateMany({ _id: { $in: req.body.leaveIds } }, updateQuery, (err, res) => {
+                                        innerDone(err, res);
+                                    });
+                                } else {
+                                    innerDone(null, null);
+                                }
+                            },
+
+                        ], (err, result) => {
+                            responseObject.apiStatus = true;
+                            return done(null, responseObject);
+                        });
                     }
                 });
             } else {
                 responseObject.apiStatus = false;
                 return done(null, responseObject);
             }
-
         });
     } catch (error) {
         responseObject.apiStatus = false;
@@ -2930,7 +2974,7 @@ let functions = {
             },
 
             function (responseObject, done) {
-                AuditTrail.auditTrailEntry(req.body.user_id, "employeesupervisordetails", req.body, "user", "SuerVisorResponsibilityTransfer", "transferred");
+                AuditTrail.auditTrailEntry(req.body.user_id, "employeesupervisordetails", req.body, "user", "SupervisorResponsibilityTransfer", "transferred");
                 if (responseObject.apiStatus) {
                     let queryforHR = {
                         _id: req.body.user_id,
