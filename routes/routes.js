@@ -424,6 +424,8 @@ let express  = require('express'),
       // Register endpoint: http://localhost:3000/api/master/createFinancialYear
       masterRoutes.post('/createFinancialYear',  master.createFinancialYear);
       masterRoutes.post('/createCompanyFinancialYear',  master.createCompanyFinancialYear);
+      masterRoutes.post('/createPapRatingScale',  master.createPapRatingScale);
+      masterRoutes.get('/getPapRatingScale',  master.getPapRatingScale);
       
      
 
