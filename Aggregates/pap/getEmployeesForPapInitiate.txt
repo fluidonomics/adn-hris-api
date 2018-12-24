@@ -1,0 +1,123 @@
+db.getCollection("midtermmasters").aggregate(
+
+	// Pipeline
+	[
+		// Stage 1
+		{
+			$match: {
+				status: "Approved",
+				isDeleted: false
+			}
+		},
+
+		// Stage 2
+		{
+			$lookup: // Equality Match
+			{
+			    from: "employeedetails",
+			    localField: "emp_id",
+			    foreignField: "_id",
+			    as: "employee_details"
+			}
+		},
+
+		// Stage 3
+		{
+			$unwind: {
+			    path : "$employee_details"
+			}
+		},
+
+		// Stage 4
+		{
+			$lookup: {
+			    from: "employeesupervisordetails",
+			    localField: "emp_id",
+			    foreignField: "emp_id",
+			    as: "employee_superviosr_details"
+			}
+		},
+
+		// Stage 5
+		{
+			$unwind: {
+			    path : "$employee_superviosr_details"
+			}
+		},
+
+		// Stage 6
+		{
+			$lookup: // Equality Match
+			{
+			    from: "employeeofficedetails",
+			    localField: "emp_id",
+			    foreignField: "emp_id",
+			    as: "employee_office_details"
+			}
+		},
+
+		// Stage 7
+		{
+			$unwind: {
+			    path : "$employee_office_details"
+			}
+		},
+
+		// Stage 8
+		{
+			$lookup: {
+			    from: "designations",
+			    localField: "employee_details.designation_id",
+			    foreignField: "_id",
+			    as: "designations"
+			}
+		},
+
+		// Stage 9
+		{
+			$unwind: {
+			    path : "$designations"
+			}
+		},
+
+		// Stage 10
+		{
+			$lookup: {
+			    from: "employeedetails",
+			    localField: "employee_superviosr_details.primarySupervisorEmp_id",
+			    foreignField: "_id",
+			    as: "supervisor_details"
+			}
+		},
+
+		// Stage 11
+		{
+			$unwind: {
+			    path : "$supervisor_details"
+			}
+		},
+
+		// Stage 12
+		{
+			$project: {
+			  	mtr_master_id: "$_id",
+			    emp_id: "$emp_id",
+			    userName: "$employee_details.userName",
+			    fullName: "$employee_details.fullName",
+			    grade_id: "$employee_details.grade_id",
+			    profileImage: "$employee_details.profileImage",
+			    designation_id: "$employee_details.designation_id",
+			    designationName: "$designations.designationName",
+			    department_id: "$employee_details.department_id",
+			    supervisor_id: "$employee_superviosr_details.primarySupervisorEmp_id",
+			    supervisorName: "$supervisor_details.fullName",
+			    emp_emailId: "$employee_office_details.officeEmail",
+			    department_id: "$employee_office_details.department_id"
+			}
+		},
+
+	]
+
+	// Created with Studio 3T, the IDE for MongoDB - https://studio3t.com/
+
+);
