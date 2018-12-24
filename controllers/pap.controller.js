@@ -1,5 +1,6 @@
 let async = require('async'),
-
+    MidTermMaster = require('../models/midterm/midtermmaster'),
+    MidTermDetail = require('../models/midterm/midtermdetails'),
     AuditTrail = require('../class/auditTrail');
 
 require('dotenv').load();

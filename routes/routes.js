@@ -7,10 +7,11 @@ let express = require('express'),
   upload = require('../controllers/upload.controller'),
   kra = require('../controllers/kra.controller'),
   leave = require('../controllers/leave.controller'),
-  midterm = require('../controllers/midterm.controller')
-externalDocument = require('../controllers/externalDocument.controller'),
+  midterm = require('../controllers/midterm.controller'),
+  externalDocument = require('../controllers/externalDocument.controller'),
   Employee = require('../models/employee/employeeDetails.model'),
   batch = require('../controllers/batch.controller'),
+  pap = require('../controllers/pap.controller'),
   jwt = require('jsonwebtoken-refresh');
 
 function ensureAuthenticated(req, res, next) {
@@ -71,15 +72,16 @@ module.exports = (app) => {
     hrRoutes = express.Router(),
     externalDocumentRoutes = express.Router(),
     batchRoutes = express.Router(),
+    papRoutes = express.Router();
 
-    //= ========================
+  //= ========================
 
-    //= ========================
-    // Auth Routes
-    //= ========================
+  //= ========================
+  // Auth Routes
+  //= ========================
 
-    // User Auth Routes endpoint: http://localhost:3000/api/auth
-    apiRoutes.use('/auth', authRoutes);
+  // User Auth Routes endpoint: http://localhost:3000/api/auth
+  apiRoutes.use('/auth', authRoutes);
 
   authRoutes.get('/validateToken', auth.validateToken);
 
@@ -595,5 +597,12 @@ module.exports = (app) => {
 
   // Set url for API group routes, all endpoints start with /api/ eg http://localhost:3000/api/admin  || http://localhost:3000/api/auth
   app.use('/api', apiRoutes);
+
+  //= ========================
+  // Pap Routes
+  //= ========================
+  apiRoutes.use('/pap', papRoutes);
+  papRoutes.get('/getEmployeesForPapInitiate', pap.getEmployeesForPapInitiate);
+
 };
 
