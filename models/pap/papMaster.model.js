@@ -5,6 +5,11 @@ let mongoose = require('mongoose'),
 let PapMasterSchema = new Schema(
   {
     _id: { type: Number },
+    batch_id: { type: Number, ref: 'papBatch' },
+    emp_id: { type: Number, ref: 'employeedetails' },
+    status: { type: String, default: null },
+    mtr_master_id: { type: Number, ref: 'midtermmaster'},
+    isRatingCommunicated: { type: Boolean, default: false},
     updatedBy: { type: Number, default: null },
     createdBy: { type: Number, required: true },
     isDeleted: { type: Boolean, default: false }

@@ -5,6 +5,16 @@ let mongoose = require('mongoose'),
 let PapDetailsSchema = new Schema(
   {
     _id: { type: Number },
+    pap_master_id: { type: Number, ref: 'papMaster'},
+    empId: { type: Number, ref: 'employeedetails'},
+    emp_ratingScaleId: { type: Number, ref: 'performanceRating', default: null},
+    empRemark: { type: String, default: null},
+    sup_ratingScaleId: { type: Number, ref: 'performanceRating', default: null},
+    supRemark: { type: String, default: null},
+    reviewerRemark: { type: String, default: null},
+    status: { type: String, default: null},
+    grievance_ratingScaleId: { type: Number, ref: 'performanceRating', default: null},
+    grievanceRemark: { type: String, default: null},
     updatedBy: { type: Number, default: null },
     createdBy: { type: Number, required: true },
     isDeleted: { type: Boolean, default: false }
