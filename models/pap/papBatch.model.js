@@ -7,7 +7,7 @@ let PapBatchSchema = new Schema(
     _id: { type: Number },
     batchName: { type: String, default: null },
     batchEndDate: { type: Date, default: new Date() + 860000 },
-    status: { type: String, default: "Active" },
+    status: { type: String, default: "Initiated" },
     updatedBy: { type: Number, default: null },
     createdBy: { type: Number, required: true },
     isDeleted: { type: Boolean, default: false }

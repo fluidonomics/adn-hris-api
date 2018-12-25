@@ -2,6 +2,9 @@ let async = require('async'),
   MidTermMaster = require('../models/midterm/midtermmaster'),
   MidTermDetail = require('../models/midterm/midtermdetails'),
   AuditTrail = require('../class/auditTrail');
+  PapBatchDetails = require('../models/pap/papBatch.model'),
+  PapMasterDetails = require('../models/pap/papMaster.model'),
+  PapDetails = require('../models/pap/papDetails.model');
 
 require('dotenv').load();
 
@@ -116,11 +119,117 @@ function getEmployeesForPapInitiate(req, res) {
     }
   });
 }
+function initiatePapProcess(req, res) {
+  let createdBy = parseInt(req.body.createdBy);
+  let emp_id_array = req.body.emp_id_array;
+  let papBatchDetails = new PapBatchDetails();
+  papBatchDetails.batchEndDate = new Date(
+    new Date(req.body.batchEndDate).getTime()
+  );
+  papBatchDetails.createdBy = createdBy;
+  papBatchDetails.batchName = req.body.batchName;
+  async.waterfall([
+    papBatchResponse => {
+      papBatchDetails.save(function(err, response) {
+        papBatchResponse(err, response._doc);
+      });
+    },
+    (papMasterCount, papBatchResponse) => {
+        PapMasterDetails.aggregate([
+            {
+              $sort: {
+                _id: -1.0
+              }
+            },
+            {
+              $project: {
+                _id: '$_id'
+              }
+            },
+            {
+              $limit: 1.0
+            }
+          ]).exec(function(err, data) {
+            papMasterCount.pap_master_max_id = 
+            data.length === 0 ? 0 : data[0]._id;
+            papBatchResponse(err, papMasterCount);
+          });
+    },
+    (papMasterCount, papMasterReponse) => {
+        let dataToInsert = [];
+        emp_id_array.forEach(function(element, index) {
+            dataToInsert.push({
+                _id: papMasterCount.pap_master_max_id + (index + 1),
+                createdBy: createdBy,
+                emp_id: parseInt(element.emp_id),
+                batch_id: papMasterCount._id,
+                mtr_master_id: parseInt(element.mtr_master_id)
+            });
+        });
+        PapMasterDetails.insertMany(dataToInsert, function(err, response){
+          papMasterReponse(err, response);
+        });
+    },
+    (papMasterReponse, mtrDetails) => {
+      let query = [];
+      papMasterReponse.forEach(function(element){
+        query.push(element.mtr_master_id);
+      });
+      MidTermDetail.aggregate([{ 
+        '$match' : {
+            'progressStatus' : {
+                '$ne' : 'Dropped'
+            }, 
+            'mtr_master_id' : {
+                '$in' : query
+            }
+        }
+    }, 
+    { 
+        '$project' : {
+            'mtr_detail_id' : '$_id', 
+            'mtr_master_id' : '$mtr_master_id'
+        }
+    }]).exec(function(err, data) {
+      papMasterReponse.forEach(f => {
+         data.filter(fi => fi.mtr_master_id === f.mtr_master_id )
+          .map(m => m.pap_master_id = f._id);
+      })
+      mtrDetails(err, data);
+    })
+    },
+    (maxPapDetailId, mtrDetails) => {
+      PapDetails.aggregate([
+        {
+          $sort: {
+            _id: -1.0
+          }
+        },
+        {
+          $project: {
+            _id: '$_id'
+          }
+        },
+        {
+          $limit: 1.0
+        }
+      ]).exec(function(err, data) {
+        // mtrDetails.pap_deta_max_id = 
+        // data.length === 0 ? 0 : data[0]._id;
+        // papBatchResponse(err, papMasterCount);
+      });
+      
 
+    }
+  ]);
+}
 
 let functions = {
   getEmployeesForPapInitiate: (req, res) => {
     getEmployeesForPapInitiate(req, res);
+  },
+  initiatePapProcess: (req, res) => {
+    initiatePapProcess(req, res);
   }
 }
 

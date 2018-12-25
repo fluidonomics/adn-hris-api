@@ -603,6 +603,7 @@ module.exports = (app) => {
   //= ========================
   apiRoutes.use('/pap', papRoutes);
   papRoutes.get('/getEmployeesForPapInitiate', pap.getEmployeesForPapInitiate);
+  papRoutes.post('/initiatePapProcess', pap.initiatePapProcess);
 
 };
 
