@@ -1,8 +1,8 @@
 let async = require('async'),
     MidTermMaster = require('../models/midterm/midtermmaster'),
     MidTermDetail = require('../models/midterm/midtermdetails'),
-    AuditTrail = require('../class/auditTrail');
-PapBatchDetails = require('../models/pap/papBatch.model'),
+    AuditTrail = require('../class/auditTrail'),
+    PapBatchDetails = require('../models/pap/papBatch.model'),
     PapMasterDetails = require('../models/pap/papMaster.model'),
     PapDetails = require('../models/pap/papDetails.model');
 
@@ -287,12 +287,112 @@ function initiatePapProcess(req, res) {
     });
 }
 
+function getPapBatches(req, res) {
+    let currentUserId = parseInt(req.query.currentUserId);
+    PapBatchDetails.aggregate([
+        {
+            $match: {
+                createdBy: currentUserId
+            }
+        },
+        {
+            $lookup: {
+                from: "papmasters",
+                localField: "_id",
+                foreignField: "batch_id",
+                as: "pap_master"
+            }
+        },
+        {
+            $unwind: {
+                path: "$pap_master"
+            }
+        },
+        {
+            $lookup: {
+                from: "employeedetails",
+                localField: "pap_master.emp_id",
+                foreignField: "_id",
+                as: "emp_details"
+            }
+        },
+        {
+            $unwind: {
+                path: "$emp_details",
+            }
+        },
+        {
+            $project: {
+                _id: 1,
+                updatedAt: 1,
+                createdAt: 1,
+                createdBy: 1,
+                isDeleted: 1,
+                updatedBy: 1,
+                status: 1,
+                batchEndDate: 1,
+                batchName: 1,
+                pap_master: {
+                    _id: 1,
+                    updatedAt: 1,
+                    createdAt: 1,
+                    createdBy: 1,
+                    emp_id: 1,
+                    batch_id: 1,
+                    mtr_master_id: 1,
+                    isDeleted: 1,
+                    updatedBy: 1,
+                    isRatingCommunicated: 1,
+                    status: 1,
+                    emp_details: "$emp_details"
+                }
+            }
+        },
+        {
+            $group: {
+                _id: "$_id",
+                updatedAt: { $first: "$updatedAt" },
+                createdAt: { $first: "$createdAt" },
+                createdBy: { $first: "$createdBy" },
+                isDeleted: { $first: "$isDeleted" },
+                updatedBy: { $first: "$updatedBy" },
+                status: { $first: "$status" },
+                batchEndDate: { $first: "$batchEndDate" },
+                batchName: { $first: "$batchName" },
+                pap_master: { $push: "$pap_master" }
+            }
+        }
+    ]).exec((err, response) => {
+        if (err) {
+            return res.status(403).json({
+                title: 'There is a problem while fetching data',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: response
+                }
+            });
+        } else {
+            return res.status(200).json({
+                title: 'Data fetched successfully',
+                result: {
+                    message: response
+                }
+            });
+        }
+    });
+}
+
 let functions = {
     getEmployeesForPapInitiate: (req, res) => {
         getEmployeesForPapInitiate(req, res);
     },
     initiatePapProcess: (req, res) => {
         initiatePapProcess(req, res);
+    },
+    getPapBatches: (req, res) => {
+        getPapBatches(req, res);
     }
 }
 
