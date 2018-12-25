@@ -81,21 +81,21 @@ function getEmployeesForPapInitiate(req, res) {
             $unwind: {
                 path: '$supervisor_details'
             }
-        }, 
-        { 
-            $lookup : {
-                'from' : 'papmasters', 
-                'localField' : 'emp_id', 
-                'foreignField' : 'emp_id', 
-                'as' : 'pap_master'
+        },
+        {
+            $lookup: {
+                'from': 'papmasters',
+                'localField': 'emp_id',
+                'foreignField': 'emp_id',
+                'as': 'pap_master'
             }
-        }, 
-        { 
-            $unwind : {
-                'path' : '$pap_master', 
-                'preserveNullAndEmptyArrays' : true
+        },
+        {
+            $unwind: {
+                'path': '$pap_master',
+                'preserveNullAndEmptyArrays': true
             }
-        },        
+        },
         {
             $project: {
                 mtr_master_id: '$_id',
@@ -410,11 +410,82 @@ function getPapBySupervisor(req, res) {
 
 
 function papUpdate(req, res) {
-
+    async.waterfall([
+        (done) => {
+            let updateQuery = {
+                "updatedAt": new Date(),
+                "updatedBy": parseInt(req.body.updatedBy),
+                "status": "Pending",
+                "empRemark": req.body.empRemark,
+                "emp_ratingScaleId": req.body.emp_ratingScaleId
+            }
+            PapDetails.findOneAndUpdate({ _id: req.body.papDetailsId }, updateQuery, (err, res) => {
+                done(err, res);
+            })
+        },
+        (papDetails, done) => {
+            AuditTrail.auditTrailEntry(
+                0,
+                "papDetails",
+                papDetails,
+                "user",
+                "papDetails",
+                "UPDATED"
+            );
+            done(null, papDetails);
+        }
+    ], (err, result) => {
+        sendResponse(res, err, result, 'Pap details updated successfully');
+    })
 }
 
 function papSubmit(req, res) {
+    async.waterfall([
+        (done) => {
+            let updateQuery = {
+                "updatedAt": new Date(),
+                "updatedBy": parseInt(req.body.updatedBy),
+                "status": "Submitted"
+            };
+            PapDetails.updateMany({ pap_master_id: req.body.pap_master_id }, updateQuery, (err, papDetails) => {
+                done(err, papDetails);
+            });
+        },
+        (papDetails, done) => {
+            AuditTrail.auditTrailEntry(
+                0,
+                "papDetails",
+                papDetails,
+                "user",
+                "papDetails",
+                "UPDATED"
+            );
+            done(null, papDetails);
+        }
+    ], (err, results) => {
+        sendResponse(res, err, results, 'Pap details updated successfully');
+    });
+}
 
+function sendResponse(res, err, response, title) {
+    if (err) {
+        return res.status(403).json({
+            title: 'There is a problem while fetching data',
+            error: {
+                message: err
+            },
+            result: {
+                message: response
+            }
+        });
+    } else {
+        return res.status(200).json({
+            title: title,
+            result: {
+                message: response
+            }
+        });
+    }
 }
 
 let functions = {
