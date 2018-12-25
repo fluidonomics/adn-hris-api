@@ -5,8 +5,8 @@ db.getCollection("midtermmasters").aggregate(
 		// Stage 1
 		{
 			$match: {
-				status: "Approved",
-				isDeleted: false
+			    status: "Approved",
+			    isDeleted: false
 			}
 		},
 
@@ -99,8 +99,27 @@ db.getCollection("midtermmasters").aggregate(
 
 		// Stage 12
 		{
+			$lookup: // Equality Match
+			{
+			    from: "papmasters",
+			    localField: "emp_id",
+			    foreignField: "emp_id",
+			    as: "pap_master"
+			}
+		},
+
+		// Stage 13
+		{
+			$unwind: {
+			    path : "$pap_master",
+			    preserveNullAndEmptyArrays : true // optional
+			}
+		},
+
+		// Stage 14
+		{
 			$project: {
-			  	mtr_master_id: "$_id",
+			      mtr_master_id: "$_id",
 			    emp_id: "$emp_id",
 			    userName: "$employee_details.userName",
 			    fullName: "$employee_details.fullName",
@@ -112,7 +131,8 @@ db.getCollection("midtermmasters").aggregate(
 			    supervisor_id: "$employee_superviosr_details.primarySupervisorEmp_id",
 			    supervisorName: "$supervisor_details.fullName",
 			    emp_emailId: "$employee_office_details.officeEmail",
-			    department_id: "$employee_office_details.department_id"
+			    department_id: "$employee_office_details.department_id",
+			    pap_master_id: "$pap_master._id"
 			}
 		},
 
