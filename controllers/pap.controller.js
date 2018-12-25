@@ -81,7 +81,21 @@ function getEmployeesForPapInitiate(req, res) {
             $unwind: {
                 path: '$supervisor_details'
             }
-        },
+        }, 
+        { 
+            $lookup : {
+                'from' : 'papmasters', 
+                'localField' : 'emp_id', 
+                'foreignField' : 'emp_id', 
+                'as' : 'pap_master'
+            }
+        }, 
+        { 
+            $unwind : {
+                'path' : '$pap_master', 
+                'preserveNullAndEmptyArrays' : true
+            }
+        },        
         {
             $project: {
                 mtr_master_id: '$_id',
@@ -95,7 +109,8 @@ function getEmployeesForPapInitiate(req, res) {
                 department_id: '$employee_office_details.department_id',
                 supervisor_id: '$employee_superviosr_details.primarySupervisorEmp_id',
                 supervisorName: '$supervisor_details.fullName',
-                emp_emailId: '$employee_office_details.officeEmail'
+                emp_emailId: '$employee_office_details.officeEmail',
+                pap_master_id: '$pap_master._id'
             }
         }
     ]).exec(function (err, response) {
