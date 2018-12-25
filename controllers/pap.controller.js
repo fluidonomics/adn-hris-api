@@ -384,6 +384,20 @@ function getPapBatches(req, res) {
     });
 }
 
+function getPapDetailsSingleEmployee(req, res) {
+
+}
+
+
+function getPapBySupervisor(req, res) {
+
+}
+
+
+function papSubmit(req, res) {
+
+}
+
 let functions = {
     getEmployeesForPapInitiate: (req, res) => {
         getEmployeesForPapInitiate(req, res);
@@ -393,6 +407,15 @@ let functions = {
     },
     getPapBatches: (req, res) => {
         getPapBatches(req, res);
+    },
+    getPapDetailsSingleEmployee: (req, res) => {
+        getPapDetailsSingleEmployee(req, res);
+    },
+    getPapBySupervisor: (req, res) => {
+        getPapBySupervisor(req, res);
+    },
+    papSubmit: (req, res) => {
+        papSubmit(req, res);
     }
 }
 
