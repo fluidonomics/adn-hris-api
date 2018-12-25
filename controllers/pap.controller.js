@@ -400,7 +400,7 @@ function getPapBatches(req, res) {
 }
 
 function getPapDetailsSingleEmployee(req, res) {
-    let empId = parseInt(req.body.emp_id);
+    let empId = parseInt(req.query.emp_id);
     PapDetails.aggregate([
         { 
             '$lookup' : {
