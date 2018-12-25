@@ -394,6 +394,10 @@ function getPapBySupervisor(req, res) {
 }
 
 
+function papUpdate(req, res) {
+
+}
+
 function papSubmit(req, res) {
 
 }
@@ -413,6 +417,9 @@ let functions = {
     },
     getPapBySupervisor: (req, res) => {
         getPapBySupervisor(req, res);
+    },
+    papUpdate: (req, res) => {
+        papUpdate(req, res);
     },
     papSubmit: (req, res) => {
         papSubmit(req, res);
