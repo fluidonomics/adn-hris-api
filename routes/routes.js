@@ -612,6 +612,7 @@ module.exports = (app) => {
   papRoutes.get('/getPapBatches', pap.getPapBatches);
   papRoutes.get('/getPapDetailsSingleEmployee', pap.getPapDetailsSingleEmployee);
   papRoutes.get('/getPapBySupervisor', pap.getPapBySupervisor);
+  papRoutes.get('/getPapByReviewer', pap.getPapByReviewer);
   papRoutes.post('/papUpdate', pap.papUpdate);
   papRoutes.post('/papSubmit', pap.papSubmit);
   papRoutes.post('/updateBatch', pap.updateBatch);
