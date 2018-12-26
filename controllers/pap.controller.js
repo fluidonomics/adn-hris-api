@@ -8,7 +8,6 @@ let async = require('async'),
 
 require('dotenv').load();
 
-
 function getEmployeesForPapInitiate(req, res) {
     MidTermMaster.aggregate([
         {
@@ -150,8 +149,8 @@ function initiatePapProcess(req, res) {
                     0,
                     "papBatchDetails",
                     papBatchDetails,
-                    "user",
-                    "papBatchDetails",
+                    "PAP",
+                    "initiatePapProcess",
                     "ADDED"
                 );
                 done(err, response._doc);
@@ -194,8 +193,8 @@ function initiatePapProcess(req, res) {
                     0,
                     "papMaster",
                     dataToInsert,
-                    "user",
-                    "papMaster",
+                    "PAP",
+                    "initiatePapProcess",
                     "ADDED"
                 );
                 done(err, response);
@@ -273,8 +272,8 @@ function initiatePapProcess(req, res) {
                     0,
                     "papDetails",
                     papDetailsToInsert,
-                    "user",
-                    "papDetails",
+                    "PAP",
+                    "initiatePapProcess",
                     "ADDED"
                 );
                 done(err, papDetailsResponse);
@@ -529,8 +528,8 @@ function papUpdate(req, res) {
                 0,
                 "papDetails",
                 papDetails,
-                "user",
-                "papDetails",
+                "PAP",
+                "papUpdate",
                 "UPDATED"
             );
             done(null, papDetails);
@@ -557,8 +556,8 @@ function papSubmit(req, res) {
                 0,
                 "papDetails",
                 papDetails,
-                "user",
-                "papDetails",
+                "PAP",
+                "papSubmit",
                 "UPDATED"
             );
             done(null, papDetails);
@@ -568,25 +567,91 @@ function papSubmit(req, res) {
     });
 }
 
-function sendResponse(res, err, response, title) {
-    if (err) {
-        return res.status(403).json({
-            title: 'There is a problem while fetching data',
-            error: {
-                message: err
-            },
-            result: {
-                message: response
+function updateBatch(req, res) {
+    async.waterfall([
+        (done) => {
+            let updateQuery = {
+                "updatedAt": new Date(),
+                "updatedBy": parseInt(req.body.updatedBy),
+                "batchEndDate": req.body.batchEndDate
             }
-        });
-    } else {
-        return res.status(200).json({
-            title: title,
-            result: {
-                message: response
+            PapBatchDetails.update({ _id: parseInt(req.body.batchId) }, updateQuery, (err, papBatchDetails) => {
+                done(err, papBatchDetails);
+            })
+        },
+        (papBatchDetails, done) => {
+            AuditTrail.auditTrailEntry(
+                0,
+                "papBatchDetails",
+                papBatchDetails,
+                "PAP",
+                "updateBatch",
+                "UPDATED"
+            );
+            done(null, papBatchDetails);
+        }
+    ], (err, results) => {
+        sendResponse(res, err, results, 'Pap Batch updated successfully');
+    })
+}
+
+function papUpdateSupervisor(req, res) {
+    async.waterfall([
+        (done) => {
+            let updateQuery = {
+                "updatedAt": new Date(),
+                "updatedBy": parseInt(req.body.updatedBy),
+                "status": "Pending Reviewer",
+                "supRemark": req.body.supRemark,
+                "sup_ratingScaleId": req.body.sup_ratingScaleId
             }
-        });
-    }
+            PapDetails.findOneAndUpdate({ _id: req.body.papDetailsId }, updateQuery, (err, res) => {
+                done(err, res);
+            })
+        },
+        (papDetails, done) => {
+            AuditTrail.auditTrailEntry(
+                0,
+                "papDetails",
+                papDetails,
+                "PAP",
+                "papUpdateSupervisor",
+                "UPDATED"
+            );
+            done(null, papDetails);
+        }
+    ], (err, result) => {
+        sendResponse(res, err, result, 'Pap details updated successfully');
+    })
+}
+
+function papUpdateReviewer(req, res) {
+    async.waterfall([
+        (done) => {
+            let updateQuery = {
+                "updatedAt": new Date(),
+                "updatedBy": parseInt(req.body.updatedBy),
+                "status": req.body.isApproved ? "Approved" : "SendBack",
+                "reviewerRemark": req.body.reviewerRemark
+            }
+            PapDetails.findOneAndUpdate({ _id: req.body.papDetailsId }, updateQuery, (err, res) => {
+                done(err, res);
+            })
+        },
+        (papDetails, done) => {
+            AuditTrail.auditTrailEntry(
+                0,
+                "papDetails",
+                papDetails,
+                "PAP",
+                "papUpdateReviewer",
+                "UPDATED"
+            );
+            done(null, papDetails);
+        }
+    ], (err, result) => {
+        sendResponse(res, err, result, 'Pap details updated successfully');
+    })
 }
 
 let functions = {
@@ -610,6 +675,37 @@ let functions = {
     },
     papSubmit: (req, res) => {
         papSubmit(req, res);
+    },
+    updateBatch: (req, res) => {
+        updateBatch(req, res);
+    },
+    papUpdateSupervisor: (req, res) => {
+        papUpdateSupervisor(req, res);
+    },
+    papUpdateReviewer: (req, res) => {
+        papUpdateReviewer(req, res);
+    }
+}
+
+
+function sendResponse(res, err, response, title) {
+    if (err) {
+        return res.status(403).json({
+            title: 'There is a problem while fetching data',
+            error: {
+                message: err
+            },
+            result: {
+                message: response
+            }
+        });
+    } else {
+        return res.status(200).json({
+            title: title,
+            result: {
+                message: response
+            }
+        });
     }
 }
 
