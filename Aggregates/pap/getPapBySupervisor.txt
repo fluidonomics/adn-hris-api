@@ -1,0 +1,87 @@
+db.getCollection("papdetails").aggregate(
+
+	// Pipeline
+	[
+		// Stage 1
+		{
+			$lookup: {
+			    from: "midtermdetails",
+			    localField: "mtr_details_id",
+			    foreignField: "_id",
+			    as: "mtr_details"
+			}
+		},
+
+		// Stage 2
+		{
+			$unwind: {
+			    path : "$mtr_details"
+			}
+		},
+
+		// Stage 3
+		{
+			$lookup: // Equality Match
+			{
+			    from: "employeedetails",
+			    localField: "empId",
+			    foreignField: "_id",
+			    as: "emp_details"
+			}
+		},
+
+		// Stage 4
+		{
+			$unwind: {
+			    path : "$emp_details"
+			}
+		},
+
+		// Stage 5
+		{
+			$match: {
+				'mtr_details.supervisor_id': 547
+			}
+		},
+
+		// Stage 6
+		{
+			$project: {
+			  	emp_id: '$empId',
+			  	userName: '$emp_details.userName',
+			    fullName: '$emp_details.fullName',
+			  	supervisor_id: '$mtr_details.supervisor_id',
+			   	group_obj: {
+			   	grievanceRemark: '$grievanceRemark',
+			    grievance_ratingScaleId: '$grievance_ratingScaleId',
+			    status: '$status',
+			    reviewerRemark: '$reviewerRemark',
+			    supRemark: '$supRemark',
+			    sup_ratingScaleId: '$sup_ratingScaleId',
+			    empRemark: '$empRemark',
+			    emp_ratingScaleId: '$emp_ratingScaleId',
+			    kra: '$mtr_details.mtr_kra',
+			    measureOfSuccess: '$mtr_details.measureOfSuccess',
+			    unitOfSuccess: '$mtr_details.unitOfSuccess',
+			    category_id: '$mtr_details.category_id',
+			    weightage_id: '$mtr_details.weightage_id'
+			   	}
+			}
+		},
+
+		// Stage 7
+		{
+			$group: {
+				_id: '$emp_id',
+				userName: {$first: '$userName'},
+				fullName: {$first: '$fullName'},
+				supervisor_id: {$first: '$supervisor_id'},
+				kra_details: {$push: '$group_obj'}
+			}
+		},
+
+	]
+
+	// Created with Studio 3T, the IDE for MongoDB - https://studio3t.com/
+
+);
