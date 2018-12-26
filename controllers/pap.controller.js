@@ -593,6 +593,34 @@ function papUpdateSupervisor(req, res) {
     })
 }
 
+function papUpdateReviewer(req, res) {
+    async.waterfall([
+        (done) => {
+            let updateQuery = {
+                "updatedAt": new Date(),
+                "updatedBy": parseInt(req.body.updatedBy),
+                "status": req.body.isApproved ? "Approved" : "SendBack",
+                "reviewerRemark": req.body.reviewerRemark
+            }
+            PapDetails.findOneAndUpdate({ _id: req.body.papDetailsId }, updateQuery, (err, res) => {
+                done(err, res);
+            })
+        },
+        (papDetails, done) => {
+            AuditTrail.auditTrailEntry(
+                0,
+                "papDetails",
+                papDetails,
+                "PAP",
+                "papUpdateReviewer",
+                "UPDATED"
+            );
+            done(null, papDetails);
+        }
+    ], (err, result) => {
+        sendResponse(res, err, result, 'Pap details updated successfully');
+    })
+}
 
 let functions = {
     getEmployeesForPapInitiate: (req, res) => {
@@ -621,8 +649,10 @@ let functions = {
     },
     papUpdateSupervisor: (req, res) => {
         papUpdateSupervisor(req, res);
+    },
+    papUpdateReviewer: (req, res) => {
+        papUpdateReviewer(req, res);
     }
-
 }
 
 
