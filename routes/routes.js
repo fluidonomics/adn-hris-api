@@ -404,6 +404,8 @@ module.exports = (app) => {
   // Register endpoint: http://localhost:3000/api/master/createDepartment
   masterRoutes.post('/createDepartment', ensureAuthenticated, master.createDepartment);
 
+
+
   // Register endpoint: http://localhost:3000/api/master/createVertical
   masterRoutes.post('/createVertical', ensureAuthenticated, master.createVertical);
 
@@ -451,7 +453,8 @@ module.exports = (app) => {
   // Register endpoint: http://localhost:3000/api/master/createFinancialYear
   masterRoutes.post('/createFinancialYear', master.createFinancialYear);
   masterRoutes.post('/createCompanyFinancialYear', master.createCompanyFinancialYear);
-
+  masterRoutes.post('/createPapRatingScale', master.createPapRatingScale);
+  masterRoutes.get('/getPapRatingScale', master.getPapRatingScale);
 
 
 
