@@ -1,92 +1,94 @@
-let express           = require('express'),
-    Role              = require('../models/master/role.model'),
-    Company           = require('../models/master/company.model'),
-    Division          = require('../models/master/division.model'),
-    Department        = require('../models/master/department.model'),
-    Vertical          = require('../models/master/vertical.model'),
-    SubVertical       = require('../models/master/subVertical.model'),
-    Facility          = require('../models/master/facility.model'),
-    Document          = require('../models/master/document.model'),
-    CompanyBusiness   = require('../models/master/companyBusiness.model'),
-    MaritalStatus     = require('../models/master/maritalStatus.model'),
-    Currency          = require('../models/master/currency.model'),
-    Grade             = require('../models/master/grade.model'),
-    Designation       = require('../models/master/designation.model'),
-    GradeDesignation  = require('../models/master/gradeDesignation.model'),
-    AddressLocation   = require('../models/master/location.model'),
-    ManagementType    = require('../models/master/managementType.model'),
-    EmploymentType    = require('../models/master/employmentType.model'),
-    EmploymentStatus  = require('../models/master/employmentStatus.model'),
-    Education         = require('../models/master/education.model'),
+let express = require('express'),
+    Role = require('../models/master/role.model'),
+    Company = require('../models/master/company.model'),
+    Division = require('../models/master/division.model'),
+    Department = require('../models/master/department.model'),
+    Vertical = require('../models/master/vertical.model'),
+    SubVertical = require('../models/master/subVertical.model'),
+    Facility = require('../models/master/facility.model'),
+    Document = require('../models/master/document.model'),
+    CompanyBusiness = require('../models/master/companyBusiness.model'),
+    MaritalStatus = require('../models/master/maritalStatus.model'),
+    Currency = require('../models/master/currency.model'),
+    Grade = require('../models/master/grade.model'),
+    Designation = require('../models/master/designation.model'),
+    GradeDesignation = require('../models/master/gradeDesignation.model'),
+    AddressLocation = require('../models/master/location.model'),
+    ManagementType = require('../models/master/managementType.model'),
+    EmploymentType = require('../models/master/employmentType.model'),
+    EmploymentStatus = require('../models/master/employmentStatus.model'),
+    Education = require('../models/master/education.model'),
     PerformanceRating = require('../models/master/performanceRating.model'),
-    Relation          = require('../models/master/relation.model'), 
-    
-    KraWeightageInfo   = require('../models/kra/kraWeightage.model'),
-    KraCategoryInfo   = require('../models/kra/kraCategory.model'),
-    KraWorkFlowInfo   = require('../models/kra/kraWorkFlowDetails.model'),
+    Relation = require('../models/master/relation.model'),
 
-    Employee          = require('../models/employee/employeeDetails.model'),
+    KraWeightageInfo = require('../models/kra/kraWeightage.model'),
+    KraCategoryInfo = require('../models/kra/kraCategory.model'),
+    KraWorkFlowInfo = require('../models/kra/kraWorkFlowDetails.model'),
+
+    Employee = require('../models/employee/employeeDetails.model'),
     SupervisorDetails = require('../models/employee/employeeSupervisorDetails.model'),
-    EmployeeRole      = require('../models/employee/employeeRoleDetails.model'),
+    EmployeeRole = require('../models/employee/employeeRoleDetails.model'),
 
 
-    OfficeDetails     = require('../models/employee/employeeOfficeDetails.model'),
-    BankInfo          = require('../models/employee/employeeBankDetails.model'),
-    SalaryInfo        = require('../models/employee/employeeSalaryDetails.model'),
-    CarInfo           = require('../models/employee/employeeCarDetails.model'),
+    OfficeDetails = require('../models/employee/employeeOfficeDetails.model'),
+    BankInfo = require('../models/employee/employeeBankDetails.model'),
+    SalaryInfo = require('../models/employee/employeeSalaryDetails.model'),
+    CarInfo = require('../models/employee/employeeCarDetails.model'),
     PersonalInfo = require('../models/employee/employeePersonalDetails.model'),
 
-    PersonalDetails   = require('../models/employee/employeePersonalDetails.model'),
-    AddressInfo       = require('../models/employee/employeeAddressDetails.model'),
-    DocumentsInfo     = require('../models/employee/employeeDocumentDetails.model'),
-    AcademicInfo      = require('../models/employee/employeeAcademicDetails.model'),
+    PersonalDetails = require('../models/employee/employeePersonalDetails.model'),
+    AddressInfo = require('../models/employee/employeeAddressDetails.model'),
+    DocumentsInfo = require('../models/employee/employeeDocumentDetails.model'),
+    AcademicInfo = require('../models/employee/employeeAcademicDetails.model'),
     CertificationInfo = require('../models/employee/employeeCertificationDetails.model'),
     PreviousEmploymentInfo = require('../models/employee/employeePreviousEmploymentDetails.model'),
-    FamilyInfo        = require('../models/employee/employeeFamilyDetails.model'),
+    FamilyInfo = require('../models/employee/employeeFamilyDetails.model'),
 
-    FinancialYear     = require('../models/master/financialYearDetails.model')
-    ProfileProcessStatus= require('../models/employee/employeeProfileProcessDetails.model'),
-    uuidV1            = require('uuid/v1'),
-    async             = require('async')
-    awaitEach         = require('await-each');
-    sendEmailInfo     =require('../class/sendEmail');
-    Json2csvParser = require('json2csv').Parser;
-    Notify     =require('../class/notify');
-    require('dotenv').load()
-    // const multer = require('multer');
-    // const path = require('path');
-    // const appDir = path.dirname(require.main.filename);
-    // const fs = require('fs');
-    // const { SetResponse, RequestErrorMsg, ErrMessages, ApiResponse } = require('./../helpers/common');
+    FinancialYear = require('../models/master/financialYearDetails.model'),
+    ProfileProcessStatus = require('../models/employee/employeeProfileProcessDetails.model'),
+    uuidV1 = require('uuid/v1'),
+    async = require('async'),
+    awaitEach = require('await-each'),
+    sendEmailInfo = require('../class/sendEmail'),
+    Json2csvParser = require('json2csv').Parser,
+    Notify = require('../class/notify'),
+    bcrypt = require('bcrypt');
 
-    // const storage = multer.diskStorage({
-    // destination: function (req, file, callback) {
-    //     callback(null, appDir + '/../public/uploads');
-    // },
-    // filename: function (req, file, callback) {
-    //     callback(null, Date.now() + '_' + file.originalname);
-    // }
-    // });
-    // const upload = multer({ storage: storage }).fields([
-    // { name: 'file', maxCount: 1 }
-    // ]);
+require('dotenv').load()
+// const multer = require('multer');
+// const path = require('path');
+// const appDir = path.dirname(require.main.filename);
+// const fs = require('fs');
+// const { SetResponse, RequestErrorMsg, ErrMessages, ApiResponse } = require('./../helpers/common');
 
-    // module.exports.uploadObj = upload;
+// const storage = multer.diskStorage({
+// destination: function (req, file, callback) {
+//     callback(null, appDir + '/../public/uploads');
+// },
+// filename: function (req, file, callback) {
+//     callback(null, Date.now() + '_' + file.originalname);
+// }
+// });
+// const upload = multer({ storage: storage }).fields([
+// { name: 'file', maxCount: 1 }
+// ]);
 
-    // module.exports.uploadMedia = async (req, res) => {
-    // /* Contruct response object */
-    // let rcResponse = new ApiResponse();
-    // let httpStatus = 200;
+// module.exports.uploadObj = upload;
 
-    // if (!req.files || !req.files.file) {
-    //     SetResponse(rcResponse, 400, RequestErrorMsg('NoImage', req, null), false);
-    //     httpStatus = 400;
-    //     return res.status(httpStatus).send(rcResponse);
-    // }
-    // rcResponse.message = 'Media file has been successfullly uploaded';
-    // rcResponse.data = { fileName: req.files.file[0].filename }
-    // return res.status(httpStatus).send(rcResponse);
-    // };
+// module.exports.uploadMedia = async (req, res) => {
+// /* Contruct response object */
+// let rcResponse = new ApiResponse();
+// let httpStatus = 200;
+
+// if (!req.files || !req.files.file) {
+//     SetResponse(rcResponse, 400, RequestErrorMsg('NoImage', req, null), false);
+//     httpStatus = 400;
+//     return res.status(httpStatus).send(rcResponse);
+// }
+// rcResponse.message = 'Media file has been successfullly uploaded';
+// rcResponse.data = { fileName: req.files.file[0].filename }
+// return res.status(httpStatus).send(rcResponse);
+// };
 function getDesignationByGrade(req, res) {
 
     var gradeDesignationProjection = {
@@ -101,7 +103,7 @@ function getDesignationByGrade(req, res) {
         grade_id: grade_id,
         isActive: true
     }
-    GradeDesignation.find(query, gradeDesignationProjection, function(err, gradeHirearchyData) {
+    GradeDesignation.find(query, gradeDesignationProjection, function (err, gradeHirearchyData) {
         if (gradeHirearchyData) {
             var hirarchyArray = [];
             if (gradeHirearchyData) {
@@ -121,13 +123,13 @@ function getDesignationByGrade(req, res) {
                 createdBy: false
             };
             Designation.find(querys, designationProjection, {
-                    sort: {
-                        _id: 1
-                    }
-                })
+                sort: {
+                    _id: 1
+                }
+            })
                 .where('_id')
                 .in(hirarchyArray)
-                .exec(function(err, designationData) {
+                .exec(function (err, designationData) {
                     if (designationData) {
                         return res.status(200).json(designationData);
                     } else {
@@ -160,11 +162,10 @@ function getDesignationByGrade(req, res) {
 
 
 
-function sendEmailMail(req,res)
-{
-    let toemail=req.body.toEmail;
-    let subject=req.body.subject;
-    let htmlBody=req.body.htmlBody;
+function sendEmailMail(req, res) {
+    let toemail = req.body.toEmail;
+    let subject = req.body.subject;
+    let htmlBody = req.body.htmlBody;
 
     let transporter = nodemailer.createTransport({
         host: process.env.EmailHost,
@@ -188,26 +189,23 @@ function sendEmailMail(req,res)
             return console.log("RESULT ERROR = ", error2);
         }
         res.status(200).json(true);
-     });
+    });
 }
 
-function sendResetPasswordLink(token,emp_id,email_id,done)
-{
-    let queryUpdate={ $set: {resetPasswordToken:token, resetPasswordExpires: Date.now() + 3600000 }};
-    Employee.findOneAndUpdate({_id:emp_id,isDeleted:false},queryUpdate,function(err,user)
-    {
-    if (err) {
-        return res.status(403).json({
-        title: 'There was an error',
-        error: err
-        });
-    }
-    if(user)
-    {
-        if(email_id)
-        sendEmailInfo.sendEmailResetPassword(email_id, process.env.HostUrl+"/reset/"+token)
-    }
-    done(err, user);
+function sendResetPasswordLink(token, emp_id, email_id, done) {
+    let queryUpdate = { $set: { resetPasswordToken: token, resetPasswordExpires: Date.now() + 3600000 } };
+    Employee.findOneAndUpdate({ _id: emp_id, isDeleted: false }, queryUpdate, function (err, user) {
+        if (err) {
+            return res.status(403).json({
+                title: 'There was an error',
+                error: err
+            });
+        }
+        if (user) {
+            if (email_id)
+                sendEmailInfo.sendEmailResetPassword(email_id, process.env.HostUrl + "/reset/" + token)
+        }
+        done(err, user);
     });
 }
 
@@ -229,7 +227,7 @@ function getKraCategoryInfoDetails(req, res) {
         updatedBy: false,
         createdBy: false,
     };
-    KraCategoryInfo.find(query, kraCategoryProjection, function(err, kraCategoryInfoData) {
+    KraCategoryInfo.find(query, kraCategoryProjection, function (err, kraCategoryInfoData) {
         if (err) {
             return res.status(403).json({
                 title: 'There was an error, please try again later',
@@ -258,7 +256,7 @@ function getKraWeightageInfoDetails(req, res) {
         updatedBy: false,
         createdBy: false,
     };
-    KraWeightageInfo.find(query, kraWeightageProjection, function(err, kraWeightageInfoData) {
+    KraWeightageInfo.find(query, kraWeightageProjection, function (err, kraWeightageInfoData) {
         if (err) {
             return res.status(403).json({
                 title: 'There was an error, please try again later',
@@ -268,7 +266,7 @@ function getKraWeightageInfoDetails(req, res) {
         return res.status(200).json(kraWeightageInfoData);
     });
 }
- 
+
 
 function getAllEmployeeEmails(req, res) {
 
@@ -322,14 +320,77 @@ function getDayFromDate(date) {
     return d.getUTCDate();
 }
 
+function prepareProdClone(req, done) {
+    if (process.env.isLocalDb == "true") {
+        console.log("isLocalDb-" + process.env.isLocalDb);
+        async.waterfall([
+            (innerDone) => {
+                OfficeDetails.updateMany({}, { officeEmail: "adntech@yopmail.com" }).exec((err, officeData) => {
+                    innerDone(err, officeData);
+                });
+            },
+            (officeDataRes, innerDone) => {
+                Employee.find((err, res) => {
+                    let promises = [];
+                    res.forEach(emp => {
+                        let updateQuery = {};
+                        updateQuery.personalEmail = 'adntech' + emp.userName + '@yopmail.com';
+                        let prom = new Promise((resolve, reject) => {
+                            PersonalInfo.updateOne({ _id: emp._id }, updateQuery, (err, personalInfoData) => {
+                                if (err) {
+                                    reject(err);
+                                }
+                                resolve(personalInfoData);
+                            });
+                        });
+                        promises.push(prom);
+                    });
+                    Promise.all(promises).then(promiseResult => {
+                        innerDone(null, promiseResult);
+                    }, onRejected => {
+                        innerDone(onRejected);
+                    });
+                })
+            },
+            (personalInfoData, innerDone) => {
+                let prom = new Promise((resolve, reject) => {
+                    bcrypt.genSalt(10, function (err, salt) {
+                        if (err) {
+                            reject(err);
+                        }
+                        bcrypt.hash('Test@123', salt, (err, hash) => {
+                            if (err) {
+                                reject(err);
+                            }
+                            else {
+                                resolve(hash);
+                            }
+                        });
+                    });
+                });
+                prom.then(pwd => {
+                    Employee.updateMany({}, { password: pwd }, (err, empData) => {
+                        innerDone(err, empData);
+                    })
+                }, onRejected => {
+                    innerDone(onRejected);
+                });
+            }
+        ], (err, result) => {
+            done(err, result);
+        });
+    }
+}
+
+
 let functions = {
     getRole: (req, res) => {
         var query = {
             isActive: true,
-            roleName: {$ne: 'Admin'}
+            roleName: { $ne: 'Admin' }
         }
 
-    
+
         var roleProjection = {
             createdAt: false,
             updatedAt: false,
@@ -338,10 +399,10 @@ let functions = {
             createdBy: false
         };
         Role.find(query, roleProjection, {
-          sort: {
-              _id: 1
-          }
-      }, function(err, roleData) {
+            sort: {
+                _id: 1
+            }
+        }, function (err, roleData) {
             if (roleData) {
                 return res.status(200).json(roleData);
             }
@@ -370,10 +431,10 @@ let functions = {
             createdBy: false
         };
         Company.find({}, companyProjection, {
-          sort: {
-              _id: 1
-          }
-      }, function(err, companyData) {
+            sort: {
+                _id: 1
+            }
+        }, function (err, companyData) {
             if (companyData) {
                 return res.status(200).json(companyData);
             }
@@ -405,10 +466,10 @@ let functions = {
             createdBy: false
         };
         Document.find({}, documentProjection, {
-          sort: {
-              _id: 1
-          }
-      }, function(err, documentData) {
+            sort: {
+                _id: 1
+            }
+        }, function (err, documentData) {
             if (documentData) {
                 return res.status(200).json(documentData);
             }
@@ -437,10 +498,10 @@ let functions = {
             createdBy: false
         };
         Facility.find({}, facilityProjection, {
-          sort: {
-              _id: 1
-          }
-      }, function(err, facilityData) {
+            sort: {
+                _id: 1
+            }
+        }, function (err, facilityData) {
             if (facilityData) {
                 return res.status(200).json(facilityData);
             }
@@ -469,10 +530,10 @@ let functions = {
             createdBy: false
         };
         CompanyBusiness.find({}, companyBusinessProjection, {
-          sort: {
-              _id: 1
-          }
-      }, function(err, companyBusinessData) {
+            sort: {
+                _id: 1
+            }
+        }, function (err, companyBusinessData) {
             if (companyBusinessData) {
                 return res.status(200).json(companyBusinessData);
             }
@@ -501,10 +562,10 @@ let functions = {
             createdBy: false
         };
         Division.find(query, divisionProjection, {
-          sort: {
-              _id: 1
-          }
-      }, function(err, divisionData) {
+            sort: {
+                _id: 1
+            }
+        }, function (err, divisionData) {
             if (divisionData) {
                 return res.status(200).json(divisionData);
             }
@@ -539,10 +600,10 @@ let functions = {
             createdBy: false
         };
         Department.find(query, departmentProjection, {
-          sort: {
-              _id: 1
-          }
-      }, function(err, departmentData) {
+            sort: {
+                _id: 1
+            }
+        }, function (err, departmentData) {
             if (departmentData) {
                 return res.status(200).json(departmentData);
             }
@@ -579,10 +640,10 @@ let functions = {
             department_id: false
         };
         Vertical.find(query, verticalProjection, {
-          sort: {
-              _id: 1
-          }
-      }, function(err, verticalData) {
+            sort: {
+                _id: 1
+            }
+        }, function (err, verticalData) {
             if (verticalData) {
                 return res.status(200).json(verticalData);
             }
@@ -618,10 +679,10 @@ let functions = {
         };
 
         SubVertical.find(query, subVerticalProjection, {
-          sort: {
-              _id: 1
-          }
-      }, function(err, subVerticalData) {
+            sort: {
+                _id: 1
+            }
+        }, function (err, subVerticalData) {
             if (subVerticalData) {
                 return res.status(200).json(subVerticalData);
             }
@@ -649,10 +710,10 @@ let functions = {
             createdBy: false
         };
         MaritalStatus.find(query, maritalStatusProjection, {
-          sort: {
-              _id: 1
-          }
-      }, function(err, maritalStatusData) {
+            sort: {
+                _id: 1
+            }
+        }, function (err, maritalStatusData) {
             if (maritalStatusData) {
                 return res.status(200).json(maritalStatusData);
             }
@@ -680,10 +741,10 @@ let functions = {
             createdBy: false
         };
         Currency.find(query, currencyProjection, {
-          sort: {
-              _id: 1
-          }
-      }, function(err, currencyData) {
+            sort: {
+                _id: 1
+            }
+        }, function (err, currencyData) {
             if (currencyData) {
                 return res.status(200).json(currencyData);
             }
@@ -705,20 +766,16 @@ let functions = {
         var query = {
             isDeleted: false
         }
-        if( managementType_id && employmentType_id)
-        {
-          if(managementType_id==1 && (employmentType_id==1||employmentType_id==2||employmentType_id==4))
-          {
-            query = {isDeleted: false, _id: { $lte: 13 } }
-          }
-          else if((managementType_id==1 && employmentType_id==3)||(managementType_id==2 && employmentType_id==6))
-          {
-            query = {isDeleted: false,_id:1001}
-          }
-          else if(managementType_id==2 && (employmentType_id==5||employmentType_id==7))
-          {
-              query = {isDeleted: false,_id:{$in:[14,15,16]}}
-          }
+        if (managementType_id && employmentType_id) {
+            if (managementType_id == 1 && (employmentType_id == 1 || employmentType_id == 2 || employmentType_id == 4)) {
+                query = { isDeleted: false, _id: { $lte: 13 } }
+            }
+            else if ((managementType_id == 1 && employmentType_id == 3) || (managementType_id == 2 && employmentType_id == 6)) {
+                query = { isDeleted: false, _id: 1001 }
+            }
+            else if (managementType_id == 2 && (employmentType_id == 5 || employmentType_id == 7)) {
+                query = { isDeleted: false, _id: { $in: [14, 15, 16] } }
+            }
         }
 
         var gradeProjection = {
@@ -729,10 +786,10 @@ let functions = {
             createdBy: false
         };
         Grade.find(query, gradeProjection, {
-          sort: {
-              _id: 1
-          }
-      }, function(err, gradeData) {
+            sort: {
+                _id: 1
+            }
+        }, function (err, gradeData) {
             if (gradeData) {
                 return res.status(200).json(gradeData);
             }
@@ -768,7 +825,7 @@ let functions = {
                 sort: {
                     _id: 1
                 }
-            }, function(err, designationData) {
+            }, function (err, designationData) {
                 if (designationData) {
                     return res.status(200).json(designationData);
                 }
@@ -787,34 +844,32 @@ let functions = {
         }
     },
     getLocation: (req, res) => {
-      var query = {parent_id:null};
-      var parent_id = req.body.parent_id || req.params.parent_id || req.query.parent_id;
-      if (parent_id) 
-      {
-        query = {parent_id: parent_id}
-      }
-      var locationProjection = {
-          createdAt: false,
-          updatedAt: false,
-          updatedBy: false,
-          createdBy: false
-      };
-      AddressLocation.find(query,locationProjection, {sort: {_id: 1}},function(err, locationData)
-      {
-          if (locationData) {
-              return res.status(200).json(locationData);
-          }
+        var query = { parent_id: null };
+        var parent_id = req.body.parent_id || req.params.parent_id || req.query.parent_id;
+        if (parent_id) {
+            query = { parent_id: parent_id }
+        }
+        var locationProjection = {
+            createdAt: false,
+            updatedAt: false,
+            updatedBy: false,
+            createdBy: false
+        };
+        AddressLocation.find(query, locationProjection, { sort: { _id: 1 } }, function (err, locationData) {
+            if (locationData) {
+                return res.status(200).json(locationData);
+            }
 
-          return res.status(403).json({
-              title: 'Error',
-              error: {
-                  message: err
-              },
-              result: {
-                  message: result
-              }
-          });
-      })
+            return res.status(403).json({
+                title: 'Error',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: result
+                }
+            });
+        })
     },
     getGradeDesignation: (req, res) => {
         var query = {
@@ -828,10 +883,10 @@ let functions = {
             createdBy: false
         };
         GradeDesignation.find(query, gradeDesignationProjection, {
-          sort: {
-              _id: 1
-          }
-      }, function(err, gradeDesignationData) {
+            sort: {
+                _id: 1
+            }
+        }, function (err, gradeDesignationData) {
             if (gradeDesignationData) {
                 return res.status(200).json(gradeDesignationData);
             }
@@ -848,7 +903,7 @@ let functions = {
         })
     },
     getManagementType: (req, res) => {
-      
+
         var query = {
             isDeleted: false
         }
@@ -860,10 +915,10 @@ let functions = {
             createdBy: false
         };
         ManagementType.find({}, managementTypeProjection, {
-          sort: {
-              _id: 1
-          }
-      }, function(err, managementTypeData) {
+            sort: {
+                _id: 1
+            }
+        }, function (err, managementTypeData) {
             if (managementTypeData) {
                 return res.status(200).json(managementTypeData);
             }
@@ -881,16 +936,15 @@ let functions = {
         })
     },
     getEmploymentType: (req, res) => {
-       var managementType_id = req.body.managementType_id || req.params.managementType_id || req.query.managementType_id;
+        var managementType_id = req.body.managementType_id || req.params.managementType_id || req.query.managementType_id;
         var query = {
             isDeleted: false
         }
-        if(managementType_id)
-        {
-          query = {
+        if (managementType_id) {
+            query = {
                 isDeleted: false,
-                managementType_id:managementType_id
-           }
+                managementType_id: managementType_id
+            }
         }
         var employmentTypeProjection = {
             createdAt: false,
@@ -900,10 +954,10 @@ let functions = {
             createdBy: false
         };
         EmploymentType.find(query, employmentTypeProjection, {
-          sort: {
-              _id: 1
-          }
-      }, function(err, employmentTypeData) {
+            sort: {
+                _id: 1
+            }
+        }, function (err, employmentTypeData) {
             if (employmentTypeData) {
                 return res.status(200).json(employmentTypeData);
             }
@@ -932,10 +986,10 @@ let functions = {
             createdBy: false
         };
         EmploymentStatus.find({}, employmentStatusProjection, {
-          sort: {
-              _id: 1
-          }
-      }, function(err, employmentStatusData) {
+            sort: {
+                _id: 1
+            }
+        }, function (err, employmentStatusData) {
             if (employmentStatusData) {
                 return res.status(200).json(employmentStatusData);
             }
@@ -952,124 +1006,125 @@ let functions = {
         })
     },
 
-    getEmployee:(req, res)=>
-    {
+    getEmployee: (req, res) => {
         Employee.aggregate([
-        {
-            "$lookup": {
-                "from": "designations",
-                "localField": "designation_id",
-                "foreignField": "_id",
-                "as": "designations"
-            }
-        },
-        {
-          "$unwind": "$designations"
-        },
-        {
-          "$lookup": {
-              "from": "employeeofficedetails",
-              "localField": "_id",
-              "foreignField": "emp_id",
-              "as": "officeDetails"
-          }
-        },
-        {
-          "$unwind": "$officeDetails"
-        },
-        {
-            "$lookup": {
-                "from": "employeesupervisordetails",
-                "localField": "_id",
-                "foreignField": "emp_id",
-                "as": "supervisor"
-            }
-        },
-        {
-            "$unwind": "$supervisor"
-        },
-        {
-            "$lookup": {
-                "from": "employeedetails",
-                "localField": "supervisor.primarySupervisorEmp_id",
-                "foreignField": "_id",
-                "as": "employees"
-            }
-        },
-        {
-            "$unwind": "$employees"
-        },
-        {
-            "$lookup": {
-                "from": "employeepersonaldetails",
-                "localField": "_id",
-                "foreignField": "emp_id",
-                "as": "personalDetails"
-            }
-        },
-        {
-            "$unwind": "$personalDetails"
-        },
-        {
-            "$lookup": {
-                "from": "employeeprofileprocessdetails",
-                "localField": "_id",
-                "foreignField": "emp_id",
-                "as": "employeeprofileProcessDetails"
-            }
-        },
-        {
-            "$unwind": "$employeeprofileProcessDetails"
-        },
-        {
-            "$lookup": {
-                "from": "kraworkflowdetails",
-                "localField": "_id",
-                "foreignField": "emp_id",
-                "as": "kraworkflowdetails"
-            }
-        },
-        {"$unwind": {
-            "path": "$kraworkflowdetails","preserveNullAndEmptyArrays": true
-        }},
-        {"$match": {"isDeleted":false,"designations.isActive":true,"officeDetails.isDeleted":false,"_id":parseInt(req.query.emp_id)} },
-        {"$project":{
-          "_id":"$_id",
-          "fullName":"$fullName",
-          "userName":"$userName",
-          "isAccountActive":"$isAccountActive",
-          "profileImage":"$profileImage",
-          "grade_id":"$grade_id",
-          "supervisorDetails":"$employees",
-          "profileProcessDetails":"$employeeprofileProcessDetails",
-          "personalDetails":"$personalDetails",
-          "officeDetails":"$officeDetails",
-          "designationDetails":"$designations",
-          "kraWorkflow":"$kraworkflowdetails"
-        }}
-        ]).exec(function(err, results){
-        if(err)
-        {
-            return res.status(403).json({
-                title: 'There was a problem',
-                error: {
-                    message: err
-                },
-                result: {
-                    message: results
+            {
+                "$lookup": {
+                    "from": "designations",
+                    "localField": "designation_id",
+                    "foreignField": "_id",
+                    "as": "designations"
                 }
-            });
-        }
-        return res.status(200).json(results[0]);
-     });
+            },
+            {
+                "$unwind": "$designations"
+            },
+            {
+                "$lookup": {
+                    "from": "employeeofficedetails",
+                    "localField": "_id",
+                    "foreignField": "emp_id",
+                    "as": "officeDetails"
+                }
+            },
+            {
+                "$unwind": "$officeDetails"
+            },
+            {
+                "$lookup": {
+                    "from": "employeesupervisordetails",
+                    "localField": "_id",
+                    "foreignField": "emp_id",
+                    "as": "supervisor"
+                }
+            },
+            {
+                "$unwind": "$supervisor"
+            },
+            {
+                "$lookup": {
+                    "from": "employeedetails",
+                    "localField": "supervisor.primarySupervisorEmp_id",
+                    "foreignField": "_id",
+                    "as": "employees"
+                }
+            },
+            {
+                "$unwind": "$employees"
+            },
+            {
+                "$lookup": {
+                    "from": "employeepersonaldetails",
+                    "localField": "_id",
+                    "foreignField": "emp_id",
+                    "as": "personalDetails"
+                }
+            },
+            {
+                "$unwind": "$personalDetails"
+            },
+            {
+                "$lookup": {
+                    "from": "employeeprofileprocessdetails",
+                    "localField": "_id",
+                    "foreignField": "emp_id",
+                    "as": "employeeprofileProcessDetails"
+                }
+            },
+            {
+                "$unwind": "$employeeprofileProcessDetails"
+            },
+            {
+                "$lookup": {
+                    "from": "kraworkflowdetails",
+                    "localField": "_id",
+                    "foreignField": "emp_id",
+                    "as": "kraworkflowdetails"
+                }
+            },
+            {
+                "$unwind": {
+                    "path": "$kraworkflowdetails", "preserveNullAndEmptyArrays": true
+                }
+            },
+            { "$match": { "isDeleted": false, "designations.isActive": true, "officeDetails.isDeleted": false, "_id": parseInt(req.query.emp_id) } },
+            {
+                "$project": {
+                    "_id": "$_id",
+                    "fullName": "$fullName",
+                    "userName": "$userName",
+                    "isAccountActive": "$isAccountActive",
+                    "profileImage": "$profileImage",
+                    "grade_id": "$grade_id",
+                    "supervisorDetails": "$employees",
+                    "profileProcessDetails": "$employeeprofileProcessDetails",
+                    "personalDetails": "$personalDetails",
+                    "officeDetails": "$officeDetails",
+                    "designationDetails": "$designations",
+                    "kraWorkflow": "$kraworkflowdetails"
+                }
+            }
+        ]).exec(function (err, results) {
+            if (err) {
+                return res.status(403).json({
+                    title: 'There was a problem',
+                    error: {
+                        message: err
+                    },
+                    result: {
+                        message: results
+                    }
+                });
+            }
+            return res.status(200).json(results[0]);
+        });
     },
 
     getEducation: (req, res) => {
-        var query = {parent_id:null};
+        var query = { parent_id: null };
         var parent_id = req.body.parent_id || req.params.parent_id || req.query.parent_id;
-        if (parent_id) 
-        {
-          query = {parent_id: parent_id}
+        if (parent_id) {
+            query = { parent_id: parent_id }
         }
         var educationProjection = {
             createdAt: false,
@@ -1077,12 +1132,11 @@ let functions = {
             updatedBy: false,
             createdBy: false
         };
-        Education.find(query,educationProjection, {sort: {_id: 1}},function(err, educationData)
-        {
+        Education.find(query, educationProjection, { sort: { _id: 1 } }, function (err, educationData) {
             if (educationData) {
                 return res.status(200).json(educationData);
             }
-  
+
             return res.status(403).json({
                 title: 'Error',
                 error: {
@@ -1103,10 +1157,10 @@ let functions = {
             emp_id: true,
         };
         EmployeeRole.find(query, empRoleProjection, {
-          sort: {
-              _id: 1
-          }
-      }, function(err, empRoleData) {
+            sort: {
+                _id: 1
+            }
+        }, function (err, empRoleData) {
             var empArray = [];
             if (empRoleData) {
                 empRoleData.forEach(element => {
@@ -1124,7 +1178,7 @@ let functions = {
                     isActive: true,
                     emp_id: emp_id
                 }
-                SupervisorDetails.find(supervisorQuery).select('primarySupervisorEmp_id').exec(function(err, supervisorDetailsData) {
+                SupervisorDetails.find(supervisorQuery).select('primarySupervisorEmp_id').exec(function (err, supervisorDetailsData) {
                     if (supervisorDetailsData) {
                         var supervisorEmpArray = [];
                         if (supervisorDetailsData) {
@@ -1136,7 +1190,7 @@ let functions = {
                                 //change for ver hr
                                 //company_id: company_id
                             }
-                            Employee.find(subQuery).where('_id').in(supervisorEmpArray).select('fullName userName').exec(function(err, empSupervisorData) {
+                            Employee.find(subQuery).where('_id').in(supervisorEmpArray).select('fullName userName').exec(function (err, empSupervisorData) {
                                 if (empSupervisorData) {
                                     return res.status(200).json(empSupervisorData);
                                 }
@@ -1161,7 +1215,7 @@ let functions = {
                         company_id: company_id
                     }
                 }
-                Employee.find(subQuery).where('_id').in(empArray).select('fullName userName').exec(function(err, empData) {
+                Employee.find(subQuery).where('_id').in(empArray).select('fullName userName').exec(function (err, empData) {
                     if (empData) {
                         return res.status(200).json(empData);
                     }
@@ -1180,7 +1234,7 @@ let functions = {
 
         })
     },
-    
+
     getSupervisor: (req, res) => {
         var query = {
             isDeleted: false,
@@ -1190,10 +1244,10 @@ let functions = {
             emp_id: true,
         };
         EmployeeRole.find(query, empRoleProjection, {
-          sort: {
-              _id: 1
-          }
-      }, function(err, empRoleData) {
+            sort: {
+                _id: 1
+            }
+        }, function (err, empRoleData) {
             let subQuery = {
                 isDeleted: false
             };
@@ -1201,14 +1255,14 @@ let functions = {
             if (grade_id) {
                 subQuery = {
                     isDeleted: false,
-                    grade_id: {$lte: grade_id}
+                    grade_id: { $lte: grade_id }
                 }
             }
-            let arrRoles=[];
-            for (let i = 0; i < empRoleData.length; i++) { 
+            let arrRoles = [];
+            for (let i = 0; i < empRoleData.length; i++) {
                 arrRoles.push(empRoleData[i].emp_id);
             }
-            Employee.find(subQuery).where('_id').in(arrRoles).select('_id, fullName userName').exec(function(err, empData) {
+            Employee.find(subQuery).where('_id').in(arrRoles).select('_id, fullName userName').exec(function (err, empData) {
                 if (empData) {
                     return res.status(200).json(empData);
                 }
@@ -1236,173 +1290,170 @@ let functions = {
             query = {
                 emp_id: emp_id,
                 isActive: true
-                };
-            }
+            };
+        }
         var kraSupervisorProjection = {
             _id: false,
-            leaveSupervisorEmp_id:false,
-            emp_id:false,
+            leaveSupervisorEmp_id: false,
+            emp_id: false,
             createdAt: false,
             updatedAt: false,
             isActive: false,
-            reason:false,
+            reason: false,
             updatedBy: false,
             createdBy: false,
         };
-     
+
         SupervisorDetails.aggregate([
             {
-                  "$lookup": {
-                      "from": "employeedetails",
-                      "localField": "primarySupervisorEmp_id",
-                      "foreignField": "_id",
-                      "as": "primarySupervisor"
-                  }
+                "$lookup": {
+                    "from": "employeedetails",
+                    "localField": "primarySupervisorEmp_id",
+                    "foreignField": "_id",
+                    "as": "primarySupervisor"
+                }
             },
             {
                 "$unwind": "$primarySupervisor"
             },
             {
-                            "$lookup": {
-                                "from": "employeedetails",
-                                "localField": "secondarySupervisorEmp_id",
-                                "foreignField": "_id",
-                                "as": "secondarySupervisor"
-                              }
+                "$lookup": {
+                    "from": "employeedetails",
+                    "localField": "secondarySupervisorEmp_id",
+                    "foreignField": "_id",
+                    "as": "secondarySupervisor"
+                }
             },
-            { "$match": { "emp_id":parseInt(emp_id),"isActive":true} },
-            {"$project":{
-                "primarySupervisor":"$primarySupervisor",
-                "secondarySupervisor":"$secondarySupervisor",
-              }}
-          ])
-          .exec(function(err, results){
-              if(err)
-              {
-                return res.status(403).json({
-                title: 'Error',
-                error: {
-                    message: err
-                },
-                result: {
-                    message: results
-                }});
-              }
-
-              let supervisorData=[];
-            if(results.length>0){
-                supervisorData.push({"_id":results[0].primarySupervisor._id,"fullName":results[0].primarySupervisor.fullName})
-                if(results[0].secondarySupervisor.length > 0)
-                {
-                    supervisorData.push({"_id":results[0].secondarySupervisor[0]._id,"fullName":results[0].secondarySupervisor[0].fullName})
+            { "$match": { "emp_id": parseInt(emp_id), "isActive": true } },
+            {
+                "$project": {
+                    "primarySupervisor": "$primarySupervisor",
+                    "secondarySupervisor": "$secondarySupervisor",
                 }
             }
-              return res.status(200).json(supervisorData);
+        ])
+            .exec(function (err, results) {
+                if (err) {
+                    return res.status(403).json({
+                        title: 'Error',
+                        error: {
+                            message: err
+                        },
+                        result: {
+                            message: results
+                        }
+                    });
+                }
+
+                let supervisorData = [];
+                supervisorData.push({ "_id": results[0].primarySupervisor._id, "fullName": results[0].primarySupervisor.fullName })
+                if (results[0].secondarySupervisor.length > 0) {
+                    supervisorData.push({ "_id": results[0].secondarySupervisor[0]._id, "fullName": results[0].secondarySupervisor[0].fullName })
+                }
+                return res.status(200).json(supervisorData);
 
 
-          });
+            });
     },
 
-    
+
     checkEmailExists: (req, res) => {
-      Promise.all([
-        PersonalDetails.find({personalEmail:req.query.email,emp_id:{$ne:req.query.emp_id}}).count().exec(),
-        OfficeDetails.find({officeEmail:req.query.email,emp_id:{$ne:req.query.emp_id}}).count().exec()
-      ]).then(function(counts) {
-          if(counts[0] > 0 || counts[1] > 0)
-          {
-            return res.status(200).json(true);
-          }
-          else{   
-              Promise.all([
-                PersonalDetails.find({personalEmail:req.query.email,emp_id:{$eq:req.query.emp_id}}).count().exec(),
-                OfficeDetails.find({officeEmail:req.query.email,emp_id:{$eq:req.query.emp_id}}).count().exec() 
-              ]).then (function(equalChkCounts){
-                    if(equalChkCounts[0]==1 || equalChkCounts[1]==1){
+        Promise.all([
+            PersonalDetails.find({ personalEmail: req.query.email, emp_id: { $ne: req.query.emp_id } }).count().exec(),
+            OfficeDetails.find({ officeEmail: req.query.email, emp_id: { $ne: req.query.emp_id } }).count().exec()
+        ]).then(function (counts) {
+            if (counts[0] > 0 || counts[1] > 0) {
+                return res.status(200).json(true);
+            }
+            else {
+                Promise.all([
+                    PersonalDetails.find({ personalEmail: req.query.email, emp_id: { $eq: req.query.emp_id } }).count().exec(),
+                    OfficeDetails.find({ officeEmail: req.query.email, emp_id: { $eq: req.query.emp_id } }).count().exec()
+                ]).then(function (equalChkCounts) {
+                    if (equalChkCounts[0] == 1 || equalChkCounts[1] == 1) {
                         return res.status(200).json(true);
-                    }else{
+                    } else {
                         return res.status(200).json(false);
                     }
-              })
-                
-           
-          }
-      })
-      .catch(function(err) {
-        return res.status(403).json({
-                            title: 'Error',
-                            error: {
-                                message: err
-                            }
+                })
+
+
+            }
+        })
+            .catch(function (err) {
+                return res.status(403).json({
+                    title: 'Error',
+                    error: {
+                        message: err
+                    }
                 });
-      });
+            });
     },
 
     checkUserNameExists: (req, res) => {
         Promise.all([
-            Employee.find({userName:req.query.userName}).count().exec()
-        ]).then(function(counts) {
-            if(counts[0] > 0 || counts[1] > 0)
-            {
-              return res.status(200).json(true);
+            Employee.find({ userName: req.query.userName }).count().exec()
+        ]).then(function (counts) {
+            if (counts[0] > 0 || counts[1] > 0) {
+                return res.status(200).json(true);
             }
-            else{
-             return res.status(200).json(false);
+            else {
+                return res.status(200).json(false);
             }
         })
-        .catch(function(err) {
-          return res.status(403).json({
-                              title: 'Error',
-                              error: {
-                                  message: err
-                              }
-                  });
-        });
-      },
+            .catch(function (err) {
+                return res.status(403).json({
+                    title: 'Error',
+                    error: {
+                        message: err
+                    }
+                });
+            });
+    },
 
     getTabStatus: (req, res) => {
         let emp_id = parseInt(req.params.emp_id || req.query.emp_id);
         Promise.all([
             //Personal Profile
-            PersonalDetails.find({emp_id:emp_id,isDeleted:false,isCompleted:true}).count().exec(),   
-            AddressInfo.find({emp_id:emp_id,isActive:true,isCompleted:true}).count().exec(),       
-            DocumentsInfo.find({emp_id:emp_id,isDeleted:false,isCompleted:true}).count().exec(),   
-            AcademicInfo.find({emp_id:emp_id,isDeleted:false,isCompleted:true}).count().exec(),      
-            CertificationInfo.find({emp_id:emp_id,isDeleted:false,isCompleted:true}).count().exec(), 
-            PreviousEmploymentInfo.find({emp_id:emp_id,isDeleted:false,isCompleted:true}).count().exec(),
-            FamilyInfo.find({emp_id:emp_id,isDeleted:false,isCompleted:true}).count().exec(),
-           
+            PersonalDetails.find({ emp_id: emp_id, isDeleted: false, isCompleted: true }).count().exec(),
+            AddressInfo.find({ emp_id: emp_id, isActive: true, isCompleted: true }).count().exec(),
+            DocumentsInfo.find({ emp_id: emp_id, isDeleted: false, isCompleted: true }).count().exec(),
+            AcademicInfo.find({ emp_id: emp_id, isDeleted: false, isCompleted: true }).count().exec(),
+            CertificationInfo.find({ emp_id: emp_id, isDeleted: false, isCompleted: true }).count().exec(),
+            PreviousEmploymentInfo.find({ emp_id: emp_id, isDeleted: false, isCompleted: true }).count().exec(),
+            FamilyInfo.find({ emp_id: emp_id, isDeleted: false, isCompleted: true }).count().exec(),
+
             //Office Profile
-            OfficeDetails.find({emp_id:emp_id,isDeleted:false,isCompleted:true}).count().exec(),   
-            BankInfo.find({emp_id:emp_id,isDeleted:false,isCompleted:true}).count().exec(),         
-            SalaryInfo.find({emp_id:emp_id,isActive:true,isCompleted:true}).count().exec(),        
-            CarInfo.find({emp_id:emp_id,isDeleted:false,isCompleted:true}).count().exec() 
-          ]).then(function(counts) {
-             let statusData= {
-                "isPersonalInfo":(counts[0]>0)?true:false,
-                "isAddress":(counts[1]>0)?true:false,
-                "isDocuments":(counts[2]>0)?true:false,
-                "isAcademicInfo":(counts[3]>0)?true:false,
-                "isCertificate":(counts[4]>0)?true:false,
-                "isEmployment":(counts[5]>0)?true:false,
-                "isFamilyInfo":(counts[6]>0)?true:false,
-                "isOffice":(counts[7]>0)?true:false,
-                "isBankInfo":(counts[8]>0)?true:false,
-                "isSalaryInfo":(counts[9]>0)?true:false,
-                "isCarInfo":(counts[10]>0)?true:false,
-             }
+            OfficeDetails.find({ emp_id: emp_id, isDeleted: false, isCompleted: true }).count().exec(),
+            BankInfo.find({ emp_id: emp_id, isDeleted: false, isCompleted: true }).count().exec(),
+            SalaryInfo.find({ emp_id: emp_id, isActive: true, isCompleted: true }).count().exec(),
+            CarInfo.find({ emp_id: emp_id, isDeleted: false, isCompleted: true }).count().exec()
+        ]).then(function (counts) {
+            let statusData = {
+                "isPersonalInfo": (counts[0] > 0) ? true : false,
+                "isAddress": (counts[1] > 0) ? true : false,
+                "isDocuments": (counts[2] > 0) ? true : false,
+                "isAcademicInfo": (counts[3] > 0) ? true : false,
+                "isCertificate": (counts[4] > 0) ? true : false,
+                "isEmployment": (counts[5] > 0) ? true : false,
+                "isFamilyInfo": (counts[6] > 0) ? true : false,
+                "isOffice": (counts[7] > 0) ? true : false,
+                "isBankInfo": (counts[8] > 0) ? true : false,
+                "isSalaryInfo": (counts[9] > 0) ? true : false,
+                "isCarInfo": (counts[10] > 0) ? true : false,
+            }
             return res.status(200).json(statusData);
-          })
-          .catch(function(err) {
-            return res.status(403).json({
-                                title: 'Error',
-                                error: {
-                                    message: err
-                                }
-                    });
-          });
-          
-          
+        })
+            .catch(function (err) {
+                return res.status(403).json({
+                    title: 'Error',
+                    error: {
+                        message: err
+                    }
+                });
+            });
+
+
 
         // var tab =  req.params.tab || req.query.tab;
         // let emp_id = parseInt(req.params.emp_id || req.query.emp_id);
@@ -1449,12 +1500,12 @@ let functions = {
         //              "employeebankdetails.isDeleted":false,
         //              "employeesalarydetails.isActive":true,
         //              "employeecardetails.isDeleted":false,
-                    
+
         //              "employeeofficedetails.isCompleted":true,
         //              "employeebankdetails.isCompleted":true,
         //              "employeesalarydetails.isCompleted":true,
         //              "employeecardetails.isCompleted":true,
-                  
+
         //            }
         //         },
         //         {
@@ -1615,7 +1666,7 @@ let functions = {
 
 
     },
-    
+
     getPerformanceRating: (req, res) => {
         var query = {
             isDeleted: false
@@ -1627,7 +1678,7 @@ let functions = {
             updatedBy: false,
             createdBy: false
         };
-        PerformanceRating.find({}, performanceRatingProjection, {sort: {_id: 1}}, function(err, performanceRatingData) {
+        PerformanceRating.find({}, performanceRatingProjection, { sort: { _id: 1 } }, function (err, performanceRatingData) {
             if (performanceRatingData) {
                 return res.status(200).json(performanceRatingData);
             }
@@ -1655,18 +1706,18 @@ let functions = {
             updatedBy: false,
             createdBy: false
         };
-            Relation.find({}, relationProjection, {sort: {_id: 1}}, function(err, relationData) {
-                if (relationData) {
-                    return res.status(200).json(relationData);
+        Relation.find({}, relationProjection, { sort: { _id: 1 } }, function (err, relationData) {
+            if (relationData) {
+                return res.status(200).json(relationData);
+            }
+            return res.status(403).json({
+                title: 'Error',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: result
                 }
-                return res.status(403).json({
-                    title: 'Error',
-                    error: {
-                        message: err
-                    },
-                    result: {
-                        message: result
-                    }
             });
         })
     },
@@ -1681,139 +1732,133 @@ let functions = {
     resetPasswordByHr: (req, res) => {
         let emailId;
         async.waterfall([
-            function(done){
-              crypto.randomBytes(20, function (err, buf) {
-                let token = buf.toString('hex');
-                done(err, token);
-              });
+            function (done) {
+                crypto.randomBytes(20, function (err, buf) {
+                    let token = buf.toString('hex');
+                    done(err, token);
+                });
             },
-            function(token, done){
-                OfficeDetails.findOne({emp_id: req.body.emp_id,isDeleted:false}, function (err, office) {
+            function (token, done) {
+                OfficeDetails.findOne({ emp_id: req.body.emp_id, isDeleted: false }, function (err, office) {
                     if (err) {
-                      return res.status(403).json({
-                        title: 'There was an error',
-                        error: err
-                      });
+                        return res.status(403).json({
+                            title: 'There was an error',
+                            error: err
+                        });
                     }
-                    else{
+                    else {
                         if (!office.officeEmail) {
-                            PersonalDetails.findOne({emp_id:req.body.emp_id},function(err, personalData){
+                            PersonalDetails.findOne({ emp_id: req.body.emp_id }, function (err, personalData) {
                                 if (err) {
                                     return res.status(403).json({
-                                    title: 'There was an error',
-                                    error: err
+                                        title: 'There was an error',
+                                        error: err
                                     });
                                 }
-                                else{
-                                    if(personalData && personalData.personalEmail)
-                                    sendResetPasswordLink(token,req.body.emp_id,personalData.personalEmail,done);
+                                else {
+                                    if (personalData && personalData.personalEmail)
+                                        sendResetPasswordLink(token, req.body.emp_id, personalData.personalEmail, done);
                                 }
                             });
                         }
-                        else{
-                            if(office && office.officeEmail)
-                            sendResetPasswordLink(token,req.body.emp_id,office.officeEmail,done);
+                        else {
+                            if (office && office.officeEmail)
+                                sendResetPasswordLink(token, req.body.emp_id, office.officeEmail, done);
                         }
                     }
-                  })
+                })
             },
-            function(result) {
-              return res.status(200).json({"message":"Reset Password Link Send to Your Email Address"}); 
+            function (result) {
+                return res.status(200).json({ "message": "Reset Password Link Send to Your Email Address" });
             }
-          ]);
+        ]);
     },
 
     // sendNotification: (req, res) => {
     //     Notify.getNotificaton(1);
     //     return res.status().json(true);
     // },
-    
-    getEmployeeRoles:(req,res)=>
-    {
-        let emp_id=req.query.emp_id;
+
+    getEmployeeRoles: (req, res) => {
+        let emp_id = req.query.emp_id;
         Role.aggregate([
             {
-                  "$lookup": {
-                      "from": "employeeroledetails",
-                      "localField": "_id",
-                      "foreignField": "role_id",
-                      "as": "employeeroles"
-                  }
-            },
-            {"$match": {"roleName": {$nin: ['Admin','HR2']}}}
-        ]).sort('-_id').exec(function(err,data)
-        {
-          if(err)
-          {
-            return res.status(403).json(false);
-          }
-          else{
-             let empRoleData=[];
-             for (let i = 0; i < data.length; i++) {
-                var empRoleCount=data[i].employeeroles.filter(function (item){
-                   //return item.emp_id== parseInt(emp_id) && item.isDeleted==false;
-                   return item.emp_id== parseInt(emp_id);
-                });
-                empRoleData.push({"_id":empRoleCount && empRoleCount.length > 0  ? empRoleCount[0]._id: null,
-                                  "roleName":data[i].roleName,
-                                  "role_id":data[i]._id,
-                                  "emp_id":parseInt(emp_id),
-                                  "checked": empRoleCount && empRoleCount.length > 0 && !empRoleCount[0].isDeleted ? true : false})
-                if(i==(data.length-1))
-                {
-                    return res.status(200).json({"data":empRoleData});
+                "$lookup": {
+                    "from": "employeeroledetails",
+                    "localField": "_id",
+                    "foreignField": "role_id",
+                    "as": "employeeroles"
                 }
-             }
-          }
+            },
+            { "$match": { "roleName": { $nin: ['Admin', 'HR2'] } } }
+        ]).sort('-_id').exec(function (err, data) {
+            if (err) {
+                return res.status(403).json(false);
+            }
+            else {
+                let empRoleData = [];
+                for (let i = 0; i < data.length; i++) {
+                    var empRoleCount = data[i].employeeroles.filter(function (item) {
+                        //return item.emp_id== parseInt(emp_id) && item.isDeleted==false;
+                        return item.emp_id == parseInt(emp_id);
+                    });
+                    empRoleData.push({
+                        "_id": empRoleCount && empRoleCount.length > 0 ? empRoleCount[0]._id : null,
+                        "roleName": data[i].roleName,
+                        "role_id": data[i]._id,
+                        "emp_id": parseInt(emp_id),
+                        "checked": empRoleCount && empRoleCount.length > 0 && !empRoleCount[0].isDeleted ? true : false
+                    })
+                    if (i == (data.length - 1)) {
+                        return res.status(200).json({ "data": empRoleData });
+                    }
+                }
+            }
         });
     },
 
-    addEmployeeRole:(req,res)=>
-    {
+    addEmployeeRole: (req, res) => {
         let employeeRole = new EmployeeRole(req.body);
         employeeRole.createdBy = parseInt(req.headers.uid);
-        employeeRole.save(function(err, employeeRole) {
-                      if (err) {
-                          return res.status(403).json({
-                              title: 'There was a problem',
-                              error: {
-                                  message: err
-                              },
-                              result: {
-                                  message: employeeRole
-                              }
-                          });
-                      }
+        employeeRole.save(function (err, employeeRole) {
+            if (err) {
+                return res.status(403).json({
+                    title: 'There was a problem',
+                    error: {
+                        message: err
+                    },
+                    result: {
+                        message: employeeRole
+                    }
+                });
+            }
             AuditTrail.auditTrailEntry(req.body.emp_id, "employeeRoleDetails", employeeRole, "common", "employeeRoleDetails", "ADDED");
-            return res.status(200).json({data:employeeRole});
+            return res.status(200).json({ data: employeeRole });
         });
     },
 
-    updateEmployeeRole:(req,res)=>
-    {
-        if(parseInt(req.body.role_id)==3 || parseInt(req.body.role_id)==4)
-        {
+    updateEmployeeRole: (req, res) => {
+        if (parseInt(req.body.role_id) == 3 || parseInt(req.body.role_id) == 4) {
             Promise.all([
-                SupervisorDetails.find({ 
-                    $and :[
-                    {
-                        $or: [ { primarySupervisorEmp_id: parseInt(req.body.emp_id) }, { secondarySupervisorEmp_id: parseInt(req.body.emp_id) },{ leaveSupervisorEmp_id: parseInt(req.body.emp_id) } ]
-                    },
-                    { 
-                        isActive:true
-                    }     
-                ]
+                SupervisorDetails.find({
+                    $and: [
+                        {
+                            $or: [{ primarySupervisorEmp_id: parseInt(req.body.emp_id) }, { secondarySupervisorEmp_id: parseInt(req.body.emp_id) }, { leaveSupervisorEmp_id: parseInt(req.body.emp_id) }]
+                        },
+                        {
+                            isActive: true
+                        }
+                    ]
                 }).count().exec(),
-              ]).then(function(counts) {
-                  if(counts[0] > 0)
-                  {
-                    return res.status(200).json({error:"Can not remove role has dependency."});
-                  }
-                  var query = {
-                     _id: parseInt(req.body._id)
-                  }
-                  EmployeeRole.findOneAndUpdate(query, {$set:{isDeleted:!req.body.checked}}, {new: true}, function(err, employeeRole){
-                    if(err){
+            ]).then(function (counts) {
+                if (counts[0] > 0) {
+                    return res.status(200).json({ error: "Can not remove role has dependency." });
+                }
+                var query = {
+                    _id: parseInt(req.body._id)
+                }
+                EmployeeRole.findOneAndUpdate(query, { $set: { isDeleted: !req.body.checked } }, { new: true }, function (err, employeeRole) {
+                    if (err) {
                         return res.status(403).json({
                             title: 'There was a problem',
                             error: {
@@ -1824,141 +1869,132 @@ let functions = {
                             }
                         });
                     }
-                    AuditTrail.auditTrailEntry(parseInt(req.body.emp_id), "employeeRoleDetails", {isDeleted:!req.body.checked}, "common", "employeeRoleDetails", "Role Updated");
-                    return res.status(200).json({data:employeeRole});
+                    AuditTrail.auditTrailEntry(parseInt(req.body.emp_id), "employeeRoleDetails", { isDeleted: !req.body.checked }, "common", "employeeRoleDetails", "Role Updated");
+                    return res.status(200).json({ data: employeeRole });
                 });
             });
         }
-        if(parseInt(req.body.role_id)==2)
-        {
+        if (parseInt(req.body.role_id) == 2) {
             Promise.all([
-            OfficeDetails.find({
-                hrspoc_id:parseInt(req.body.emp_id)
-            }).count().exec()
-            ]).then(function(counts) {
-                if(counts[0] > 0)
-                {
-                return res.status(200).json({error:"Can not delete role has dependency."});
+                OfficeDetails.find({
+                    hrspoc_id: parseInt(req.body.emp_id)
+                }).count().exec()
+            ]).then(function (counts) {
+                if (counts[0] > 0) {
+                    return res.status(200).json({ error: "Can not delete role has dependency." });
                 }
                 var query = {
-                _id: parseInt(req.body._id)
+                    _id: parseInt(req.body._id)
                 }
-                EmployeeRole.findOneAndUpdate(query, {$set:{isDeleted:!req.body.checked}}, {new: true}, function(err, employeeRole){
-                if(err){
-                    return res.status(403).json({
-                        title: 'There was a problem',
-                        error: {
-                            message: err
-                        },
-                        result: {
-                            message: employeeRole
-                        }
-                    });
-                }
-                AuditTrail.auditTrailEntry(parseInt(req.body.emp_id), "employeeRoleDetails", {isDeleted:!req.body.checked}, "common", "employeeRoleDetails", "Role Updated");
-                return res.status(200).json({data:employeeRole});
+                EmployeeRole.findOneAndUpdate(query, { $set: { isDeleted: !req.body.checked } }, { new: true }, function (err, employeeRole) {
+                    if (err) {
+                        return res.status(403).json({
+                            title: 'There was a problem',
+                            error: {
+                                message: err
+                            },
+                            result: {
+                                message: employeeRole
+                            }
+                        });
+                    }
+                    AuditTrail.auditTrailEntry(parseInt(req.body.emp_id), "employeeRoleDetails", { isDeleted: !req.body.checked }, "common", "employeeRoleDetails", "Role Updated");
+                    return res.status(200).json({ data: employeeRole });
                 });
             });
         }
     },
 
-    getEmployeeDocument:(req,res)=>
-    {
-        let emp_id=req.query.emp_id;
+    getEmployeeDocument: (req, res) => {
+        let emp_id = req.query.emp_id;
         Document.aggregate([
             {
-                  "$lookup": {
-                      "from": "employeeexternaldocumentdetails",
-                      "localField": "_id",
-                      "foreignField": "externalDocument_id",
-                      "as": "employeeexternaldocumentdetails"
-                  },
-            }
-        ]).exec(function(err,data)
-        {
-            if(err)
-            {
-              return res.status(403).json(false);
-            }
-            else{
-               let empDocumentData=[];
-               for (let i = 0; i < data.length; i++) {
-                  var empCount=data[i].employeeexternaldocumentdetails.filter(function (item){
-                     return item.emp_id== parseInt(emp_id)
-                  });
-                  empDocumentData.push(
-                      { "_id":empCount && empCount.length > 0  ? empCount[0]._id: null,
-                        "emp_id":parseInt(req.query.emp_id),
-                        "externalDocument_id":data[i]._id,
-                        "documentName":data[i].documentName,
-                        "externalDocumentUrl":empCount && empCount.length > 0 ? empCount[0].externalDocumentUrl :null, 
-                        "checked": empCount && empCount.length != 0 ? true : false
-                    })
-                  if(i==(data.length-1))
-                  {
-                      return res.status(200).json({"data":empDocumentData});
-                  }
-               }
-            }
-          });
-    },
-
-    getEmployeeSupervisor:(req,res)=>
-    {
-            var query = {
-                isActive: true,
-                emp_id: parseInt(req.query.emp_id) || parseInt(req.body.emp_id) 
-            }
-            SupervisorDetails.findOne(query,function(err, supervisorData) {
-                if(err)
-                {
-                    return res.status(403).json({
-                        title: 'Error',
-                        error: {
-                            message: err
-                        },
-                        result: {
-                            message: supervisorData
-                        }
-                    });
-               }
-               return res.status(200).json(supervisorData);
-            })
-    },
-    
-    addEmployeeSupervisor:(req,res)=>
-    {
-      let supervisorDetails=new SupervisorDetails(req.body);
-      supervisorDetails.createdBy=parseInt(req.headers.uid);
-      supervisorDetails.save(function(err, supervisorData) {
-        if (err) {
-            return res.status(403).json({
-                title: 'There was a problem',
-                error: {
-                    message: err
+                "$lookup": {
+                    "from": "employeeexternaldocumentdetails",
+                    "localField": "_id",
+                    "foreignField": "externalDocument_id",
+                    "as": "employeeexternaldocumentdetails"
                 },
-                result: {
-                    message: supervisorData
+            }
+        ]).exec(function (err, data) {
+            if (err) {
+                return res.status(403).json(false);
+            }
+            else {
+                let empDocumentData = [];
+                for (let i = 0; i < data.length; i++) {
+                    var empCount = data[i].employeeexternaldocumentdetails.filter(function (item) {
+                        return item.emp_id == parseInt(emp_id)
+                    });
+                    empDocumentData.push(
+                        {
+                            "_id": empCount && empCount.length > 0 ? empCount[0]._id : null,
+                            "emp_id": parseInt(req.query.emp_id),
+                            "externalDocument_id": data[i]._id,
+                            "documentName": data[i].documentName,
+                            "externalDocumentUrl": empCount && empCount.length > 0 ? empCount[0].externalDocumentUrl : null,
+                            "checked": empCount && empCount.length != 0 ? true : false
+                        })
+                    if (i == (data.length - 1)) {
+                        return res.status(200).json({ "data": empDocumentData });
+                    }
                 }
-            });
-        }
-      AuditTrail.auditTrailEntry(req.body.emp_id, "employeeSupervisorDetails", supervisorDetails, "common", "employeeSupervisorDetails", "ADDED");
-      return res.status(200).json({message:'Added'});
-      });
+            }
+        });
     },
 
-    updateEmployeeSupervisor:(req,res)=>
-    {
+    getEmployeeSupervisor: (req, res) => {
+        var query = {
+            isActive: true,
+            emp_id: parseInt(req.query.emp_id) || parseInt(req.body.emp_id)
+        }
+        SupervisorDetails.findOne(query, function (err, supervisorData) {
+            if (err) {
+                return res.status(403).json({
+                    title: 'Error',
+                    error: {
+                        message: err
+                    },
+                    result: {
+                        message: supervisorData
+                    }
+                });
+            }
+            return res.status(200).json(supervisorData);
+        })
+    },
+
+    addEmployeeSupervisor: (req, res) => {
+        let supervisorDetails = new SupervisorDetails(req.body);
+        supervisorDetails.createdBy = parseInt(req.headers.uid);
+        supervisorDetails.save(function (err, supervisorData) {
+            if (err) {
+                return res.status(403).json({
+                    title: 'There was a problem',
+                    error: {
+                        message: err
+                    },
+                    result: {
+                        message: supervisorData
+                    }
+                });
+            }
+            AuditTrail.auditTrailEntry(req.body.emp_id, "employeeSupervisorDetails", supervisorDetails, "common", "employeeSupervisorDetails", "ADDED");
+            return res.status(200).json({ message: 'Added' });
+        });
+    },
+
+    updateEmployeeSupervisor: (req, res) => {
         let _id = req.body._id;
         var query = {
             _id: parseInt(req.body._id),
             isActive: true
         }
-     
-        let supervisorDetails=new SupervisorDetails(req.body);
-        supervisorDetails.updatedBy=parseInt(req.headers.uid);
 
-        SupervisorDetails.findOneAndUpdate(query, supervisorDetails, {new: true}, function(err, employeeSupervisorData){
+        let supervisorDetails = new SupervisorDetails(req.body);
+        supervisorDetails.updatedBy = parseInt(req.headers.uid);
+
+        SupervisorDetails.findOneAndUpdate(query, supervisorDetails, { new: true }, function (err, employeeSupervisorData) {
             if (err) {
                 return res.status(403).json({
                     title: 'There was a problem',
@@ -1977,10 +2013,10 @@ let functions = {
 
     getKraCategoryInfo: (req, res) => {
         async.waterfall([
-            function(done) {
+            function (done) {
                 getKraCategoryInfoDetails(req, res, done);
             },
-            function(kraCategoryDetailsData, done) {
+            function (kraCategoryDetailsData, done) {
                 return res.status(200).json({
                     "data": kraCategoryDetailsData
                 });
@@ -1990,17 +2026,17 @@ let functions = {
 
     getKraWeightageInfo: (req, res) => {
         async.waterfall([
-            function(done) {
+            function (done) {
                 getKraWeightageInfoDetails(req, res, done);
             },
-            function(kraWeightageDetailsData, done) {
+            function (kraWeightageDetailsData, done) {
                 return res.status(200).json({
                     "data": kraWeightageDetailsData
                 });
             }
         ]);
     },
-    
+
 
     getMonthFromDate: (req, res) => {
         getMonthFromDate(req);
@@ -2010,180 +2046,215 @@ let functions = {
     },
     getFinincialYear: (req, res) => {
         let query = {
-          'isDeleted': false
-      };
+            'isDeleted': false
+        };
         FinancialYear.find(query, function (err, financialYearData) {
-          if (financialYearData) {
-              return res.status(200).json(financialYearData);
-          }
-          return res.status(403).json({
-              title: 'Error',
-              error: {
-                  message: err
-              },
-              result: {
-                  message: result
-              }
-          });
-      })
+            if (financialYearData) {
+                return res.status(200).json(financialYearData);
+            }
+            return res.status(403).json({
+                title: 'Error',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: result
+                }
+            });
+        })
     },
-    
-    getPrePost_Report:(req, res)=>
-    { 
-  
-        const fields = ['Description','Count'];
+
+    getPrePost_Report: (req, res) => {
+
+        const fields = ['Description', 'Count'];
         EmployeeInfo.aggregate([
-        {
-            $group: {
-                _id: "_id",
-                count: { $sum: 1 },
+            {
+                $group: {
+                    _id: "_id",
+                    count: { $sum: 1 },
+                }
+            },
+
+            {
+                "$project": {
+                    "count": "$count",
+                    // "countdepartment":"$countdepartment",
+
+                }
             }
-        }, 
+        ]).exec(function (err, kraEmployeeWorkflowInfoData) {
 
-        {"$project":{
-            "count": "$count",
-           // "countdepartment":"$countdepartment",
-           
-        }}
-      ]).exec(function(err, kraEmployeeWorkflowInfoData){
+            Department.aggregate([
+                {
+                    $group: {
+                        _id: "_id",
+                        countDepartment: { $sum: 1 },
+                    }
+                },
 
-        Department.aggregate([
-        {
-            $group: {
-                _id: "_id",
-                countDepartment: { $sum: 1 },
-            }
-        }, 
-
-        {"$project":{
-            "countDepartment": "$countDepartment",
-        }}
-            ]).exec(function(err, DapartmentsData){
+                {
+                    "$project": {
+                        "countDepartment": "$countDepartment",
+                    }
+                }
+            ]).exec(function (err, DapartmentsData) {
 
 
                 KraWorkFlowInfo.aggregate([
-                    { "$match": {
-                        $or: [
-                            { "status": "Submitted" }, 
-                            { "status": "Initiated" }, 
-                            { "status": "SendBack" },
-                 
-                        ]
-                    }},
+                    {
+                        "$match": {
+                            $or: [
+                                { "status": "Submitted" },
+                                { "status": "Initiated" },
+                                { "status": "SendBack" },
+
+                            ]
+                        }
+                    },
                     {
                         $group: {
                             _id: "_id",
                             countKraWorkFlowInfo: { $sum: 1 },
                         }
-                    }, 
+                    },
 
-                    {"$project":{
-                        "countKraWorkFlowInfo": "$countKraWorkFlowInfo",
-                       
-                    }}
-                    ]).exec(function(err, KraWorkFlowInfoData){
-                           
+                    {
+                        "$project": {
+                            "countKraWorkFlowInfo": "$countKraWorkFlowInfo",
+
+                        }
+                    }
+                ]).exec(function (err, KraWorkFlowInfoData) {
+
 
                     LeaveApply.aggregate([
-                    { "$match": {
-                         $or: [
-                            { "status": "Applied" }, 
-                            { "status": "Pending Cancellation" }, 
-                 
-                        ]
-                    }},
-    
-                    {
-                        $group: {
-                            _id: "_id",
-                            countleave: { $sum: 1 },
+                        {
+                            "$match": {
+                                $or: [
+                                    { "status": "Applied" },
+                                    { "status": "Pending Cancellation" },
+
+                                ]
+                            }
+                        },
+
+                        {
+                            $group: {
+                                _id: "_id",
+                                countleave: { $sum: 1 },
+                            }
+                        },
+
+                        {
+                            "$project": {
+                                "countleave": "$countleave",
+
+                            }
                         }
-                    }, 
+                    ]).exec(function (err, leaveapplieddetailsData) {
 
-                    {"$project":{
-                        "countleave": "$countleave",
-                       
-                    }}
-                    ]).exec(function(err, leaveapplieddetailsData){
+                        KraWorkFlowInfo.aggregate([
+                            {
+                                "$match": {
+                                    $or: [
+                                        { "status": "Approved" },
 
-                     KraWorkFlowInfo.aggregate([
-                    { "$match": {
-                         $or: [
-                            { "status": "Approved" }, 
-                 
-                        ]
-                    }},
-                    {
-                        $group: {
-                            _id: "_id",
-                            countKraWorkFlowClose: { $sum: 1 },
-                        }
-                    }, 
+                                    ]
+                                }
+                            },
+                            {
+                                $group: {
+                                    _id: "_id",
+                                    countKraWorkFlowClose: { $sum: 1 },
+                                }
+                            },
 
-                    {"$project":{
-                        "countKraWorkFlowClose": "$countKraWorkFlowClose",
-                       
-                    }}
-                    ]).exec(function(err, KraWorkFlowCloseData){ 
-                        
-                        let number_of_users=0;
-                        let number_of_department=0;
-                        let number_of_krs_pending=0;
-                        let number_of_krs_close=0;
-                        let number_of_leavedetails=0;
+                            {
+                                "$project": {
+                                    "countKraWorkFlowClose": "$countKraWorkFlowClose",
 
-                    if(kraEmployeeWorkflowInfoData)
-                      number_of_users = kraEmployeeWorkflowInfoData[0].count;   
-                    if(DapartmentsData)
-                       number_of_department = DapartmentsData[0].countDepartment;
-                    if(KraWorkFlowInfoData !== undefined && KraWorkFlowInfoData.length)
-                       number_of_krs_pending = KraWorkFlowInfoData[0].countKraWorkFlowInfo;
-                    if(KraWorkFlowCloseData !== undefined && KraWorkFlowCloseData.length)
-                       number_of_krs_close = KraWorkFlowCloseData[0].countKraWorkFlowClose;
-                    if(leaveapplieddetailsData !== undefined && leaveapplieddetailsData.length)
-                       number_of_leavedetails = leaveapplieddetailsData[0].countleave;
+                                }
+                            }
+                        ]).exec(function (err, KraWorkFlowCloseData) {
 
-                     let dataall = [
-                        {
-                            'Description':'Number of users on the system',
-                            'Count':number_of_users, 
-                        },
-                        {
-                            'Description':'Number of unique departments',
-                            'Count':number_of_department,
-                        },
-                        {
-                            'Description':'Number of KRA`s pending',
-                            'Count':number_of_krs_pending,
-                        },
-                        {
-                            'Description':'Number of KRA`s closed',
-                            'Count':number_of_krs_close,
-                        },
-                        {
-                            'Description':'Number of leaves pending',
-                            'Count': number_of_leavedetails,
-                        }
-                        ]
-                        const json2csvParser = new Json2csvParser({ fields });
-                        const csv = json2csvParser.parse(dataall);
-                         console.log('test new demo',csv);
-              
-                        fs.writeFile('PrePost_Report.csv', csv, function(err) { 
-                            if (err) throw err;
-                           // console.log('file saved');
+                            let number_of_users = 0;
+                            let number_of_department = 0;
+                            let number_of_krs_pending = 0;
+                            let number_of_krs_close = 0;
+                            let number_of_leavedetails = 0;
 
-                            var file =   'PrePost_Report.csv';
-                            res.download(file, 'PrePost_Report.csv'); 
-             
+                            if (kraEmployeeWorkflowInfoData)
+                                number_of_users = kraEmployeeWorkflowInfoData[0].count;
+                            if (DapartmentsData)
+                                number_of_department = DapartmentsData[0].countDepartment;
+                            if (KraWorkFlowInfoData !== undefined && KraWorkFlowInfoData.length)
+                                number_of_krs_pending = KraWorkFlowInfoData[0].countKraWorkFlowInfo;
+                            if (KraWorkFlowCloseData !== undefined && KraWorkFlowCloseData.length)
+                                number_of_krs_close = KraWorkFlowCloseData[0].countKraWorkFlowClose;
+                            if (leaveapplieddetailsData !== undefined && leaveapplieddetailsData.length)
+                                number_of_leavedetails = leaveapplieddetailsData[0].countleave;
+
+                            let dataall = [
+                                {
+                                    'Description': 'Number of users on the system',
+                                    'Count': number_of_users,
+                                },
+                                {
+                                    'Description': 'Number of unique departments',
+                                    'Count': number_of_department,
+                                },
+                                {
+                                    'Description': 'Number of KRA`s pending',
+                                    'Count': number_of_krs_pending,
+                                },
+                                {
+                                    'Description': 'Number of KRA`s closed',
+                                    'Count': number_of_krs_close,
+                                },
+                                {
+                                    'Description': 'Number of leaves pending',
+                                    'Count': number_of_leavedetails,
+                                }
+                            ]
+                            const json2csvParser = new Json2csvParser({ fields });
+                            const csv = json2csvParser.parse(dataall);
+                            console.log('test new demo', csv);
+
+                            fs.writeFile('PrePost_Report.csv', csv, function (err) {
+                                if (err) throw err;
+                                // console.log('file saved');
+
+                                var file = 'PrePost_Report.csv';
+                                res.download(file, 'PrePost_Report.csv');
+
+                            });
                         });
+
                     });
 
-                    }); 
-
-                    }) 
-            }) 
-        }) 
+                })
+            })
+        })
+    },
+    prepareProdClone: (req, res) => {
+        async.waterfall([
+            (done) => {
+                prepareProdClone(req, done);
+            }
+        ], (err, result) => {
+            if (err) {
+                return res.status(403).json({
+                    title: 'Error',
+                    error: {
+                        message: err
+                    },
+                    result: {
+                        message: supervisorData
+                    }
+                });
+            }
+            return res.status(200).json('Data Preparation Successful');
+        })
     }
 };
 
