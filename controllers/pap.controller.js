@@ -81,21 +81,21 @@ function getEmployeesForPapInitiate(req, res) {
             $unwind: {
                 path: '$supervisor_details'
             }
-        }, 
-        { 
-            $lookup : {
-                'from' : 'papmasters', 
-                'localField' : 'emp_id', 
-                'foreignField' : 'emp_id', 
-                'as' : 'pap_master'
+        },
+        {
+            $lookup: {
+                'from': 'papmasters',
+                'localField': 'emp_id',
+                'foreignField': 'emp_id',
+                'as': 'pap_master'
             }
-        }, 
-        { 
-            $unwind : {
-                'path' : '$pap_master', 
-                'preserveNullAndEmptyArrays' : true
+        },
+        {
+            $unwind: {
+                'path': '$pap_master',
+                'preserveNullAndEmptyArrays': true
             }
-        },        
+        },
         {
             $project: {
                 mtr_master_id: '$_id',
@@ -402,55 +402,55 @@ function getPapBatches(req, res) {
 function getPapDetailsSingleEmployee(req, res) {
     let empId = parseInt(req.query.emp_id);
     PapDetails.aggregate([
-        { 
-            '$lookup' : {
-                'from' : 'midtermdetails', 
-                'localField' : 'mtr_details_id', 
-                'foreignField' : '_id', 
-                'as' : 'mtr_details'
-            }
-        }, 
-        { 
-            '$unwind' : {
-                'path' : '$mtr_details'
-            }
-        }, 
-        { 
-            '$project' : {
-                'pap_master_id' : '$pap_master_id', 
-                'empId' : '$empId', 
-                'mtr_details_id' : '$mtr_details_id', 
-                'createdBy' : '$createdBy', 
-                'createdAt' : '$createdAt', 
-                'isDeleted' : '$isDeleted', 
-                'updatedBy' : '$updatedBy', 
-                'grievanceRemark' : '$grievanceRemark', 
-                'grievance_ratingScaleId' : '$grievance_ratingScaleId', 
-                'status' : '$mtr_details.status', 
-                'reviewerRemark' : '$reviewerRemark', 
-                'supRemark' : '$supRemark', 
-                'sup_ratingScaleId' : '$sup_ratingScaleId', 
-                'empRemark' : '$empRemark', 
-                'emp_ratingScaleId' : '$emp_ratingScaleId', 
-                'kraWorkflow_id' : '$mtr_details.kraWorkflow_id', 
-                'supervisor_id' : '$mtr_details.supervisor_id', 
-                'colorStatus' : '$mtr_details.colorStatus', 
-                'progressStatus' : '$mtr_details.progressStatus', 
-                'supervisorComment' : '$mtr_details.supervisorComment', 
-                'employeeComment' : '$mtr_details.employeeComment', 
-                'measureOfSuccess' : '$mtr_details.measureOfSuccess', 
-                'unitOfSuccess' : '$mtr_details.unitOfSuccess', 
-                'category_id' : '$mtr_details.category_id', 
-                'weightage_id' : '$mtr_details.weightage_id', 
-                'mtr_kra' : '$mtr_details.mtr_kra'
+        {
+            '$lookup': {
+                'from': 'midtermdetails',
+                'localField': 'mtr_details_id',
+                'foreignField': '_id',
+                'as': 'mtr_details'
             }
         },
-        { 
-            "$match" : {
-                "empId" : empId
+        {
+            '$unwind': {
+                'path': '$mtr_details'
+            }
+        },
+        {
+            '$project': {
+                'pap_master_id': '$pap_master_id',
+                'empId': '$empId',
+                'mtr_details_id': '$mtr_details_id',
+                'createdBy': '$createdBy',
+                'createdAt': '$createdAt',
+                'isDeleted': '$isDeleted',
+                'updatedBy': '$updatedBy',
+                'grievanceRemark': '$grievanceRemark',
+                'grievance_ratingScaleId': '$grievance_ratingScaleId',
+                'status': '$mtr_details.status',
+                'reviewerRemark': '$reviewerRemark',
+                'supRemark': '$supRemark',
+                'sup_ratingScaleId': '$sup_ratingScaleId',
+                'empRemark': '$empRemark',
+                'emp_ratingScaleId': '$emp_ratingScaleId',
+                'kraWorkflow_id': '$mtr_details.kraWorkflow_id',
+                'supervisor_id': '$mtr_details.supervisor_id',
+                'colorStatus': '$mtr_details.colorStatus',
+                'progressStatus': '$mtr_details.progressStatus',
+                'supervisorComment': '$mtr_details.supervisorComment',
+                'employeeComment': '$mtr_details.employeeComment',
+                'measureOfSuccess': '$mtr_details.measureOfSuccess',
+                'unitOfSuccess': '$mtr_details.unitOfSuccess',
+                'category_id': '$mtr_details.category_id',
+                'weightage_id': '$mtr_details.weightage_id',
+                'mtr_kra': '$mtr_details.mtr_kra'
+            }
+        },
+        {
+            "$match": {
+                "empId": empId
             }
         }
-    ]).exec(function(err, response){
+    ]).exec(function (err, response) {
         if (err) {
             return res.status(403).json({
                 title: 'There is a problem while fetching data',
@@ -486,6 +486,34 @@ function papSubmit(req, res) {
 
 }
 
+function updateBatch(req, res) {
+    async.waterfall([
+        (done) => {
+            let updateQuery = {
+                "updatedAt": new Date(),
+                "updatedBy": parseInt(req.body.updatedBy),
+                "batchEndDate": req.body.batchEndDate
+            }
+            PapBatchDetails.update({ _id: parseInt(req.body.batchId) }, updateQuery, (err, papBatchDetails) => {
+                done(err, papBatchDetails);
+            })
+        },
+        (papBatchDetails, done) => {
+            AuditTrail.auditTrailEntry(
+                0,
+                "papBatchDetails",
+                papBatchDetails,
+                "user",
+                "papBatchDetails",
+                "UPDATED"
+            );
+            done(err, papBatchDetails);
+        }
+    ], (err, result) => {
+
+    })
+}
+
 let functions = {
     getEmployeesForPapInitiate: (req, res) => {
         getEmployeesForPapInitiate(req, res);
@@ -507,6 +535,9 @@ let functions = {
     },
     papSubmit: (req, res) => {
         papSubmit(req, res);
+    },
+    updateBatch: (req, res) => {
+        updateBatch(req, res);
     }
 }
 
