@@ -400,76 +400,108 @@ function getPapBatches(req, res) {
 }
 
 function getPapDetailsSingleEmployee(req, res) {
-    let empId = parseInt(req.body.emp_id);
-    PapDetails.aggregate([
-        { 
-            '$lookup' : {
-                'from' : 'midtermdetails', 
-                'localField' : 'mtr_details_id', 
-                'foreignField' : '_id', 
-                'as' : 'mtr_details'
-            }
-        }, 
-        { 
-            '$unwind' : {
-                'path' : '$mtr_details'
-            }
-        }, 
-        { 
-            '$project' : {
-                'pap_master_id' : '$pap_master_id', 
-                'empId' : '$empId', 
-                'mtr_details_id' : '$mtr_details_id', 
-                'createdBy' : '$createdBy', 
-                'createdAt' : '$createdAt', 
-                'isDeleted' : '$isDeleted', 
-                'updatedBy' : '$updatedBy', 
-                'grievanceRemark' : '$grievanceRemark', 
-                'grievance_ratingScaleId' : '$grievance_ratingScaleId', 
-                'status' : '$mtr_details.status', 
-                'reviewerRemark' : '$reviewerRemark', 
-                'supRemark' : '$supRemark', 
-                'sup_ratingScaleId' : '$sup_ratingScaleId', 
-                'empRemark' : '$empRemark', 
-                'emp_ratingScaleId' : '$emp_ratingScaleId', 
-                'kraWorkflow_id' : '$mtr_details.kraWorkflow_id', 
-                'supervisor_id' : '$mtr_details.supervisor_id', 
-                'colorStatus' : '$mtr_details.colorStatus', 
-                'progressStatus' : '$mtr_details.progressStatus', 
-                'supervisorComment' : '$mtr_details.supervisorComment', 
-                'employeeComment' : '$mtr_details.employeeComment', 
-                'measureOfSuccess' : '$mtr_details.measureOfSuccess', 
-                'unitOfSuccess' : '$mtr_details.unitOfSuccess', 
-                'category_id' : '$mtr_details.category_id', 
-                'weightage_id' : '$mtr_details.weightage_id', 
-                'mtr_kra' : '$mtr_details.mtr_kra'
+    let empId = parseInt(req.query.emp_id);
+    PapMasterDetails.aggregate([
+        {
+            "$match": {
+                "emp_id": empId
             }
         },
-        { 
-            "$match" : {
-                "empId" : empId
+        {
+            '$lookup': {
+                'from': 'papbatches',
+                'localField': 'batch_id',
+                'foreignField': '_id',
+                'as': 'papbatches'
+            }
+        },
+        {
+            '$unwind': {
+                'path': '$papbatches'
+            }
+        },
+        {
+            '$lookup': {
+                'from': 'papdetails',
+                'localField': '_id',
+                'foreignField': 'pap_master_id',
+                'as': 'papdetails'
+            }
+        },
+        {
+            '$unwind': {
+                'path': '$papdetails'
+            }
+        },
+        {
+            '$lookup': {
+                'from': 'midtermdetails',
+                'localField': 'papdetails.mtr_details_id',
+                'foreignField': '_id',
+                'as': 'midtermdetails'
+            }
+        },
+        {
+            '$unwind': {
+                'path': '$midtermdetails'
+            }
+        },
+        {
+            "$project": {
+                "_id": 1,
+                "updatedAt": 1,
+                "createdAt": 1,
+                "createdBy": 1,
+                "emp_id": 1,
+                "batch_id": 1,
+                "mtr_master_id": 1,
+                "isDeleted": 1,
+                "updatedBy": 1,
+                "isRatingCommunicated": 1,
+                "status": 1,
+                "papbatches": 1,
+                "papdetails": {
+                    "_id": 1,
+                    "updatedAt": 1,
+                    "pap_master_id": 1,
+                    "empId": 1,
+                    "mtr_details_id": 1,
+                    "createdBy": 1,
+                    "createdAt": 1,
+                    "isDeleted": 1,
+                    "updatedBy": 1,
+                    "grievanceRemark": 1,
+                    "grievance_ratingScaleId": 1,
+                    "status": 1,
+                    "reviewerRemark": 1,
+                    "supRemark": 1,
+                    "sup_ratingScaleId": 1,
+                    "empRemark": 1,
+                    "emp_ratingScaleId": 1,
+                    "midtermdetails": "$midtermdetails"
+                }
+            }
+        },
+        {
+            '$group': {
+                "_id": "$_id",
+                "updatedAt": { $first: "$updatedAt" },
+                "createdAt": { $first: "$createdAt" },
+                "createdBy": { $first: "$createdBy" },
+                "emp_id": { $first: "$emp_id" },
+                "batch_id": { $first: "$batch_id" },
+                "mtr_master_id": { $first: "$mtr_master_id" },
+                "isDeleted": { $first: "$isDeleted" },
+                "updatedBy": { $first: "$updatedBy" },
+                "isRatingCommunicated": { $first: "$isRatingCommunicated" },
+                "status": { $first: "$status" },
+                "papbatches": { $first: "$papbatches" },
+                "papdetails": { $push: "$papdetails" }
             }
         }
-    ]).exec(function(err, response){
-        if (err) {
-            return res.status(403).json({
-                title: 'There is a problem while fetching data',
-                error: {
-                    message: err
-                },
-                result: {
-                    message: response
-                }
-            });
-        } else {
-            return res.status(200).json({
-                title: 'Data fetched successfully',
-                result: {
-                    message: response
-                }
-            });
-        }
-    })
+    ]).exec((err, result) => {
+        sendResponse(res, err, result, 'Data fetched successfully');
+    });
 }
 
 
