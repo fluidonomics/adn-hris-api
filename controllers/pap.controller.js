@@ -8,7 +8,6 @@ let async = require('async'),
 
 require('dotenv').load();
 
-
 function getEmployeesForPapInitiate(req, res) {
     MidTermMaster.aggregate([
         {
@@ -536,27 +535,6 @@ function papSubmit(req, res) {
     });
 }
 
-function sendResponse(res, err, response, title) {
-    if (err) {
-        return res.status(403).json({
-            title: 'There is a problem while fetching data',
-            error: {
-                message: err
-            },
-            result: {
-                message: response
-            }
-        });
-    } else {
-        return res.status(200).json({
-            title: title,
-            result: {
-                message: response
-            }
-        });
-    }
-}
-
 function updateBatch(req, res) {
     async.waterfall([
         (done) => {
@@ -578,10 +556,10 @@ function updateBatch(req, res) {
                 "papBatchDetails",
                 "UPDATED"
             );
-            done(err, papBatchDetails);
+            done(null, papBatchDetails);
         }
-    ], (err, result) => {
-
+    ], (err, results) => {
+        sendResponse(res, err, results, 'Pap Batch updated successfully');
     })
 }
 
@@ -609,6 +587,28 @@ let functions = {
     },
     updateBatch: (req, res) => {
         updateBatch(req, res);
+    }
+}
+
+
+function sendResponse(res, err, response, title) {
+    if (err) {
+        return res.status(403).json({
+            title: 'There is a problem while fetching data',
+            error: {
+                message: err
+            },
+            result: {
+                message: response
+            }
+        });
+    } else {
+        return res.status(200).json({
+            title: title,
+            result: {
+                message: response
+            }
+        });
     }
 }
 
