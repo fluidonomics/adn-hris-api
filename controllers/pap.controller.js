@@ -508,78 +508,81 @@ function getPapDetailsSingleEmployee(req, res) {
 function getPapBySupervisor(req, res) {
     let supervisorId = parseInt(req.query.empId);
     PapDetails.aggregate([
-        { 
-            '$lookup' : {
-                'from' : 'midtermdetails', 
-                'localField' : 'mtr_details_id', 
-                'foreignField' : '_id', 
-                'as' : 'mtr_details'
+        {
+            '$lookup': {
+                'from': 'midtermdetails',
+                'localField': 'mtr_details_id',
+                'foreignField': '_id',
+                'as': 'mtr_details'
             }
-        }, 
-        { 
-            '$unwind' : {
-                'path' : '$mtr_details'
+        },
+        {
+            '$unwind': {
+                'path': '$mtr_details'
             }
-        }, 
-        { 
-            '$lookup' : {
-                'from' : 'employeedetails', 
-                'localField' : 'empId', 
-                'foreignField' : '_id', 
-                'as' : 'emp_details'
+        },
+        {
+            '$match': {
+                'mtr_details.supervisor_id': supervisorId
             }
-        }, 
-        { 
-            '$unwind' : {
-                'path' : '$emp_details'
+        },
+        {
+            '$lookup': {
+                'from': 'papmasters',
+                'localField': 'pap_master_id',
+                'foreignField': '_id',
+                'as': 'papmasters'
             }
-        }, 
-        { 
-            '$match' : {
-                'mtr_details.supervisor_id' : supervisorId
+        },
+        {
+            '$unwind': {
+                'path': '$papmasters'
             }
-        }, 
-        { 
-            '$project' : {
-                'emp_id' : '$empId', 
-                'userName' : '$emp_details.userName', 
-                'fullName' : '$emp_details.fullName', 
-                'supervisor_id' : '$mtr_details.supervisor_id', 
-                'group_obj' : {
-                    'grievanceRemark' : '$grievanceRemark', 
-                    'grievance_ratingScaleId' : '$grievance_ratingScaleId', 
-                    'status' : '$status', 
-                    'reviewerRemark' : '$reviewerRemark', 
-                    'supRemark' : '$supRemark', 
-                    'sup_ratingScaleId' : '$sup_ratingScaleId', 
-                    'empRemark' : '$empRemark', 
-                    'emp_ratingScaleId' : '$emp_ratingScaleId', 
-                    'kra' : '$mtr_details.mtr_kra', 
-                    'measureOfSuccess' : '$mtr_details.measureOfSuccess', 
-                    'unitOfSuccess' : '$mtr_details.unitOfSuccess', 
-                    'category_id' : '$mtr_details.category_id', 
-                    'weightage_id' : '$mtr_details.weightage_id'
+        },
+        {
+            '$lookup': {
+                'from': 'employeedetails',
+                'localField': 'empId',
+                'foreignField': '_id',
+                'as': 'emp_details'
+            }
+        },
+        {
+            '$unwind': {
+                'path': '$emp_details'
+            }
+        },
+        {
+            '$project': {
+                'emp_id': '$empId',
+                'emp_details': '$emp_details',
+                'papmasters': '$papmasters',
+                'group_obj': {
+                    'grievanceRemark': '$grievanceRemark',
+                    'grievance_ratingScaleId': '$grievance_ratingScaleId',
+                    'status': '$status',
+                    'reviewerRemark': '$reviewerRemark',
+                    'supRemark': '$supRemark',
+                    'sup_ratingScaleId': '$sup_ratingScaleId',
+                    'empRemark': '$empRemark',
+                    'emp_ratingScaleId': '$emp_ratingScaleId',
+                    'kra': '$mtr_details.mtr_kra',
+                    'measureOfSuccess': '$mtr_details.measureOfSuccess',
+                    'unitOfSuccess': '$mtr_details.unitOfSuccess',
+                    'category_id': '$mtr_details.category_id',
+                    'weightage_id': '$mtr_details.weightage_id'
                 }
             }
-        }, 
-        { 
-            '$group' : {
-                '_id' : '$emp_id', 
-                'userName' : {
-                    '$first' : '$userName'
-                }, 
-                'fullName' : {
-                    '$first' : '$fullName'
-                }, 
-                'supervisor_id' : {
-                    '$first' : '$supervisor_id'
-                }, 
-                'kra_details' : {
-                    '$push' : '$group_obj'
-                }
+        },
+        {
+            '$group': {
+                '_id': '$emp_id',
+                'emp_details': { '$first': '$emp_details' },
+                'papmasters': { '$first': '$papmasters' },
+                'kra_details': { '$push': '$group_obj' }
             }
         }
-    ]).exec(function(err, response) {
+    ]).exec(function (err, response) {
         if (err) {
             return res.status(403).json({
                 title: 'There is a problem while fetching data',
@@ -759,82 +762,82 @@ function getPapByReviewer(req, res) {
                 done(err, supervisorIdArray);
             });
         },
-        (done, papDetails) => {
+        (papDetails, done) => {
             PapDetails.aggregate([
-                { 
-                    '$lookup' : {
-                        'from' : 'midtermdetails', 
-                        'localField' : 'mtr_details_id', 
-                        'foreignField' : '_id', 
-                        'as' : 'mtr_details'
+                {
+                    '$lookup': {
+                        'from': 'midtermdetails',
+                        'localField': 'mtr_details_id',
+                        'foreignField': '_id',
+                        'as': 'mtr_details'
                     }
-                }, 
-                { 
-                    '$unwind' : {
-                        'path' : '$mtr_details'
+                },
+                {
+                    '$unwind': {
+                        'path': '$mtr_details'
                     }
-                }, 
-                { 
-                    '$lookup' : {
-                        'from' : 'employeedetails', 
-                        'localField' : 'empId', 
-                        'foreignField' : '_id', 
-                        'as' : 'emp_details'
+                },
+                {
+                    '$lookup': {
+                        'from': 'employeedetails',
+                        'localField': 'empId',
+                        'foreignField': '_id',
+                        'as': 'emp_details'
                     }
-                }, 
-                { 
-                    '$unwind' : {
-                        'path' : '$emp_details'
+                },
+                {
+                    '$unwind': {
+                        'path': '$emp_details'
                     }
-                }, 
-                { 
-                    '$match' : {
-                        'mtr_details.supervisor_id' : {
-                            '$in' :supervisorIdArray
+                },
+                {
+                    '$match': {
+                        'mtr_details.supervisor_id': {
+                            '$in': papDetails
                         }
                     }
-                }, 
-                { 
-                    '$project' : {
-                        'emp_id' : '$empId', 
-                        'userName' : '$emp_details.userName', 
-                        'fullName' : '$emp_details.fullName', 
-                        'supervisor_id' : '$mtr_details.supervisor_id', 
-                        'group_obj' : {
-                            'grievanceRemark' : '$grievanceRemark', 
-                            'grievance_ratingScaleId' : '$grievance_ratingScaleId', 
-                            'status' : '$status', 
-                            'reviewerRemark' : '$reviewerRemark', 
-                            'supRemark' : '$supRemark', 
-                            'sup_ratingScaleId' : '$sup_ratingScaleId', 
-                            'empRemark' : '$empRemark', 
-                            'emp_ratingScaleId' : '$emp_ratingScaleId', 
-                            'kra' : '$mtr_details.mtr_kra', 
-                            'measureOfSuccess' : '$mtr_details.measureOfSuccess', 
-                            'unitOfSuccess' : '$mtr_details.unitOfSuccess', 
-                            'category_id' : '$mtr_details.category_id', 
-                            'weightage_id' : '$mtr_details.weightage_id'
+                },
+                {
+                    '$project': {
+                        'emp_id': '$empId',
+                        'userName': '$emp_details.userName',
+                        'fullName': '$emp_details.fullName',
+                        'supervisor_id': '$mtr_details.supervisor_id',
+                        'group_obj': {
+                            'grievanceRemark': '$grievanceRemark',
+                            'grievance_ratingScaleId': '$grievance_ratingScaleId',
+                            'status': '$status',
+                            'reviewerRemark': '$reviewerRemark',
+                            'supRemark': '$supRemark',
+                            'sup_ratingScaleId': '$sup_ratingScaleId',
+                            'empRemark': '$empRemark',
+                            'emp_ratingScaleId': '$emp_ratingScaleId',
+                            'kra': '$mtr_details.mtr_kra',
+                            'measureOfSuccess': '$mtr_details.measureOfSuccess',
+                            'unitOfSuccess': '$mtr_details.unitOfSuccess',
+                            'category_id': '$mtr_details.category_id',
+                            'weightage_id': '$mtr_details.weightage_id'
                         }
                     }
-                }, 
-                { 
-                    '$group' : {
-                        '_id' : '$emp_id', 
-                        'userName' : {
-                            '$first' : '$userName'
-                        }, 
-                        'fullName' : {
-                            '$first' : '$fullName'
-                        }, 
-                        'supervisor_id' : {
-                            '$first' : '$supervisor_id'
-                        }, 
-                        'kra_details' : {
-                            '$push' : '$group_obj'
+                },
+                {
+                    '$group': {
+                        '_id': '$emp_id',
+                        'userName': {
+                            '$first': '$userName'
+                        },
+                        'fullName': {
+                            '$first': '$fullName'
+                        },
+                        'supervisor_id': {
+                            '$first': '$supervisor_id'
+                        },
+                        'kra_details': {
+                            '$push': '$group_obj'
                         }
                     }
                 }
-            ]).exec(function(err, response) {
+            ]).exec(function (err, response) {
                 if (err) {
                     return res.status(403).json({
                         title: 'There is a problem while fetching data',
