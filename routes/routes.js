@@ -12,6 +12,7 @@ externalDocument = require('../controllers/externalDocument.controller'),
   Employee = require('../models/employee/employeeDetails.model'),
   batch = require('../controllers/batch.controller'),
   jwt = require('jsonwebtoken-refresh');
+reports = require('../controllers/reports.controller');
 
 function ensureAuthenticated(req, res, next) {
   if (req.headers && req.headers['access-token']) {
@@ -71,6 +72,7 @@ module.exports = (app) => {
     hrRoutes = express.Router(),
     externalDocumentRoutes = express.Router(),
     batchRoutes = express.Router(),
+    reportsRoutes = express.Router(),
 
     //= ========================
 
@@ -592,6 +594,10 @@ module.exports = (app) => {
   //delete  Image
   uploadRoutes.post('/deleteImage', upload.deleteImage);
   //= ========================
+
+  apiRoutes.use('/reports', reportsRoutes);
+  reportsRoutes.get('/getKraReport', reports.getKraReport);
+  reportsRoutes.get('/getProfileApprovalReport', reports.getProfileApprovalReport);
 
   // Set url for API group routes, all endpoints start with /api/ eg http://localhost:3000/api/admin  || http://localhost:3000/api/auth
   app.use('/api', apiRoutes);
