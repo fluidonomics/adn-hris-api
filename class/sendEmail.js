@@ -539,7 +539,24 @@ let functions =
             }
         };
         transporter.sendMail(mailOptions, callback);
-    }
+    },
+    sendEmailToEmployeeForPapInitiate: (data, callback) => {
+        if (data.supervisor_email === null || data.supervisor_email === "") {
+            return
+        }
+        let mailOptions = {
+            from: config.email.sendEmailToEmployeeForPapInitiate.from, // sender address
+            to: data.emp_email,
+            subject: config.email.sendEmailToEmployeeForPapInitiate.subject, // Subject line
+            template: 'email-notify-to-emp-for-pap-initiated',
+            context: {
+                appliedDate: moment(new Date()).format('L'),
+                link: data.action_link,
+                empName: data.emp_name
+            }
+        };
+        transporter.sendMail(mailOptions, callback);
+    },
 }
 
 module.exports = functions;
