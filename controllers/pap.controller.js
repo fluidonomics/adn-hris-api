@@ -594,7 +594,7 @@ function getPapByReviewer(req, res) {
                 done(err, supervisorIdArray);
             });
         },
-        (done, papDetails) => {
+        (papDetails, done) => {
             PapDetails.aggregate([
                 {
                     '$lookup': {
@@ -625,7 +625,7 @@ function getPapByReviewer(req, res) {
                 {
                     '$match': {
                         'mtr_details.supervisor_id': {
-                            '$in': supervisorIdArray
+                            '$in': papDetails
                         }
                     }
                 },
