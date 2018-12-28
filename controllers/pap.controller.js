@@ -5,6 +5,8 @@ let async = require('async'),
     PapBatchDetails = require('../models/pap/papBatch.model'),
     PapMasterDetails = require('../models/pap/papMaster.model'),
     EmployeeSupervisorDetails = require('../models/employee/employeeSupervisorDetails.model'),
+    EmployeeDetails = require('../models/employee/employeeDetails.model'),
+    SendEmail = require('../class/sendEmail'),
     PapDetails = require('../models/pap/papDetails.model');
 
 require('dotenv').load();
@@ -138,6 +140,7 @@ function getEmployeesForPapInitiate(req, res) {
 function initiatePapProcess(req, res) {
     let createdBy = parseInt(req.body.createdBy);
     let emp_id_array = req.body.emp_id_array;
+    let action_link = req.body.action_link;
     let papBatchDetails = new PapBatchDetails();
     papBatchDetails.batchEndDate = new Date(
         new Date(req.body.batchEndDate).getTime()
@@ -280,6 +283,50 @@ function initiatePapProcess(req, res) {
                 );
                 done(err, papDetailsResponse);
             });
+        },
+        (papMasterData, done) => {
+            let onlyEmpIds = [];
+            papMasterData.forEach(f => {
+                if(onlyEmpIds.indexOf(f.empId) === -1)
+                onlyEmpIds.push(parseInt(f.empId))
+            });
+            EmployeeDetails.aggregate([
+                { 
+                    '$lookup' : {
+                        'from' : 'employeeofficedetails', 
+                        'localField' : '_id', 
+                        'foreignField' : 'emp_id', 
+                        'as' : 'emp_email'
+                    }
+                }, 
+                { 
+                    '$unwind' : {
+                        'path' : '$emp_email'
+                    }
+                }, 
+                { 
+                    '$match' : {
+                        '_id' : {
+                            '$in' : onlyEmpIds
+                        }
+                    }
+                }, 
+                { 
+                    '$project' : {
+                        'fullName' : '$fullName', 
+                        'officeEmail' : '$emp_email.officeEmail'
+                    }
+                }
+            ]).exec(function(err, response){
+                response.forEach(f => {
+                    let data = {};
+                    data.emp_email = f.officeEmail;
+                    data.emp_name = f.fullName;
+                    data.action_link = action_link;
+                    SendEmail.sendEmailToEmployeeForPapInitiate(data);
+                })
+                done(err, papMasterData);
+            })
         }
     ], (err, result) => {
         if (err) {
