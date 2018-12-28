@@ -915,7 +915,7 @@ function papSubmitToReviewer(req, res) {
                 "updatedBy": parseInt(req.body.updatedBy),
                 "status": "Pending Reviewer",
             }
-            PapDetails.updateMany({ _id: req.body.papMasterId }, updateQuery, (err, res) => {
+            PapDetails.updateMany({ pap_master_id: req.body.papMasterId }, updateQuery, (err, res) => {
                 done(err, res);
             })
         },
