@@ -617,6 +617,7 @@ module.exports = (app) => {
   papRoutes.post('/papSubmit', pap.papSubmit);
   papRoutes.post('/updateBatch', pap.updateBatch);
   papRoutes.post('/papUpdateSupervisor', pap.papUpdateSupervisor);
+  papRoutes.post('/papSubmitToReviewer', pap.papSubmitToReviewer);
   papRoutes.post('/papUpdateReviewer', pap.papUpdateReviewer);
 };
 

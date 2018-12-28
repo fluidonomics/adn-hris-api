@@ -286,37 +286,37 @@ function initiatePapProcess(req, res) {
         (papMasterData, done) => {
             let onlyEmpIds = [];
             papMasterData.forEach(f => {
-                if(onlyEmpIds.indexOf(f.empId) === -1)
-                onlyEmpIds.push(parseInt(f.empId))
+                if (onlyEmpIds.indexOf(f.empId) === -1)
+                    onlyEmpIds.push(parseInt(f.empId))
             });
             EmployeeDetails.aggregate([
-                { 
-                    '$lookup' : {
-                        'from' : 'employeeofficedetails', 
-                        'localField' : '_id', 
-                        'foreignField' : 'emp_id', 
-                        'as' : 'emp_email'
+                {
+                    '$lookup': {
+                        'from': 'employeeofficedetails',
+                        'localField': '_id',
+                        'foreignField': 'emp_id',
+                        'as': 'emp_email'
                     }
-                }, 
-                { 
-                    '$unwind' : {
-                        'path' : '$emp_email'
+                },
+                {
+                    '$unwind': {
+                        'path': '$emp_email'
                     }
-                }, 
-                { 
-                    '$match' : {
-                        '_id' : {
-                            '$in' : onlyEmpIds
+                },
+                {
+                    '$match': {
+                        '_id': {
+                            '$in': onlyEmpIds
                         }
                     }
-                }, 
-                { 
-                    '$project' : {
-                        'fullName' : '$fullName', 
-                        'officeEmail' : '$emp_email.officeEmail'
+                },
+                {
+                    '$project': {
+                        'fullName': '$fullName',
+                        'officeEmail': '$emp_email.officeEmail'
                     }
                 }
-            ]).exec(function(err, response){
+            ]).exec(function (err, response) {
                 response.forEach(f => {
                     let data = {};
                     data.emp_email = f.officeEmail;
@@ -744,7 +744,6 @@ function papUpdateSupervisor(req, res) {
             let updateQuery = {
                 "updatedAt": new Date(),
                 "updatedBy": parseInt(req.body.updatedBy),
-                "status": "Pending Reviewer",
                 "supRemark": req.body.supRemark,
                 "sup_ratingScaleId": req.body.sup_ratingScaleId
             }
@@ -908,6 +907,34 @@ function getPapByReviewer(req, res) {
     ])
 }
 
+function papSubmitToReviewer(req, res) {
+    async.waterfall([
+        (done) => {
+            let updateQuery = {
+                "updatedAt": new Date(),
+                "updatedBy": parseInt(req.body.updatedBy),
+                "status": "Pending Reviewer",
+            }
+            PapDetails.updateMany({ _id: req.body.papMasterId }, updateQuery, (err, res) => {
+                done(err, res);
+            })
+        },
+        (papDetails, done) => {
+            AuditTrail.auditTrailEntry(
+                0,
+                "papDetails",
+                papDetails,
+                "PAP",
+                "papSubmitToReviewer",
+                "UPDATED"
+            );
+            done(null, papDetails);
+        }
+    ], (err, result) => {
+        sendResponse(res, err, result, 'Pap details updated successfully');
+    })
+}
+
 let functions = {
     getEmployeesForPapInitiate: (req, res) => {
         getEmployeesForPapInitiate(req, res);
@@ -941,6 +968,9 @@ let functions = {
     },
     getPapByReviewer: (req, res) => {
         getPapByReviewer(req, res);
+    },
+    papSubmitToReviewer: (req, res) => {
+        papSubmitToReviewer(req, res);
     }
 }
 
