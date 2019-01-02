@@ -1207,6 +1207,46 @@ function getMtrByReviewer(req, res) {
     }
   });
 }
+
+function updateBatch(req, res) {
+  let batchId = parseInt(req.body.batchId);
+
+  let updateQuery = {
+    "updatedAt": new Date(),
+    "updatedBy": parseInt(req.body.updatedBy),
+    "batchEndDate": req.body.batchEndDate
+  };
+
+  MidTermBatch.findOneAndUpdate({ _id: batchId }, updateQuery, (err, result) => {
+    if (err) {
+      return res.status(403).json({
+        title: "There was a problem",
+        error: {
+          message: err
+        },
+        result: {
+          message: result
+        }
+      });
+    } else {
+      AuditTrail.auditTrailEntry(
+        0,
+        "MidTermBatch",
+        result,
+        "midterm",
+        "updateBatch",
+        "UPDATED"
+      );
+      return res.status(200).json({
+        title: "Mid term batch updated",
+        result: {
+          message: result
+        }
+      });
+    }
+  });
+}
+
 let functions = {
   getEmpDetailsForMidTermInitiate: (req, res) => {
     EmpDetailsForMidTermInitiate(req, res);
@@ -1243,6 +1283,9 @@ let functions = {
   },
   getMtrByReviewer: (req, res) => {
     getMtrByReviewer(req, res);
+  },
+  updateBatch: (req, res) => {
+    updateBatch(req, res);
   }
 };
 

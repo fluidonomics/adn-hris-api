@@ -369,6 +369,7 @@ module.exports = (app) => {
   midtermRoutes.get('/getMtrDetails', midterm.getMtrDetails);
   midtermRoutes.post('/mtrApproval', midterm.mtrApproval);
   midtermRoutes.get('/getMtrByReviewer', midterm.getMtrByReviewer);
+  midtermRoutes.post('/updateBatch', midterm.updateBatch);
 
 
 
