@@ -157,7 +157,7 @@ function initiatePapProcess(req, res) {
                     "initiatePapProcess",
                     "ADDED"
                 );
-                done(err, response._doc);
+                done(err, response);
             });
         },
         (papMasterCount, done) => {
