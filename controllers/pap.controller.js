@@ -112,7 +112,8 @@ function getEmployeesForPapInitiate(req, res) {
                 supervisor_id: '$employee_superviosr_details.primarySupervisorEmp_id',
                 supervisorName: '$supervisor_details.fullName',
                 emp_emailId: '$employee_office_details.officeEmail',
-                pap_master_id: '$pap_master._id'
+                pap_master_id: '$pap_master._id',
+                hrspoc_id: '$employee_office_details.hrspoc_id'
             }
         }
     ]).exec(function (err, response) {
@@ -494,6 +495,19 @@ function getPapDetailsSingleEmployee(req, res) {
             }
         },
         {
+            '$lookup': {
+                'from': 'employeedetails',
+                'localField': 'papbatches.createdBy',
+                'foreignField': '_id',
+                'as': 'createdBy_empDetails'
+            }
+        },
+        {
+            '$unwind': {
+                'path': '$createdBy_empDetails'
+            }
+        },
+        {
             "$project": {
                 "_id": 1,
                 "updatedAt": 1,
@@ -506,7 +520,18 @@ function getPapDetailsSingleEmployee(req, res) {
                 "updatedBy": 1,
                 "isRatingCommunicated": 1,
                 "status": 1,
-                "papbatches": 1,
+                "papbatches": {
+                    "_id": 1,
+                    "updatedAt": 1,
+                    "createdAt": 1,
+                    "createdBy": 1,
+                    "isDeleted": 1,
+                    "updatedBy": 1,
+                    "status": 1,
+                    "batchEndDate": 1,
+                    "batchName": 1,
+                    "createdBy_empDetails": "$createdBy_empDetails"
+                },
                 "papdetails": {
                     "_id": 1,
                     "updatedAt": 1,
@@ -535,6 +560,7 @@ function getPapDetailsSingleEmployee(req, res) {
                 "updatedAt": { $first: "$updatedAt" },
                 "createdAt": { $first: "$createdAt" },
                 "createdBy": { $first: "$createdBy" },
+                "createdBy_empDetails": { $first: "$createdBy_empDetails" },
                 "emp_id": { $first: "$emp_id" },
                 "batch_id": { $first: "$batch_id" },
                 "mtr_master_id": { $first: "$mtr_master_id" },
