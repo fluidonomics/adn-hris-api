@@ -835,6 +835,7 @@ function getPapByReviewer(req, res) {
             });
         },
         (papDetails, done) => {
+            console.log(papDetails);
             PapDetails.aggregate([
                 {
                     '$lookup': {
@@ -875,6 +876,9 @@ function getPapByReviewer(req, res) {
                         'userName': '$emp_details.userName',
                         'fullName': '$emp_details.fullName',
                         'supervisor_id': '$mtr_details.supervisor_id',
+                        'updatedAt': '$updatedAt',
+                        'profileImage': '$emp_details.profileImage',
+                        'pap_master_id': '$pap_master_id',
                         'group_obj': {
                             'grievanceRemark': '$grievanceRemark',
                             'grievance_ratingScaleId': '$grievance_ratingScaleId',
@@ -895,18 +899,13 @@ function getPapByReviewer(req, res) {
                 {
                     '$group': {
                         '_id': '$emp_id',
-                        'userName': {
-                            '$first': '$userName'
-                        },
-                        'fullName': {
-                            '$first': '$fullName'
-                        },
-                        'supervisor_id': {
-                            '$first': '$supervisor_id'
-                        },
-                        'kra_details': {
-                            '$push': '$group_obj'
-                        }
+                        'userName': { '$first': '$userName' },
+                        'fullName': { '$first': '$fullName' },
+                        'supervisor_id': { '$first': '$supervisor_id' },
+                        'updatedAt': { '$first': '$updatedAt' },
+                        'profileImage': { '$first': '$profileImage' },
+                        'pap_master_id': { '$first': '$pap_master_id' },
+                        'kra_details': { '$push': '$group_obj' }
                     }
                 }
             ]).exec(function (err, response) {
