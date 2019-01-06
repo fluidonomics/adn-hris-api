@@ -630,6 +630,7 @@ function getPapBySupervisor(req, res) {
                 'emp_id': '$empId',
                 'emp_details': '$emp_details',
                 'papmasters': '$papmasters',
+                'updatedAt': '$updatedAt',
                 'group_obj': {
                     'grievanceRemark': '$grievanceRemark',
                     'grievance_ratingScaleId': '$grievance_ratingScaleId',
@@ -652,6 +653,7 @@ function getPapBySupervisor(req, res) {
                 '_id': '$emp_id',
                 'emp_details': { '$first': '$emp_details' },
                 'papmasters': { '$first': '$papmasters' },
+                'updatedAt': { '$first': '$updatedAt' },
                 'kra_details': { '$push': '$group_obj' }
             }
         }
