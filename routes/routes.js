@@ -354,7 +354,7 @@ let express  = require('express'),
        leaveRoutes.get('/getEmployeeDetailsWithLeaveDetails', leave.getEmployeeDetailsWithLeaveDetails);
        leaveRoutes.post('/grantSpecialLeaveBulk', leave.grantSpecialLeaveBulk);
        leaveRoutes.post('/grantSpecialLeaveSingleEmp', leave.grantSpecialLeaveSingleEmp);
-       
+       leaveRoutes.get('/getEmpxyz', leave.getEmpxyz)
        
        
 

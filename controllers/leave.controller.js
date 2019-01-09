@@ -1387,6 +1387,175 @@ function sendBulkMail(emp_Data, res) {
         })
     });
 }
+function getEmpxyz(req, res) {
+    async.waterfall([
+        empDetails => {
+            let empFilter = {
+                employmentType_id: 1,
+                isDeleted: false
+            }
+            EmployeeInfo.aggregate([
+                {
+                    "$match": {
+                        "employmentType_id": 1, //management type 
+                        "isDeleted": false
+                    }
+                },
+                {
+                    "$lookup": {
+                        "from": "leavebalance",
+                        "localField": "_id",
+                        "foreignField": "emp_id",
+                        "as": "leave_balance"
+                    }
+                },
+                {
+                    "$unwind": {
+                        "path": "$leave_balance",
+                        "preserveNullAndEmptyArrays": true
+                    }
+                },
+                {
+                    "$project": {
+                        "_id": "$_id",
+                        "isMaternityFound": {
+                            "$cond": {
+                                "if": {
+                                    "$eq": [
+                                        "$leave_balance.leave_type",
+                                        3 //maternity
+                                    ]
+                                },
+                                "then": '$leave_balance.balance',
+                                "else": 0
+                            }
+                        },
+                        "isSpecialFound": {
+                            "$cond": {
+                                "if": {
+                                    "$eq": [
+                                        "$leave_balance.leave_type",
+                                        4 //special leave
+                                    ]
+                                },
+                                "then": '$leave_balance.balance',
+                                "else": 0
+                            }
+                        }
+                    }
+                },
+                {
+                    "$group": {
+                        "_id": "$_id",
+                        "isMaternityFound": {
+                            "$max": "$isMaternityFound"
+                        },
+                        "isSpecialFound": {
+                            "$max": "$isSpecialFound"
+                        }
+                    }
+                },
+                {
+                    "$sort": {
+                        "_id": 1
+                    }
+                }
+            ]).exec(function (err, response) {
+                if (err) {
+
+                } else {
+                    let empEligibleToGrant = response.filter(f => f.isMaternityFound == 0 && f.isSpecialFound == 0);
+                    let empNotEligibleToGrantMaternity = response.filter(f => f.isMaternityFound > 0);
+                    let empNotEligibleToGrantSpecial = response.filter(f => f.isSpecialFound > 0);
+                    let finalResponse = {
+                        empEligibleToGrant: empEligibleToGrant, 
+                        empNotEligibleToGrantMaternity: empNotEligibleToGrantMaternity, 
+                        empNotEligibleToGrantSpecial: empNotEligibleToGrantSpecial
+                    };
+                    empDetails(err, finalResponse);
+                }
+            })
+        },
+        (empDetails, ddd) => {
+            let emp_id_array = [];
+            let leaveTypeToFilter = [3, 4]; // for maternity and special
+            empDetails.empNotEligibleToGrantMaternity.forEach(f => emp_id_array.push(f._id));
+            empDetails.empNotEligibleToGrantSpecial.forEach(f => emp_id_array.push(f._id));
+            //for distinct
+            let uniqueEmpId = emp_id_array.filter((v,i,a) => a.indexOf(v) === i);
+            LeaveApply.aggregate([
+                {
+                    "$match": {
+                        "emp_id": {
+                            "$in": uniqueEmpId
+                        },
+                        "leave_type": {
+                            "$in": leaveTypeToFilter
+                        },
+                        "isDeleted": false
+                    }
+                },
+                {
+                    "$project": {
+                        "_id": "$emp_id",
+                        "days": "$days",
+                        "leave_type": "$leave_type",
+                        "status": "$status",
+                        "fromDate": "$fromDate",
+                        "toDate": "$toDate"
+                    }
+                }
+            ]).exec(function (err, response) {
+                if (err) {
+
+                } else {
+                    let grantWithBalance = response.filter(f => f.status === 'Cancelled' || f.status === 'Rejected' || f.status === 'Withdrawn');
+                    let approvedLeaves = response.filter(f => f.status === 'Approved');
+                    let NotGrantLeaves = response.filter(f => f.status === 'Pending Cancellation' || f.status === 'Applied');
+                    uniqueEmpId.forEach(f => {
+                        let toAdd = { _id: f };
+                        if(grantWithBalance.filter(f1 => f1._id == f).length > 0) {
+                            if (grantWithBalance.filter(f1 => f1._id == f && f1.leave_type == 3).length > 0) {
+                                let singleElement = empDetails.empNotEligibleToGrantSpecial.filter(f1 => f1._id === f)[0];
+                                toAdd.isMaternityFound = singleElement.isMaternityFound;
+                            } else {
+                                toAdd.isMaternityFound = -1;
+                            }
+                            if (grantWithBalance.filter(f1 => f1._id == f && f1.leave_type == 4).length > 0) {
+                                let singleElement = empDetails.empNotEligibleToGrantMaternity.filter(f1 => f1._id === f)[0];
+                                toAdd.isSpecialFound = singleElement.isSpecialFound;
+                            } else {
+                                toAdd.isSpecialFound = -1;
+                            }
+                            empDetails.empEligibleToGrant.push(toAdd);
+                        } else if(approvedLeaves.filter(f1 => f1._id == f).length > 0) {
+                            if (approvedLeaves.filter(f1 => f1._id === f && f1.leave_type === 3 && new Date(f1.toDate) > new Date(Date.now()))){
+                                toAdd.isSpecialFound = 0;
+                            } else {
+                                toAdd.isMaternityFound = -1;
+                            }
+                            if (approvedLeaves.filter(f1 => f1._id === f && f1.leave_type === 4 && new Date(f1.toDate) > new Date(Date.now()))){
+                                toAdd.isSpecialFound = 0;
+                            } else {
+                                toAdd.isSpecialFound = -1;
+                            }
+                            empDetails.empEligibleToGrant.push(toAdd);
+
+                        } else if(NotGrantLeaves.filter(f1 => f1._id == f).length > 0) {
+
+                        } else {
+                            let singleElement = empDetails.empNotEligibleToGrantMaternity.filter(f1 => f1._id === f)[0];
+                            empDetails.empEligibleToGrant.push(singleElement);
+                        }
+                       
+                    });
+                    
+                }
+            })
+        }
+    ]
+    );
+}
 let functions = {
     uploadSickLeaveDocument: (req, res) => {
         async.waterfall([
@@ -3607,6 +3776,9 @@ let functions = {
             }
         })
     },
+    getEmpxyz: (req, res) => {
+        getEmpxyz(req, res);
+    }
 }
 
 
