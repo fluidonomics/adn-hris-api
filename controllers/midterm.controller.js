@@ -1053,6 +1053,7 @@ function mtrApproval(req, res) {
         }
       },
       (response2, done) => {
+        // for email details
         EmployeeDetails.aggregate(
           [
             {
@@ -1098,28 +1099,31 @@ function mtrApproval(req, res) {
           }
         });
       } else {
-        email_details.user_name = result.emp[0].user_name;
-        email_details.user_email = result.emp[0].officeEmail;
-        SendEmail.sendEmailToUserAboutMtrStatus(email_details, (email_err, email_result) => {
-          if (email_err) {
-            return res.status(300).json({
-              title: "Midterm review submitted, failed sending email to employee",
-              error: {
-                message: email_err
-              },
-              result: {
-                message: result
-              }
-            });
-          } else {
-            return res.status(200).json({
-              title: "Midterm review submitted, and email sent to employee",
-              result: {
-                message: result
-              }
-            });
-          }
-        });
+        // #70 fix, email fix
+        if (email_details.isApproved === "Approved") {
+          email_details.user_name = result.emp[0].user_name;
+          email_details.user_email = result.emp[0].officeEmail;
+          SendEmail.sendEmailToUserAboutMtrStatus(email_details, (email_err, email_result) => {
+            if (email_err) {
+              return res.status(300).json({
+                title: "Midterm review submitted, failed sending email to employee",
+                error: {
+                  message: email_err
+                },
+                result: {
+                  message: result
+                }
+              });
+            } else {
+              return res.status(200).json({
+                title: "Midterm review submitted, and email sent to employee",
+                result: {
+                  message: result
+                }
+              });
+            }
+          });
+        }
       }
     }
   );
