@@ -1040,20 +1040,20 @@ function mtrApproval(req, res) {
           done(err, res);
         });
       },
-      (resp, done) => {
-        if (req.body.isApproved != true) {
-          let mtrDetailUpdateQuery = {
-            updatedBy: parseInt(req.body.supervisorId),
-            updatedAt: new Date(),
-            status: "SendBack"
-          };
-          MidTermDetails.updateMany({ mtr_master_id: mtrMasterId }, mtrDetailUpdateQuery, (err, res) => {
-            done(err, res);
-          });
-        } else {
-          done(null, null);
-        }
-      },
+      // (resp, done) => {
+      //   if (req.body.isApproved != true) {
+      //     let mtrDetailUpdateQuery = {
+      //       updatedBy: parseInt(req.body.supervisorId),
+      //       updatedAt: new Date(),
+      //       status: "SendBack"
+      //     };
+      //     MidTermDetails.updateMany({ mtr_master_id: mtrMasterId }, mtrDetailUpdateQuery, (err, res) => {
+      //       done(err, res);
+      //     });
+      //   } else {
+      //     done(null, null);
+      //   }
+      // },
       (response2, done) => {
         // for email details
         EmployeeDetails.aggregate(
