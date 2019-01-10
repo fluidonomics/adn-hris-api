@@ -690,7 +690,7 @@ function InsertNewKRAInMtr(req, res) {
   mtrDetails.measureOfSuccess = req.body.measureOfSuccess;
   mtrDetails.isDeleted = req.body.isDeleted;
   mtrDetails.createdBy = parseInt(req.body.createdBy);
-  mtrDetails.progressStatus = req.body.progressStatus;
+  mtrDetails.progressStatus = "New KRA";
   mtrDetails.colorStatus = req.body.colorStatus;
   mtrDetails.employeeComment = req.body.employeeComment;
   mtrDetails.status = "New";
@@ -741,7 +741,6 @@ function updateMtr(req, res) {
 
   if (req.body.progressStatus == "Dropped") {
     updateQuery.weightage_id = null;
-    updateQuery.status = "Dropped";
   }
 
   MidTermDetails.findOneAndUpdate(
@@ -1001,13 +1000,12 @@ function mtrApproval(req, res) {
           updatedAt: new Date(),
           status: req.body.isApproved ? "Approved" : "SendBack"
         };
-        //TODO : Set Approved status when all mtrDetails are approved, Sendback when even one of them is sent back
         if (req.body.isApproved) {
           MidTermDetails.find({ mtr_master_id: mtrMasterId }, (err, res) => {
             if (err)
               done(err, null);
             let pendingMtrs = res.filter(mtr => {
-              return mtr.progressStatus != "Dropped" && (!mtr.status || mtr.status == "SendBack" || mtr.status == "Submitted");
+              return (!mtr.status || mtr.status == "SendBack" || mtr.status == "Submitted");
             });
             if (pendingMtrs.length <= 1 && pendingMtrs[0]._id == mtrDetailId) {
               MidTermMaster.findByIdAndUpdate({ _id: mtrMasterId }, masterUpdateQuery, (err, res) => {
@@ -1035,6 +1033,9 @@ function mtrApproval(req, res) {
           updatedAt: new Date(),
           status: req.body.isApproved ? "Approved" : "SendBack"
         };
+        if (req.body.isApproved && req.body.progressStatus == "Dropped") {
+          mtrDetailUpdateQuery.status = "Dropped";
+        }
         MidTermDetails.findOneAndUpdate({ _id: mtrDetailId }, mtrDetailUpdateQuery, (err, res) => {
           done(err, res);
         });
