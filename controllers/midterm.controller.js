@@ -992,6 +992,7 @@ function mtrApproval(req, res) {
     action_link: req.body.action_link,
     isApproved: req.body.isApproved ? "Approved" : "SendBack"
   };
+  let isMtrApproved = false;
   async.waterfall(
     [
       done => {
@@ -1003,7 +1004,6 @@ function mtrApproval(req, res) {
         //TODO : Set Approved status when all mtrDetails are approved, Sendback when even one of them is sent back
         if (req.body.isApproved) {
           MidTermDetails.find({ mtr_master_id: mtrMasterId }, (err, res) => {
-            debugger;
             if (err)
               done(err, null);
             let pendingMtrs = res.filter(mtr => {
@@ -1011,6 +1011,7 @@ function mtrApproval(req, res) {
             });
             if (pendingMtrs.length <= 1 && pendingMtrs[0]._id == mtrDetailId) {
               MidTermMaster.findByIdAndUpdate({ _id: mtrMasterId }, masterUpdateQuery, (err, res) => {
+                isMtrApproved = true;
                 done(err, res);
               });
             } else {
@@ -1053,6 +1054,7 @@ function mtrApproval(req, res) {
         }
       },
       (response2, done) => {
+        // for email details
         EmployeeDetails.aggregate(
           [
             {
@@ -1098,28 +1100,50 @@ function mtrApproval(req, res) {
           }
         });
       } else {
-        email_details.user_name = result.emp[0].user_name;
-        email_details.user_email = result.emp[0].officeEmail;
-        SendEmail.sendEmailToUserAboutMtrStatus(email_details, (email_err, email_result) => {
-          if (email_err) {
+        // #70 fix, email fix
+        if (isMtrApproved === "Approved") {
+          email_details.user_name = result.emp[0].user_name;
+          email_details.user_email = result.emp[0].officeEmail;
+          if (email_details.user_email) {
+            SendEmail.sendEmailToUserAboutMtrStatus(email_details, (email_err, email_result) => {
+              if (email_err) {
+                return res.status(300).json({
+                  title: "Midterm review approved, failed sending email to employee",
+                  error: {
+                    message: "Midterm review approved, failed sending email to employee"
+                  },
+                  result: {
+                    message: result
+                  }
+                });
+              } else {
+                return res.status(200).json({
+                  title: "Midterm review approved, and email sent to employee",
+                  result: {
+                    message: result
+                  }
+                });
+              }
+            });
+          } else {
             return res.status(300).json({
-              title: "Midterm review submitted, failed sending email to employee",
+              title: "Midterm review approved, failed sending email to employee",
               error: {
-                message: email_err
+                message: "Midterm review approved, failed sending email to employee"
               },
               result: {
                 message: result
               }
             });
-          } else {
-            return res.status(200).json({
-              title: "Midterm review submitted, and email sent to employee",
-              result: {
-                message: result
-              }
-            });
           }
-        });
+        } else {
+          return res.status(200).json({
+            title: "Midterm review submitted",
+            result: {
+              message: result
+            }
+          });
+        }
       }
     }
   );
