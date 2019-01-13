@@ -117,7 +117,7 @@ function EmpDetailsForMidTermInitiate(req, res) {
         emp_designation_id: "$employee_details.designation_id",
         emp_designation_name: "$designation_details.designationName",
         emp_supervisor_id:
-          "$employee_supervisor_details.primarySupervisorEmp_id",
+        "$employee_supervisor_details.primarySupervisorEmp_id",
         emp_supervisor_name: "$supervisor_details.fullName",
         mtr_status: "$mtr_master_details.status",
         mtr_batch_id: "$mtr_master_details.batch_id"
@@ -261,9 +261,9 @@ function InitiateMtrProcess(req, res) {
                     kra_details_isDeleted: "$kra_details.isDeleted",
                     kra_details_sendBackComment: "$kra_details.sendBackComment",
                     kra_details_supervisorStatus:
-                      "$kra_details.supervisorStatus",
+                    "$kra_details.supervisorStatus",
                     kra_details_measureOfSuccess:
-                      "$kra_details.measureOfSuccess",
+                    "$kra_details.measureOfSuccess",
                     kra_details_unitOfSuccess: "$kra_details.unitOfSuccess",
                     kra_details_weightage_id: "$kra_details.weightage_id",
                     kra_details_category_id: "$kra_details.category_id",
@@ -731,7 +731,6 @@ function updateMtr(req, res) {
     supervisor_id: parseInt(req.body.supervisor_id),
     unitOfSuccess: req.body.unitOfSuccess,
     measureOfSuccess: req.body.measureOfSuccess,
-    status: "Pending",
     progressStatus: req.body.progressStatus,
     colorStatus: req.body.colorStatus,
     employeeComment: req.body.employeeComment,
@@ -1000,31 +999,28 @@ function mtrApproval(req, res) {
           updatedAt: new Date(),
           status: req.body.isApproved ? "Approved" : "SendBack"
         };
-        if (req.body.isApproved) {
-          MidTermDetails.find({ mtr_master_id: mtrMasterId }, (err, res) => {
-            if (err)
-              done(err, null);
-            let pendingMtrs = res.filter(mtr => {
-              return (!mtr.status || mtr.status == "SendBack" || mtr.status == "Submitted");
-            });
-            if (pendingMtrs.length <= 1 && pendingMtrs[0]._id == mtrDetailId) {
-              MidTermMaster.findByIdAndUpdate({ _id: mtrMasterId }, masterUpdateQuery, (err, res) => {
-                isMtrApproved = true;
-                done(err, res);
-              });
-            } else {
-              done(null, null);
-            }
+        MidTermDetails.find({ mtr_master_id: mtrMasterId }, (err, res) => {
+          if (err)
+            done(err, null);
+          let pendingMtrs = res.filter(mtr => {
+            return (!mtr.status || mtr.status == "Submitted");
           });
-        } else {
-          MidTermMaster.findByIdAndUpdate(
-            { _id: mtrMasterId },
-            masterUpdateQuery,
-            (err, res) => {
-              done(err, res);
+          if (pendingMtrs.length <= 1 && pendingMtrs[0]._id == mtrDetailId) {
+            isMtrApproved = true;
+            let sendbackMtrs = res.filter(mtr => {
+              return (mtr.status == "SendBack");
+            });
+            if (sendbackMtrs && sendbackMtrs.length > 0) {
+              masterUpdateQuery.status = "SendBack";
+              isMtrApproved = false;
             }
-          );
-        }
+            MidTermMaster.findByIdAndUpdate({ _id: mtrMasterId }, masterUpdateQuery, (err, res) => {
+              done(err, res);
+            });
+          } else {
+            done(null, null);
+          }
+        });
       },
       (mtrMasterResponse, done) => {
         let mtrDetailUpdateQuery = {
