@@ -452,6 +452,7 @@ function GetMtrKraSingleDetails(req, res) {
     {
       $project: {
         _id: "$_id",
+        mtr_master_details: "$mtr_master_details",
         mtr_master_kraWorkflow_id: "$kraWorkflow_id",
         mtr_master_kraDetailId: "$kraDetailId",
         mtr_master_emp_comment: "$emp_comment",
