@@ -23,6 +23,8 @@ let express = require('express'),
     kraDetails = require('../models/kra/kraDetails.model'),
     LeaveBalance = require('../models/leave/EmployeeLeaveBalance.model'),
     FinancialYearDetails = require('../models/master/financialYearDetails.model'),
+    MidTermMaster = require('../models/midterm/midtermmaster'),
+    MidTermDetails = require('../models/midterm/midtermdetails'),
 
 
     AuditTrail = require('../class/auditTrail'),
@@ -2131,6 +2133,22 @@ function updateSupervisortransfer(req, res, done) {
                                         kraCallback(true);
                                     });
                                 })
+                            },
+                            (kraResult, done) => {
+                                if (!kraResult) {
+                                    done(null, false);
+                                }
+                                MidTermMaster.find({ emp_id: _id }, (err, midtermmaster) => {
+                                    checkError(err, midtermmaster);
+                                    let updateQuery = {
+                                        "updatedAt": updatedAt,
+                                        "supervisor_id": req.body.primarySupervisorEmp_id,
+                                        "updatedBy": updatedBy
+                                    };
+                                    MidTermDetails.updateMany({ mtr_master_id: midtermmaster._id }, updateQuery, (err, doc) => {
+                                        done(err, doc);
+                                    })
+                                })
                             }
                         ], function (res) {
                             if (!res) {
@@ -2171,7 +2189,20 @@ function updateSupervisortransfer(req, res, done) {
                                     innerDone(null, null);
                                 }
                             },
-
+                            (leaves, innerDone) => {
+                                if (req.body.mtrIds && req.body.mtrIds.length > 0) {
+                                    let updateQuery = {
+                                        "supervisor_id": req.body.primarySupervisorEmp_id,
+                                        "updatedAt": updatedAt,
+                                        "updatedBy": updatedBy
+                                    };
+                                    MidTermDetails.updateMany({ _id: { $in: req.body.mtrIds } }, updateQuery, (err, res) => {
+                                        innerDone(err, res);
+                                    });
+                                } else {
+                                    innerDone(null, null);
+                                }
+                            }
                         ], (err, result) => {
                             responseObject.apiStatus = true;
                             return done(null, responseObject);
