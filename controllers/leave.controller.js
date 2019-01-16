@@ -1701,7 +1701,7 @@ let functions = {
         if (req.query.status) {
             queryObj['$match']['$and'].push({ status: req.query.status })
         }
-        if (req.query.fromDate && req.query.toDate) {
+        if (req.query.fromDate && req.query.fromDate != 'null' && req.query.toDate && req.query.toDate != 'null') {
             queryObj['$match']["$and"].push({
                 $and:
                     [{ "fromDate": { $gte: new Date(req.query.fromDate) } },
