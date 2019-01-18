@@ -285,14 +285,8 @@ function getKraInfoDetails(req, res) {
             isDeleted: false
         };
     }
-    var kraProjection = {
-        createdAt: false,
-        updatedAt: false,
-        isDeleted: false,
-        updatedBy: false,
-        createdBy: false,
-    };
-    KraInfo.find(query, kraProjection, function (err, kraInfoData) {
+
+    KraInfo.find(query, function (err, kraInfoData) {
         if (err) {
             return res.status(403).json({
                 title: 'There was an error, please try again later',
