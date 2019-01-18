@@ -18,6 +18,14 @@ let express = require('express'),
     ProfileProcessInfo = require('../models/employee/employeeProfileProcessDetails.model'),
     PerformanceRatingMaster = require('../models/master/performanceRating.model'),
     ExternalDocument = require('../models/employee/employeeExternalDocumentDetails.model'),
+    leaveApply = require('../models/leave/leaveApply.model'),
+    kraWorkflow = require('../models/kra/kraWorkFlowDetails.model'),
+    kraDetails = require('../models/kra/kraDetails.model'),
+    LeaveBalance = require('../models/leave/EmployeeLeaveBalance.model'),
+    FinancialYearDetails = require('../models/master/financialYearDetails.model'),
+    MidTermMaster = require('../models/midterm/midtermmaster'),
+    MidTermDetails = require('../models/midterm/midtermdetails'),
+
 
     AuditTrail = require('../class/auditTrail'),
     SendEmail = require('../class/sendEmail'),
@@ -28,7 +36,8 @@ let express = require('express'),
     // nodemailer        = require('nodemailer'),
     // hbs               = require('nodemailer-express-handlebars'),
     // sgTransport       = require('nodemailer-sendgrid-transport'),
-    uploadCtrl = require('./upload.controller');
+    uploadCtrl = require('./upload.controller'),
+    dateFn = require('date-fns');
 // uuidV1            = require('uuid/v1');
 require('dotenv').load()
 
@@ -1138,7 +1147,7 @@ function updatepositionInfoDetails(req, res) {
                     "vertical_id": req.body.vertical_id,
                     "subVertical_id": req.body.subVertical_id,
                     "managementType_id": req.body.managementType_id,
-                    "employmentStatus_id":req.body.employmentStatus_id,
+                    "employmentStatus_id": req.body.employmentStatus_id,
                     "tenureOfContract": req.body.tenureOfContract,
                     "groupHrHead_id": req.body.groupHrHead_id,
                     "businessHrHead_id": req.body.businessHrHead_id,
@@ -1156,7 +1165,7 @@ function updatepositionInfoDetails(req, res) {
                         $set: {
                             "emp_id": req.body.emp_id,
                             "primarySupervisorEmp_id": req.body.primarySupervisorEmp_id,
-                            
+
                         }
                     }
                     SupervisorInfo.findOneAndUpdate(query, queryUpdate, function (err, supervisorData) {
@@ -2048,6 +2057,238 @@ function getCarInfoDetails(req, res) {
     });
 }
 
+function updateSupervisortransfer(req, res, done) {
+    try {
+        let _id = req.body.emp_id;
+        let changeType = req.body.change_type;
+        var query = {
+            emp_id: _id,
+            isActive: true
+        }
+        let responseObject = {
+            previousSupervisorInfo: null,
+            apiStatus: false
+        };
+        var queryUpdate = {};
+        let updatedBy = req.body.user_id;
+        let updatedAt = new Date();
+
+        SupervisorInfo.findOne(query, (err, existingSupervisorInfo) => {
+            checkError(err);
+            responseObject.previousSupervisorInfo = existingSupervisorInfo;
+            if (req.body.primarySupervisorEmp_id != null && req.body.primarySupervisorEmp_id != req.body.secondarySupervisorEmp_id) {
+                queryUpdate = {
+                    $set: {
+                        "primarySupervisorEmp_id": req.body.primarySupervisorEmp_id,
+                        "secondarySupervisorEmp_id": req.body.secondarySupervisorEmp_id || null,
+                        "updatedAt": updatedAt,
+                        "updatedBy": updatedBy
+                    }
+                };
+
+                SupervisorInfo.findOneAndUpdate(query, queryUpdate, function (err, supervisorData) {
+                    checkError(err, supervisorData);
+                    if (changeType == "correction") {
+                        async.waterfall([
+                            (leaveApplyCallback) => {
+                                var leave_queryUpdate = {};
+                                leave_queryUpdate = {
+                                    $set: {
+                                        "applyTo": req.body.primarySupervisorEmp_id,
+                                        "updatedAt": updatedAt,
+                                        "updatedBy": updatedBy
+                                    }
+                                };
+                                leaveApply.updateMany({ emp_id: _id }, leave_queryUpdate, function (err, doc) {
+                                    checkError(err, doc);
+                                    leaveApplyCallback(null, true);
+                                });
+                            },
+                            (leaveResult, kraCallback) => {
+                                if (!leaveResult) {
+                                    kraCallback(null, false);
+                                }
+                                kraWorkflow.find({ emp_id: _id }, (err, kraWorkflows) => {
+                                    checkError(err, kraWorkflow);
+                                    let bulkOps = [];
+                                    kraWorkflows.forEach(kraWorkflow => {
+                                        let op = {
+                                            'updateMany': {
+                                                'filter': { kraWorkflow_id: kraWorkflow._id },
+                                                'update': {
+                                                    "$set": {
+                                                        "supervisor_id": req.body.primarySupervisorEmp_id,
+                                                        "updatedAt": updatedAt,
+                                                        "updatedBy": updatedBy
+                                                    }
+                                                }
+                                            }
+                                        };
+                                        bulkOps.push(op);
+                                    });
+                                    let kraBulk = kraDetails.bulkWrite(bulkOps, (err, res) => {
+                                        if (err) {
+                                            kraCallback(false);
+                                        }
+                                        kraCallback(true);
+                                    });
+                                })
+                            },
+                            (kraResult, done) => {
+                                if (!kraResult) {
+                                    done(null, false);
+                                }
+                                MidTermMaster.find({ emp_id: _id }, (err, midtermmaster) => {
+                                    checkError(err, midtermmaster);
+                                    let updateQuery = {
+                                        "updatedAt": updatedAt,
+                                        "supervisor_id": req.body.primarySupervisorEmp_id,
+                                        "updatedBy": updatedBy
+                                    };
+                                    MidTermDetails.updateMany({ mtr_master_id: midtermmaster._id }, updateQuery, (err, doc) => {
+                                        done(err, doc);
+                                    })
+                                })
+                            }
+                        ], function (res) {
+                            if (!res) {
+                                responseObject.apiStatus = false;
+                                return done(null, responseObject);
+                            }
+                            responseObject.apiStatus = true;
+                            return done(null, responseObject);
+                        });
+                    } else {
+                        // If transferring supervisor then also transfer any pending request to new supervisor
+                        async.waterfall([
+                            (innerDone) => {
+                                if (req.body.kraIds && req.body.kraIds.length > 0) {
+                                    let updateQuery = {
+                                        "supervisor_id": req.body.primarySupervisorEmp_id,
+                                        "updatedAt": updatedAt,
+                                        "updatedBy": updatedBy
+                                    };
+                                    kraDetails.updateMany({ _id: { $in: req.body.kraIds } }, updateQuery, (err, res) => {
+                                        innerDone(err, res);
+                                    });
+                                } else {
+                                    innerDone(null, null);
+                                }
+                            },
+                            (kras, innerDone) => {
+                                if (req.body.leaveIds && req.body.leaveIds.length > 0) {
+                                    let updateQuery = {
+                                        "applyTo": req.body.primarySupervisorEmp_id,
+                                        "updatedAt": updatedAt,
+                                        "updatedBy": updatedBy
+                                    };
+                                    LeaveApply.updateMany({ _id: { $in: req.body.leaveIds } }, updateQuery, (err, res) => {
+                                        innerDone(err, res);
+                                    });
+                                } else {
+                                    innerDone(null, null);
+                                }
+                            },
+                            (leaves, innerDone) => {
+                                if (req.body.mtrIds && req.body.mtrIds.length > 0) {
+                                    let updateQuery = {
+                                        "supervisor_id": req.body.primarySupervisorEmp_id,
+                                        "updatedAt": updatedAt,
+                                        "updatedBy": updatedBy
+                                    };
+                                    MidTermDetails.updateMany({ _id: { $in: req.body.mtrIds } }, updateQuery, (err, res) => {
+                                        innerDone(err, res);
+                                    });
+                                } else {
+                                    innerDone(null, null);
+                                }
+                            }
+                        ], (err, result) => {
+                            responseObject.apiStatus = true;
+                            return done(null, responseObject);
+                        });
+                    }
+                });
+            } else {
+                responseObject.apiStatus = false;
+                return done(null, responseObject);
+            }
+        });
+    } catch (error) {
+        responseObject.apiStatus = false;
+        return done(null, responseObject);
+    }
+};
+
+
+function addLeaveQuota(req, res, done) {
+    let empId = req.body.emp_id;
+    FinancialYearDetails.findOne({ "isYearActive": true }, (err, fyDetail) => {
+        let fiscalYearId = fyDetail.id;
+        let startDate = fyDetail.starDate;
+        let endDate = fyDetail.endDate;
+
+        let joiningDate = new Date();
+        let dateResult = dateFn.compareDesc(joiningDate, startDate);
+        if (dateResult >= 0) {
+            joiningDate = startDatel;
+        }
+        let proRataDays = dateFn.differenceInDays(endDate, joiningDate) + 1;
+
+        let quotaAnnualLeave = Math.round(proRataDays / 18);
+        let quotaSickLeave = Math.round(proRataDays / 26);
+
+        let annualLeaveBalance = new LeaveBalance();
+        annualLeaveBalance.isDeleted = false;
+        annualLeaveBalance.balance = quotaAnnualLeave;
+        annualLeaveBalance.leave_type = 1
+        annualLeaveBalance.emp_id = empId;
+        annualLeaveBalance.fiscalYearId = fiscalYearId;
+        annualLeaveBalance.createdBy = parseInt(req.headers.uid);
+
+        annualLeaveBalance.save(function (err, annualLeavedata) {
+            if (err) {
+                return done(err, annualLeavedata);
+            }
+
+            AuditTrail.auditTrailEntry(empId, "leaveBalance", annualLeaveBalance, "user", "addEmployee", "ADDED");
+            let mailData = {
+                officeEmail: req.body.personalEmail,
+                subject: 'Annual Leave Granted',
+                fullName: req.body.fullName,
+                LeaveType: 'Annual Leave',
+                balance: quotaAnnualLeave
+            }
+            SendEmail.sendEmailToEmployeeForAnnualSickLeaveQuotaProvided(mailData);
+
+            let sickLeaveBalance = new LeaveBalance();
+            sickLeaveBalance.isDeleted = false;
+            sickLeaveBalance.balance = quotaSickLeave;
+            sickLeaveBalance.leave_type = 2
+            sickLeaveBalance.emp_id = empId;
+            sickLeaveBalance.fiscalYearId = fiscalYearId;
+            sickLeaveBalance.createdBy = parseInt(req.headers.uid);
+
+            sickLeaveBalance.save(function (err, sickLeavedata) {
+                if (err) {
+                    return done(err, sickLeavedata);
+                }
+
+                AuditTrail.auditTrailEntry(empId, "leaveBalance", sickLeaveBalance, "user", "addEmployee", "ADDED");
+                let mailData = {
+                    officeEmail: req.body.personalEmail,
+                    subject: 'Sick Leave Granted',
+                    fullName: req.body.fullName,
+                    LeaveType: 'Sick Leave',
+                    balance: quotaSickLeave
+                }
+                SendEmail.sendEmailToEmployeeForAnnualSickLeaveQuotaProvided(mailData);
+                done(err, null);
+            });
+        });
+    });
+}
+
 let functions = {
     addEmployee: (req, res) => {
         //uncomment below line to add user from backend.
@@ -2100,6 +2341,10 @@ let functions = {
                             function (done) {
                                 addProfileProcessInfoDetails(req, res, done);
                                 Notify.sendNotifications(req.body.emp_id, 'Please Fill Profile', 'Submit your profile', parseInt(req.headers.uid), req.body._id, 1, null, parseInt(req.headers.uid));
+                            },
+                            function (done) {
+                                addLeaveQuota(req, res, done);
+                                Notify.sendNotifications(req.body.emp_id, 'Leave Quota Provided', 'Leave Quota Provided', parseInt(req.headers.uid), req.body._id, 1, null, parseInt(req.headers.uid));
                             }
                         ],
                             function (done) {
@@ -2169,14 +2414,14 @@ let functions = {
             {
                 "$unwind": "$kraWorkflowDetails"
             },
-            
+
             {
                 "$project": {
                     "employees": "$employees",
                     "kra": "$kraWorkflowDetails",
                     "emp_id": "$employeedetails._id",
-                    "fullName": "$employeedetails.fullName",                   
-                    "userName": "$employeedetails.userName",                  
+                    "fullName": "$employeedetails.fullName",
+                    "userName": "$employeedetails.userName",
                     "profileImage": "$employeedetails.profileImage",
                 }
             }
@@ -2750,6 +2995,147 @@ let functions = {
                         });
                     }
                 });
+            }
+        });
+    },
+    updateSupervisortransferInfo: (req, res) => {
+        async.waterfall([
+            function (done) {
+                updateSupervisortransfer(req, res, done);
+            },
+
+            function (responseObject, done) {
+                AuditTrail.auditTrailEntry(req.body.user_id, "employeesupervisordetails", req.body, "user", "SupervisorResponsibilityTransfer", "transferred");
+                if (responseObject.apiStatus) {
+                    let queryforHR = {
+                        _id: req.body.user_id,
+                        isDeleted: false
+                    }
+                    OfficeInfo.findOne(queryforHR, function (err, hrDetails) {
+                        if (hrDetails != null) {
+                            EmployeeInfo.findOne(queryforHR, function (err, hrPersonalDetails) {
+                                let queryforEmployee = {
+                                    _id: req.body.emp_id,
+                                    isDeleted: false
+                                }
+                                OfficeInfo.findOne(queryforEmployee, function (err, empDetails) {
+                                    if (empDetails != null) {
+                                        EmployeeInfo.findOne(queryforEmployee, function (err, empPersonalDetails) {
+                                            let queryforNewPriSupvsr = {
+                                                _id: req.body.primarySupervisorEmp_id,
+                                                isDeleted: false
+                                            }
+                                            OfficeInfo.findOne(queryforNewPriSupvsr, function (err, NewPriSupvsr) {
+                                                if (NewPriSupvsr != null) {
+                                                    EmployeeInfo.findOne(queryforNewPriSupvsr, function (err, NewPersonalPriSupvsr) {
+                                                        let queryforNewSecSupvsr = {
+                                                            _id: req.body.secondarySupervisorEmp_id,
+                                                            isDeleted: false
+                                                        }
+                                                        OfficeInfo.findOne(queryforNewSecSupvsr, function (err, NewSecSupvsr) {
+                                                            if (NewSecSupvsr != null) {
+                                                                EmployeeInfo.findOne(queryforNewSecSupvsr, function (err, NewPersonalSecSupvsr) {
+                                                                    let queryforOldPriSupvsr = {
+                                                                        _id: responseObject.previousSupervisorInfo.primarySupervisorEmp_id,
+                                                                        isDeleted: false
+                                                                    }
+                                                                    OfficeInfo.findOne(queryforOldPriSupvsr, function (err, OldPriSupvsr) {
+                                                                        if (OldPriSupvsr != null) {
+                                                                            EmployeeInfo.findOne(queryforOldPriSupvsr, function (err, OldPersonalPriSupvsr) {
+                                                                                let queryforOldSecSupvsr = {
+                                                                                    _id: responseObject.previousSupervisorInfo.secondarySupervisorEmp_id,
+                                                                                    isDeleted: false
+                                                                                }
+                                                                                OfficeInfo.findOne(queryforOldSecSupvsr, function (err, OldSecSupvsr) {
+                                                                                    if (OldSecSupvsr != null) {
+                                                                                        EmployeeInfo.findOne(queryforOldSecSupvsr, function (err, OldPersonalSecSupvsr) {
+                                                                                            if (req.body.primarySupervisorEmp_id != responseObject.previousSupervisorInfo.primarySupervisorEmp_id) {
+                                                                                                let data = {
+                                                                                                    fullName: empPersonalDetails.fullName,
+                                                                                                    hrFullName: hrPersonalDetails.fullName,
+                                                                                                    hrUserId: hrPersonalDetails.userName,
+                                                                                                    empUserId: empPersonalDetails.userName,
+                                                                                                    transferType: "Supervisor " + req.body.change_type,
+                                                                                                    supervisorType: "Primary Supervisor",
+                                                                                                    oldSupName: OldPersonalPriSupvsr.fullName,
+                                                                                                    oldSupUserId: OldPersonalPriSupvsr.userName,
+                                                                                                    newSupName: NewPersonalPriSupvsr.fullName,
+                                                                                                    newSupUserId: NewPersonalPriSupvsr.userName,
+                                                                                                    appliedDate: new Date().toISOString().replace(/T/, ' ').replace(/\..+/, ''),
+                                                                                                }
+                                                                                                SendEmail.sendEmailToEmployeeNotifySupervsrTransfer(empDetails["officeEmail"], data);
+                                                                                                SendEmail.sendEmailToHRNotifySupervsrTransfer(hrDetails["officeEmail"], data);
+                                                                                                SendEmail.sendEmailToPrevSupervsrNotifySupervsrTransfer(OldPriSupvsr["officeEmail"], data);
+                                                                                                SendEmail.sendEmailToNewSupervsrNotifySupervsrTransfer(NewPriSupvsr["officeEmail"], data);
+
+                                                                                            }
+                                                                                            if (req.body.secondarySupervisorEmp_id != responseObject.previousSupervisorInfo.secondarySupervisorEmp_id) {
+                                                                                                let data = {
+                                                                                                    fullName: empPersonalDetails.fullName,
+                                                                                                    empUserId: empPersonalDetails.userName,
+                                                                                                    hrFullName: hrPersonalDetails.fullName,
+                                                                                                    hrUserId: hrPersonalDetails.userName,
+                                                                                                    transferType: "Supervisor " + req.body.change_type,
+                                                                                                    supervisorType: "Secondary Supervisor",
+                                                                                                    oldSupName: OldPersonalSecSupvsr.fullName,
+                                                                                                    oldSupUserId: OldPersonalSecSupvsr.userName,
+                                                                                                    newSupName: NewPersonalSecSupvsr.fullName,
+                                                                                                    newSupUserId: NewPersonalSecSupvsr.userName,
+                                                                                                    appliedDate: new Date().toISOString().replace(/T/, ' ').replace(/\..+/, ''),
+                                                                                                }
+                                                                                                SendEmail.sendEmailToEmployeeNotifySupervsrTransfer(empDetails["officeEmail"], data);
+                                                                                                SendEmail.sendEmailToHRNotifySupervsrTransfer(hrDetails["officeEmail"], data);
+                                                                                                SendEmail.sendEmailToPrevSupervsrNotifySupervsrTransfer(OldSecSupvsr["officeEmail"], data);
+                                                                                                SendEmail.sendEmailToNewSupervsrNotifySupervsrTransfer(NewSecSupvsr["officeEmail"], data);
+                                                                                            }
+                                                                                        });
+                                                                                    }
+                                                                                });
+                                                                            });
+                                                                        }
+
+                                                                    });
+                                                                });
+                                                            }
+                                                        });
+                                                    });
+                                                }
+                                            });
+                                        });
+                                    }
+                                });
+                            });
+                        }
+                    });
+                }
+
+                return res.status(200).json(responseObject.apiStatus);
+            }
+        ]);
+    },
+    provideQuota: (req, res) => {
+        async.waterfall([
+            function (done) {
+                addLeaveQuota(req, res, done);
+            },
+            function (data, done) {
+                return res.status(200).json(true);
+            }
+        ], (err, result) => {
+            return res.status(400).json(err);
+        });
+    }
+};
+
+function checkError(err, res) {
+    if (err) {
+        return res.status(403).json({
+            title: 'There was a problem',
+            error: {
+                message: err
+            },
+            result: {
+                message: res
             }
         });
     }

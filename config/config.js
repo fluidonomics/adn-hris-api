@@ -1,82 +1,105 @@
 module.exports = {
-  'paths'    : {
+  'paths': {
     // path for pets images
-    serverPath      : '../server/app',
-    imagePath       : 'uploads/',
+    serverPath: '../server/app',
+    imagePath: 'uploads/',
     profileImagePath: 'uploads/profiles/',
-    dist            : '../dist',
-    expressUploads  : 'uploads',
-    emailPath       : 'views/email_templates/',
+    dist: '../dist',
+    expressUploads: 'uploads',
+    emailPath: 'views/email_templates/',
 
   },
-  'email':{
-    'welcome':{
-      from:'"Team HRIS" <hris@adnsl.net>',
-      subject:'Welcome to ADN'
+  'email': {
+    'welcome': {
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'Welcome to ADN'
     },
-    'forget':{
-      from:'"Team HRIS" <hris@adnsl.net>',
-      subject:'Reset Password'
+    'forget': {
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'Reset Password'
     },
-    'resetPassword':{
-      from:'"Team HRIS" <hris@adnsl.net>',
-      subject:'Password has Changed'
+    'resetPassword': {
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'Password has Changed'
     },
-    'LeaveApplied':{
-      from:'"Team HRIS" <hris@adnsl.net>',
-      subject:'Leave applied'
+    'LeaveApplied': {
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'Leave applied'
     },
     'emailToSupvsrForAppliedLeave': {
-      from:'"Team HRIS" <hris@adnsl.net>',
-      subject:'Leave application of '
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'Leave application of '
     },
     'emailToEmployeeForAppliedLeaveOnBehalf': {
-      from:'"Team HRIS" <hris@adnsl.net>',
-      subject:' is applied on your behalf by '
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: ' is applied on your behalf by '
     },
     'emailTohrForAppliedLeaveRejected': {
-      from:'"Team HRIS" <hris@adnsl.net>',
-      subject:' Leave Request of '
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: ' Leave Request of '
     },
     'emailTohrForAppliedLeaveApproved': {
-      from:'"Team HRIS" <hris@adnsl.net>',
-      subject:' Leave application of '
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: ' Leave application of '
     },
     'emailToSupvsrForWithdrawnLeave': {
-      from:'"Team HRIS" <hris@adnsl.net>',
-      subject:'Leave withdrawn application of '
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'Leave withdrawn application of '
     },
     'emailToSupvsrForCancelLeave': {
-      from:'"Team HRIS" <hris@adnsl.net>',
-      subject:'Leave cancel application of '
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'Leave cancel application of '
     },
     'emailToHRForCancelLeave': {
-      from:'"Team HRIS" <hris@adnsl.net>',
-      subject:'Leave cancelled of '
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'Leave cancelled of '
     },
     'emailToEmployeeForLeaveRequestApproved': {
-      from:'"Team HRIS" <hris@adnsl.net>',
-      subject:'Application Approved'
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'Application Approved'
     },
     'emailToEmployeeForLeaveRequestRejected': {
-      from:'"Team HRIS" <hris@adnsl.net>',
-      subject:'Leave Application Rejected'
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'Leave Application Rejected'
     },
     'emailToEmployeeForLeaveCancellationApprove': {
-      from:'"Team HRIS" <hris@adnsl.net>',
-      subject:'Leave Cancellation Approved'
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'Leave Cancellation Approved'
     },
     'emailToEmployeeForLeaveCancellationRejected': {
-      from:'"Team HRIS" <hris@adnsl.net>',
-      subject:'Leave Cancellation Rejected'
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'Leave Cancellation Rejected'
+    },
+    'emailToEmployeeForAnnualLeaveGrant': {
+      from: '"Team HRIS" <hris@adnsl.net>'
+    },
+    'emailToEmployeeForSupervsrTransfer': {
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: ' is done by HR'
+    },
+    'emailToPrevSupervsrForSupervsrTransfer': {
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'Subordinate Transferred to New Supervisor'
+    },
+    'emailToNewSupervsrForSupervsrTransfer': {
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'New Subordinate is added'
+    },
+    'sendEmailToSupervisorToApproveMtr': {
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'Midterm Review for Approval'
+    },
+    'sendEmailToEmployeeForMtrStatus': {
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'Midterm Review Status'
     },
   },
   'aws':
   {
-    fileSize        : 300000,
-    documentPath    : 'document/',
-    profilePath     : 'profile/',
-    tmpImagePath    : 'tmp/',
+    fileSize: 300000,
+    documentPath: 'document/',
+    profilePath: 'profile/',
+    tmpImagePath: 'tmp/',
     externalDocument: 'externalDocument/'
   }
 };

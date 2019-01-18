@@ -1,575 +1,600 @@
-let express  = require('express'),
-    auth     = require('../controllers/auth.controller'),
-    user     = require('../controllers/user.controller'),
-    admin    = require('../controllers/admin.controller'),
-    master   = require('../controllers/master.controller'),
-    common   = require('../controllers/common.controller'),
-    upload   = require('../controllers/upload.controller'),
-    kra      = require('../controllers/kra.controller'),
-    leave    = require('../controllers/leave.controller'),
-    externalDocument = require('../controllers/externalDocument.controller'),
-    Employee = require('../models/employee/employeeDetails.model'),
-    batch = require('../controllers/batch.controller'),
-    jwt = require('jsonwebtoken-refresh');
+let express = require('express'),
+  auth = require('../controllers/auth.controller'),
+  user = require('../controllers/user.controller'),
+  admin = require('../controllers/admin.controller'),
+  master = require('../controllers/master.controller'),
+  common = require('../controllers/common.controller'),
+  upload = require('../controllers/upload.controller'),
+  kra = require('../controllers/kra.controller'),
+  leave = require('../controllers/leave.controller'),
+  midterm = require('../controllers/midterm.controller')
+externalDocument = require('../controllers/externalDocument.controller'),
+  Employee = require('../models/employee/employeeDetails.model'),
+  batch = require('../controllers/batch.controller'),
+  jwt = require('jsonwebtoken-refresh');
 
-    function ensureAuthenticated(req, res, next) {
-      if(req.headers && req.headers['access-token'])
-      {
-        let token=req.headers['access-token'];
-        // let token=req.headers.authorization.split(' ');
-        jwt.verify(token, process.env.Secret, function(err, decoded) {
-          if (err) {
-            return res.status(401).json({
-              error: err
-            });
-          }
-          else{
-           Employee.find({_id:parseInt(decoded._id),isDeleted:false},function(err,users)
-            {
-              if(users)
-              {
-                  var originalDecoded = jwt.decode(token, {complete: true});
-                  var refreshedToken = jwt.refresh(originalDecoded, 3600, process.env.Secret);
-                  res.setHeader('access-token', refreshedToken);
-                  res.setHeader('client', "application_id");
-                  res.setHeader('expiry', '');
-                  res.setHeader('token-type', 'Bearer');
-                  res.setHeader('uid', parseInt(decoded._id));
-
-                  return next();
-              }
-
-              return res.status(403).json({
-                    title: 'Error!',
-                    error: {
-                        message: err
-                    },
-                    result: {
-                        message: users
-                    }
-              });
-            })
-          }
+function ensureAuthenticated(req, res, next) {
+  if (req.headers && req.headers['access-token']) {
+    let token = req.headers['access-token'];
+    // let token=req.headers.authorization.split(' ');
+    jwt.verify(token, process.env.Secret, function (err, decoded) {
+      if (err) {
+        return res.status(401).json({
+          error: err
         });
       }
-      else{
-        return res.status(403).end("Forbidden");
+      else {
+        Employee.find({ _id: parseInt(decoded._id), isDeleted: false }, function (err, users) {
+          if (users) {
+            var originalDecoded = jwt.decode(token, { complete: true });
+            var refreshedToken = jwt.refresh(originalDecoded, 3600, process.env.Secret);
+            res.setHeader('access-token', refreshedToken);
+            res.setHeader('client', "application_id");
+            res.setHeader('expiry', '');
+            res.setHeader('token-type', 'Bearer');
+            res.setHeader('uid', parseInt(decoded._id));
+
+            return next();
+          }
+
+          return res.status(403).json({
+            title: 'Error!',
+            error: {
+              message: err
+            },
+            result: {
+              message: users
+            }
+          });
+        })
       }
-    }
+    });
+  }
+  else {
+    return res.status(403).end("Forbidden");
+  }
+}
 
-    module.exports = (app) => {
+module.exports = (app) => {
 
-      // Initializing route groups
-        let apiRoutes   = express.Router(),
-          authRoutes  = express.Router(),
-          adminRoutes = express.Router(),
-          userRoutes  = express.Router(),
-          masterRoutes= express.Router();
-          commonRoutes= express.Router();
-          uploadRoutes= express.Router(),
-          kraRoutes   = express.Router(),
-          leaveRoutes = express.Router(),
-          hrRoutes = express.Router(),
-          externalDocumentRoutes = express.Router(),
-          batchRoutes=express.Router(),
+  // Initializing route groups
+  let apiRoutes = express.Router(),
+    authRoutes = express.Router(),
+    adminRoutes = express.Router(),
+    userRoutes = express.Router(),
+    masterRoutes = express.Router();
+  commonRoutes = express.Router();
+  uploadRoutes = express.Router(),
+    kraRoutes = express.Router(),
+    leaveRoutes = express.Router(),
+    midtermRoutes = express.Router(),
+    hrRoutes = express.Router(),
+    externalDocumentRoutes = express.Router(),
+    batchRoutes = express.Router(),
 
-      //= ========================
-      
-      //= ========================
-      // Auth Routes
-      //= ========================
+    //= ========================
 
-        // User Auth Routes endpoint: http://localhost:3000/api/auth
-        apiRoutes.use('/auth', authRoutes);  
+    //= ========================
+    // Auth Routes
+    //= ========================
 
-        authRoutes.get('/validateToken',auth.validateToken);
+    // User Auth Routes endpoint: http://localhost:3000/api/auth
+    apiRoutes.use('/auth', authRoutes);
 
-        // Login endpoint: http://localhost:3000/api/auth/login
-        authRoutes.post('/login', auth.loginUser);
+  authRoutes.get('/validateToken', auth.validateToken);
 
-        // Forget Password endpoint: http://localhost:3000/api/auth/password
-        authRoutes.post('/forget-password', auth.forgetPassword);
+  // Login endpoint: http://localhost:3000/api/auth/login
+  authRoutes.post('/login', auth.loginUser);
 
-        // Check if password reset token is not expired. endpoint: http://localhost:3000/api/auth/reset/:token
-        authRoutes.get('/reset/:token', auth.verifyPasswordResetToken);
+  // Forget Password endpoint: http://localhost:3000/api/auth/password
+  authRoutes.post('/forget-password', auth.forgetPassword);
 
-        // If password reset token is valid (not expired) then proceed to password change. endpoint: http://localhost:3000/api/auth/reset/:token
-        authRoutes.post('/reset', auth.changePassword);
+  // Check if password reset token is not expired. endpoint: http://localhost:3000/api/auth/reset/:token
+  authRoutes.get('/reset/:token', auth.verifyPasswordResetToken);
 
-      //= ========================
+  // If password reset token is valid (not expired) then proceed to password change. endpoint: http://localhost:3000/api/auth/reset/:token
+  authRoutes.post('/reset', auth.changePassword);
 
-      //= ========================
-      // User Routes
-      //= ========================
+  //= ========================
 
-          apiRoutes.use('/user', userRoutes);
+  //= ========================
+  // User Routes
+  //= ========================
 
-          // Add Employee endpoint: http://localhost:3000/api/user/addEmployee
-          userRoutes.post('/addEmployee',ensureAuthenticated, user.addEmployee);
+  apiRoutes.use('/user', userRoutes);
 
-          // Add Employee endpoint: http://localhost:3000/api/user/addPersonalInfo
-          userRoutes.post('/addPersonalInfo',ensureAuthenticated, user.addPersonalInfo);
-          
-          // Add Employee endpoint: http://localhost:3000/api/user/updatePersonalInfo
-          userRoutes.post('/updatePersonalInfo',ensureAuthenticated, user.updatePersonalInfo);
+  // Add Employee endpoint: http://localhost:3000/api/user/addEmployee
+  userRoutes.post('/addEmployee', ensureAuthenticated, user.addEmployee);
 
-          // Add Employee endpoint: http://localhost:3000/api/user/addAcademicInfo
-          userRoutes.post('/addAcademicInfo',ensureAuthenticated, user.addAcademicInfo);
+  // Add Employee endpoint: http://localhost:3000/api/user/addPersonalInfo
+  userRoutes.post('/addPersonalInfo', ensureAuthenticated, user.addPersonalInfo);
 
-          // Add Employee endpoint: http://localhost:3000/api/user/updateAcademicInfo
-          userRoutes.post('/updateAcademicInfo',ensureAuthenticated, user.updateAcademicInfo);
+  // Add Employee endpoint: http://localhost:3000/api/user/updatePersonalInfo
+  userRoutes.post('/updatePersonalInfo', ensureAuthenticated, user.updatePersonalInfo);
 
-          // Academic Info Endpoint: http://localhost:3000/api/user/deleteAcademicInfo
-          userRoutes.delete('/deleteAcademicInfo',ensureAuthenticated, user.deleteAcademicInfo);
+  // Add Employee endpoint: http://localhost:3000/api/user/addAcademicInfo
+  userRoutes.post('/addAcademicInfo', ensureAuthenticated, user.addAcademicInfo);
 
-          // Add Employee endpoint: http://localhost:3000/api/user/addProfileProcessInfo
-          userRoutes.post('/addProfileProcessInfo',ensureAuthenticated, user.addProfileProcessInfo);
+  // Add Employee endpoint: http://localhost:3000/api/user/updateAcademicInfo
+  userRoutes.post('/updateAcademicInfo', ensureAuthenticated, user.updateAcademicInfo);
 
-          // Add Employee endpoint: http://localhost:3000/api/user/updateProfileProcessInfo
-          userRoutes.post('/updateProfileProcessInfo',ensureAuthenticated, user.updateProfileProcessInfo);
+  // Academic Info Endpoint: http://localhost:3000/api/user/deleteAcademicInfo
+  userRoutes.delete('/deleteAcademicInfo', ensureAuthenticated, user.deleteAcademicInfo);
 
-          // Add Employee endpoint: http://localhost:3000/api/user/addPreviousEmploymentInfo
-          userRoutes.post('/addPreviousEmploymentInfo',ensureAuthenticated, user.addPreviousEmploymentInfo);
+  // Add Employee endpoint: http://localhost:3000/api/user/addProfileProcessInfo
+  userRoutes.post('/addProfileProcessInfo', ensureAuthenticated, user.addProfileProcessInfo);
 
-          // Add Employee endpoint: http://localhost:3000/api/user/updatePreviousEmploymentInfo
-          userRoutes.post('/updatePreviousEmploymentInfo',ensureAuthenticated, user.updatePreviousEmploymentInfo);
+  // Add Employee endpoint: http://localhost:3000/api/user/updateProfileProcessInfo
+  userRoutes.post('/updateProfileProcessInfo', ensureAuthenticated, user.updateProfileProcessInfo);
 
-          // PreviousEmployment Info Endpoint: http://localhost:3000/api/user/deletePreviousEmploymentInfo
-          userRoutes.delete('/deletePreviousEmploymentInfo',ensureAuthenticated, user.deletePreviousEmploymentInfo);
+  // Add Employee endpoint: http://localhost:3000/api/user/addPreviousEmploymentInfo
+  userRoutes.post('/addPreviousEmploymentInfo', ensureAuthenticated, user.addPreviousEmploymentInfo);
 
-          // Add Employee Address endpoint: http://localhost:3000/api/user/addAddressInfo
-          userRoutes.post('/addAddressInfo',ensureAuthenticated, user.addAddressInfo);
+  // Add Employee endpoint: http://localhost:3000/api/user/updatePreviousEmploymentInfo
+  userRoutes.post('/updatePreviousEmploymentInfo', ensureAuthenticated, user.updatePreviousEmploymentInfo);
 
-          // Update Employee Address endpoint: http://localhost:3000/api/user/updateAddressInfo
-          userRoutes.post('/updateAddressInfo',ensureAuthenticated, user.updateAddressInfo);
+  // PreviousEmployment Info Endpoint: http://localhost:3000/api/user/deletePreviousEmploymentInfo
+  userRoutes.delete('/deletePreviousEmploymentInfo', ensureAuthenticated, user.deletePreviousEmploymentInfo);
 
-          // Add Employee endpoint: http://localhost:3000/api/user/addFamilyInfo
-          userRoutes.post('/addFamilyInfo',ensureAuthenticated, user.addFamilyInfo);
+  // Add Employee Address endpoint: http://localhost:3000/api/user/addAddressInfo
+  userRoutes.post('/addAddressInfo', ensureAuthenticated, user.addAddressInfo);
 
-          // Add Employee endpoint: http://localhost:3000/api/user/updateFamilyInfo
-          userRoutes.post('/updateFamilyInfo',ensureAuthenticated, user.updateFamilyInfo);
+  // Update Employee Address endpoint: http://localhost:3000/api/user/updateAddressInfo
+  userRoutes.post('/updateAddressInfo', ensureAuthenticated, user.updateAddressInfo);
 
-          // Add Employee endpoint: http://localhost:3000/api/user/deleteFamilyInfo
-          userRoutes.delete('/deleteFamilyInfo',ensureAuthenticated, user.deleteFamilyInfo);
+  // Add Employee endpoint: http://localhost:3000/api/user/addFamilyInfo
+  userRoutes.post('/addFamilyInfo', ensureAuthenticated, user.addFamilyInfo);
 
-          // Add Employee endpoint: http://localhost:3000/api/user/addDocumentsInfo
-          userRoutes.post('/addDocumentsInfo',ensureAuthenticated, user.addDocumentsInfo);
+  // Add Employee endpoint: http://localhost:3000/api/user/updateFamilyInfo
+  userRoutes.post('/updateFamilyInfo', ensureAuthenticated, user.updateFamilyInfo);
 
-          // Add Employee endpoint: http://localhost:3000/api/user/updateDocumentsInfo
-          userRoutes.post('/updateDocumentsInfo',ensureAuthenticated, user.updateDocumentsInfo);
+  // Add Employee endpoint: http://localhost:3000/api/user/deleteFamilyInfo
+  userRoutes.delete('/deleteFamilyInfo', ensureAuthenticated, user.deleteFamilyInfo);
 
-          // Add Employee endpoint: http://localhost:3000/api/user/addBankInfo
-          userRoutes.post('/addBankInfo',ensureAuthenticated, user.addBankInfo);
+  // Add Employee endpoint: http://localhost:3000/api/user/addDocumentsInfo
+  userRoutes.post('/addDocumentsInfo', ensureAuthenticated, user.addDocumentsInfo);
 
-          // Add Employee endpoint: http://localhost:3000/api/user/updateBankInfo
-          userRoutes.post('/updateBankInfo',ensureAuthenticated, user.updateBankInfo);
+  // Add Employee endpoint: http://localhost:3000/api/user/updateDocumentsInfo
+  userRoutes.post('/updateDocumentsInfo', ensureAuthenticated, user.updateDocumentsInfo);
 
-          // Add Employee endpoint: http://localhost:3000/api/user/addSalaryInfo
-          userRoutes.post('/addSalaryInfo',ensureAuthenticated, user.addSalaryInfo);
+  // Add Employee endpoint: http://localhost:3000/api/user/addBankInfo
+  userRoutes.post('/addBankInfo', ensureAuthenticated, user.addBankInfo);
 
-          // Add Employee endpoint: http://localhost:3000/api/user/updateSalaryInfo
-          userRoutes.post('/updateSalaryInfo',ensureAuthenticated, user.updateSalaryInfo);
+  // Add Employee endpoint: http://localhost:3000/api/user/updateBankInfo
+  userRoutes.post('/updateBankInfo', ensureAuthenticated, user.updateBankInfo);
 
-          // Add Employee endpoint: http://localhost:3000/api/user/addCarInfo
-          userRoutes.post('/addCarInfo',ensureAuthenticated, user.addCarInfo);
+  // Add Employee endpoint: http://localhost:3000/api/user/addSalaryInfo
+  userRoutes.post('/addSalaryInfo', ensureAuthenticated, user.addSalaryInfo);
 
-          // Add Employee endpoint: http://localhost:3000/api/user/updateCarInfo
-          userRoutes.post('/updateCarInfo',ensureAuthenticated, user.updateCarInfo);
+  // Add Employee endpoint: http://localhost:3000/api/user/updateSalaryInfo
+  userRoutes.post('/updateSalaryInfo', ensureAuthenticated, user.updateSalaryInfo);
 
-          // Add Employee endpoint: http://localhost:3000/api/user/addCertificationInfo
-          userRoutes.post('/addCertificationInfo',ensureAuthenticated, user.addCertificationInfo);
+  // Add Employee endpoint: http://localhost:3000/api/user/addCarInfo
+  userRoutes.post('/addCarInfo', ensureAuthenticated, user.addCarInfo);
 
-          // Add Employee endpoint: http://localhost:3000/api/user/updateCertificationInfo
-          userRoutes.post('/updateCertificationInfo',ensureAuthenticated, user.updateCertificationInfo);
+  // Add Employee endpoint: http://localhost:3000/api/user/updateCarInfo
+  userRoutes.post('/updateCarInfo', ensureAuthenticated, user.updateCarInfo);
 
-          // Add Employee endpoint: http://localhost:3000/api/user/deleteCertificationInfo
-          userRoutes.delete('/deleteCertificationInfo',ensureAuthenticated, user.deleteCertificationInfo);
+  // Add Employee endpoint: http://localhost:3000/api/user/addCertificationInfo
+  userRoutes.post('/addCertificationInfo', ensureAuthenticated, user.addCertificationInfo);
 
-          // Add Employee endpoint: http://localhost:3000/api/user/addPerformanceRatingInfo
-          userRoutes.post('/addPerformanceRatingInfo',ensureAuthenticated, user.addPerformanceRatingInfo);
+  // Add Employee endpoint: http://localhost:3000/api/user/updateCertificationInfo
+  userRoutes.post('/updateCertificationInfo', ensureAuthenticated, user.updateCertificationInfo);
 
-          // Add Employee endpoint: http://localhost:3000/api/user/updatePerformanceRatingInfo
-          userRoutes.post('/updatePerformanceRatingInfo',ensureAuthenticated, user.updatePerformanceRatingInfo);
+  // Add Employee endpoint: http://localhost:3000/api/user/deleteCertificationInfo
+  userRoutes.delete('/deleteCertificationInfo', ensureAuthenticated, user.deleteCertificationInfo);
 
-          // Add Employee endpoint: http://localhost:3000/api/user/updatePerformanceRatingInfo
-          userRoutes.post('/updateOfficeInfo',ensureAuthenticated, user.updateOfficeInfo);
+  // Add Employee endpoint: http://localhost:3000/api/user/addPerformanceRatingInfo
+  userRoutes.post('/addPerformanceRatingInfo', ensureAuthenticated, user.addPerformanceRatingInfo);
 
-          // Add Employee endpoint: http://localhost:3000/api/user/updatePerformanceRatingInfo
-          userRoutes.post('/updatePositionInfo',ensureAuthenticated, user.updatePositionInfo);
-          
-          // Add Employee endpoint: http://localhost:3000/api/user/updatePerformanceRatingInfo
-          userRoutes.post('/saveBulkPerformanceRating',ensureAuthenticated, user.saveBulkPerformanceRating);
+  // Add Employee endpoint: http://localhost:3000/api/user/updatePerformanceRatingInfo
+  userRoutes.post('/updatePerformanceRatingInfo', ensureAuthenticated, user.updatePerformanceRatingInfo);
 
-          // Add Employee endpoint: http://localhost:3000/api/user/updatePerformanceRatingInfo
-          userRoutes.get('/getPersonalInfo',ensureAuthenticated,user.getPersonalInfo);
+  // Add Employee endpoint: http://localhost:3000/api/user/updatePerformanceRatingInfo
+  userRoutes.post('/updateOfficeInfo', ensureAuthenticated, user.updateOfficeInfo);
 
-          // Add Employee endpoint: http://localhost:3000/api/user/updatePerformanceRatingInfo
-          userRoutes.get('/getAddressInfo',ensureAuthenticated,user.getAddressInfo);
+  // Add Employee endpoint: http://localhost:3000/api/user/updatePerformanceRatingInfo
+  userRoutes.post('/updatePositionInfo', ensureAuthenticated, user.updatePositionInfo);
 
-          // Add Employee endpoint: http://localhost:3000/api/user/updatePerformanceRatingInfo
-          userRoutes.get('/getDocumentsInfo',ensureAuthenticated,user.getDocumentsInfo);
+  // Add Employee endpoint: http://localhost:3000/api/user/updatePerformanceRatingInfo
+  userRoutes.post('/saveBulkPerformanceRating', ensureAuthenticated, user.saveBulkPerformanceRating);
 
-          // Add Employee endpoint: http://localhost:3000/api/user/updatePerformanceRatingInfo
-          userRoutes.get('/getAcademicInfo',ensureAuthenticated,user.getAcademicInfo);
+  // Add Employee endpoint: http://localhost:3000/api/user/updatePerformanceRatingInfo
+  userRoutes.get('/getPersonalInfo', ensureAuthenticated, user.getPersonalInfo);
 
-          userRoutes.get('/getProfileProcessInfo',ensureAuthenticated,user.getProfileProcessInfo);
+  // Add Employee endpoint: http://localhost:3000/api/user/updatePerformanceRatingInfo
+  userRoutes.get('/getAddressInfo', ensureAuthenticated, user.getAddressInfo);
 
-          userRoutes.get('/getCertificationInfo',ensureAuthenticated,user.getCertificationInfo);
+  // Add Employee endpoint: http://localhost:3000/api/user/updatePerformanceRatingInfo
+  userRoutes.get('/getDocumentsInfo', ensureAuthenticated, user.getDocumentsInfo);
 
-          userRoutes.get('/getPreviousEmploymentInfo',ensureAuthenticated,user.getPreviousEmploymentInfo);
-          
-          userRoutes.get('/getFamilyInfo',ensureAuthenticated,user.getFamilyInfo);
+  // Add Employee endpoint: http://localhost:3000/api/user/updatePerformanceRatingInfo
+  userRoutes.get('/getAcademicInfo', ensureAuthenticated, user.getAcademicInfo);
 
-          userRoutes.get('/getOfficeInfo',ensureAuthenticated,user.getOfficeInfo);
+  userRoutes.get('/getProfileProcessInfo', ensureAuthenticated, user.getProfileProcessInfo);
 
-          userRoutes.get('/getPositionInfo',ensureAuthenticated,user.getPositionInfo);
+  userRoutes.get('/getCertificationInfo', ensureAuthenticated, user.getCertificationInfo);
 
-          userRoutes.get('/getPerformanceRatingInfo',ensureAuthenticated,user.getPerformanceRatingInfo);
+  userRoutes.get('/getPreviousEmploymentInfo', ensureAuthenticated, user.getPreviousEmploymentInfo);
 
-          userRoutes.get('/getBankInfo',ensureAuthenticated,user.getBankInfo);
+  userRoutes.get('/getFamilyInfo', ensureAuthenticated, user.getFamilyInfo);
 
-          userRoutes.get('/getSalaryInfo',ensureAuthenticated,user.getSalaryInfo);
+  userRoutes.get('/getOfficeInfo', ensureAuthenticated, user.getOfficeInfo);
 
-          userRoutes.get('/getAllEmployee',ensureAuthenticated,user.getAllEmployee);
-          userRoutes.get('/getAllEmployeeByReviewerId',user.getAllEmployeeByReviewerId);
-          
-          
-          userRoutes.get('/getCarInfo',ensureAuthenticated,user.getCarInfo);
+  userRoutes.get('/getPositionInfo', ensureAuthenticated, user.getPositionInfo);
 
-          userRoutes.get('/getSupervisorInfo', ensureAuthenticated, user.getSupervisorInfo);
+  userRoutes.get('/getPerformanceRatingInfo', ensureAuthenticated, user.getPerformanceRatingInfo);
 
-          userRoutes.get('/getEmployeeDetails', ensureAuthenticated, user.getEmployeeDetails);
+  userRoutes.get('/getBankInfo', ensureAuthenticated, user.getBankInfo);
 
-          userRoutes.post('/changePassword', ensureAuthenticated, user.changePassword);
+  userRoutes.get('/getSalaryInfo', ensureAuthenticated, user.getSalaryInfo);
 
-          
-          
-      //= ========================
+  userRoutes.get('/getAllEmployee', ensureAuthenticated, user.getAllEmployee);
+  userRoutes.get('/getAllEmployeeByReviewerId', user.getAllEmployeeByReviewerId);
 
-      //= ========================
-      // Administrator Routes
-      //= ========================
-        // Admin endpoint: http://localhost:3000/api/admin
-        // apiRoutes.use('/admin', adminRoutes);
-        // adminRoutes.post('/upload', admin.uploadImage);
-      //= ========================
 
-      //= ========================
-      // Kra Routes 
-      //= ========================
+  userRoutes.get('/getCarInfo', ensureAuthenticated, user.getCarInfo);
 
-        apiRoutes.use('/kra', kraRoutes);
+  userRoutes.get('/getSupervisorInfo', ensureAuthenticated, user.getSupervisorInfo);
 
-        kraRoutes.post('/addKraInfo',ensureAuthenticated, kra.functions.addKraInfo);
+  userRoutes.get('/getEmployeeDetails', ensureAuthenticated, user.getEmployeeDetails);
 
-        kraRoutes.post('/updateKraInfo',ensureAuthenticated, kra.functions.updateKraInfo);
+  userRoutes.post('/changePassword', ensureAuthenticated, user.changePassword);
+  // userRoutes.post('/provideQuota', user.provideQuota);
+  userRoutes.post('/updateSupervisortransferInfo', user.updateSupervisortransferInfo);
 
-        kraRoutes.delete('/deleteKraInfo',ensureAuthenticated, kra.functions.deleteKraInfo);
+  //= ========================
 
-       // new api kra report by rajesh
+  //= ========================
+  // Administrator Routes
+  //= ========================
+  // Admin endpoint: http://localhost:3000/api/admin
+  // apiRoutes.use('/admin', adminRoutes);
+  // adminRoutes.post('/upload', admin.uploadImage);
+  //= ========================
 
-        kraRoutes.get('/getKRA_Report_Supervisor', kra.functions.getKRA_Report_Supervisor);
-        
-        // kraRoutes.get('/getKraInfo',ensureAuthenticated, kra.getKraInfo);
-        kraRoutes.get('/getKRA_Report', kra.functions.getKRA_Report);
-        // kraRoutes.get('/getKraDetailsData',ensureAuthenticated, kra.getKraDetailsData);
+  //= ========================
+  // Kra Routes 
+  //= ========================
 
-        kraRoutes.post('/addKraCategoryInfo',ensureAuthenticated, kra.functions.addKraCategoryInfo);
+  apiRoutes.use('/kra', kraRoutes);
 
-        kraRoutes.post('/addKraWeightageInfo',ensureAuthenticated, kra.functions.addKraWeightageInfo);
+  kraRoutes.post('/addKraInfo', ensureAuthenticated, kra.functions.addKraInfo);
 
-        kraRoutes.post('/addKraWorkFlowInfo',ensureAuthenticated, kra.functions.addKraWorkFlowInfo);
+  kraRoutes.post('/updateKraInfo', ensureAuthenticated, kra.functions.updateKraInfo);
 
-        kraRoutes.post('/updateKraWorkFlowInfo',ensureAuthenticated, kra.functions.updateKraWorkFlowInfo);
-        
-        kraRoutes.get('/getEmployeeKraWorkFlowInfo',ensureAuthenticated, kra.functions.getEmployeeKraWorkFlowInfo);
-        
-        kraRoutes.get('/getKraWorkFlowInfo',ensureAuthenticated, kra.functions.getKraWorkFlowInfo);
-        
-        kraRoutes.get('/getKraInfo',ensureAuthenticated, kra.functions.getKraInfo);
+  kraRoutes.delete('/deleteKraInfo', ensureAuthenticated, kra.functions.deleteKraInfo);
 
-        kraRoutes.post('/addBulkKra',ensureAuthenticated, kra.functions.addBulkKra);
+  // new api kra report by rajesh
 
-        kraRoutes.get('/getKraWorkFlowInfoByBatch',ensureAuthenticated, kra.functions.getKraWorkFlowInfoByBatch);
+  kraRoutes.get('/getKRA_Report_Supervisor', kra.functions.getKRA_Report_Supervisor);
 
-        //kraRoutes.post('/updateBatchStatus',ensureAuthenticated, kra.updateBatchStatus);
-        
-        
+  // kraRoutes.get('/getKraInfo',ensureAuthenticated, kra.getKraInfo);
+  kraRoutes.get('/getKRA_Report', kra.functions.getKRA_Report);
+  // kraRoutes.get('/getKraDetailsData',ensureAuthenticated, kra.getKraDetailsData);
 
-      //= ========================
+  kraRoutes.post('/addKraCategoryInfo', ensureAuthenticated, kra.functions.addKraCategoryInfo);
 
-      //= ========================
-      // Leave Routes 
-      //= ========================
+  kraRoutes.post('/addKraWeightageInfo', ensureAuthenticated, kra.functions.addKraWeightageInfo);
 
-        apiRoutes.use('/leave', leaveRoutes);
+  kraRoutes.post('/addKraWorkFlowInfo', ensureAuthenticated, kra.functions.addKraWorkFlowInfo);
 
-        leaveRoutes.post('/applyLeave', leave.postApplyLeave);
-        leaveRoutes.post('/postLeave', leave.HrPostApplyLeave);
-        leaveRoutes.post('/uploadSickLeaveDocument', leave.uploadSickLeaveDocument);
-//        leaveRoutes.get('/leaveTransactionDetails', leave.getLeaveTransaction);
-        leaveRoutes.get('/getLeaveTypes', leave.getLeaveTypes);
+  kraRoutes.post('/updateKraWorkFlowInfo', ensureAuthenticated, kra.functions.updateKraWorkFlowInfo);
 
-       leaveRoutes.post('/cancelLeave', leave.postCancelLeave);
-//        leaveRoutes.get('/getCancelEmployeeLeaveDetails', leave.getCancelEmployeeLeaveDetails);
-//        leaveRoutes.get('/getLeaveWorkflowDetails', leave.getLeaveWorkflowDetails);
-       leaveRoutes.get('/getSupervisorTeamMember', leave.getSupervisorTeamMember);
-       leaveRoutes.get('/getSupervisorLeaveDetails', leave.getSupervisorLeaveDetails);
-       leaveRoutes.get('/getLeaveDetailsByFilter', leave.getLeaveDetailsByFilter);
-//        leaveRoutes.get('/getHRLeaveDetails', leave.getHRLeaveDetails);
-       leaveRoutes.get('/getLeaveDetailsById', leave.getLeaveDetailsById);
-//        leaveRoutes.post('/grantLeaveByEmployee', leave.grantLeaveByEmployee);
-//        leaveRoutes.post('/grantLeaveByDepartment', leave.grantLeaveByDepartment);
-//        leaveRoutes.post('/grantLeaveAllEmployee', leave.grantLeaveAllEmployee);
-        leaveRoutes.get('/getEmployeeLeaveBalance', leave.getLeaveBalance);
-        leaveRoutes.post('/hr/createLeaveTransactionReport', leave.createLeaveTransactionReport);
+  kraRoutes.get('/getEmployeeKraWorkFlowInfo', ensureAuthenticated, kra.functions.getEmployeeKraWorkFlowInfo);
 
-        leaveRoutes.get('/hr/getAllEmployeeLeaveBalance', leave.getAllLeaveBalance);
-        leaveRoutes.get('/hr/getAllEmployeeLeaveDetails', leave.getAllEmployeeLeaveDetails);
-//        leaveRoutes.get('/getLeaveDetailsByRole', leave.getLeaveDetailsByRole);
-//        leaveRoutes.post('/addLeaveHoliday', leave.postLeaveHoliday);
-          leaveRoutes.get('/getLeaveHolidays', leave.getHolidays);
-          leaveRoutes.get('/getUpcomingHoliday', leave.getUpcomingHoliday);
-          leaveRoutes.get('/getLeaveTransactionDetails', leave.getLeaveTransactionDetails);
-          leaveRoutes.post('/cancelApproveLeave', leave.cancelApproveLeave);
-          leaveRoutes.post('/autoApproveLeave', leave.autoApproveLeave);
-          leaveRoutes.get('/calculateLeave', leave.calculateLeave);
-          leaveRoutes.get('/uploadCarryForward', leave.uploadCarryForward);
-//        leaveRoutes.post('/updateLeaveHoliday', leave.updateHoliday);
-//        leaveRoutes.post('/postLeaveCarry', leave.postLeaveCarry);
-//        leaveRoutes.post('/removeLeaveHoliday', leave.removeHoliday);
-//        leaveRoutes.post('/postAcceptRejectLeave', leave.postAcceptRejectLeave);
-//        leaveRoutes.get('/getLeavesByMonth', leave.getLeavesByMonth);
-//        leaveRoutes.get('/getLeavesByLeaveType', leave.getLeavesByLeaveType);
-    	  leaveRoutes.get('/getAllEmployee', leave.getAllEmployee);
-    	  leaveRoutes.post('/withdrawLeave', leave.withdrawLeave);
-       leaveRoutes.get('/getEmployeeProbationDetails', leave.getEmployeeProbationDetails);
-//        leaveRoutes.post('/postLeaveTransactionYear', leave.postLeaveTransactionYear);
-//        leaveRoutes.post('/grantMaternityLeave', leave.grantMaternityLeave);
-       leaveRoutes.get('/getEmpMaternityLeaveDetails', leave.getEmpMaternityLeaveDetails);
-       leaveRoutes.get('/downloadFile',ensureAuthenticated, leave.downloadLeaveAttachment);
-      //= ========================
-      //hr dashboard routes
+  kraRoutes.get('/getKraWorkFlowInfo', ensureAuthenticated, kra.functions.getKraWorkFlowInfo);
 
-      //= ========================
-      // Master Data (Dropdowns) Routes 
-      //= ========================
+  kraRoutes.get('/getKraInfo', ensureAuthenticated, kra.functions.getKraInfo);
 
-        // User Auth Routes endpoint: http://localhost:3000/api/auth
-      apiRoutes.use('/master', masterRoutes);
+  kraRoutes.post('/addBulkKra', ensureAuthenticated, kra.functions.addBulkKra);
 
-      // Register endpoint: http://localhost:3000/api/master/createGrade
-      masterRoutes.post('/createRole',ensureAuthenticated, master.createRole);
+  kraRoutes.get('/getKraWorkFlowInfoByBatch', ensureAuthenticated, kra.functions.getKraWorkFlowInfoByBatch);
 
-      // Register endpoint: http://localhost:3000/api/master/createCompany
-      masterRoutes.post('/createCompany',ensureAuthenticated, master.createCompany);
+  //kraRoutes.post('/updateBatchStatus',ensureAuthenticated, kra.updateBatchStatus);
+  kraRoutes.get('/getKraForApproval', ensureAuthenticated, kra.functions.getKraForApproval);
+  kraRoutes.get('/getKraForReviewer', ensureAuthenticated, kra.functions.getKraForReviewer);
+  kraRoutes.get('/getKraByEmployeeId', ensureAuthenticated, kra.functions.getKraByEmployeeId);
 
-      // Register endpoint: http://localhost:3000/api/master/createDocument
-      masterRoutes.post('/createDocument',ensureAuthenticated,  master.createDocument);
+  //= ========================
 
-      // Register endpoint: http://localhost:3000/api/master/createCompany
-      masterRoutes.post('/createFacility',ensureAuthenticated, master.createFacility);
+  //= ========================
+  // Leave Routes 
+  //= ========================
 
-      // Register endpoint: http://localhost:3000/api/master/createCompany
-      masterRoutes.post('/createCompanyBusiness',ensureAuthenticated, master.createCompanyBusiness);
+  //= ========================
+  apiRoutes.use('/leave', leaveRoutes);
 
-      // Register endpoint: http://localhost:3000/api/master/createDivision
-      masterRoutes.post('/createDivision',ensureAuthenticated, master.createDivision);
+  leaveRoutes.post('/applyLeave', leave.postApplyLeave);
+  leaveRoutes.post('/postLeave', leave.HrPostApplyLeave);
+  leaveRoutes.post('/uploadSickLeaveDocument', leave.uploadSickLeaveDocument);
+  //        leaveRoutes.get('/leaveTransactionDetails', leave.getLeaveTransaction);
+  leaveRoutes.get('/getLeaveTypes', leave.getLeaveTypes);
 
-      // Register endpoint: http://localhost:3000/api/master/createDepartment
-      masterRoutes.post('/createDepartment',ensureAuthenticated, master.createDepartment);
+  leaveRoutes.post('/cancelLeave', leave.postCancelLeave);
+  //        leaveRoutes.get('/getCancelEmployeeLeaveDetails', leave.getCancelEmployeeLeaveDetails);
+  //        leaveRoutes.get('/getLeaveWorkflowDetails', leave.getLeaveWorkflowDetails);
+  leaveRoutes.get('/getSupervisorTeamMember', leave.getSupervisorTeamMember);
+  leaveRoutes.get('/getTeamOnLeave', leave.getTeamOnLeave);
+  leaveRoutes.get('/getSupervisorLeaveDetails', leave.getSupervisorLeaveDetails);
+  leaveRoutes.get('/getLeaveDetailsByFilter', leave.getLeaveDetailsByFilter);
+  //        leaveRoutes.get('/getHRLeaveDetails', leave.getHRLeaveDetails);
+  leaveRoutes.get('/getLeaveDetailsById', leave.getLeaveDetailsById);
+  //        leaveRoutes.post('/grantLeaveByEmployee', leave.grantLeaveByEmployee);
+  //        leaveRoutes.post('/grantLeaveByDepartment', leave.grantLeaveByDepartment);
+  //        leaveRoutes.post('/grantLeaveAllEmployee', leave.grantLeaveAllEmployee);
+  leaveRoutes.get('/getEmployeeLeaveBalance', leave.getLeaveBalance);
+  leaveRoutes.post('/hr/createLeaveTransactionReport', leave.createLeaveTransactionReport);
 
-      // Register endpoint: http://localhost:3000/api/master/createVertical
-      masterRoutes.post('/createVertical',ensureAuthenticated, master.createVertical);
+  leaveRoutes.get('/hr/getAllEmployeeLeaveBalance', leave.getAllLeaveBalance);
+  leaveRoutes.get('/hr/getAllEmployeeLeaveDetails', leave.getAllEmployeeLeaveDetails);
+  //        leaveRoutes.get('/getLeaveDetailsByRole', leave.getLeaveDetailsByRole);
+  //        leaveRoutes.post('/addLeaveHoliday', leave.postLeaveHoliday);
+  leaveRoutes.get('/getLeaveHolidays', leave.getHolidays);
+  leaveRoutes.get('/getUpcomingHoliday', leave.getUpcomingHoliday);
+  leaveRoutes.get('/getLeaveTransactionDetails', leave.getLeaveTransactionDetails);
+  leaveRoutes.post('/cancelApproveLeave', leave.cancelApproveLeave);
+  leaveRoutes.post('/autoApproveLeave', leave.autoApproveLeave);
+  leaveRoutes.get('/calculateLeave', leave.calculateLeave);
+  leaveRoutes.get('/uploadCarryForward', leave.uploadCarryForward);
+  //        leaveRoutes.post('/updateLeaveHoliday', leave.updateHoliday);
+  //        leaveRoutes.post('/postLeaveCarry', leave.postLeaveCarry);
+  //        leaveRoutes.post('/removeLeaveHoliday', leave.removeHoliday);
+  //        leaveRoutes.post('/postAcceptRejectLeave', leave.postAcceptRejectLeave);
+  //        leaveRoutes.get('/getLeavesByMonth', leave.getLeavesByMonth);
+  //        leaveRoutes.get('/getLeavesByLeaveType', leave.getLeavesByLeaveType);
+  leaveRoutes.get('/getAllEmployee', leave.getAllEmployee);
+  leaveRoutes.post('/withdrawLeave', leave.withdrawLeave);
+  leaveRoutes.get('/getEmployeeProbationDetails', leave.getEmployeeProbationDetails);
+  //        leaveRoutes.post('/postLeaveTransactionYear', leave.postLeaveTransactionYear);
+  //        leaveRoutes.post('/grantMaternityLeave', leave.grantMaternityLeave);
+  leaveRoutes.get('/getEmpMaternityLeaveDetails', leave.getEmpMaternityLeaveDetails);
+  leaveRoutes.get('/downloadFile', leave.downloadLeaveAttachment);
 
-      // Register endpoint: http://localhost:3000/api/master/createSubVertical
-      masterRoutes.post('/createSubVertical',ensureAuthenticated, master.createSubVertical);
+  //= ========================
 
-      // Register endpoint: http://localhost:3000/api/master/createMaritalStatus
-      masterRoutes.post('/createMaritalStatus',ensureAuthenticated, master.createMaritalStatus);
+  //=======================
+  // Mid term API's
+  //=======================
+  apiRoutes.use('/midterm', midtermRoutes);
+  midtermRoutes.get('/getEmpDetailsForMidTermInitiate', midterm.getEmpDetailsForMidTermInitiate);
+  midtermRoutes.post('/initiateMidTermProcess', midterm.initiateMidTermProcess);
+  midtermRoutes.get('/getMtrDetailsSingleEmployee', midterm.getMtrDetailsSingleEmployee);
+  midtermRoutes.get('/getMtrBySupervisor', midterm.getMtrBySupervisor);
+  midtermRoutes.get('/getMtrBatches', midterm.getMtrBatches);
+  midtermRoutes.post('/postNewMtrKra', midterm.postNewMtrKra);
+  midtermRoutes.post('/updateMtr', midterm.updateMtr);
+  midtermRoutes.post('/deleteMtrKra', midterm.deleteMtrKra);
+  midtermRoutes.post('/mtrSubmit', midterm.mtrSubmit);
+  midtermRoutes.get('/getMtrDetails', midterm.getMtrDetails);
+  midtermRoutes.post('/mtrApproval', midterm.mtrApproval);
+  midtermRoutes.get('/getMtrByReviewer', midterm.getMtrByReviewer);
+  midtermRoutes.post('/updateBatch', midterm.updateBatch);
 
-      // Register endpoint: http://localhost:3000/api/master/createCurrency
-      masterRoutes.post('/createCurrency',ensureAuthenticated, master.createCurrency);
 
-      // Register endpoint: http://localhost:3000/api/master/createGrade
-      masterRoutes.post('/createGrade',ensureAuthenticated, master.createGrade);
 
-      // Register endpoint: http://localhost:3000/api/master/createDesignation
-      masterRoutes.post('/createDesignation',ensureAuthenticated, master.createDesignation);
+  //hr dashboard routes
 
-      // Register endpoint: http://localhost:3000/api/master/createGradeDesignation
-      masterRoutes.post('/createGradeDesignation',ensureAuthenticated, master.createGradeDesignation);
+  //= ========================
+  // Master Data (Dropdowns) Routes 
+  //= ========================
 
-      // Register endpoint: http://localhost:3000/api/master/createLocation
-      masterRoutes.post('/createLocation',ensureAuthenticated, master.createLocation);
+  // User Auth Routes endpoint: http://localhost:3000/api/auth
+  apiRoutes.use('/master', masterRoutes);
 
-      // Register endpoint: http://localhost:3000/api/master/createManagementType
-      masterRoutes.post('/createManagementType',ensureAuthenticated, master.createManagementType);
+  // Register endpoint: http://localhost:3000/api/master/createGrade
+  masterRoutes.post('/createRole', ensureAuthenticated, master.createRole);
 
-      // Register endpoint: http://localhost:3000/api/master/createEmploymentType
-      masterRoutes.post('/createEmploymentType',ensureAuthenticated, master.createEmploymentType);
+  // Register endpoint: http://localhost:3000/api/master/createCompany
+  masterRoutes.post('/createCompany', ensureAuthenticated, master.createCompany);
 
-      // Register endpoint: http://localhost:3000/api/master/createEmploymentStatus
-      masterRoutes.post('/createEmploymentStatus',ensureAuthenticated, master.createEmploymentStatus);
+  // Register endpoint: http://localhost:3000/api/master/createDocument
+  masterRoutes.post('/createDocument', ensureAuthenticated, master.createDocument);
 
-      // Register endpoint: http://localhost:3000/api/master/createEducation
-      masterRoutes.post('/createEducation',ensureAuthenticated, master.createEducation);
+  // Register endpoint: http://localhost:3000/api/master/createCompany
+  masterRoutes.post('/createFacility', ensureAuthenticated, master.createFacility);
 
-      // Register endpoint: http://localhost:3000/api/master/createRelation
-      masterRoutes.post('/createRelation',ensureAuthenticated, master.createRelation);
+  // Register endpoint: http://localhost:3000/api/master/createCompany
+  masterRoutes.post('/createCompanyBusiness', ensureAuthenticated, master.createCompanyBusiness);
 
-      // Register endpoint: http://localhost:3000/api/master/createPerformanceRating
-      masterRoutes.post('/createPerformanceRating',ensureAuthenticated, master.createPerformanceRating);
+  // Register endpoint: http://localhost:3000/api/master/createDivision
+  masterRoutes.post('/createDivision', ensureAuthenticated, master.createDivision);
 
-      // Register endpoint: http://localhost:3000/api/master/createFinancialYear
-      masterRoutes.post('/createFinancialYear',  master.createFinancialYear);
-      masterRoutes.post('/createCompanyFinancialYear',  master.createCompanyFinancialYear);
-      
-     
+  // Register endpoint: http://localhost:3000/api/master/createDepartment
+  masterRoutes.post('/createDepartment', ensureAuthenticated, master.createDepartment);
 
-      
-      //= ========================
+  // Register endpoint: http://localhost:3000/api/master/createVertical
+  masterRoutes.post('/createVertical', ensureAuthenticated, master.createVertical);
 
-      //= ========================
-      // Common Data For All (Dropdowns) Data Routes
-      //= ========================
+  // Register endpoint: http://localhost:3000/api/master/createSubVertical
+  masterRoutes.post('/createSubVertical', ensureAuthenticated, master.createSubVertical);
 
-          apiRoutes.use('/common', commonRoutes);
+  // Register endpoint: http://localhost:3000/api/master/createMaritalStatus
+  masterRoutes.post('/createMaritalStatus', ensureAuthenticated, master.createMaritalStatus);
 
-          commonRoutes.get('/getRole',ensureAuthenticated, common.getRole);
-          commonRoutes.get('/getEmployeeEmailDetails', common.getAllEmployeeEmails);
-          
+  // Register endpoint: http://localhost:3000/api/master/createCurrency
+  masterRoutes.post('/createCurrency', ensureAuthenticated, master.createCurrency);
 
-          commonRoutes.get('/getCompany',ensureAuthenticated, common.getCompany);
+  //= ========================
+  //hr dashboard routes
+  // Register endpoint: http://localhost:3000/api/master/createGrade
+  masterRoutes.post('/createGrade', ensureAuthenticated, master.createGrade);
 
-          commonRoutes.get('/getDocuments',ensureAuthenticated, common.getDocuments);
+  // Register endpoint: http://localhost:3000/api/master/createDesignation
+  masterRoutes.post('/createDesignation', ensureAuthenticated, master.createDesignation);
 
-          commonRoutes.get('/getFacility',ensureAuthenticated, common.getFacility);
+  // Register endpoint: http://localhost:3000/api/master/createGradeDesignation
+  masterRoutes.post('/createGradeDesignation', ensureAuthenticated, master.createGradeDesignation);
 
-          commonRoutes.get('/getCompanyBusiness',ensureAuthenticated, common.getCompanyBusiness);
+  // Register endpoint: http://localhost:3000/api/master/createLocation
+  masterRoutes.post('/createLocation', ensureAuthenticated, master.createLocation);
 
-          commonRoutes.get('/getDivision',ensureAuthenticated, common.getDivision);
+  // Register endpoint: http://localhost:3000/api/master/createManagementType
+  masterRoutes.post('/createManagementType', ensureAuthenticated, master.createManagementType);
 
-          commonRoutes.get('/getDepartment',ensureAuthenticated, common.getDepartment);
+  // Register endpoint: http://localhost:3000/api/master/createEmploymentType
+  masterRoutes.post('/createEmploymentType', ensureAuthenticated, master.createEmploymentType);
 
-          commonRoutes.get('/getVertical',ensureAuthenticated, common.getVertical);
+  // Register endpoint: http://localhost:3000/api/master/createEmploymentStatus
+  masterRoutes.post('/createEmploymentStatus', ensureAuthenticated, master.createEmploymentStatus);
 
-          commonRoutes.get('/getSubVertical',ensureAuthenticated, common.getSubVertical);
+  // Register endpoint: http://localhost:3000/api/master/createEducation
+  masterRoutes.post('/createEducation', ensureAuthenticated, master.createEducation);
 
-          commonRoutes.get('/getGrade',ensureAuthenticated, common.getGrade);
+  // Register endpoint: http://localhost:3000/api/master/createRelation
+  masterRoutes.post('/createRelation', ensureAuthenticated, master.createRelation);
 
-          commonRoutes.get('/getDesignation',ensureAuthenticated, common.getDesignation);
+  // Register endpoint: http://localhost:3000/api/master/createPerformanceRating
+  masterRoutes.post('/createPerformanceRating', ensureAuthenticated, master.createPerformanceRating);
 
-          commonRoutes.get('/getGradeDesignation',ensureAuthenticated, common.getGradeDesignation);
+  // Register endpoint: http://localhost:3000/api/master/createFinancialYear
+  masterRoutes.post('/createFinancialYear', master.createFinancialYear);
+  masterRoutes.post('/createCompanyFinancialYear', master.createCompanyFinancialYear);
 
-          commonRoutes.get('/getLocation',ensureAuthenticated, common.getLocation);
 
-          commonRoutes.get('/getManagementType',ensureAuthenticated, common.getManagementType);
 
-          commonRoutes.get('/getEmploymentType',ensureAuthenticated, common.getEmploymentType);
 
-          commonRoutes.get('/getEmploymentStatus',ensureAuthenticated, common.getEmploymentStatus);
+  //= ========================
 
-          commonRoutes.get('/getEmployee', common.getEmployee);
+  //= ========================
+  // Common Data For All (Dropdowns) Data Routes
+  //= ========================
 
-          commonRoutes.get('/getHr',ensureAuthenticated, common.getHr);
+  apiRoutes.use('/common', commonRoutes);
 
-          commonRoutes.get('/getSupervisor',ensureAuthenticated, common.getSupervisor);
+  commonRoutes.get('/getRole', ensureAuthenticated, common.getRole);
+  commonRoutes.get('/getEmployeeEmailDetails', common.getAllEmployeeEmails);
 
-          commonRoutes.get('/getKraSupervisor',ensureAuthenticated, common.getKraSupervisor);
 
-          commonRoutes.get('/checkEmailExists',ensureAuthenticated, common.checkEmailExists);
+  commonRoutes.get('/getCompany', ensureAuthenticated, common.getCompany);
 
-          commonRoutes.get('/checkUserNameExists',ensureAuthenticated, common.checkUserNameExists);
+  commonRoutes.get('/getDocuments', ensureAuthenticated, common.getDocuments);
 
-          commonRoutes.get('/getEducation',ensureAuthenticated, common.getEducation);
+  commonRoutes.get('/getFacility', ensureAuthenticated, common.getFacility);
 
-          commonRoutes.get('/getPerformanceRating',ensureAuthenticated, common.getPerformanceRating);
+  commonRoutes.get('/getCompanyBusiness', ensureAuthenticated, common.getCompanyBusiness);
 
-          commonRoutes.get('/getRelation',ensureAuthenticated, common.getRelation);
+  commonRoutes.get('/getDivision', ensureAuthenticated, common.getDivision);
 
-          commonRoutes.get('/getTabStatus',ensureAuthenticated, common.getTabStatus);
+  commonRoutes.get('/getDepartment', ensureAuthenticated, common.getDepartment);
 
-          commonRoutes.post('/sendEmail',ensureAuthenticated, common.sendEmail);
+  commonRoutes.get('/getVertical', ensureAuthenticated, common.getVertical);
 
-          commonRoutes.post('/resetPasswordByHr',ensureAuthenticated, common.resetPasswordByHr);
+  commonRoutes.get('/getSubVertical', ensureAuthenticated, common.getSubVertical);
 
-          commonRoutes.get('/getEmployeeRoles',ensureAuthenticated,common.getEmployeeRoles);
+  commonRoutes.get('/getGrade', ensureAuthenticated, common.getGrade);
 
-          commonRoutes.post('/addEmployeeRole',ensureAuthenticated,common.addEmployeeRole);
+  commonRoutes.get('/getDesignation', ensureAuthenticated, common.getDesignation);
 
-          commonRoutes.post('/updateEmployeeRole',ensureAuthenticated,common.updateEmployeeRole);
+  commonRoutes.get('/getGradeDesignation', ensureAuthenticated, common.getGradeDesignation);
 
-          commonRoutes.get('/getEmployeeDocument',ensureAuthenticated, common.getEmployeeDocument);
+  commonRoutes.get('/getLocation', ensureAuthenticated, common.getLocation);
 
-          commonRoutes.get('/getEmployeeSupervisor',ensureAuthenticated, common.getEmployeeSupervisor);
+  commonRoutes.get('/getManagementType', ensureAuthenticated, common.getManagementType);
 
-          commonRoutes.post('/addEmployeeSupervisor',ensureAuthenticated, common.addEmployeeSupervisor);
+  commonRoutes.get('/getEmploymentType', ensureAuthenticated, common.getEmploymentType);
 
-          commonRoutes.post('/updateEmployeeSupervisor',ensureAuthenticated, common.updateEmployeeSupervisor);
+  commonRoutes.get('/getEmploymentStatus', ensureAuthenticated, common.getEmploymentStatus);
 
-          commonRoutes.get('/getKraCategoryInfo',ensureAuthenticated, common.getKraCategoryInfo);
+  commonRoutes.get('/getEmployee', common.getEmployee);
 
-          commonRoutes.get('/getKraWeightageInfo',ensureAuthenticated, common.getKraWeightageInfo);
-           
-          commonRoutes.get('/getFinincialYear', ensureAuthenticated,  common.getFinincialYear);
-          // commonRoutes.get('/sendNotification',ensureAuthenticated, common.sendNotification);
-          commonRoutes.get('/getPrePost_Report', common.getPrePost_Report);
-          commonRoutes.get('/prepareProdClone', common.prepareProdClone);
-        
-      //= ========================
+  commonRoutes.get('/getHr', ensureAuthenticated, common.getHr);
 
+  commonRoutes.get('/getSupervisor', ensureAuthenticated, common.getSupervisor);
 
-      //=========================
-      // External Documents Routes
-      //=========================
-        apiRoutes.use('/externalDocument', externalDocumentRoutes);
+  commonRoutes.get('/getKraSupervisor', ensureAuthenticated, common.getKraSupervisor);
 
-        externalDocumentRoutes.post('/addEmployeeExternalDocumentInfo',ensureAuthenticated, externalDocument.addEmployeeExternalDocumentInfo);
+  commonRoutes.get('/checkEmailExists', ensureAuthenticated, common.checkEmailExists);
 
-        externalDocumentRoutes.post('/updateEmployeeExternalDocumentInfo',ensureAuthenticated, externalDocument.updateEmployeeExternalDocumentInfo);
+  commonRoutes.get('/checkUserNameExists', ensureAuthenticated, common.checkUserNameExists);
 
-        externalDocumentRoutes.post('/deleteEmployeeExternalDocumentInfo',ensureAuthenticated, externalDocument.deleteEmployeeExternalDocumentInfo);
+  commonRoutes.get('/getEducation', ensureAuthenticated, common.getEducation);
 
-        externalDocumentRoutes.get('/getEmployeeExternalDocumentInfo',ensureAuthenticated, externalDocument.getEmployeeExternalDocumentInfo);
-      
-      //= ======================== 
-      
-      
-      
-      //=========================
-      // External Documents Routes
-      //=========================
-      apiRoutes.use('/batch', batchRoutes);
+  commonRoutes.get('/getPerformanceRating', ensureAuthenticated, common.getPerformanceRating);
 
-      batchRoutes.get('/getBatchInfo',ensureAuthenticated, batch.functions.getBatchInfo);
+  commonRoutes.get('/getRelation', ensureAuthenticated, common.getRelation);
 
-      batchRoutes.post('/updateBatchInfo',ensureAuthenticated, batch.functions.updateBatchInfo);
+  commonRoutes.get('/getTabStatus', ensureAuthenticated, common.getTabStatus);
 
-      batchRoutes.post('/updateBatchInfo',ensureAuthenticated, batch.functions.updateBatchInfo);
-      
-      batchRoutes.get('/getBatchInfoByEmp',ensureAuthenticated, batch.functions.getBatchInfoByEmp);
-      
+  commonRoutes.post('/sendEmail', ensureAuthenticated, common.sendEmail);
 
-    //= ======================== 
-      
-          
-      //= ========================
-      // Upload Routes
-      //= ========================
-          apiRoutes.use('/upload', uploadRoutes);
+  commonRoutes.post('/resetPasswordByHr', ensureAuthenticated, common.resetPasswordByHr);
 
-          // upload document
-          uploadRoutes.post('/document', upload.uploadDocument);
+  commonRoutes.get('/getEmployeeRoles', ensureAuthenticated, common.getEmployeeRoles);
 
-          // upload profile image
-          uploadRoutes.post('/profile', upload.uploadProfile);
-      
-          //delete  Image
-          uploadRoutes.post('/deleteImage',upload.deleteImage);
-      //= ========================
+  commonRoutes.post('/addEmployeeRole', ensureAuthenticated, common.addEmployeeRole);
 
-      // Set url for API group routes, all endpoints start with /api/ eg http://localhost:3000/api/admin  || http://localhost:3000/api/auth
-      app.use('/api', apiRoutes);
-    };
+  commonRoutes.post('/updateEmployeeRole', ensureAuthenticated, common.updateEmployeeRole);
+
+  commonRoutes.get('/getEmployeeDocument', ensureAuthenticated, common.getEmployeeDocument);
+
+  commonRoutes.get('/getEmployeeSupervisor', ensureAuthenticated, common.getEmployeeSupervisor);
+
+  commonRoutes.post('/addEmployeeSupervisor', ensureAuthenticated, common.addEmployeeSupervisor);
+
+  commonRoutes.post('/updateEmployeeSupervisor', ensureAuthenticated, common.updateEmployeeSupervisor);
+
+  commonRoutes.get('/getKraCategoryInfo', ensureAuthenticated, common.getKraCategoryInfo);
+
+  commonRoutes.get('/getKraWeightageInfo', ensureAuthenticated, common.getKraWeightageInfo);
+
+  commonRoutes.get('/getFinincialYear', ensureAuthenticated, common.getFinincialYear);
+  // commonRoutes.get('/sendNotification',ensureAuthenticated, common.sendNotification);
+  commonRoutes.get('/getPrePost_Report', common.getPrePost_Report);
+
+  //= ========================
+
+
+  //=========================
+  // External Documents Routes
+  //=========================
+  apiRoutes.use('/externalDocument', externalDocumentRoutes);
+
+  externalDocumentRoutes.post('/addEmployeeExternalDocumentInfo', ensureAuthenticated, externalDocument.addEmployeeExternalDocumentInfo);
+
+  externalDocumentRoutes.post('/updateEmployeeExternalDocumentInfo', ensureAuthenticated, externalDocument.updateEmployeeExternalDocumentInfo);
+
+  externalDocumentRoutes.post('/deleteEmployeeExternalDocumentInfo', ensureAuthenticated, externalDocument.deleteEmployeeExternalDocumentInfo);
+
+  externalDocumentRoutes.get('/getEmployeeExternalDocumentInfo', ensureAuthenticated, externalDocument.getEmployeeExternalDocumentInfo);
+
+  //= ======================== 
+
+
+
+  //=========================
+  // External Documents Routes
+  //=========================
+  apiRoutes.use('/batch', batchRoutes);
+
+  batchRoutes.get('/getBatchInfo', ensureAuthenticated, batch.functions.getBatchInfo);
+
+  batchRoutes.post('/updateBatchInfo', ensureAuthenticated, batch.functions.updateBatchInfo);
+
+  batchRoutes.post('/updateBatchInfo', ensureAuthenticated, batch.functions.updateBatchInfo);
+
+  batchRoutes.get('/getBatchInfoByEmp', ensureAuthenticated, batch.functions.getBatchInfoByEmp);
+
+
+  //= ======================== 
+
+
+  //= ========================
+  // Upload Routes
+  //= ========================
+  apiRoutes.use('/upload', uploadRoutes);
+
+  // upload document
+  uploadRoutes.post('/document', upload.uploadDocument);
+
+  // upload profile image
+  uploadRoutes.post('/profile', upload.uploadProfile);
+
+  //delete  Image
+  uploadRoutes.post('/deleteImage', upload.deleteImage);
+  //= ========================
+
+  // Set url for API group routes, all endpoints start with /api/ eg http://localhost:3000/api/admin  || http://localhost:3000/api/auth
+  app.use('/api', apiRoutes);
+};
 

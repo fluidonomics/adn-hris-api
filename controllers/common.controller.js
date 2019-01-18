@@ -1345,12 +1345,15 @@ let functions = {
                     });
                 }
 
-                let supervisorData = [];
-                supervisorData.push({ "_id": results[0].primarySupervisor._id, "fullName": results[0].primarySupervisor.fullName })
-                if (results[0].secondarySupervisor.length > 0) {
-                    supervisorData.push({ "_id": results[0].secondarySupervisor[0]._id, "fullName": results[0].secondarySupervisor[0].fullName })
+              let supervisorData=[];
+            if(results.length>0){
+                supervisorData.push({"_id":results[0].primarySupervisor._id,"fullName":results[0].primarySupervisor.fullName})
+                if(results[0].secondarySupervisor.length > 0)
+                {
+                    supervisorData.push({"_id":results[0].secondarySupervisor[0]._id,"fullName":results[0].secondarySupervisor[0].fullName})
                 }
-                return res.status(200).json(supervisorData);
+            }
+              return res.status(200).json(supervisorData);
 
 
             });
