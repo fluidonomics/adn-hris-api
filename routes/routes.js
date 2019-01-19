@@ -383,6 +383,10 @@ module.exports = (app) => {
   learningRoutes.get("/lerningdetails", learning.getLearningDetailsSingleEmployee);
   learningRoutes.get("/learningbysuperviser", learning.getLearningForSuperviser);
   learningRoutes.post("/submitlearning", learning.submitLearning);
+  learningRoutes.get("/learningbyreviewer", learning.learningByReviewer);
+  learningRoutes.post("/learningapproval", learning.learningApproval);
+  learningRoutes.post("/updatebatch", learning.updateBatch);
+  learningRoutes.get("/getlearningbatch", learning.getLearningBatch);
 
 
 
