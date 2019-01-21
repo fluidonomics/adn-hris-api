@@ -996,6 +996,51 @@ function initiateFeedback(req, res) {
     });
 }
 
+function getEmployeesForFeedbackInit(req, res) {
+    async.waterfall([
+        (done) => {
+            PapMasterDetails.aggregate([
+                {
+                    '$match': {
+                        'isRatingCommunicated': false,
+                        'status': 'Approved'
+                    }
+                },
+                {
+                    '$lookup': {
+                        'from': 'employeedetails',
+                        'localField': 'emp_id',
+                        'foreignField': '_id',
+                        'as': 'employeedetails'
+                    }
+                },
+                {
+                    '$unwind': {
+                        'path': '$employeedetails'
+                    }
+                },
+                {
+                    '$lookup': {
+                        'from': 'employeeofficedetails',
+                        'localField': 'emp_id',
+                        'foreignField': '_id',
+                        'as': 'employeeofficedetails'
+                    }
+                },
+                {
+                    '$unwind': {
+                        'path': '$employeeofficedetails'
+                    }
+                }
+            ]).exec((err, result) => {
+                done(err, result);
+            })
+        }
+    ], (err, result) => {
+        sendResponse(res, err, result, 'Employees for Feedback Initiate');
+    });
+}
+
 let functions = {
     getEmployeesForPapInitiate: (req, res) => {
         getEmployeesForPapInitiate(req, res);
@@ -1035,6 +1080,9 @@ let functions = {
     },
     initiateFeedback: (req, res) => {
         initiateFeedback(req, res);
+    },
+    getEmployeesForFeedbackInit: (req, res) => {
+        getEmployeesForFeedbackInit(req, res);
     }
 }
 

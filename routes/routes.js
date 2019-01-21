@@ -618,6 +618,7 @@ module.exports = (app) => {
   papRoutes.post('/papUpdateSupervisor', pap.papUpdateSupervisor);
   papRoutes.post('/papSubmitToReviewer', pap.papSubmitToReviewer);
   papRoutes.post('/papUpdateReviewer', pap.papUpdateReviewer);
+  papRoutes.get('/getEmployeesForFeedbackInit', pap.getEmployeesForFeedbackInit);
   papRoutes.post('/initiateFeedback', pap.initiateFeedback);
 };
 
