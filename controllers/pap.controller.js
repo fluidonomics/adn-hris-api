@@ -962,6 +962,40 @@ function papSubmitToReviewer(req, res) {
     })
 }
 
+function initiateFeedback(req, res) {
+    async.waterfall([
+        (done) => {
+            let updateQuery = {
+                "updatedAt": new Date(),
+                "updatedBy": parseInt(req.body.updatedBy),
+                "isRatingCommunicated": true
+            }
+            let updateCondition = {
+                'emp_id': {
+                    '$in': req.body.empIds
+                }
+            };
+
+            PapMasterDetails.update(updateCondition, updateQuery, (err, res) => {
+                done(err, res);
+            });
+        },
+        (PapMasterDetails, done) => {
+            AuditTrail.auditTrailEntry(
+                0,
+                "PapMasterDetails",
+                PapMasterDetails,
+                "PAP",
+                "initiateFeedback",
+                "UPDATED"
+            );
+            done(null, PapMasterDetails);
+        }
+    ], (err, result) => {
+        sendResponse(res, err, result, 'Feedback Initiated successfully');
+    });
+}
+
 let functions = {
     getEmployeesForPapInitiate: (req, res) => {
         getEmployeesForPapInitiate(req, res);
@@ -998,6 +1032,9 @@ let functions = {
     },
     papSubmitToReviewer: (req, res) => {
         papSubmitToReviewer(req, res);
+    },
+    initiateFeedback: (req, res) => {
+        initiateFeedback(req, res);
     }
 }
 
