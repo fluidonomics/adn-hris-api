@@ -9,6 +9,7 @@ let express = require('express'),
   leave = require('../controllers/leave.controller'),
   midterm = require('../controllers/midterm.controller'),
   learning = require('../controllers/learning.controller'),
+  pip = require('../controllers/pip.controller'),
 externalDocument = require('../controllers/externalDocument.controller'),
   Employee = require('../models/employee/employeeDetails.model'),
   batch = require('../controllers/batch.controller'),
@@ -70,6 +71,7 @@ module.exports = (app) => {
     leaveRoutes = express.Router(),
     midtermRoutes = express.Router(),
     learningRoutes = express.Router();
+    pipRoutes = express.Router();
     hrRoutes = express.Router(),
     externalDocumentRoutes = express.Router(),
     batchRoutes = express.Router(),
@@ -388,8 +390,13 @@ module.exports = (app) => {
   learningRoutes.post("/updatebatch", learning.updateBatch);
   learningRoutes.get("/getlearningbatch", learning.getLearningBatch);
 
+//==============================
+  //PIP API's
+  //==============================
 
-
+  apiRoutes.use('/pip', pipRoutes);
+  pipRoutes.post("/initiatepip", pip.initiatePipProcess);
+  
 
   //hr dashboard routes
 
