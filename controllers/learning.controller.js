@@ -172,6 +172,7 @@ function InsertLearning(req, res) {
   learningDetails.developmentPlan = req.body.developmentPlan;
   learningDetails.timelines = req.body.timelines;
   learningDetails.supportRequired = req.body.supportRequired;
+  learningDetails.supervisorComment = req.body.supervisorComment;
 
   learningDetails.save(function (err, response) {
     if (err) {
@@ -226,6 +227,20 @@ function GetLearningDetailsEmployee(req, res) {
       }
     },
     {
+      $lookup: {
+        from: "employeedetails",
+        localField: "supervisor_id",
+        foreignField: "_id",
+        as: "emp_supervisor_details"
+      }
+    },
+    {
+      $unwind: {
+        path: "$emp_supervisor_details",
+        preserveNullAndEmptyArrays: true
+      }
+    },
+    {
       $project: {
 
         id: "$_id",
@@ -240,7 +255,11 @@ function GetLearningDetailsEmployee(req, res) {
         developmentArea: "$developmentArea",
         developmentPlan: "$developmentPlan",
         timelines: "$timelines",
-        supportRequired: "$supportRequired"
+        supportRequired: "$supportRequired",
+        superviserComment: "$superviserComment",
+        measureOfSuccess: "$measureOfSuccess",
+        employeeComment: "$employeeComment",
+        supervisor_full_name: "$emp_supervisor_details.fullName"
 
       }
     }
@@ -272,7 +291,7 @@ function GetLearningDetailsEmployee(req, res) {
 function getLearningBySupervisor(req, res) {
 
   let supervisor_id = parseInt(req.query.supervisorId);
-  let status = 'Submitted';
+  let status = req.query.supervisorId;
   LearningDetails.aggregate([
     {
       $match: {

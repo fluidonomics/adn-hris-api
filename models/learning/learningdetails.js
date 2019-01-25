@@ -18,7 +18,9 @@ let LearningDetailsSchema = new Schema(
     developmentArea: { type: String, default: null },
     developmentPlan: { type: String, default: null },
     timelines: { type: String, default: null },
-    supportRequired: { type: String, default: null }
+    supportRequired: { type: String, default: null },
+    employeeComment: { type: String, default: null },
+    superviserComment: { type: String, default: null }
   },
   {
     timestamps: true,
