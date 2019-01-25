@@ -291,7 +291,7 @@ function GetLearningDetailsEmployee(req, res) {
 function getLearningBySupervisor(req, res) {
 
   let supervisor_id = parseInt(req.query.supervisorId);
-  let status = req.query.supervisorId;
+  let status = req.query.status;
   LearningDetails.aggregate([
     {
       $match: {
