@@ -121,6 +121,20 @@ function GetLearningSingleEmployee(req, res) {
         path: "$learning_master_details"
       }
     },
+
+    {
+      $lookup: {
+        from: "employeedetails",
+        localField: "learning_master_details.createdBy",
+        foreignField: "_id",
+        as: "learning_batch_creator"
+      }
+    },
+    {
+      $unwind: {
+        path: "$learning_batch_creator"
+      }
+    },
     {
       $project: {
 
@@ -129,10 +143,12 @@ function GetLearningSingleEmployee(req, res) {
         createdAt: "$learning_master_details.createdAt",
         batchEndDate: "$learning_master_details.batchEndDate",
         status: "$status",
-        batchName: "$learning_master_details._id"
+        batchName: "$learning_master_details._id",
+        createdByName: "$learning_batch_creator.fullName"
 
       }
-    }
+    },
+    { $sort : { createdAt : -1} }
   ]).exec(function (err, data) {
 
     if (err) {
@@ -173,35 +189,90 @@ function InsertLearning(req, res) {
   learningDetails.timelines = req.body.timelines;
   learningDetails.supportRequired = req.body.supportRequired;
   learningDetails.supervisorComment = req.body.supervisorComment;
+  learningDetails.employeeComment = req.body.employeeComment;
 
-  learningDetails.save(function (err, response) {
-    if (err) {
-      return res.status(403).json({
-        title: "There is a problem",
-        error: {
-          message: err
-        },
-        result: {
-          message: response
+  if(req.body._id != null) {
+
+    let updateQuery = {
+      weightage_id: req.body.weightage_id
+        ? parseInt(req.body.weightage_id)
+        : null,
+      supervisor_id: parseInt(req.body.supervisor_id),
+      measureOfSuccess: req.body.measureOfSuccess,
+      progressStatus: req.body.progressStatus,
+      employeeComment: req.body.employeeComment,
+      status: req.body.status,
+      developmentArea: req.body.developmentArea,
+      supportRequired: req.body.supportRequired,
+      developmentPlan: req.body.developmentPlan,
+      timelines: req.body.timelines,
+      updatedBy: parseInt(req.body.updatedBy),
+      updatedAt: new Date()
+    };
+  
+    LearningDetails.findOneAndUpdate(
+      { _id: parseInt(req.body._id) },
+      updateQuery,
+      (err, response) => {
+        if (err) {
+          return res.status(403).json({
+            title: "There is a problem",
+            error: {
+              message: err
+            },
+            result: {
+              message: response
+            }
+          });
+        } else {
+          AuditTrail.auditTrailEntry(
+            0,
+            "LearningDetails",
+            response,
+            "user",
+            "LearningDetails",
+            "UPDATED"
+          );
+          return res.status(200).json({
+            title: "Learning Updated",
+            result: {
+              message: response
+            }
+          });
         }
-      });
-    } else {
-      AuditTrail.auditTrailEntry(
-        0,
-        "LearningDetails",
-        response,
-        "user",
-        "LearningDetails",
-        "ADDED"
-      );
-      return res.status(200).json({
-        title: "New Topic Added",
-        result: {
-          message: response
-        }
-      });
-    }
-  });
+      }
+    );
+  } else {
+
+    learningDetails.save(function (err, response) {
+      if (err) {
+        return res.status(403).json({
+          title: "There is a problem",
+          error: {
+            message: err
+          },
+          result: {
+            message: response
+          }
+        });
+      } else {
+        AuditTrail.auditTrailEntry(
+          0,
+          "LearningDetails",
+          response,
+          "user",
+          "LearningDetails",
+          "ADDED"
+        );
+        return res.status(200).json({
+          title: "New Topic Added",
+          result: {
+            message: response
+          }
+        });
+      }
+    });
+  }
 }
 
 function GetLearningDetailsEmployee(req, res) {
@@ -262,7 +333,8 @@ function GetLearningDetailsEmployee(req, res) {
         supervisor_name: "$emp_supervisor_details.fullName"
 
       }
-    }
+    },
+    { $sort : { createdAt : -1} }
 
   ]).exec(function (err, data) {
 
@@ -333,6 +405,7 @@ function getLearningBySupervisor(req, res) {
       }
     },
     { $match: { status: status } },
+    { $sort : { createdAt : -1} },
     {
       $group: {
         _id: "$learningMasterId",
@@ -530,6 +603,7 @@ function getLearningByReviewer(req, res) {
       }
     },
     // { $match: { status: status } },
+    { $sort : { createdAt : -1} },
     {
       $group: {
         _id: "$learningMasterId",
@@ -831,6 +905,7 @@ function getLearningBatch(req, res) {
         }
       }
     },
+    { $sort : { createdAt : -1} },
     {
       $group: {
         _id: "$_id",
