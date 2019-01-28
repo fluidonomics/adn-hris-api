@@ -256,10 +256,10 @@ function GetLearningDetailsEmployee(req, res) {
         developmentPlan: "$developmentPlan",
         timelines: "$timelines",
         supportRequired: "$supportRequired",
-        superviserComment: "$superviserComment",
+        supervisorComment: "$supervisorComment",
         measureOfSuccess: "$measureOfSuccess",
         employeeComment: "$employeeComment",
-        supervisor_full_name: "$emp_supervisor_details.fullName"
+        supervisor_name: "$emp_supervisor_details.fullName"
 
       }
     }
