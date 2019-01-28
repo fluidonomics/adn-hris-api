@@ -8,11 +8,12 @@ let PapMasterSchema = new Schema(
     batch_id: { type: Number, ref: 'papBatch' },
     emp_id: { type: Number, ref: 'employeedetails' },
     status: { type: String, default: 'Initiated' },
-    mtr_master_id: { type: Number, ref: 'midtermmaster'},
-    isRatingCommunicated: { type: Boolean, default: false},
+    mtr_master_id: { type: Number, ref: 'midtermmaster' },
+    isRatingCommunicated: { type: Boolean, default: false },
     updatedBy: { type: Number, default: null },
     createdBy: { type: Number, required: true },
-    isDeleted: { type: Boolean, default: false }
+    isDeleted: { type: Boolean, default: false },
+    grievanceStatus: { type: String, default: null }
   },
   {
     timestamps: true,

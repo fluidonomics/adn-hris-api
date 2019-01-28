@@ -620,5 +620,7 @@ module.exports = (app) => {
   papRoutes.post('/papUpdateReviewer', pap.papUpdateReviewer);
   papRoutes.get('/getEmployeesForFeedbackInit', pap.getEmployeesForFeedbackInit);
   papRoutes.post('/initiateFeedback', pap.initiateFeedback);
+  papRoutes.post('/initiateGrievance', pap.initiateGrievance);
+  papRoutes.get('/getEmployeesForGrievance', pap.getEmployeesForGrievance);
 };
 
