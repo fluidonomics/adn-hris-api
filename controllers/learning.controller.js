@@ -405,14 +405,14 @@ function getLearningBySupervisor(req, res) {
       }
     },
     { $match: { status: status } },
-    { $sort : { createdAt : -1} },
     {
       $group: {
         _id: "$learningMasterId",
         emp_details: { $first: "$emp_details" },
         learning_master_details: { $first: "$learning_master_details" }
       }
-    }
+    },
+    { $sort : { createdAt : -1} }
   ]).exec(function (err, data) {
     if (err) {
       return res.status(403).json({
@@ -603,14 +603,14 @@ function getLearningByReviewer(req, res) {
       }
     },
     // { $match: { status: status } },
-    { $sort : { createdAt : -1} },
     {
       $group: {
         _id: "$learningMasterId",
         emp_details: { $first: "$emp_details" },
         learning_master_details: { $first: "$learning_master_details" }
       }
-    }
+    },
+    { $sort : { createdAt : -1} }
   ]).exec(function (err, data) {
     if (err) {
       return res.status(403).json({
@@ -905,7 +905,7 @@ function getLearningBatch(req, res) {
         }
       }
     },
-    { $sort : { createdAt : -1} },
+
     {
       $group: {
         _id: "$_id",
@@ -919,7 +919,8 @@ function getLearningBatch(req, res) {
         batchName: { $first: "$batchName" },
         learning_master: { $push: "$learning_master" }
       }
-    }
+    },
+    { $sort : { createdAt : -1} }
   ]).exec(function (err, data) {
     if (err) {
       return res.status(403).json({
