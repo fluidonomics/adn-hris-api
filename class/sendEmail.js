@@ -539,6 +539,44 @@ let functions =
             }
         };
         transporter.sendMail(mailOptions, callback);
+    },
+    sendEmailToSupervisorToApproveLearning: (data, callback) => {
+        if (data.supervisor_email === null || data.supervisor_email === "") {
+            return
+        }
+        let mailOptions = {
+            from: config.email.sendEmailToSupervisorToApproveLearning.from, // sender address
+            to: data.supervisor_email,
+            subject: config.email.sendEmailToSupervisorToApproveLearning.subject, // Subject line
+            template: 'email-notify-to-supvsr-for-learning-approve',
+            context: {
+                fullName: data.supervisor_name,
+                appliedDate: moment(new Date()).format('L'),
+                link: data.action_link,
+                empName: data.user_name
+            }
+        };
+        transporter.sendMail(mailOptions, callback);
+    },
+
+    sendEmailToUserAboutLearningStatus: (data, callback) => {
+        if (data.user_email === null || data.user_email === "") {
+            return
+        }
+        let mailOptions = {
+            from: config.email.sendEmailToEmployeeForLearningStatus.from, // sender address
+            to: data.user_email,
+            subject: config.email.sendEmailToEmployeeForLearningStatus.subject, // Subject line
+            template: 'email-notify-to-emp-for-learning-status',
+            context: {
+                fullName: data.supervisor_name,
+                appliedDate: moment(new Date()).format('L'),
+                link: data.action_link,
+                empName: data.user_name,
+                isApproved: data.isApproved
+            }
+        };
+        transporter.sendMail(mailOptions, callback);
     }
 }
 

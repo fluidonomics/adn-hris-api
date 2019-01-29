@@ -1,6 +1,8 @@
 let LearningBatch = require("../models/learning/learningbatch"),
 LearningMaster = require("../models/learning/learningmaster"),
 LearningDetails = require("../models/learning/learningdetails"),
+AuditTrail = require("../class/auditTrail"),
+SendEmail = require('../class/sendEmail'),
 EmployeeSupervisorDetails = require("../models/employee/employeeSupervisorDetails.model");
 
 
@@ -177,7 +179,7 @@ function InsertLearning(req, res) {
 
   let learningDetails = new LearningDetails();
   learningDetails.master_id = parseInt(req.body.master_id);
-  learningDetails.supervisor_id = parseInt(req.body.supervisor_id);
+  learningDetails.supervisor_id = parseInt(req.body.supervisorId);
   learningDetails.status = req.body.status;
   learningDetails.measureOfSuccess = req.body.measureOfSuccess;
   learningDetails.isDeleted = req.body.isDeleted;
@@ -197,7 +199,7 @@ function InsertLearning(req, res) {
       weightage_id: req.body.weightage_id
         ? parseInt(req.body.weightage_id)
         : null,
-      supervisor_id: parseInt(req.body.supervisor_id),
+      supervisor_id: parseInt(req.body.supervisorId),
       measureOfSuccess: req.body.measureOfSuccess,
       progressStatus: req.body.progressStatus,
       employeeComment: req.body.employeeComment,
@@ -521,7 +523,7 @@ function submitEmployeeLearning(req, res) {
       } else {
         email_details.supervisor_name = result.emp[0].user_name;
         email_details.supervisor_email = result.emp[0].officeEmail;
-        SendEmail.sendEmailToSupervisorToApproveMtr(email_details, (email_err, email_result) => {
+        SendEmail.sendEmailToSupervisorToApproveLearning(email_details, (email_err, email_result) => {
           if (email_err) {
             return res.status(300).json({
               title: "Learning submitted, failed sending email to supervisor",
@@ -755,16 +757,16 @@ function getLearningApproval(req, res) {
         });
       } else {
         // #70 fix, email fix
-        if (isLearningApproved === "Approved") {
+        if (isApproved === "Approved") {
           email_details.user_name = result.emp[0].user_name;
           email_details.user_email = result.emp[0].officeEmail;
           if (email_details.user_email) {
-            SendEmail.sendEmailToUserAboutMtrStatus(email_details, (email_err, email_result) => {
+            SendEmail.sendEmailToUserAboutLearningStatus(email_details, (email_err, email_result) => {
               if (email_err) {
                 return res.status(300).json({
-                  title: "Learning review approved, failed sending email to employee",
+                  title: "Learning agenda approved, failed sending email to employee",
                   error: {
-                    message: "Learning review approved, failed sending email to employee"
+                    message: "Learning agenda approved, failed sending email to employee"
                   },
                   result: {
                     message: result
@@ -772,7 +774,7 @@ function getLearningApproval(req, res) {
                 });
               } else {
                 return res.status(200).json({
-                  title: "Learning review approved, and email sent to employee",
+                  title: "Learning agenda approved, and email sent to employee",
                   result: {
                     message: result
                   }
@@ -781,9 +783,9 @@ function getLearningApproval(req, res) {
             });
           } else {
             return res.status(300).json({
-              title: "Learning review approved, failed sending email to employee",
+              title: "Learning agenda approved, failed sending email to employee",
               error: {
-                message: "Learning review approved, failed sending email to employee"
+                message: "Learning agenda approved, failed sending email to employee"
               },
               result: {
                 message: result
@@ -792,7 +794,7 @@ function getLearningApproval(req, res) {
           }
         } else {
           return res.status(200).json({
-            title: "Learning review submitted",
+            title: "Learning agenda submitted",
             result: {
               message: result
             }
@@ -884,7 +886,7 @@ function getLearningBatch(req, res) {
       $project: {
         _id: 1,
         updatedAt: 1,
-        createdAt: 1,
+        createdAt: -1,
         isDeleted: 1,
         status: 1,
         updatedBy: 1,
