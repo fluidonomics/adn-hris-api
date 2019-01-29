@@ -757,7 +757,7 @@ function getLearningApproval(req, res) {
         });
       } else {
         // #70 fix, email fix
-        if (isApproved === "Approved") {
+        if (email_details.isApproved === "Approved") {
           email_details.user_name = result.emp[0].user_name;
           email_details.user_email = result.emp[0].officeEmail;
           if (email_details.user_email) {
