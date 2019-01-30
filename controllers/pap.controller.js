@@ -1155,7 +1155,7 @@ function getEmployeesForGrievance(req, res) {
         (done) => {
             PapMasterDetails.aggregate([{
                 '$match': {
-                    'grievanceStatus': Initiated
+                    'grievanceStatus': 'Initiated'
                 }
             },
             {
