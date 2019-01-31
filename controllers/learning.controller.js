@@ -552,6 +552,7 @@ function submitEmployeeLearning(req, res) {
 function getLearningByReviewer(req, res) {
 
   let reviewerId = parseInt(req.query.reviewerId);
+  //console.log("primary id : ", primarySupervisorEmp_id);
 
   EmployeeSupervisorDetails.aggregate([
     {
@@ -598,20 +599,22 @@ function getLearningByReviewer(req, res) {
     },
     {
       $project: {
-        learningMasterId: "$master_id",
+        learningMasterId: "$learning_master_details._id",
         emp_details: "$emp_details",
+        learning_details: "$learning_details",
         learning_master_details: "$learning_master_details",
         status: "$learning_master_details.status"
       }
     },
     // { $match: { status: status } },
-    {
-      $group: {
-        _id: "$learningMasterId",
-        emp_details: { $first: "$emp_details" },
-        learning_master_details: { $first: "$learning_master_details" }
-      }
-    },
+    // {
+    //   $group: {
+    //     _id: "$learningMasterId",
+    //     emp_details: { $first: "$emp_details" },
+    //     learning_master_details: { $first: "$learning_master_details" },
+    //     learning_details: { $first: "$learning_details"}
+    //   }
+    // },
     { $sort : { createdAt : -1} }
   ]).exec(function (err, data) {
     if (err) {
