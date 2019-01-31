@@ -403,18 +403,20 @@ function getLearningBySupervisor(req, res) {
         learningMasterId: "$master_id",
         emp_details: "$emp_details",
         learning_master_details: "$learning_master_details",
-        status: "$learning_master_details.status"
+        status: "$learning_master_details.status",
+        updatedAt: "$updatedAt"
       }
     },
     { $match: { status: status } },
+    { $sort : { updatedAt : -1} },
     {
       $group: {
         _id: "$learningMasterId",
         emp_details: { $first: "$emp_details" },
         learning_master_details: { $first: "$learning_master_details" }
       }
-    },
-    { $sort : { createdAt : -1} }
+    }
+    
   ]).exec(function (err, data) {
     if (err) {
       return res.status(403).json({
@@ -442,7 +444,7 @@ function submitEmployeeLearning(req, res) {
 
   let learning_master_id = parseInt(req.body.masterId);
   let emp_id = parseInt(req.body.empId);
-  let supervisor_id = parseInt(req.body.supervisor_id);
+  let supervisor_id = parseInt(req.body.supervisorId);
   let email_details = {
     supervisor_email: '',
     supervisor_name: '',
@@ -553,6 +555,7 @@ function getLearningByReviewer(req, res) {
 
   let reviewerId = parseInt(req.query.reviewerId);
   //console.log("primary id : ", primarySupervisorEmp_id);
+  let statusTemp = "Approved";
 
   EmployeeSupervisorDetails.aggregate([
     {
@@ -601,20 +604,23 @@ function getLearningByReviewer(req, res) {
       $project: {
         learningMasterId: "$learning_master_details._id",
         emp_details: "$emp_details",
-        learning_details: "$learning_details",
+        //learning_details: "$learning_details",
         learning_master_details: "$learning_master_details",
         status: "$learning_master_details.status"
       }
     },
-    // { $match: { status: status } },
-    // {
-    //   $group: {
-    //     _id: "$learningMasterId",
-    //     emp_details: { $first: "$emp_details" },
-    //     learning_master_details: { $first: "$learning_master_details" },
-    //     learning_details: { $first: "$learning_details"}
-    //   }
-    // },
+    { $match: { status: statusTemp } },
+    {
+      $group: {
+        _id: "$learningMasterId",
+        // emp_details: "$emp_details",
+        // learning_master_details: "$learning_master_details",
+        // learning_details: "$learning_details"
+        emp_details: { $first: "$emp_details" },
+        learning_master_details: { $first: "$learning_master_details" },
+        learning_details: { $first: "$learning_details"}
+      }
+    },
     { $sort : { createdAt : -1} }
   ]).exec(function (err, data) {
     if (err) {
