@@ -7,7 +7,8 @@ let express = require('express'),
   upload = require('../controllers/upload.controller'),
   kra = require('../controllers/kra.controller'),
   leave = require('../controllers/leave.controller'),
-  midterm = require('../controllers/midterm.controller')
+  midterm = require('../controllers/midterm.controller'),
+  learning = require('../controllers/learning.controller'),
 externalDocument = require('../controllers/externalDocument.controller'),
   Employee = require('../models/employee/employeeDetails.model'),
   batch = require('../controllers/batch.controller'),
@@ -68,6 +69,7 @@ module.exports = (app) => {
     kraRoutes = express.Router(),
     leaveRoutes = express.Router(),
     midtermRoutes = express.Router(),
+    learningRoutes = express.Router();
     hrRoutes = express.Router(),
     externalDocumentRoutes = express.Router(),
     batchRoutes = express.Router(),
@@ -370,6 +372,22 @@ module.exports = (app) => {
   midtermRoutes.post('/mtrApproval', midterm.mtrApproval);
   midtermRoutes.get('/getMtrByReviewer', midterm.getMtrByReviewer);
   midtermRoutes.post('/updateBatch', midterm.updateBatch);
+
+  //==============================
+  //Learning API's
+  //==============================
+  apiRoutes.use('/learning', learningRoutes);
+  learningRoutes.post('/initiateLearningProcess', learning.initiateLearningProcess);
+  learningRoutes.get("/getlearningmaster", learning.getLearningForSingleEmployee);
+  learningRoutes.post("/postlearning", learning.postNewLearning);
+  learningRoutes.get("/lerningdetails", learning.getLearningDetailsSingleEmployee);
+  learningRoutes.get("/learningbysuperviser", learning.getLearningForSuperviser);
+  learningRoutes.post("/submitlearning", learning.submitLearning);
+  learningRoutes.get("/learningbyreviewer", learning.learningByReviewer);
+  learningRoutes.post("/learningapproval", learning.learningApproval);
+  learningRoutes.post("/updatebatch", learning.updateBatch);
+  learningRoutes.get("/getlearningbatch", learning.getLearningBatch);
+
 
 
 
