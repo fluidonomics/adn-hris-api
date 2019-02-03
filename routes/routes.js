@@ -12,6 +12,7 @@ let express = require('express'),
 externalDocument = require('../controllers/externalDocument.controller'),
   Employee = require('../models/employee/employeeDetails.model'),
   batch = require('../controllers/batch.controller'),
+  pap = require('../controllers/pap.controller'),
   jwt = require('jsonwebtoken-refresh');
 
 function ensureAuthenticated(req, res, next) {
@@ -73,15 +74,16 @@ module.exports = (app) => {
     hrRoutes = express.Router(),
     externalDocumentRoutes = express.Router(),
     batchRoutes = express.Router(),
+    papRoutes = express.Router();
 
-    //= ========================
+  //= ========================
 
-    //= ========================
-    // Auth Routes
-    //= ========================
+  //= ========================
+  // Auth Routes
+  //= ========================
 
-    // User Auth Routes endpoint: http://localhost:3000/api/auth
-    apiRoutes.use('/auth', authRoutes);
+  // User Auth Routes endpoint: http://localhost:3000/api/auth
+  apiRoutes.use('/auth', authRoutes);
 
   authRoutes.get('/validateToken', auth.validateToken);
 
@@ -421,6 +423,8 @@ module.exports = (app) => {
   // Register endpoint: http://localhost:3000/api/master/createDepartment
   masterRoutes.post('/createDepartment', ensureAuthenticated, master.createDepartment);
 
+
+
   // Register endpoint: http://localhost:3000/api/master/createVertical
   masterRoutes.post('/createVertical', ensureAuthenticated, master.createVertical);
 
@@ -468,7 +472,8 @@ module.exports = (app) => {
   // Register endpoint: http://localhost:3000/api/master/createFinancialYear
   masterRoutes.post('/createFinancialYear', master.createFinancialYear);
   masterRoutes.post('/createCompanyFinancialYear', master.createCompanyFinancialYear);
-
+  masterRoutes.post('/createPapRatingScale', master.createPapRatingScale);
+  masterRoutes.get('/getPapRatingScale', master.getPapRatingScale);
 
 
 
@@ -559,6 +564,7 @@ module.exports = (app) => {
   commonRoutes.get('/getFinincialYear', ensureAuthenticated, common.getFinincialYear);
   // commonRoutes.get('/sendNotification',ensureAuthenticated, common.sendNotification);
   commonRoutes.get('/getPrePost_Report', common.getPrePost_Report);
+  commonRoutes.get('/prepareProdClone', common.prepareProdClone);
 
   //= ========================
 
@@ -614,5 +620,26 @@ module.exports = (app) => {
 
   // Set url for API group routes, all endpoints start with /api/ eg http://localhost:3000/api/admin  || http://localhost:3000/api/auth
   app.use('/api', apiRoutes);
+
+  //= ========================
+  // Pap Routes
+  //= ========================
+  apiRoutes.use('/pap', papRoutes);
+  papRoutes.get('/getEmployeesForPapInitiate', pap.getEmployeesForPapInitiate);
+  papRoutes.post('/initiatePapProcess', pap.initiatePapProcess);
+  papRoutes.get('/getPapBatches', pap.getPapBatches);
+  papRoutes.get('/getPapDetailsSingleEmployee', pap.getPapDetailsSingleEmployee);
+  papRoutes.get('/getPapBySupervisor', pap.getPapBySupervisor);
+  papRoutes.get('/getPapByReviewer', pap.getPapByReviewer);
+  papRoutes.post('/papUpdate', pap.papUpdate);
+  papRoutes.post('/papSubmit', pap.papSubmit);
+  papRoutes.post('/updateBatch', pap.updateBatch);
+  papRoutes.post('/papUpdateSupervisor', pap.papUpdateSupervisor);
+  papRoutes.post('/papSubmitToReviewer', pap.papSubmitToReviewer);
+  papRoutes.post('/papUpdateReviewer', pap.papUpdateReviewer);
+  papRoutes.get('/getEmployeesForFeedbackInit', pap.getEmployeesForFeedbackInit);
+  papRoutes.post('/initiateFeedback', pap.initiateFeedback);
+  papRoutes.post('/initiateGrievance', pap.initiateGrievance);
+  papRoutes.get('/getEmployeesForGrievance', pap.getEmployeesForGrievance);
 };
 
