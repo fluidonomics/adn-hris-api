@@ -7,9 +7,9 @@ autoIncrement = require("mongoose-sequence")(mongoose);
 let pipDetailsSchema = new Schema(
   {
     _id: { type: Number },
-    master_id: { type: Number},
+    master_id: { type: Number },
     supervisor_id: { type: Number },
-    status: { type: String, default: null },
+    status: { type: String, default: "Initiated" },
     areaofImprovement: { type: String, default: null },
     isDeleted: { type: Boolean, default: false },
     createdBy: { type: Number, default: null },

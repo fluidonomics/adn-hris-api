@@ -396,6 +396,14 @@ module.exports = (app) => {
 
   apiRoutes.use('/pip', pipRoutes);
   pipRoutes.post("/initiatepip", pip.initiatePipProcess);
+  pipRoutes.get("/getpipmaster", pip.getpipdetailsforsingalemployee);
+  pipRoutes.post("/insertpip", pip.postNewPip);
+  pipRoutes.get("/getpipdetails", pip.getpipdetails);
+  pipRoutes.get("/supervisorgetpipdetails", pip.supervisorgetpip);
+  pipRoutes.post("/submitpip", pip.submitpip);
+  pipRoutes.get("/pipbyreviewer",pip.pipByReviewer);
+  
+
   
 
   //hr dashboard routes
