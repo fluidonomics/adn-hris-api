@@ -931,7 +931,7 @@ function getLearningBatch(req, res) {
         learning_master: { $push: "$learning_master" }
       }
     },
-    { $sort : { createdAt : -1} }
+    { $sort : { createdAt : 1} }
   ]).exec(function (err, data) {
     if (err) {
       return res.status(403).json({
