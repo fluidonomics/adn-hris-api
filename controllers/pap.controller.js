@@ -521,6 +521,19 @@ function getPapDetailsSingleEmployee(req, res) {
         }
     },
     {
+        '$lookup': {
+            'from': 'employeedetails',
+            'localField': 'midtermdetails.supervisor_id',
+            'foreignField': '_id',
+            'as': 'mtr_supervisorDetails'
+        }
+    },
+    {
+        '$unwind': {
+            'path': '$mtr_supervisorDetails'
+        }
+    },
+    {
         "$project": {
             "_id": 1,
             "updatedAt": 1,
@@ -563,7 +576,8 @@ function getPapDetailsSingleEmployee(req, res) {
                 "sup_ratingScaleId": 1,
                 "empRemark": 1,
                 "emp_ratingScaleId": 1,
-                "midtermdetails": "$midtermdetails"
+                "midtermdetails": "$midtermdetails",
+                "mtr_supervisorDetails": "$mtr_supervisorDetails"
             }
         }
     },
