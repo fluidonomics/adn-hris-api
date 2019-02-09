@@ -787,6 +787,16 @@ function papSubmit(req, res) {
             });
         },
         (papDetails, done) => {
+            let updateQuery = {
+                "updatedAt": new Date(),
+                "updatedBy": parseInt(req.body.updatedBy),
+                "status": "Submitted"
+            };
+            PapMasterDetails.findOneAndUpdate({ _id: req.body.pap_master_id }, updateQuery, (err, papMaster) => {
+                done(err, papDetails);
+            })
+        },
+        (papDetails, done) => {
             AuditTrail.auditTrailEntry(
                 0,
                 "papDetails",
