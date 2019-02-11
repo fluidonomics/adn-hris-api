@@ -128,12 +128,12 @@ function getpipDetails(req, res) {
     {
       $project: {
 
-        pip_batch_name: "pip_master_details.batchName",
-        createdBy: "pip_master_details.createdBy",
-        createdAt: "pip_master_details.createdAt",
-        batchEndDate: "pip_master_details.batchEndDate",
+        pip_batch_name: "$pip_master_details.batchName",
+        createdBy: "$pip_master_details.createdBy",
+        createdAt: "$pip_master_details.createdAt",
+        batchEndDate: "$pip_master_details.batchEndDate",
         status: "$status",
-        batchId: "pip_master_details._id"
+        batchId: "$pip_master_details._id"
 
       }
     }
@@ -180,6 +180,9 @@ function insertPip(req, res) {
   pipDetails.finalReview = req.body.finalReview;
   pipDetails.finalRating = req.body.finalRating;
   pipDetails.timelines = req.body.timelines;
+  pipDetails.measureOfSuccess = req.body.measureOfSuccess;
+  pipDetails.employeeInitialComment = req.body.employeeInitialComment;
+  pipDetails.superviserInitialComment = req.body.superviserInitialComment;
   pipDetails.empComment_month1 = req.body.empComment_month1 === undefined ? null : req.body.empComment_month1;
   pipDetails.supComment_month1 = req.body.supComment_month1;
   pipDetails.empComment_month2 = req.body.empComment_month2;
@@ -258,6 +261,9 @@ function getpipdetailspostinsertion(req, res) {
         finalReview: "$finalReview",
         finalRating: "$finalRating",
         timelines: "$timelines",
+        measureOfSuccess: "$measureOfSuccess",
+        employeeInitialComment: "$employeeInitialComment",
+        superviserInitialComment: "$superviserInitialComment",
         empComment_month1: "$empComment_month1",
         supComment_month1: "$supComment_month1",
         empComment_month2: "$empComment_month2",
@@ -297,7 +303,7 @@ function getpipdetailspostinsertion(req, res) {
 }
 function getpipBySupervisor(req, res) {
   let supervisorId = parseInt(req.query.supervisor_id);
-  let status = "Submitted";
+  let status = req.query.status;
   pipdetails.aggregate([
     {
       $match: {

@@ -20,6 +20,7 @@ let pipMasterSchema = new Schema(
     final_status: { type: String, default: null},
     final_recommendation: { type: String, default: null},
     final_remarks: { type: String, default: null},
+    isExtended: { type: Boolean, default: false },
     fiscalYearId: { type: Number, default: null }
     
 
