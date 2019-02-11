@@ -12,7 +12,8 @@ let mongoose                = require('mongoose'),
         createdBy: {type: Number,default:null},
         updatedBy: {type: Number,default:null},
         status:{type:String,default:'Active'},
-        isDeleted: {type: Boolean,default:false}, 
+        isDeleted: {type: Boolean,default:false},
+        fiscalYearId: { type: Number, default: null }
       },
       {
         timestamps: true,

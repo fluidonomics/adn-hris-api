@@ -29,7 +29,8 @@ let pipDetailsSchema = new Schema(
     empComment_month5: { type: String, default: null },
     supComment_month5: { type: String, default: null },
     empComment_month6: { type: String, default: null },
-    supComment_month6: { type: String, default: null }
+    supComment_month6: { type: String, default: null },
+    fiscalYearId: { type: Number, default: null }
      },
   {
     timestamps: true,

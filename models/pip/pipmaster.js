@@ -19,7 +19,8 @@ let pipMasterSchema = new Schema(
     hr_final_com: { type: String, default: null},
     final_status: { type: String, default: null},
     final_recommendation: { type: String, default: null},
-    final_remarks: { type: String, default: null}
+    final_remarks: { type: String, default: null},
+    fiscalYearId: { type: Number, default: null }
     
 
   },

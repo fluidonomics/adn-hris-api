@@ -395,6 +395,7 @@ module.exports = (app) => {
   //==============================
 
   apiRoutes.use('/pip', pipRoutes);
+  pipRoutes.get("/getpipemployee", pip.getPipEmployee),
   pipRoutes.post("/initiatepip", pip.initiatePipProcess);
   pipRoutes.get("/getpipmaster", pip.getpipdetailsforsingalemployee);
   pipRoutes.post("/insertpip", pip.postNewPip);
@@ -402,7 +403,9 @@ module.exports = (app) => {
   pipRoutes.get("/supervisorgetpipdetails", pip.supervisorgetpip);
   pipRoutes.post("/submitpip", pip.submitpip);
   pipRoutes.get("/pipbyreviewer",pip.pipByReviewer);
-  
+  pipRoutes.post("/pipapproval", pip.pipApproval);
+  pipRoutes.post("/updatebatch", pip.updateBatch);
+  pipRoutes.get("/getpipbatch", pip.getPipBatch);
 
   
 
