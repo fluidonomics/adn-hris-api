@@ -126,11 +126,26 @@ function getpipDetails(req, res) {
       }
     },
     {
+      $lookup: {
+        from: "employeedetails",
+        localField: "pip_master_details.createdBy",
+        foreignField: "_id",
+        as: "createdByName"
+      }
+    },
+    {
+      $unwind: {
+        path: "$createdByName"
+      }
+    },
+
+    {
       $project: {
 
         pip_batch_name: "$pip_master_details.batchName",
         createdBy: "$pip_master_details.createdBy",
         createdAt: "$pip_master_details.createdAt",
+        createdByName: "$createdByName.fullName",
         batchEndDate: "$pip_master_details.batchEndDate",
         status: "$status",
         batchId: "$pip_master_details._id"
