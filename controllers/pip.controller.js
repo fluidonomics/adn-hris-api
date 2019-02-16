@@ -12,8 +12,10 @@ function getEligiablePipEmployee(req, res) {
   
 function InitiatePip(req, res) {
   let createdby = parseInt(req.body.createdBy);
+  let timelines = parseInt(req.body.timelines);
   let pipBatchDetails = new pipbatch();
   pipBatchDetails.batchName = req.body.batchName;
+  pipBatchDetails.timelines = req.body.timelines;
   pipBatchDetails.batchEndDate = new Date(
     new Date(req.body.batchEndDate).getTime());
   pipBatchDetails.status = req.body.status;
@@ -66,6 +68,7 @@ function InitiatePip(req, res) {
             batch_id: batch_id,
             emp_id: element.emp_id,
             status: "Initiated",
+            timelines: timelines,
             _id: pipMaster_id + (index + 1),
             createdBy: createdby
           });
@@ -147,6 +150,7 @@ function getpipDetails(req, res) {
         createdAt: "$pip_master_details.createdAt",
         createdByName: "$createdByName.fullName",
         batchEndDate: "$pip_master_details.batchEndDate",
+        timelines: "$timelines",
         status: "$status",
         batchId: "$pip_master_details._id"
 
@@ -268,7 +272,8 @@ function getpipdetailspostinsertion(req, res) {
         createdAt: "createdAt",
         updatedBy: "$updatedBy",
         updatedAt: "$updatedAt",
-        master_id: "pipdetails._id",
+        master_id: "$pipdetails._id",
+        master_timelines: "$pipdetails.timelines",
         status: "$status",
         supervisor_id: "$supervisor_id",
         areaofImprovement: "$areaofImprovement",
@@ -627,7 +632,7 @@ function getPipApproval(req, res) {
       },
       (pipMasterResponse, done) => {
         let pipDetailUpdateQuery = {
-          supervisorComment: req.body.supervisorComment,
+          superviserInitialComment: req.body.superviserInitialComment,
           updatedBy: parseInt(req.body.supervisorId),
           updatedAt: new Date(),
           status: req.body.isApproved ? "Approved" : "SendBack"
