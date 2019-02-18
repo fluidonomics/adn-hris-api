@@ -209,7 +209,8 @@ function InsertLearning(req, res) {
       developmentPlan: req.body.developmentPlan,
       timelines: req.body.timelines,
       updatedBy: parseInt(req.body.updatedBy),
-      updatedAt: new Date()
+      updatedAt: new Date(),
+      completionDate: req.body.completionDate
     };
   
     LearningDetails.findOneAndUpdate(
@@ -321,7 +322,7 @@ function GetLearningDetailsEmployee(req, res) {
         createdAt: "createdAt",
         updatedBy: "$updatedBy",
         updatedAt: "$updatedAt",
-        masterId: "learning_details._id",
+        masterId: "$learning_details._id",
         status: "$status",
         progressStatus: "$progressStatus",
         supervisorId: "$supervisor_id",
@@ -332,8 +333,8 @@ function GetLearningDetailsEmployee(req, res) {
         supervisorComment: "$supervisorComment",
         measureOfSuccess: "$measureOfSuccess",
         employeeComment: "$employeeComment",
-        supervisor_name: "$emp_supervisor_details.fullName"
-
+        supervisor_name: "$emp_supervisor_details.fullName",
+        completionDate: "$completionDate"
       }
     },
     { $sort : { createdAt : -1} }
@@ -451,7 +452,7 @@ function submitEmployeeLearning(req, res) {
     user_name: req.body.emp_name,
     action_link: req.body.action_link
   };
-  let updateCondition = { master_id: learning_master_id };
+  let updateCondition = { master_id: learning_master_id, status:"SendBack"||"initiated" };
   let updateQuery = {
     status: "Submitted",
     updatedBy: emp_id,
