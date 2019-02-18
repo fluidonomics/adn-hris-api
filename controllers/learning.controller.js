@@ -192,6 +192,7 @@ function InsertLearning(req, res) {
   learningDetails.supportRequired = req.body.supportRequired;
   learningDetails.supervisorComment = req.body.supervisorComment;
   learningDetails.employeeComment = req.body.employeeComment;
+  learningDetails.completionDate = req.body.completionDate;
 
   if(req.body._id != null) {
 
@@ -452,7 +453,8 @@ function submitEmployeeLearning(req, res) {
     user_name: req.body.emp_name,
     action_link: req.body.action_link
   };
-  let updateCondition = { master_id: learning_master_id, status:"SendBack"||"initiated" };
+
+  let updateCondition = { master_id: learning_master_id, status: ["initiated", "SendBack"] };
   let updateQuery = {
     status: "Submitted",
     updatedBy: emp_id,

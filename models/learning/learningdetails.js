@@ -21,7 +21,7 @@ let LearningDetailsSchema = new Schema(
     supportRequired: { type: String, default: null },
     employeeComment: { type: String, default: null },
     supervisorComment: { type: String, default: null },
-    completionDate: {type:Date, default:new Date() + 860000}
+    completionDate: {type:Date, default: null}
   },
   {
     timestamps: true,
