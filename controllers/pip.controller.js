@@ -295,7 +295,8 @@ function getpipdetailspostinsertion(req, res) {
         empComment_month5: "$empComment_month5",
         supComment_month5: "$supComment_month5",
         empComment_month6: "$empComment_month6",
-        supComment_month6: "$supComment_month6"
+        supComment_month6: "$supComment_month6",
+        dateDifference: {$divide: [{$subtract: [ new Date(), "$approvedAt" ]}, 3600000]}
   }
     }
   ]).exec(function (err, data) {
@@ -631,6 +632,7 @@ function getPipApproval(req, res) {
         });
       },
       (pipMasterResponse, done) => {
+
         let pipDetailUpdateQuery = {
           superviserInitialComment: req.body.superviserInitialComment,
           updatedBy: parseInt(req.body.supervisorId),
@@ -639,6 +641,10 @@ function getPipApproval(req, res) {
         };
         if (req.body.isApproved && req.body.progressStatus == "Dropped") {
           pipDetailUpdateQuery.status = "Dropped";
+        }
+        if(req.body.isApproved) {
+
+          pipDetailUpdateQuery.approvedAt = new Date();
         }
         pipdetails.findOneAndUpdate({ _id: pipDetailId }, pipDetailUpdateQuery, (err, res) => {
           done(err, res);

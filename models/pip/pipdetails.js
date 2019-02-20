@@ -18,6 +18,7 @@ let pipDetailsSchema = new Schema(
     finalReview: { type: String, default: null },
     finalRating: { type: Number, default: null },
     timelines: { type: Number, default: null },
+    approvedAt: {type: Date, default: null },
     measureOfSuccess: { type: String, default: null },
     employeeInitialComment: { type: String, default: null },
     superviserInitialComment: { type: String, default: null },
