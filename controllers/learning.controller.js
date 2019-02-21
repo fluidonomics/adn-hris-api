@@ -895,6 +895,48 @@ function getLearningBatch(req, res) {
       }
     },
     {
+      $lookup: {
+        from: "grades",
+        localField: "emp_details.grade_id",
+        foreignField: "_id",
+        as: "emp_grade_details"
+      }
+    },
+    {
+      $unwind: {
+        path: "$emp_grade_details",
+        preserveNullAndEmptyArrays: true
+      }
+    },
+    {
+      $lookup: {
+        from: "employeeofficedetails",
+        localField: "emp_details._id",
+        foreignField: "emp_id",
+        as: "emp_office_details"
+      }
+    },
+    {
+      $unwind: {
+        path: "$emp_office_details",
+        preserveNullAndEmptyArrays: true
+      }
+    },
+    {
+      $lookup: {
+        from: "departments",
+        localField: "emp_office_details.department_id",
+        foreignField: "_id",
+        as: "emp_dept_details"
+      }
+    },
+    {
+      $unwind: {
+        path: "$emp_dept_details",
+        preserveNullAndEmptyArrays: true
+      }
+    },
+    {
       $project: {
         _id: 1,
         updatedAt: 1,
@@ -915,7 +957,9 @@ function getLearningBatch(req, res) {
           createdBy: 1,
           updatedBy: 1,
           status: 1,
-          emp_details: "$emp_details"
+          emp_details: "$emp_details",
+          emp_grade_details: "$emp_grade_details",
+          emp_dept_details: "$emp_dept_details"
         }
       }
     },
