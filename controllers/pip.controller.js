@@ -404,7 +404,7 @@ function submitpip(req, res) {
     user_name: req.body.emp_name,
     action_link: req.body.action_link
   };
-  let updateCondition = { master_id: Pip_master_id};
+  let updateCondition = { master_id: Pip_master_id, status: ["Initiated", "SendBack"] };
   let updateQuery = {
     status: "Submitted",
     updatedBy: emp_id,
@@ -558,7 +558,7 @@ function getpipByReviewer(req, res){
     // { $match: { status: status } },
     {
       $group: {
-        _id: "$pipMasterId",
+        _id: "$pip_master_details._id",
         emp_details: { $first: "$emp_details" },
         pip_master_details: { $first: "$pip_master_details" }
       }
