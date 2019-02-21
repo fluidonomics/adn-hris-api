@@ -192,6 +192,7 @@ function InsertLearning(req, res) {
   learningDetails.supportRequired = req.body.supportRequired;
   learningDetails.supervisorComment = req.body.supervisorComment;
   learningDetails.employeeComment = req.body.employeeComment;
+  learningDetails.completionDate = req.body.completionDate;
 
   if(req.body._id != null) {
 
@@ -209,7 +210,8 @@ function InsertLearning(req, res) {
       developmentPlan: req.body.developmentPlan,
       timelines: req.body.timelines,
       updatedBy: parseInt(req.body.updatedBy),
-      updatedAt: new Date()
+      updatedAt: new Date(),
+      completionDate: req.body.completionDate
     };
   
     LearningDetails.findOneAndUpdate(
@@ -321,7 +323,7 @@ function GetLearningDetailsEmployee(req, res) {
         createdAt: "createdAt",
         updatedBy: "$updatedBy",
         updatedAt: "$updatedAt",
-        masterId: "learning_details._id",
+        masterId: "$learning_details._id",
         status: "$status",
         progressStatus: "$progressStatus",
         supervisorId: "$supervisor_id",
@@ -332,8 +334,8 @@ function GetLearningDetailsEmployee(req, res) {
         supervisorComment: "$supervisorComment",
         measureOfSuccess: "$measureOfSuccess",
         employeeComment: "$employeeComment",
-        supervisor_name: "$emp_supervisor_details.fullName"
-
+        supervisor_name: "$emp_supervisor_details.fullName",
+        completionDate: "$completionDate"
       }
     },
     { $sort : { createdAt : -1} }
@@ -451,7 +453,8 @@ function submitEmployeeLearning(req, res) {
     user_name: req.body.emp_name,
     action_link: req.body.action_link
   };
-  let updateCondition = { master_id: learning_master_id };
+
+  let updateCondition = { master_id: learning_master_id, status: ["initiated", "SendBack"] };
   let updateQuery = {
     status: "Submitted",
     updatedBy: emp_id,
@@ -892,6 +895,48 @@ function getLearningBatch(req, res) {
       }
     },
     {
+      $lookup: {
+        from: "grades",
+        localField: "emp_details.grade_id",
+        foreignField: "_id",
+        as: "emp_grade_details"
+      }
+    },
+    {
+      $unwind: {
+        path: "$emp_grade_details",
+        preserveNullAndEmptyArrays: true
+      }
+    },
+    {
+      $lookup: {
+        from: "employeeofficedetails",
+        localField: "emp_details._id",
+        foreignField: "emp_id",
+        as: "emp_office_details"
+      }
+    },
+    {
+      $unwind: {
+        path: "$emp_office_details",
+        preserveNullAndEmptyArrays: true
+      }
+    },
+    {
+      $lookup: {
+        from: "departments",
+        localField: "emp_office_details.department_id",
+        foreignField: "_id",
+        as: "emp_dept_details"
+      }
+    },
+    {
+      $unwind: {
+        path: "$emp_dept_details",
+        preserveNullAndEmptyArrays: true
+      }
+    },
+    {
       $project: {
         _id: 1,
         updatedAt: 1,
@@ -912,7 +957,9 @@ function getLearningBatch(req, res) {
           createdBy: 1,
           updatedBy: 1,
           status: 1,
-          emp_details: "$emp_details"
+          emp_details: "$emp_details",
+          emp_grade_details: "$emp_grade_details",
+          emp_dept_details: "$emp_dept_details"
         }
       }
     },
