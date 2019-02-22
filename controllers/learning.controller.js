@@ -143,6 +143,7 @@ function GetLearningSingleEmployee(req, res) {
         learning_batch_name: "$learning_master_details.batchName",
         createdby: "$learning_master_details.createdBy",
         createdAt: "$learning_master_details.createdAt",
+        updatedAt: "$learning_master_details.updatedAt",
         batchEndDate: "$learning_master_details.batchEndDate",
         status: "$status",
         batchName: "$learning_master_details._id",
@@ -316,6 +317,20 @@ function GetLearningDetailsEmployee(req, res) {
       }
     },
     {
+      $lookup: {
+        from: "employeedetails",
+        localField: "learning_details.emp_id",
+        foreignField: "_id",
+        as: "emp_image_details"
+      }
+    },
+    {
+      $unwind: {
+        path: "$emp_image_details",
+        preserveNullAndEmptyArrays: true
+      }
+    },
+    {
       $project: {
 
         id: "$_id",
@@ -335,7 +350,8 @@ function GetLearningDetailsEmployee(req, res) {
         measureOfSuccess: "$measureOfSuccess",
         employeeComment: "$employeeComment",
         supervisor_name: "$emp_supervisor_details.fullName",
-        completionDate: "$completionDate"
+        completionDate: "$completionDate",
+        profileImage: "$emp_image_details.profileImage"
       }
     },
     { $sort : { createdAt : -1} }
@@ -400,13 +416,15 @@ function getLearningBySupervisor(req, res) {
         path: "$emp_details"
       }
     },
+    
     {
       $project: {
         learningMasterId: "$master_id",
         emp_details: "$emp_details",
         learning_master_details: "$learning_master_details",
         status: "$learning_master_details.status",
-        updatedAt: "$updatedAt"
+        updatedAt: "$updatedAt",
+        //profileImage: "$emp_details.profileImage"
       }
     },
     { $match: { status: status } },
