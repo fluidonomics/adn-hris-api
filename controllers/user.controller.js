@@ -2152,16 +2152,20 @@ function updateSupervisortransfer(req, res, done) {
                                     })
                                 })
 
+
                                 LearningMaster.find({ emp_id: _id }, (err, learningmaster) => {
                                     checkError(err, learningmaster);
+
                                     let updateQuery = {
                                         "updatedAt": updatedAt,
                                         "supervisor_id": req.body.primarySupervisorEmp_id,
                                         "updatedBy": updatedBy
                                     };
+
                                     LearningDetails.updateMany({ learning_master_id: learningmaster._id }, updateQuery, (err, doc) => {
                                         done(err, doc);
                                     })
+                                    
                                 })
                             }
                             
@@ -2219,14 +2223,26 @@ function updateSupervisortransfer(req, res, done) {
                                 }
 
                                 if (req.body.learningIds && req.body.learningIds.length > 0) {
-                                    let updateQuery = {
+                                    let updateQueryprim = {
                                         "supervisor_id": req.body.primarySupervisorEmp_id,
                                         "updatedAt": updatedAt,
                                         "updatedBy": updatedBy
                                     };
-                                    LearningDetails.updateMany({ master_id: { $in: req.body.learningIds } }, updateQuery, (err, res) => {
+                                    LearningDetails.updateMany({$and:[{supervisor_id: req.body.oldPrimarySupervisor},{ master_id: { $in: req.body.learningIds } },{status: {$ne: "Approved"}}]}, updateQueryprim, (err, res) => {
                                         innerDone(err, res);
                                     });
+
+                                    
+                                    let updateQuerysec = {
+                                        "supervisor_id": req.body.secondarySupervisorEmp_id,
+                                        "updatedAt": updatedAt,
+                                        "updatedBy": updatedBy
+                                    };
+                                    LearningDetails.updateMany({$and:[{supervisor_id: req.body.oldSecondarySupervisor},{ master_id: { $in: req.body.learningIds } }]}, updateQuerysec, (err, res) => {
+                                        innerDone(err, res);
+                                    });
+
+
                                 } else {
                                     innerDone(null, null);
                                 }
