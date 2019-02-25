@@ -2238,7 +2238,7 @@ function updateSupervisortransfer(req, res, done) {
                                         "updatedAt": updatedAt,
                                         "updatedBy": updatedBy
                                     };
-                                    LearningDetails.updateMany({$and:[{supervisor_id: req.body.oldSecondarySupervisor},{ master_id: { $in: req.body.learningIds } }]}, updateQuerysec, (err, res) => {
+                                    LearningDetails.updateMany({$and:[{supervisor_id: req.body.oldSecondarySupervisor},{ master_id: { $in: req.body.learningIds } },{status: {$ne: "Approved"}}]}, updateQuerysec, (err, res) => {
                                         innerDone(err, res);
                                     });
 
