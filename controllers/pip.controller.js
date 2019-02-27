@@ -152,6 +152,13 @@ function getpipDetails(req, res) {
         createdByName: "$createdByName.fullName",
         batchEndDate: "$pip_master_details.batchEndDate",
         timelines: "$timelines",
+        sup_final_com: "$sup_final_com",
+        emp_final_com: "$emp_final_com",
+        rev_final_com: "$rev_final_com",
+        hr_final_com: "$hr_final_com",
+        final_status: "$final_status",
+        final_recommendation: "$final_recommendation",
+        final_remarks: "$final_remarks",
         status: "$status",
         batchId: "$pip_master_details._id"
 
