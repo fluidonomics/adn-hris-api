@@ -296,7 +296,7 @@ function getpipdetailspostinsertion(req, res) {
         supComment_month5: "$supComment_month5",
         empComment_month6: "$empComment_month6",
         supComment_month6: "$supComment_month6",
-        dateDifference: {$divide: [{$subtract: [ new Date(), "$approvedAt" ]}, 3600000]}
+        dateDifference: {$divide: [{$subtract: [ new Date(), "$approvedAt" ]}, 3600000*24*2]}
   }
     }
   ]).exec(function (err, data) {
@@ -898,6 +898,55 @@ function updatePipBatch(req, res) {
   });
 }
 
+function updatepipdetails(req, res) {
+
+  let details_id = parseInt(req.body.pipDetailId);
+  //let supervisor_id = parseInt(req.body.supervisor_id);
+  //let cretedBy = req.body.createdBy;
+  let updateQuery = {
+    "updatedAt": new Date(),
+    "updatedBy": parseInt(req.body.updatedBy),
+    "supComment_month1": req.body.supComment_month1,
+    "supComment_month2": req.body.supComment_month2,
+    "supComment_month3": req.body.supComment_month3,
+    "supComment_month4": req.body.supComment_month4,
+    "supComment_month5": req.body.supComment_month5,
+    "supComment_month6": req.body.supComment_month6,
+    "timelines": parseInt(req.body.timelines)
+    
+  };
+
+  pipdetails.findOneAndUpdate({ _id: details_id }, updateQuery, (err, result) => {
+    if (err) {
+      return res.status(403).json({
+        title: "There was a problem",
+        error: {
+          message: err
+        },
+        result: {
+          message: result
+        }
+      });
+    } else {
+      AuditTrail.auditTrailEntry(
+        0,
+        "pipdetails",
+        result,
+        "pip",
+        "updateDetails",
+        "UPDATED"
+      );
+      return res.status(200).json({
+        title: "Pip detail updated",
+        result: {
+          message: result
+        }
+      });
+    }
+  });
+  
+}
+
 let functions = {
 
   getPipEmployee: (req, res) => {
@@ -951,6 +1000,11 @@ let functions = {
   updateBatch: (req, res) => {
 
     updatePipBatch(req, res);
+  },
+
+  updatepipdetails: (req, res) => {
+
+    updatepipdetails(req, res);
   }
   // getLearningForSuperviser: (req, res) => {
   //   getLearningBySupervisor(req, res);                  
