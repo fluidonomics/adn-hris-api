@@ -423,19 +423,20 @@ function getLearningBySupervisor(req, res) {
         emp_details: "$emp_details",
         learning_master_details: "$learning_master_details",
         status: "$learning_master_details.status",
-        updatedAt: "$updatedAt",
+        updatedAt: "$learning_master_details.updatedAt",
         //profileImage: "$emp_details.profileImage"
       }
     },
     { $match: { status: status } },
-    { $sort : { updatedAt : -1} },
     {
       $group: {
         _id: "$learningMasterId",
         emp_details: { $first: "$emp_details" },
-        learning_master_details: { $first: "$learning_master_details" }
+        learning_master_details: { $first: "$learning_master_details" },
+        updatedAt: { $first: "$learning_master_details.updatedAt" }
       }
-    }
+    },
+    { $sort : { updatedAt : -1} },
     
   ]).exec(function (err, data) {
     if (err) {
@@ -627,7 +628,8 @@ function getLearningByReviewer(req, res) {
         emp_details: "$emp_details",
         //learning_details: "$learning_details",
         learning_master_details: "$learning_master_details",
-        status: "$learning_master_details.status"
+        status: "$learning_master_details.status",
+        updatedAt: "$learning_master_details.updatedAt"
       }
     },
     { $match: { status: statusTemp } },
@@ -639,10 +641,11 @@ function getLearningByReviewer(req, res) {
         // learning_details: "$learning_details"
         emp_details: { $first: "$emp_details" },
         learning_master_details: { $first: "$learning_master_details" },
-        learning_details: { $first: "$learning_details"}
+        learning_details: { $first: "$learning_details"},
+        updatedAt: { $first: "$learning_master_details.updatedAt" }
       }
     },
-    { $sort : { createdAt : -1} }
+    { $sort : { updatedAt : -1} }
   ]).exec(function (err, data) {
     if (err) {
       return res.status(403).json({
