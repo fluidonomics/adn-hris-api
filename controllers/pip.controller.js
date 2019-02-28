@@ -286,8 +286,8 @@ function getpipdetailspostinsertion(req, res) {
         supervisor_id: "$supervisor_id",
         areaofImprovement: "$areaofImprovement",
         actionPlan: "$actionPlan",
-        finalReview: "$finalReview",
-        finalRating: "$finalRating",
+        superviserFinalReview: "$finalReview",
+        supervisorPerformanceRating: "$finalRating",
         timelines: "$timelines",
         measureOfSuccess: "$measureOfSuccess",
         employeeInitialComment: "$employeeInitialComment",
@@ -964,7 +964,9 @@ function updatepipdetails(req, res) {
     "supComment_month4": req.body.supComment_month4,
     "supComment_month5": req.body.supComment_month5,
     "supComment_month6": req.body.supComment_month6,
-    "timelines": parseInt(req.body.timelines)
+    //"timelines": parseInt(req.body.timelines),
+    "finalRating": parseInt(req.body.supervisorPerformanceRating),
+    "finalReview": req.body.superviserFinalReview
     
   };
 
