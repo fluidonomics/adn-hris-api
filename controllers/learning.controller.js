@@ -554,14 +554,14 @@ function submitEmployeeLearning(req, res) {
                 message: email_err
               },
               result: {
-                message: result
+                message: email_result
               }
             });
           } else {
             return res.status(200).json({
               title: "Learning submitted, and email sent to supervisor",
               result: {
-                message: result
+                message: email_result
               }
             });
           }
@@ -799,14 +799,14 @@ function getLearningApproval(req, res) {
                     message: "Learning agenda approved, failed sending email to employee"
                   },
                   result: {
-                    message: result
+                    message: email_result
                   }
                 });
               } else {
                 return res.status(200).json({
                   title: "Learning agenda approved, and email sent to employee",
                   result: {
-                    message: result
+                    message: email_result
                   }
                 });
               }
