@@ -5,7 +5,9 @@ let KraWorkFlowInfo = require("../models/kra/kraWorkFlowDetails.model"),
   AuditTrail = require("../class/auditTrail"),
   EmployeeSupervisorDetails = require("../models/employee/employeeSupervisorDetails.model");
 SendEmail = require('../class/sendEmail'),
+  EmployeeOfficeDetails = require('../models/employee/employeeOfficeDetails.model'),
   EmployeeDetails = require("../models/employee/employeeDetails.model");
+
 function EmpDetailsForMidTermInitiate(req, res) {
   KraWorkFlowInfo.aggregate([
     {
@@ -360,8 +362,14 @@ function InitiateMtrProcess(req, res) {
                       "midTermDetails",
                       "ADDED"
                     );
-                    // sendEmailToAllEmployee(emp_id_array, res);
-                    return res.status(200).json({ result: midTermDetails });
+                    var emp_ids = emp_id_array.map(f => f.emp_id);
+                    EmployeeOfficeDetails.find({'emp_id': {$in: emp_ids}},function(err, emp_office_details) {
+                      emp_office_details.forEach(f => {
+                        SendEmail.sendEmailToEmployeeForMtrInitiate(f);
+                      });
+                      return res.status(200).json({ result: midTermDetails });
+
+                    });
                   }
                 });
               }

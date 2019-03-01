@@ -416,7 +416,28 @@ let functions =
         };
         transporter.sendMail(mailOptions);
     },
-    sendEmailToSupervisorToApproveMtr: (data, callback) => {
+    sendEmailToEmployeeForMtrInitiate: (data, callback) => {
+        if (data.officeEmail === null || data.officeEmail === "") {
+            return
+        }
+        let mailOptions = {
+            from: config.email.sendEmailToSupervisorToApproveMtr.from, // sender address
+            to: data.officeEmail,
+            subject: config.email.sendEmailToSupervisorToApproveMtr.subject, // Subject line
+            template: 'email-notify-to-supvsr-for-mtr-approve',
+            context: {
+                // fullName: data.supervisor_name,
+                fullName: data.supervisor_name,
+                appliedDate: moment(new Date()).format('L'),
+                link: 'data.action_link',
+                // link: data.action_link,
+                empName: 'data.user_name'
+                // empName: data.user_name
+            }
+        };
+        transporter.sendMail(mailOptions, callback);
+    },
+    sendEmailToSupervisorToApproveMtr: (data) => {
         if (data.supervisor_email === null || data.supervisor_email === "") {
             return
         }
@@ -432,7 +453,7 @@ let functions =
                 empName: data.user_name
             }
         };
-        transporter.sendMail(mailOptions, callback);
+        transporter.sendMail(mailOptions);
     },
     sendEmailToUserAboutMtrStatus: (data, callback) => {
         if (data.user_email === null || data.user_email === "") {
