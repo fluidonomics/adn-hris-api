@@ -540,6 +540,26 @@ let functions =
         };
         transporter.sendMail(mailOptions, callback);
     },
+
+    sendEmailToEmployeeForInitiateLearning: (data, callback) => {
+        if (data.emp_email === null || data.emp_email === "") {
+            return
+        }
+        let mailOptions = {
+            from: config.email.sendEmailToEmployeeForInitiatedLearning.from, // sender address
+            to: data.emp_email,
+            subject: config.email.sendEmailToEmployeeForInitiatedLearning.subject, // Subject line
+            template: 'email-notify-to-employee-for-initiated-learning',
+            context: {
+                fullName: data.emp_name,
+                appliedDate: moment(new Date()).format('L'),
+                link: data.action_link,
+                hrName: data.hr_name
+            }
+        };
+        transporter.sendMail(mailOptions, callback);
+    },
+
     sendEmailToSupervisorToApproveLearning: (data, callback) => {
         if (data.supervisor_email === null || data.supervisor_email === "") {
             return

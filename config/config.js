@@ -100,6 +100,10 @@ module.exports = {
     'sendEmailToSupervisorToApproveLearning': {
       from: '"Team HRIS" <hris@adnsl.net>',
       subject: 'Learning Agenda for approval'
+    },
+    'sendEmailToEmployeeForInitiatedLearning': {
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'Learning Agenda initiated'
     }
   },
   'aws':

@@ -18,6 +18,12 @@ function InitiateLearning(req, res) {
     LearningBatchDetails.createdBy = createdBy;
     let emp_id_array = req.body.emp_id_array;
     LearningBatchDetails.transac;
+    let email_details = {
+      emp_email: '',
+      emp_name: '',
+      hr_name: req.body.createdByName,
+      action_link: req.body.action_link
+    };
     LearningBatchDetails.save(function (err, learningbatchresp) {
       if (err) {
         return res.status(403).json({
@@ -91,13 +97,117 @@ function InitiateLearning(req, res) {
                 "LearningMaster",
                 "ADDED"
               );
-
-              return res.status(200).json({ result: learningMasterResult });
+              sendEmailToEmployee(emp_id_array, res, email_details);
+              //return res.status(200).json({ result: learningMasterResult });
             }
           });
         });
       }
     });
+    //sendEmailToAllEmployee(emp_id_array, res, email_details);
+}
+
+function sendEmailToEmployee(emp_id_array, res, email_details) {
+
+  EmployeeDetails.aggregate([
+    {
+      "$lookup": {
+        "from": "employeeofficedetails",
+        "localField": "_id",
+        "foreignField": "emp_id",
+        "as": "office_details"
+      }
+    },
+    {
+      "$unwind": {
+        "path": "$office_details"
+      }
+    },
+    {
+      "$match": {
+        "_id": {"$in": emp_id_array.map(emp => {return emp.emp_id}) },
+      }
+    },
+    {
+      "$project": {
+        "_id": "$_id",
+        "user_name": "$fullName",
+        "officeEmail": "$office_details.officeEmail"
+      }
+    }
+  ]).exec(function (err, data) {
+
+    if (err) {
+      return res.status(403).json({
+        title: "There was a problem",
+        error: {
+          message: err
+        },
+        result: {
+          message: data
+        }
+      });
+    } else {
+      //let count = 0;
+      data.forEach(f => { 
+        email_details.emp_name = f.user_name;
+        email_details.emp_email = f.officeEmail;
+        //forEwach {
+        SendEmail.sendEmailToEmployeeForInitiateLearning(email_details, (email_err, email_result) => {
+
+        });
+        
+      });
+      // if(count == data.length) {
+
+        return res.status(200).json({
+          title: "Learning initiated, and email sent to employee",
+          // result: {
+          //   message: email_result
+          // }
+        });
+      // } else {
+
+      //   return res.status(300).json({
+      //       title: "Learning initiated, failed sending email to employee",
+      //       // error: {
+      //       //   message: email_err
+      //       // },
+      //       // result: {
+      //       //   message: email_result
+      //       // }
+      //     });
+      // }
+        //}
+        // return res.status(200).json({
+        //   title: "Learning initiated, and email sent to employee",
+        //   result: {
+        //     message: "email sent"
+        //   }
+        // });
+        // SendEmail.sendEmailToSupervisorToApproveLearning(email_details, (email_err, email_result) => {
+
+        //   if (email_err) {
+            // return res.status(300).json({
+            //   title: "Learning initiated, failed sending email to employee",
+            //   error: {
+            //     message: email_err
+            //   },
+            //   result: {
+            //     message: email_result
+            //   }
+            // });
+        //   } else {
+        //     return res.status(200).json({
+        //       title: "Learning initiated, and email sent to employee",
+        //       result: {
+        //         message: email_result
+        //       }
+        //     });
+        //   }
+        // });
+    }
+  });
 }
 
 function GetLearningSingleEmployee(req, res) {
