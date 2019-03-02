@@ -785,6 +785,7 @@ function getLearningApproval(req, res) {
   let learningDetailId = parseInt(req.body.learningDetailId);
   let empId = parseInt(req.body.empId);
   let supervisorId = parseInt(req.body.supervisorId);
+  let eligibleForEmail = false;
   let email_details = {
     user_email: '',
     supervisor_name: req.body.supervisor_name,
@@ -809,12 +810,14 @@ function getLearningApproval(req, res) {
           });
           if (pendingLearning.length <= 1 && pendingLearning[0]._id == learningDetailId) {
             isLearningApproved = true;
+            eligibleForEmail =true;
             let sendbackLearning = res.filter(learning => {
               return (learning.status == "SendBack");
             });
             if (sendbackLearning && sendbackLearning.length > 0) {
               masterUpdateQuery.status = "SendBack";
               isLearningApproved = false;
+              eligibleForEmail = true;
             }
             LearningMaster.findByIdAndUpdate({ _id: learningMasterId }, masterUpdateQuery, (err, res) => {
               done(err, res);
@@ -900,7 +903,7 @@ function getLearningApproval(req, res) {
         });
       } else {
         // #70 fix, email fix
-        if (email_details.isApproved === "Approved") {
+        if (eligibleForEmail) {
           email_details.user_name = result.emp[0].user_name;
           email_details.user_email = result.emp[0].officeEmail;
           if (email_details.user_email) {
