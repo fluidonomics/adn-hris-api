@@ -1051,6 +1051,10 @@ function addOfficeInfoDetails(req, res, done) {
     });
 }
 function updateofficeInfoDetails(req, res) {
+    // function (done) {
+    //     addLeaveQuota(req, res, done);
+    //     Notify.sendNotifications(req.body.emp_id, 'Leave Quota Provided', 'Leave Quota Provided', parseInt(req.headers.uid), req.body._id, 1, null, parseInt(req.headers.uid));
+    // }
     let _id = req.body._id;
     let emp_id = req.body.emp_id;
     var query = {
@@ -1058,66 +1062,79 @@ function updateofficeInfoDetails(req, res) {
         isDeleted: false
     }
 
-    var queryUpdate = {};
-    queryUpdate = { $set: { updatedBy: parseInt(req.headers.uid), fullName: req.body.fullName } };
-    EmployeeInfo.findOneAndUpdate(query, queryUpdate,
-        function (err, employeeData) {
-            if (employeeData) {
-                query = {
-                    _id: _id,
-                    isDeleted: false
+    async.waterfall([
+        done => {
+            var queryUpdate = {};
+            queryUpdate = { $set: { updatedBy: parseInt(req.headers.uid), fullName: req.body.fullName } };
+            EmployeeInfo.findOneAndUpdate(query, queryUpdate, (err, employeeData) => {
+                if (employeeData) {
+                    query = {
+                        _id: _id,
+                        isDeleted: false
+                    }
+                    queryUpdate = {
+                        $set: {
+                            "idCardNumber": req.body.idCardNumber,
+                            "officeEmail": req.body.officeEmail,
+                            "officePhone": req.body.officePhone,
+                            "officeMobile": req.body.officeMobile,
+                            "facility_id": req.body.facility_id,
+                            "city": req.body.city,
+                            "country": req.body.country,
+                            "costCentre": req.body.costCentre,
+                            "dateOfJoining": req.body.dateOfJoining,
+                            "dateOfConfirmation": req.body.dateOfConfirmation,
+                            "workPermitNumber": req.body.workPermitNumber,
+                            "workPermitEffectiveDate": req.body.workPermitEffectiveDate,
+                            "workPermitExpiryDate": req.body.workPermitExpiryDate,
+                            "updatedBy": parseInt(req.headers.uid),
+                            "isCompleted": true
+                        }
+                    };
+                    OfficeInfo.findOneAndUpdate(query, queryUpdate, function (err, officeDetailsData) {
+                        done(err, officeDetailsData);
+                        if (officeDetailsData) {
+                            req.query.emp_id = req.body.emp_id;
+                            return getOfficeInfoDetails(req, res);
+                        }
+                        else {
+                            return res.status(403).json({
+                                title: 'There was a problem',
+                                error: {
+                                    message: err
+                                },
+                                result: {
+                                    message: officeDetailsData
+                                }
+                            });
+                        }
+                    });
                 }
-                queryUpdate = {
-                    $set: {
-                        "idCardNumber": req.body.idCardNumber,
-                        "officeEmail": req.body.officeEmail,
-                        "officePhone": req.body.officePhone,
-                        "officeMobile": req.body.officeMobile,
-                        "facility_id": req.body.facility_id,
-                        "city": req.body.city,
-                        "country": req.body.country,
-                        "costCentre": req.body.costCentre,
-                        "dateOfJoining": req.body.dateOfJoining,
-                        "dateOfConfirmation": req.body.dateOfConfirmation,
-                        "workPermitNumber": req.body.workPermitNumber,
-                        "workPermitEffectiveDate": req.body.workPermitEffectiveDate,
-                        "workPermitExpiryDate": req.body.workPermitExpiryDate,
-                        "updatedBy": parseInt(req.headers.uid),
-                        "isCompleted": true
-                    }
-                };
-                OfficeInfo.findOneAndUpdate(query, queryUpdate, function (err, officeDetailsData) {
-                    if (officeDetailsData) {
-                        req.query.emp_id = req.body.emp_id;
-                        return getOfficeInfoDetails(req, res);
-                    }
-                    else {
-                        return res.status(403).json({
-                            title: 'There was a problem',
-                            error: {
-                                message: err
-                            },
-                            result: {
-                                message: officeDetailsData
-                            }
-                        });
-                    }
-                });
-            }
-            else {
-                return res.status(403).json({
-                    title: 'There was a problem',
-                    error: {
-                        message: err
-                    },
-                    result: {
-                        message: officeDetailsData
-                    }
-                });
-            }
+                else {
+                    done(err, null);
+                }
+            });
+        },
+        (officeDetailsData, innerDone) => {
+
         }
-    )
+    ], (err, result) => {
+        if (err) {
+            return res.status(403).json({
+                title: 'There was a problem',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: officeDetailsData
+                }
+            });
+        } else {
+
+        }
+    });
 }
+
 function updatepositionInfoDetails(req, res) {
     let _id = req.body.emp_id;
     var query = {
@@ -2427,10 +2444,6 @@ let functions = {
                             function (done) {
                                 addProfileProcessInfoDetails(req, res, done);
                                 Notify.sendNotifications(req.body.emp_id, 'Please Fill Profile', 'Submit your profile', parseInt(req.headers.uid), req.body._id, 1, null, parseInt(req.headers.uid));
-                            },
-                            function (done) {
-                                addLeaveQuota(req, res, done);
-                                Notify.sendNotifications(req.body.emp_id, 'Leave Quota Provided', 'Leave Quota Provided', parseInt(req.headers.uid), req.body._id, 1, null, parseInt(req.headers.uid));
                             }
                         ],
                             function (done) {
