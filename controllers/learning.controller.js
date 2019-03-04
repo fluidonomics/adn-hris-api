@@ -808,13 +808,19 @@ function getLearningApproval(req, res) {
           let pendingLearning = res.filter(learning => {
             return (!learning.status || learning.status == "Submitted");
           });
-          if (pendingLearning.length <= 1 && pendingLearning[0]._id == learningDetailId) {
-            isLearningApproved = true;
-            eligibleForEmail =true;
+          if (pendingLearning[0]._id == learningDetailId) {
+            
             let sendbackLearning = res.filter(learning => {
               return (learning.status == "SendBack");
             });
-            if (sendbackLearning && sendbackLearning.length > 0) {
+
+            if (pendingLearning.length <= 1 && !sendbackLearning) {
+
+              isLearningApproved = true;
+              eligibleForEmail =true;
+            }
+            
+            if (sendbackLearning.length < 1 && !req.body.isApproved ) {
               masterUpdateQuery.status = "SendBack";
               isLearningApproved = false;
               eligibleForEmail = true;
