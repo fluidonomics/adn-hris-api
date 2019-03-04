@@ -9,7 +9,7 @@ let express = require('express'),
   leave = require('../controllers/leave.controller'),
   midterm = require('../controllers/midterm.controller'),
   learning = require('../controllers/learning.controller'),
-externalDocument = require('../controllers/externalDocument.controller'),
+  externalDocument = require('../controllers/externalDocument.controller'),
   Employee = require('../models/employee/employeeDetails.model'),
   batch = require('../controllers/batch.controller'),
   pap = require('../controllers/pap.controller'),
@@ -71,7 +71,7 @@ module.exports = (app) => {
     leaveRoutes = express.Router(),
     midtermRoutes = express.Router(),
     learningRoutes = express.Router();
-    hrRoutes = express.Router(),
+  hrRoutes = express.Router(),
     externalDocumentRoutes = express.Router(),
     batchRoutes = express.Router(),
     papRoutes = express.Router();
@@ -565,6 +565,8 @@ module.exports = (app) => {
   // commonRoutes.get('/sendNotification',ensureAuthenticated, common.sendNotification);
   commonRoutes.get('/getPrePost_Report', common.getPrePost_Report);
   commonRoutes.get('/prepareProdClone', common.prepareProdClone);
+  commonRoutes.get('/getKraEmployeesWithWrongStatus', common.getKraEmployeesWithWrongStatus);
+  commonRoutes.get('/getKraEmployeesWithWrongWeightage', common.getKraEmployeesWithWrongWeightage);
 
   //= ========================
 

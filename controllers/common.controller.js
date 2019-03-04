@@ -382,6 +382,239 @@ function prepareProdClone(req, done) {
     }
 }
 
+function getKraEmployeesWithWrongStatus(req, done) {
+    async.waterfall([
+        (innerDone) => {
+            KraWorkFlowInfo.aggregate([
+                {
+                    "$lookup": {
+                        "from": "kradetails",
+                        "localField": "_id",
+                        "foreignField": "kraWorkflow_id",
+                        "as": "kradetails"
+                    }
+                },
+                {
+                    "$unwind": {
+                        path: "$kradetails",
+                        "preserveNullAndEmptyArrays": true
+                    }
+                },
+                {
+                    "$lookup": {
+                        "from": "employeedetails",
+                        "localField": "emp_id",
+                        "foreignField": "_id",
+                        "as": "employeedetails"
+                    }
+                },
+                {
+                    "$unwind": {
+                        path: "$employeedetails",
+                        "preserveNullAndEmptyArrays": true
+                    }
+                },
+                {
+                    '$group': {
+                        "_id": "$_id",
+                        "updatedAt": { $first: "$updatedAt" },
+                        "createdAt": { $first: "$createdAt" },
+                        "batch_id": { $first: "$batch_id" },
+                        "emp_id": { $first: "$emp_id" },
+                        "isDeleted": { $first: "$isDeleted" },
+                        "createdBy": { $first: "$createdBy" },
+                        "updatedBy": { $first: "$updatedBy" },
+                        "status": { $first: "$status" },
+                        "timeline_id": { $first: "$timeline_id" },
+                        "employeedetails": { $first: "$employeedetails" },
+                        "kraDetails": { $push: "$kradetails" }
+                    }
+                }
+            ]).exec((err, kras) => {
+                console.log(kras.length);
+                innerDone(null, kras);
+            });
+        },
+        (kras, innerDone) => {
+            let employees = [];
+            kras.forEach(kra => {
+                if (kra.kraDetails && kra.kraDetails.length > 0) {
+                    let approvedKraCount = kra.kraDetails.filter(kraDetail => kraDetail.supervisorStatus == 'Approved').length || 0;
+                    if (kra.kraDetails.length == approvedKraCount && kra.status != 'Approved') {
+                        employees.push({
+                            KraWorkflowId: kra._id,
+                            userName: kra.employeedetails.userName,
+                            fullName: kra.employeedetails.fullName,
+                            batch_id: kra.batch_id,
+                            createdAt: kra.createdAt,
+                            createdBy: kra.createdBy,
+                            emp_id: kra.emp_id,
+                            isDeleted: kra.isDeleted,
+                            status: kra.status,
+                            timeline_id: kra.timeline_id,
+                            updatedAt: kra.updatedAt,
+                            updatedBy: kra.updatedBy,
+                            kraDetailIds: kra.kraDetails.map(k => k._id),
+                            isAccountActive: kra.employeedetails.isAccountActive,
+                            isDeleted: kra.employeedetails.isDeleted,
+                        });
+                    }
+                }
+            });
+            console.log(employees);
+            innerDone(null, employees);
+        },
+        (data, innerDone) => {
+            const json2csvParser = new Json2csvParser();
+            const csv = json2csvParser.parse(data);
+            innerDone(null, csv);
+        }
+    ], (err, result) => {
+        done(err, result);
+    });
+}
+
+function getKraEmployeesWithWrongWeightage(req, done) {
+    async.waterfall([
+        (innerDone) => {
+            KraWorkFlowInfo.aggregate([
+                {
+                    "$lookup": {
+                        "from": "kradetails",
+                        "localField": "_id",
+                        "foreignField": "kraWorkflow_id",
+                        "as": "kradetails"
+                    }
+                },
+                {
+                    "$unwind": {
+                        path: "$kradetails",
+                        "preserveNullAndEmptyArrays": false
+                    }
+                },
+                {
+                    "$lookup": {
+                        "from": "employeedetails",
+                        "localField": "emp_id",
+                        "foreignField": "_id",
+                        "as": "employeedetails"
+                    }
+                },
+                {
+                    "$unwind": {
+                        path: "$employeedetails",
+                        "preserveNullAndEmptyArrays": true
+                    }
+                },
+                {
+                    "$lookup": {
+                        "from": "kraweightagedetails",
+                        "localField": "kradetails.weightage_id",
+                        "foreignField": "_id",
+                        "as": "kraweightagedetails"
+                    }
+                },
+                {
+                    "$unwind": {
+                        path: "$kraweightagedetails",
+                        "preserveNullAndEmptyArrays": true
+                    }
+                },
+                {
+                    $project: {
+                        "_id": "$_id",
+                        "updatedAt": "$updatedAt",
+                        "createdAt": "$createdAt",
+                        "batch_id": "$batch_id",
+                        "emp_id": "$emp_id",
+                        "isDeleted": "$isDeleted",
+                        "createdBy": "$createdBy",
+                        "updatedBy": "$updatedBy",
+                        "status": "$status",
+                        "timeline_id": "$timeline_id",
+                        "employeedetails": "$employeedetails",
+                        "kradetails": {
+                            "_id": "$kradetails._id",
+                            "updatedAt": "$kradetails.updatedAt",
+                            "createdAt": "$kradetails.createdAt",
+                            "supervisor_id": "$kradetails.supervisor_id",
+                            "kraWorkflow_id": "$kradetails.kraWorkflow_id",
+                            "updatedBy": "$kradetails.updatedBy",
+                            "createdBy": "$kradetails.createdBy",
+                            "isDeleted": "$kradetails.isDeleted",
+                            "sendBackComment": "$kradetails.sendBackComment",
+                            "supervisorStatus": "$kradetails.supervisorStatus",
+                            "measureOfSuccess": "$kradetails.measureOfSuccess",
+                            "unitOfSuccess": "$kradetails.unitOfSuccess",
+                            "weightage_id": "$kradetails.weightage_id",
+                            "category_id": "$kradetails.category_id",
+                            "kra": "$kradetails.kra",
+                            "kraweightagedetails": "$kraweightagedetails"
+                        }
+                    }
+                },
+                {
+                    '$group': {
+                        "_id": "$_id",
+                        "updatedAt": { $first: "$updatedAt" },
+                        "createdAt": { $first: "$createdAt" },
+                        "batch_id": { $first: "$batch_id" },
+                        "emp_id": { $first: "$emp_id" },
+                        "isDeleted": { $first: "$isDeleted" },
+                        "createdBy": { $first: "$createdBy" },
+                        "updatedBy": { $first: "$updatedBy" },
+                        "status": { $first: "$status" },
+                        "timeline_id": { $first: "$timeline_id" },
+                        "employeedetails": { $first: "$employeedetails" },
+                        "kraDetails": { $push: "$kradetails" }
+                    }
+                }
+            ]).exec((err, kras) => {
+                console.log(kras.length);
+                innerDone(null, kras);
+            });
+        },
+        (kras, innerDone) => {
+            let employees = [];
+            kras.forEach(kra => {
+                if (kra.kraDetails && kra.kraDetails.length > 0) {
+                    let weightage = 0;
+                    kra.kraDetails.forEach(kraDetail => weightage += parseInt(kraDetail.kraweightagedetails.kraWeightageName));
+                    if (weightage > 100) {
+                        employees.push({
+                            KraWorkflowId: kra._id,
+                            userName: kra.employeedetails.userName,
+                            fullName: kra.employeedetails.fullName,
+                            weightage: weightage,
+                            batch_id: kra.batch_id,
+                            createdAt: kra.createdAt,
+                            createdBy: kra.createdBy,
+                            emp_id: kra.emp_id,
+                            isDeleted: kra.isDeleted,
+                            status: kra.status,
+                            timeline_id: kra.timeline_id,
+                            updatedAt: kra.updatedAt,
+                            updatedBy: kra.updatedBy,
+                            kraDetailIds: kra.kraDetails.map(k => k._id),
+                            isAccountActive: kra.employeedetails.isAccountActive,
+                            isDeleted: kra.employeedetails.isDeleted
+                        });
+                    }
+                }
+            });
+            console.log(employees);
+            innerDone(null, employees);
+        },
+        (data, innerDone) => {
+            const json2csvParser = new Json2csvParser();
+            const csv = json2csvParser.parse(data);
+            innerDone(null, csv);
+        }
+    ], (err, result) => {
+        done(err, result);
+    });
+}
+
 
 let functions = {
     getRole: (req, res) => {
@@ -2255,6 +2488,63 @@ let functions = {
             }
             return res.status(200).json('Data Preparation Successful');
         })
+    },
+
+    getKraEmployeesWithWrongStatus: (req, res) => {
+        async.waterfall([
+            (done) => {
+                getKraEmployeesWithWrongStatus(req, done);
+            }
+        ], (err, result) => {
+            if (err) {
+                return res.status(403).json({
+                    title: 'Error',
+                    error: {
+                        message: err
+                    },
+                    result: {
+                        message: result
+                    }
+                });
+            }
+            // return res.status(200).json(result);
+            fs.writeFile('KraReport.csv', result, function (err) {
+                if (err) throw err;
+                // console.log('file saved');
+
+                var file = 'KraReport.csv';
+                res.download(file, 'KraReport.csv');
+
+            });
+        });
+    },
+    getKraEmployeesWithWrongWeightage: (req, res) => {
+        async.waterfall([
+            (done) => {
+                getKraEmployeesWithWrongWeightage(req, done);
+            }
+        ], (err, result) => {
+            if (err) {
+                return res.status(403).json({
+                    title: 'Error',
+                    error: {
+                        message: err
+                    },
+                    result: {
+                        message: result
+                    }
+                });
+            }
+            // return res.status(200).json(result);
+            fs.writeFile('KraReport_Weightage.csv', result, function (err) {
+                if (err) throw err;
+                // console.log('file saved');
+
+                var file = 'KraReport_Weightage.csv';
+                res.download(file, 'KraReport_Weightage.csv');
+
+            });
+        });
     }
 };
 
