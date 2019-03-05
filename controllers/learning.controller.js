@@ -794,13 +794,17 @@ function getLearningApproval(req, res) {
     isApproved: req.body.isApproved ? "Approved" : "SendBack"
   };
   let isLearningApproved = false;
+  let contain = function(element) {
+
+    return element._id === learningDetailId;
+  }
   async.waterfall(
     [
       done => {
         let masterUpdateQuery = {
           updatedBy: supervisorId,
           updatedAt: new Date(),
-          status: req.body.isApproved ? "Approved" : "SendBack"
+          status: "Submitted"
         };
         LearningDetails.find({ master_id: learningMasterId }, (err, res) => {
           if (err)
@@ -808,14 +812,15 @@ function getLearningApproval(req, res) {
           let pendingLearning = res.filter(learning => {
             return (!learning.status || learning.status == "Submitted");
           });
-          if (pendingLearning[0]._id == learningDetailId) {
+          if (pendingLearning.some(contain)) {
             
             let sendbackLearning = res.filter(learning => {
               return (learning.status == "SendBack");
             });
 
-            if (pendingLearning.length <= 1 && !sendbackLearning) {
+            if (pendingLearning.length <= 1 && sendbackLearning.length < 1 && req.body.isApproved) {
 
+              masterUpdateQuery.status = "Approved";
               isLearningApproved = true;
               eligibleForEmail =true;
             }
