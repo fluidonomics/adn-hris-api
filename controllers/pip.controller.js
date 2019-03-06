@@ -1001,6 +1001,119 @@ function updatepipdetails(req, res) {
   
 }
 
+function getPipByHr(req, res) {
+
+  let hrId = parseInt(req.query.hrId);
+
+  pipbatch.aggregate([
+
+    {
+      $match: {
+        createdBy: hrId
+      }
+    },
+    {
+      $lookup: {
+        from: "pipmasters",
+        localField: "_id",
+        foreignField: "batch_id",
+        as: "pip_master"
+      }
+    },
+    {
+      $unwind: {
+        path: "$pip_master"
+      }
+    },
+    {
+      $lookup: {
+        from: "pipdetails",
+        localField: "pip_master._id",
+        foreignField: "master_id",
+        as: "pip_details"
+      }
+    },
+    {
+      $unwind: {
+        path: "$pip_details",
+        preserveNullAndEmptyArrays: true
+      }
+    },
+    {
+      $project: {
+
+        pip_details: "$pip_details",
+        pip_master: "$pip_master",
+        batch_name: "$batchName"
+      }
+    }
+  ]).exec(function (err, data) {
+    if(err) {
+      return res.status(403).json({
+        title: "There was a problem",
+        error: {
+          message: err
+        },
+        result: {
+          message: data
+        }
+      });
+    } else {
+
+      return res.status(200).json({
+        title: "PIP data by HR",
+        result: {
+          message: data
+        }
+      });
+    }
+  });
+}
+
+function updatepipMaster(req, res) {
+
+  let master_id = req.body.masterId;
+  let updateQuery = {
+    "updatedAt": new Date(),
+    "updatedBy": parseInt(req.body.updatedBy),
+    "hr_final_com": req.body.hrFinalCom,
+    "emp_final_com": req.body.empFinalCom,
+    "rev_final_com": req.body.revFinalCom,
+    "sup_final_com": req.body.supFinalCom
+  }
+
+  pipMaster.findOneAndUpdate({_id:master_id}, updateQuery, (err, result) => {
+
+    if(err) {
+      return res.status(403).json({
+        
+        title: "There was a problem",
+        error: {
+          message: err
+        },
+        message: {
+          message: result
+        }
+      });
+    } else {
+      AuditTrail.auditTrailEntry(
+        0,
+        "pipmaster",
+        result,
+        "pip",
+        "updateDetails",
+        "UPDATED"
+      );
+      return res.status(200).json({
+        title: "Pip master updated",
+        result: {
+          message: result
+        }
+      });
+    }
+  });
+}
+
 let functions = {
 
   getPipEmployee: (req, res) => {
@@ -1059,6 +1172,16 @@ let functions = {
   updatepipdetails: (req, res) => {
 
     updatepipdetails(req, res);
+  },
+
+  getPipByHR: (req, res) => {
+
+    getPipByHr(req, res);
+  },
+
+  updatePipMaster: (req, res) => {
+
+    updatepipMaster(req, res);
   }
   // getLearningForSuperviser: (req, res) => {
   //   getLearningBySupervisor(req, res);                  

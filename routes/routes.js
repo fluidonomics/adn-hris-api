@@ -407,6 +407,8 @@ module.exports = (app) => {
   pipRoutes.post("/updatebatch", pip.updateBatch);
   pipRoutes.get("/getpipbatch", pip.getPipBatch);
   pipRoutes.post("/updatepipdetails", pip.updatepipdetails);
+  pipRoutes.get("/getpipbyhr", pip.getPipByHR);
+  pipRoutes.post("/updatepipmaster", pip.updatePipMaster);
 
   
 
