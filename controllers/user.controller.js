@@ -2163,13 +2163,32 @@ function updateSupervisortransfer(req, res, done) {
                         async.waterfall([
                             (innerDone) => {
                                 if (req.body.kraIds && req.body.kraIds.length > 0) {
-                                    let updateQuery = {
-                                        "supervisor_id": req.body.primarySupervisorEmp_id,
-                                        "updatedAt": updatedAt,
-                                        "updatedBy": updatedBy
-                                    };
-                                    kraDetails.updateMany({ _id: { $in: req.body.kraIds } }, updateQuery, (err, res) => {
-                                        innerDone(err, res);
+                                    let matchQuery = {
+                                        _id: {
+                                            $in: req.body.kraIds
+                                        }
+                                    }
+                                    kraDetails.find(matchQuery, (err, res) => {
+                                        if (err) {
+                                            innerDone(err);
+                                        }
+                                        if (res && res.length > 0) {
+                                            res.forEach(kra => {
+                                                let updateQuery = {
+                                                    "updatedAt": updatedAt,
+                                                    "updatedBy": updatedBy
+                                                };
+                                                if (kra.supervisor_id == responseObject.previousSupervisorInfo.primarySupervisorEmp_id) {
+                                                    updateQuery.supervisor_id = req.body.primarySupervisorEmp_id;
+                                                } else if (kra.supervisor_id == responseObject.previousSupervisorInfo.secondarySupervisorEmp_id) {
+                                                    updateQuery.supervisor_id = req.body.secondarySupervisorEmp_id;
+                                                }
+
+                                                kraDetails.updateOne({ _id: kra._id }, updateQuery, (err, res) => {
+                                                    innerDone(err, res);
+                                                });
+                                            });
+                                        }
                                     });
                                 } else {
                                     innerDone(null, null);
@@ -2177,27 +2196,50 @@ function updateSupervisortransfer(req, res, done) {
                             },
                             (kras, innerDone) => {
                                 if (req.body.leaveIds && req.body.leaveIds.length > 0) {
-                                    let updateQuery = {
-                                        "applyTo": req.body.primarySupervisorEmp_id,
-                                        "updatedAt": updatedAt,
-                                        "updatedBy": updatedBy
-                                    };
-                                    LeaveApply.updateMany({ _id: { $in: req.body.leaveIds } }, updateQuery, (err, res) => {
-                                        innerDone(err, res);
-                                    });
+                                    LeaveApply.find({ _id: { $in: req.body.leaveIds } }, (err, leaves) => {
+                                        if (err) {
+                                            innerDone(err);
+                                        }
+                                        if (leaves && leaves.length > 0) {
+                                            leaves.forEach(leave => {
+                                                let updateQuery = {
+                                                    "updatedAt": updatedAt,
+                                                    "updatedBy": updatedBy
+                                                };
+                                                if (leave.applyTo == responseObject.previousSupervisorInfo.primarySupervisorEmp_id) {
+                                                    updateQuery.applyTo = req.body.primarySupervisorEmp_id;
+                                                } else if (leave.applyTo == responseObject.previousSupervisorInfo.secondarySupervisorEmp_id) {
+                                                    updateQuery.applyTo = req.body.secondarySupervisorEmp_id;
+                                                }
+                                                LeaveApply.updateOne({ _id: leave._id }, updateQuery, (err, res) => {
+                                                    innerDone(err, res);
+                                                });
+                                            });
+                                        }
+                                    })
                                 } else {
                                     innerDone(null, null);
                                 }
                             },
                             (leaves, innerDone) => {
                                 if (req.body.mtrIds && req.body.mtrIds.length > 0) {
-                                    let updateQuery = {
-                                        "supervisor_id": req.body.primarySupervisorEmp_id,
-                                        "updatedAt": updatedAt,
-                                        "updatedBy": updatedBy
-                                    };
-                                    MidTermDetails.updateMany({ _id: { $in: req.body.mtrIds } }, updateQuery, (err, res) => {
-                                        innerDone(err, res);
+                                    MidTermDetails.find({ _id: { $in: req.body.mtrIds } }, (err, midTerms) => {
+                                        if (midTerms && midTerms.length > 0) {
+                                            midTerms.forEach(mtr => {
+                                                let updateQuery = {
+                                                    "updatedAt": updatedAt,
+                                                    "updatedBy": updatedBy
+                                                };
+                                                if (mtr.supervisor_id == responseObject.previousSupervisorInfo.primarySupervisorEmp_id) {
+                                                    updateQuery.supervisor_id = req.body.primarySupervisorEmp_id;
+                                                } else if (mtr.supervisor_id == responseObject.previousSupervisorInfo.secondarySupervisorEmp_id) {
+                                                    updateQuery.supervisor_id = req.body.secondarySupervisorEmp_id;
+                                                }
+                                                MidTermDetails.updateMany({ _id: mtr._id }, updateQuery, (err, res) => {
+                                                    innerDone(err, res);
+                                                });
+                                            })
+                                        }
                                     });
                                 } else {
                                     innerDone(null, null);
