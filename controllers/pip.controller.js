@@ -1027,6 +1027,19 @@ function getPipByHr(req, res) {
     },
     {
       $lookup: {
+        from: "employeedetails",
+        localField: "pip_master.emp_id",
+        foreignField: "_id",
+        as: "emp_details"
+      }
+    },
+    {
+      $unwind: {
+        path: "$emp_details"
+      }
+    },
+    {
+      $lookup: {
         from: "pipdetails",
         localField: "pip_master._id",
         foreignField: "master_id",
@@ -1044,7 +1057,16 @@ function getPipByHr(req, res) {
 
         pip_details: "$pip_details",
         pip_master: "$pip_master",
-        batch_name: "$batchName"
+        batch_name: "$batchName",
+        emp_details: "$emp_details"
+      }
+    },
+    {
+      $group: {
+        _id: "$pip_master._id",
+        emp_details: { $first: "$emp_details" },
+        pip_master: { $first: "$pip_master" },
+        pip_details: { $first: "$pip_details"}
       }
     }
   ]).exec(function (err, data) {
