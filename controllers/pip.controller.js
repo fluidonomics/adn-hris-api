@@ -163,7 +163,8 @@ function getpipDetails(req, res) {
         batchId: "$pip_master_details._id"
 
       }
-    }
+    },
+    { $sort : { createdAt : -1} }
   ]).exec(function (err, data) {
     if (err) {
       return res.status(403).json({
@@ -222,34 +223,102 @@ function insertPip(req, res) {
   pipDetails.supComment_month5 = req.body.supComment_month5;
   pipDetails.empComment_month6 = req.body.empComment_month6;
   pipDetails.supComment_month6 = req.body.supComment_month6;
-  pipDetails.save(function (err, response) {
-    if (err) {
-      return res.status(403).json({
-        title: "There is a problem",
-        error: {
-          message: err
-        },
-        result: {
-          message: response
+
+
+  if(req.body._id != null) {
+
+    let updateQuery = {
+      
+      supervisor_id: parseInt(req.body.supervisorId),
+      measureOfSuccess: req.body.measureOfSuccess,
+      progressStatus: req.body.progressStatus,
+      employeeComment: req.body.employeeComment,
+      status: req.body.status,
+      developmentArea: req.body.developmentArea,
+      supportRequired: req.body.supportRequired,
+      developmentPlan: req.body.developmentPlan,
+      timelines: req.body.timelines,
+      updatedBy: parseInt(req.body.updatedBy),
+      updatedAt: new Date(),
+      completionDate: req.body.completionDate,
+      empComment_month1: req.body.empComment_month1,
+      supComment_month1: req.body.supComment_month1,
+      empComment_month2: req.body.empComment_month2,
+      supComment_month2: req.body.supComment_month2,
+      empComment_month3: req.body.empComment_month3,
+      supComment_month3: req.body.supComment_month3,
+      empComment_month4: req.body.empComment_month4,
+      supComment_month4: req.body.supComment_month4,
+      empComment_month5: req.body.empComment_month5,
+      supComment_month5: req.body.supComment_month5,
+      empComment_month6: req.body.empComment_month6,
+      supComment_month6: req.body.supComment_month6
+    };
+  
+    pipDetails.findOneAndUpdate(
+      { _id: parseInt(req.body._id) },
+      updateQuery,
+      (err, response) => {
+        if (err) {
+          return res.status(403).json({
+            title: "There is a problem",
+            error: {
+              message: err
+            },
+            result: {
+              message: response
+            }
+          });
+        } else {
+          AuditTrail.auditTrailEntry(
+            0,
+            "pipdetails",
+            response,
+            "user",
+            "pipdetails",
+            "UPDATED"
+          );
+          return res.status(200).json({
+            title: "Learning Updated",
+            result: {
+              message: response
+            }
+          });
         }
-      });
-    } else {
-      AuditTrail.auditTrailEntry(
-        0,
-        "pipDetails",
-        response,
-        "user",
-        "pipDetails",
-        "ADDED"
-      );
-      return res.status(200).json({
-        title: "New Topic Added",
-        result: {
-          message: response
-        }
-      });
-    }
-  });
+      }
+    );
+  } else {
+
+    pipDetails.save(function (err, response) {
+      if (err) {
+        return res.status(403).json({
+          title: "There is a problem",
+          error: {
+            message: err
+          },
+          result: {
+            message: response
+          }
+        });
+      } else {
+        AuditTrail.auditTrailEntry(
+          0,
+          "pipDetails",
+          response,
+          "user",
+          "pipDetails",
+          "ADDED"
+        );
+        return res.status(200).json({
+          title: "New Topic Added",
+          result: {
+            message: response
+          }
+        });
+      }
+    });
+  }
+  
 }
 
 function getpipdetailspostinsertion(req, res) {
@@ -370,7 +439,8 @@ function getpipBySupervisor(req, res) {
         pipMasterId: "$master_id",
         emp_details: "$emp_details",
         pip_master_details: "$pip_master_details",
-        status: "$pip_master_details.status"
+        status: "$pip_master_details.status",
+        updatedAt: "$pip_master_details.updatedAt"
       }
     },
     { $match: { status: status } },
@@ -378,9 +448,11 @@ function getpipBySupervisor(req, res) {
       $group: {
         _id: "$pipMasterId",
         emp_details: { $first: "$emp_details" },
-        pip_master_details: { $first: "$pip_master_details" }
+        pip_master_details: { $first: "$pip_master_details" },
+        updatedAt: { $first: "$updatedAt"}
       }
-    }
+    },
+    { $sort : { updatedAt : 1} }
   ]).exec(function (err, data) {
     if (err) {
       return res.status(403).json({
@@ -600,6 +672,7 @@ function getPipApproval(req, res) {
   let pipDetailId = parseInt(req.body.pipDetailId);
   let empId = parseInt(req.body.empId);
   let supervisorId = parseInt(req.body.supervisorId);
+  let eligibleForEmail = false;
   let email_details = {
     user_email: '',
     supervisor_name: req.body.supervisor_name,
@@ -608,13 +681,17 @@ function getPipApproval(req, res) {
     isApproved: req.body.isApproved ? "Approved" : "SendBack"
   };
   let isPipApproved = false;
+  let contain = function(element) {
+
+    return element._id === pipDetailId;
+  }
   async.waterfall(
     [
       done => {
         let masterUpdateQuery = {
           updatedBy: supervisorId,
           updatedAt: new Date(),
-          status: req.body.isApproved ? "Approved" : "SendBack"
+          status: "Submitted"
         };
         pipdetails.find({ master_id: pipMasterId }, (err, res) => {
           if (err)
@@ -622,14 +699,21 @@ function getPipApproval(req, res) {
           let pendingPip = res.filter(pip => {
             return (!pip.status || pip.status == "Submitted");
           });
-          if (pendingPip.length <= 1 && pendingPip[0]._id == pipDetailId) {
-            isPipApproved = true;
+          if (pendingPip.some(contain)) {
+            
             let sendbackPip = res.filter(pip => {
               return (pip.status == "SendBack");
             });
-            if (sendbackPip && sendbackPip.length > 0) {
+
+            if (pendingPip.length <= 1 && sendbackPip.length < 1 && req.body.isApproved) {
+
+              masterUpdateQuery.status = "Approved";
+              eligibleForEmail =true;
+            }
+            
+            if (sendbackPip.length < 1 && !req.body.isApproved ) {
               masterUpdateQuery.status = "SendBack";
-              isPipApproved = false;
+              eligibleForEmail = true;
             }
             pipMaster.findByIdAndUpdate({ _id: pipMasterId }, masterUpdateQuery, (err, res) => {
               done(err, res);
@@ -720,7 +804,7 @@ function getPipApproval(req, res) {
         });
       } else {
         // #70 fix, email fix
-        if (isPipApproved === "Approved") {
+        if (eligibleForEmail) {
           email_details.user_name = result.emp[0].user_name;
           email_details.user_email = result.emp[0].officeEmail;
           if (email_details.user_email) {
@@ -887,7 +971,8 @@ function getBatch(req, res) {
         batchName: { $first: "$batchName" },
         pip_master: { $push: "$pip_master" }
       }
-    }
+    },
+    { $sort : { createdAt : 1} }
   ]).exec(function (err, data) {
     if (err) {
       return res.status(403).json({
