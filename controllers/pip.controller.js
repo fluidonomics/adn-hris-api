@@ -351,6 +351,11 @@ function getpipdetailspostinsertion(req, res) {
         updatedAt: "$updatedAt",
         master_id: "$pipdetails._id",
         master_timelines: "$pipdetails.timelines",
+        emp_final_com: "$pipdetails.emp_final_com",
+        sup_final_com: "$pipdetails.sup_final_com",
+        rev_final_com: "$pipdetails.rev_final_com",
+        hr_final_com: "$pipdetails.hr_final_com",
+        final_recommendation: "$pipdetails.final_recommendation",
         status: "$status",
         supervisor_id: "$supervisor_id",
         areaofImprovement: "$areaofImprovement",
@@ -1186,7 +1191,8 @@ function updatepipMaster(req, res) {
     "hr_final_com": req.body.hrFinalCom,
     "emp_final_com": req.body.empFinalCom,
     "rev_final_com": req.body.revFinalCom,
-    "sup_final_com": req.body.supFinalCom
+    "sup_final_com": req.body.supFinalCom,
+    "final_recommendation": parseInt(req.body.finalRecommendation)
   }
 
   pipMaster.findOneAndUpdate({_id:master_id}, updateQuery, (err, result) => {
