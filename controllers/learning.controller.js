@@ -825,7 +825,7 @@ function getLearningApproval(req, res) {
               eligibleForEmail =true;
             }
             
-            if (sendbackLearning.length < 1 && !req.body.isApproved ) {
+            if (!req.body.isApproved ) {
               masterUpdateQuery.status = "SendBack";
               isLearningApproved = false;
               eligibleForEmail = true;
