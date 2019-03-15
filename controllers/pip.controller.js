@@ -229,7 +229,7 @@ function insertPip(req, res) {
 
     let updateQuery = {
       
-      supervisor_id: parseInt(req.body.supervisorId),
+      supervisor_id: supervisor_id,
       measureOfSuccess: req.body.measureOfSuccess,
       progressStatus: req.body.progressStatus,
       employeeComment: req.body.employeeComment,
@@ -255,7 +255,7 @@ function insertPip(req, res) {
       supComment_month6: req.body.supComment_month6
     };
   
-    pipDetails.findOneAndUpdate(
+    pipdetails.findOneAndUpdate(
       { _id: parseInt(req.body._id) },
       updateQuery,
       (err, response) => {
