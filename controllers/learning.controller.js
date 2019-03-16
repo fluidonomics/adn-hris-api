@@ -1146,6 +1146,54 @@ function getLearningBatch(req, res) {
   });
 }
 
+function updateMaster (req, res) {
+
+  let masterId = parseInt(req.body.masterId);
+
+  let updateQuery = {
+
+    status: req.body.status,
+    updatedBy: parseInt(req.body.updatedBy),
+    updatedAt: new Date()
+  }
+
+  LearningMaster.findOneAndUpdate({_id: masterId}, updateQuery,
+    
+    (err, response) => {
+
+      if (err) {
+
+        return res.status(403).json({
+          title: "There is a problem",
+          error: {
+            message: err
+          },
+          result: {
+            message: response
+          }
+        }); 
+      } else {
+
+        AuditTrail.auditTrailEntry(
+          0,
+          "LearningMaster",
+          response,
+          "user",
+          "LearningMaster",
+          "UPDATED"
+        );
+        return res.status(200).json({
+          title: "Learning Master Updated",
+          result: {
+            message: response
+          }
+        });
+      }
+    }
+    )
+
+}
+
 let functions = {
     initiateLearningProcess: (req, res) => {
     InitiateLearning(req, res);
@@ -1185,7 +1233,12 @@ let functions = {
 
     getLearningBatch: (req, res) => {
       getLearningBatch(req, res);
+    },
+
+    updateLearningMaster: (req, res) => {
+      updateMaster(req, res);
     }
+    
 
 };
 
