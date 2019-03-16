@@ -391,6 +391,7 @@ module.exports = (app) => {
   learningRoutes.post("/learningapproval", learning.learningApproval);
   learningRoutes.post("/updatebatch", learning.updateBatch);
   learningRoutes.get("/getlearningbatch", learning.getLearningBatch);
+  learningRoutes.post("/updatelearningmaster", learning.updateLearningMaster);
 
 //==============================
   //PIP API's
