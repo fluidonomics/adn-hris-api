@@ -633,90 +633,98 @@ function getPapDetailsSingleEmployee(req, res) {
 
 function getPapBySupervisor(req, res) {
     let supervisorId = parseInt(req.query.empId);
-    PapDetails.aggregate([{
-        '$lookup': {
-            'from': 'midtermdetails',
-            'localField': 'mtr_details_id',
-            'foreignField': '_id',
-            'as': 'mtr_details'
-        }
-    },
-    {
-        '$unwind': {
-            'path': '$mtr_details'
-        }
-    },
-    {
-        '$match': {
-            'mtr_details.supervisor_id': supervisorId
-        }
-    },
-    {
-        '$lookup': {
-            'from': 'papmasters',
-            'localField': 'pap_master_id',
-            'foreignField': '_id',
-            'as': 'papmasters'
-        }
-    },
-    {
-        '$unwind': {
-            'path': '$papmasters'
-        }
-    },
-    {
-        '$lookup': {
-            'from': 'employeedetails',
-            'localField': 'empId',
-            'foreignField': '_id',
-            'as': 'emp_details'
-        }
-    },
-    {
-        '$unwind': {
-            'path': '$emp_details'
-        }
-    },
-    {
-        '$project': {
-            'emp_id': '$empId',
-            'emp_details': '$emp_details',
-            'papmasters': '$papmasters',
-            'updatedAt': '$updatedAt',
-            'group_obj': {
-                'grievanceRemark': '$grievanceRemark',
-                'grievance_ratingScaleId': '$grievance_ratingScaleId',
-                'status': '$status',
-                'reviewerRemark': '$reviewerRemark',
-                'supRemark': '$supRemark',
-                'sup_ratingScaleId': '$sup_ratingScaleId',
-                'empRemark': '$empRemark',
-                'emp_ratingScaleId': '$emp_ratingScaleId',
-                'kra': '$mtr_details.mtr_kra',
-                'measureOfSuccess': '$mtr_details.measureOfSuccess',
-                'unitOfSuccess': '$mtr_details.unitOfSuccess',
-                'category_id': '$mtr_details.category_id',
-                'weightage_id': '$mtr_details.weightage_id'
+    PapDetails.aggregate([
+        {
+            '$match': {
+                'status': {
+                    $in: ["Submitted", "Pending Reviewer", "Approved", "SendBack"]
+                }
+            }
+        },
+        {
+            '$lookup': {
+                'from': 'midtermdetails',
+                'localField': 'mtr_details_id',
+                'foreignField': '_id',
+                'as': 'mtr_details'
+            }
+        },
+        {
+            '$unwind': {
+                'path': '$mtr_details'
+            }
+        },
+        {
+            '$match': {
+                'mtr_details.supervisor_id': supervisorId
+            }
+        },
+        {
+            '$lookup': {
+                'from': 'papmasters',
+                'localField': 'pap_master_id',
+                'foreignField': '_id',
+                'as': 'papmasters'
+            }
+        },
+        {
+            '$unwind': {
+                'path': '$papmasters'
+            }
+        },
+        {
+            '$lookup': {
+                'from': 'employeedetails',
+                'localField': 'empId',
+                'foreignField': '_id',
+                'as': 'emp_details'
+            }
+        },
+        {
+            '$unwind': {
+                'path': '$emp_details'
+            }
+        },
+        {
+            '$project': {
+                'emp_id': '$empId',
+                'emp_details': '$emp_details',
+                'papmasters': '$papmasters',
+                'updatedAt': '$updatedAt',
+                'group_obj': {
+                    'grievanceRemark': '$grievanceRemark',
+                    'grievance_ratingScaleId': '$grievance_ratingScaleId',
+                    'status': '$status',
+                    'reviewerRemark': '$reviewerRemark',
+                    'supRemark': '$supRemark',
+                    'sup_ratingScaleId': '$sup_ratingScaleId',
+                    'empRemark': '$empRemark',
+                    'emp_ratingScaleId': '$emp_ratingScaleId',
+                    'kra': '$mtr_details.mtr_kra',
+                    'measureOfSuccess': '$mtr_details.measureOfSuccess',
+                    'unitOfSuccess': '$mtr_details.unitOfSuccess',
+                    'category_id': '$mtr_details.category_id',
+                    'weightage_id': '$mtr_details.weightage_id'
+                }
+            }
+        },
+        {
+            '$group': {
+                '_id': '$emp_id',
+                'emp_details': {
+                    '$first': '$emp_details'
+                },
+                'papmasters': {
+                    '$first': '$papmasters'
+                },
+                'updatedAt': {
+                    '$first': '$updatedAt'
+                },
+                'kra_details': {
+                    '$push': '$group_obj'
+                }
             }
         }
-    },
-    {
-        '$group': {
-            '_id': '$emp_id',
-            'emp_details': {
-                '$first': '$emp_details'
-            },
-            'papmasters': {
-                '$first': '$papmasters'
-            },
-            'updatedAt': {
-                '$first': '$updatedAt'
-            },
-            'kra_details': {
-                '$push': '$group_obj'
-            }
-        }
-    }
     ]).exec(function (err, response) {
         if (err) {
             return res.status(403).json({
@@ -739,7 +747,7 @@ function getPapBySupervisor(req, res) {
     })
 }
 
-
+// When employee fills & saves/updates individual pap.
 function papUpdate(req, res) {
     async.waterfall([
         (done) => {
@@ -772,6 +780,7 @@ function papUpdate(req, res) {
     })
 }
 
+// Employee submits the pap to supervisor for reviewing.
 function papSubmit(req, res) {
     async.waterfall([
         (done) => {
@@ -842,6 +851,7 @@ function updateBatch(req, res) {
     })
 }
 
+// Supervisor fills rating and sends it to reviewer for further process.
 function papUpdateSupervisor(req, res) {
     async.waterfall([
         (done) => {
@@ -873,6 +883,7 @@ function papUpdateSupervisor(req, res) {
     })
 }
 
+// When reviewer updates individual pap and approves or sends it back to supervisor.
 function papUpdateReviewer(req, res) {
     async.waterfall([
         (done) => {
@@ -886,6 +897,30 @@ function papUpdateReviewer(req, res) {
                 _id: req.body.papDetailsId
             }, updateQuery, (err, res) => {
                 done(err, res);
+            })
+        },
+        (papDetail, innerDone) => {
+            PapDetails.find({ pap_master_id: papDetail.pap_master_id }, (err, papDetails) => {
+                if (err) {
+                    innerDone(err, papDetails);
+                };
+
+                let approvedCount = papDetails.filter(pap => pap.status == 'Approved').length || 0;
+                if (approvedCount == papDetails.length) {
+                    let updateQuery = {
+                        "updatedAt": new Date(),
+                        "updatedBy": parseInt(req.body.updatedBy),
+                        "reviewerStatus": "Approved"
+                    }
+                    PapMasterDetails.updateOne({ _id: papDetail.pap_master_id }, updateQuery, (err, papMaster) => {
+                        if (err) {
+                            innerDone(err, papMaster);
+                        };
+                        innerDone(err, papDetail);
+                    });
+                } else {
+                    innerDone(null, papDetail);
+                }
             })
         },
         (papDetails, done) => {
@@ -1040,7 +1075,8 @@ function papSubmitToReviewer(req, res) {
                 "status": "Pending Reviewer",
             }
             PapDetails.updateMany({
-                pap_master_id: req.body.papMasterId
+                pap_master_id: req.body.papMasterId,
+                status: { $in: ["Submitted", "SendBack"] }
             }, updateQuery, (err, res) => {
                 done(err, res);
             })
@@ -1101,7 +1137,8 @@ function getEmployeesForFeedbackInit(req, res) {
             PapMasterDetails.aggregate([{
                 '$match': {
                     'isRatingCommunicated': false,
-                    'status': 'Approved'
+                    'status': 'Submitted',
+                    'reviewerStatus': 'Approved'
                 }
             },
             {
@@ -1128,6 +1165,19 @@ function getEmployeesForFeedbackInit(req, res) {
             {
                 '$unwind': {
                     'path': '$employeeofficedetails'
+                }
+            },
+            {
+                '$lookup': {
+                    'from': 'designations',
+                    'localField': 'employeedetails.designation_id',
+                    'foreignField': '_id',
+                    'as': 'designations'
+                }
+            },
+            {
+                '$unwind': {
+                    'path': '$designations'
                 }
             }
             ]).exec((err, result) => {
