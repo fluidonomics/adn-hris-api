@@ -98,15 +98,45 @@ function getEmployeesForPapInitiate(req, res) {
         }
     },
     {
+        $lookup: {
+            'from': 'departments',
+            'localField': 'employee_office_details.department_id',
+            'foreignField': '_id',
+            'as': 'department'
+        }
+    },
+    {
+        $unwind: {
+            'path': '$department',
+            'preserveNullAndEmptyArrays': true
+        }
+    },
+    {
+        $lookup: {
+            'from': 'grades',
+            'localField': 'employee_details.grade_id',
+            'foreignField': '_id',
+            'as': 'grade'
+        }
+    },
+    {
+        $unwind: {
+            'path': '$grade',
+            'preserveNullAndEmptyArrays': true
+        }
+    },
+    {
         $project: {
             mtr_master_id: '$_id',
             emp_id: '$emp_id',
             userName: '$employee_details.userName',
             fullName: '$employee_details.fullName',
             grade_id: '$employee_details.grade_id',
+            grade: '$grade',
             profileImage: '$employee_details.profileImage',
             designation_id: '$employee_details.designation_id',
             designationName: '$designations.designationName',
+            department: '$department',
             department_id: '$employee_office_details.department_id',
             supervisor_id: '$employee_superviosr_details.primarySupervisorEmp_id',
             supervisorName: '$supervisor_details.fullName',
