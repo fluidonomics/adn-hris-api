@@ -845,6 +845,60 @@ function papSubmit(req, res) {
                 "UPDATED"
             );
             done(null, papDetails);
+        },
+        (papDetails, done) => {
+
+            PapDetails.aggregate([{
+                    '$match': {
+                        'pap_master_id': parseInt(req.body.pap_master_id)
+                    }
+                },
+                {
+                    '$lookup': {
+                        'from': 'midtermdetails',
+                        'localField': 'mtr_details_id',
+                        'foreignField': '_id',
+                        'as': 'midtermdetails'
+                    }
+                },
+                {
+                    '$unwind': {
+                        'path': '$midtermdetails'
+                    }
+                },
+                {
+                    '$lookup': {
+                        'from': 'employeeofficedetails',
+                        'localField': 'midtermdetails.supervisor_id',
+                        'foreignField': 'emp_id',
+                        'as': 'employeeofficedetails'
+                    }
+                },
+                {
+                    '$unwind': {
+                        'path': '$employeeofficedetails'
+                    }
+                },
+                {
+                    '$project': {
+                        'supervisorid': '$midtermdetails.supervisor_id',
+                        'officeEmail': '$employeeofficedetails.officeEmail'
+                    }
+                }
+            ]).exec(function (err, response) {
+                // EmployeeDetails.findById(createdBy, (err, emp) => {
+                //     response.forEach(f => {
+                //         let data = {};
+                //         data.emp_email = f.officeEmail;
+                //         data.emp_name = f.fullName;
+                //         data.action_link = action_link;
+                //         data.createdBy = emp;
+                //         SendEmail.sendEmailToEmployeeForPapInitiate(data);
+                //     })
+                done(err, papDetails);
+            });
+            //})
+
         }
     ], (err, results) => {
         sendResponse(res, err, results, 'Pap details updated successfully');

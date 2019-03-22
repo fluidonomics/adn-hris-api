@@ -89,6 +89,10 @@ module.exports = {
       from: '"Team HRIS" <hris@adnsl.net>',
       subject: 'Midterm Review for Approval'
     },
+    'sendEmailToSupervisorToApprovePap': {
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'Pap Review for Approval'
+    },
     'sendEmailToEmployeeForMtrStatus': {
       from: '"Team HRIS" <hris@adnsl.net>',
       subject: 'Midterm Review Status'
