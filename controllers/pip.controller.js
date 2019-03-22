@@ -637,7 +637,8 @@ function getpipByReviewer(req, res){
         PipMasterId: "$master_id",
         emp_details: "$emp_details",
         pip_master_details: "$pip_master_details",
-        status: "$pip_master_details.status"
+        status: "$pip_master_details.status",
+        updatedAt: "$pip_master_details.updatedAt"
       }
     },
     // { $match: { status: status } },
@@ -645,9 +646,11 @@ function getpipByReviewer(req, res){
       $group: {
         _id: "$pip_master_details._id",
         emp_details: { $first: "$emp_details" },
-        pip_master_details: { $first: "$pip_master_details" }
+        pip_master_details: { $first: "$pip_master_details" },
+        updatedAt: { $first: "$updatedAt"}
       }
-    }
+    },
+    { $sort : { updatedAt : 1} }
   ]).exec(function (err, data) {
     if (err) {
       return res.status(403).json({
