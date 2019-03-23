@@ -8,6 +8,7 @@ let PapDetailsSchema = new Schema(
     pap_master_id: { type: Number, ref: 'papMaster'},
     empId: { type: Number, ref: 'employeedetails'},
     mtr_details_id: { type: Number, ref: 'midtermDetails'},
+    supervisor_id: { type: Number },
     emp_ratingScaleId: { type: Number, ref: 'performanceRating', default: null},
     empRemark: { type: String, default: null},
     sup_ratingScaleId: { type: Number, ref: 'performanceRating', default: null},
