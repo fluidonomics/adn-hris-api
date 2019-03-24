@@ -1202,6 +1202,19 @@ function papSubmitToReviewer(req, res) {
                 done(err, res);
             })
         },
+        (papDetails, innerDone) => {
+            let updateQuery = {
+                "updatedAt": new Date(),
+                "updatedBy": parseInt(req.body.updatedBy),
+                "reviewerStatus": null
+            }
+            PapMasterDetails.updateOne({ _id: parseInt(req.body.papMasterId) }, updateQuery, (err, papMaster) => {
+                if (err) {
+                    innerDone(err, papMaster);
+                };
+                innerDone(err, papDetails);
+            });
+        },
         (papDetails, done) => {
             AuditTrail.auditTrailEntry(
                 0,
