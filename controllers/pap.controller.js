@@ -1011,6 +1011,7 @@ function papUpdateReviewer(req, res) {
                 };
 
                 let approvedCount = papDetails.filter(pap => pap.status == 'Approved').length || 0;
+                let sendBackCount = papDetails.filter(pap => pap.status == 'SendBack').length || 0;
                 if (approvedCount == papDetails.length) {
                     let updateQuery = {
                         "updatedAt": new Date(),
@@ -1023,7 +1024,20 @@ function papUpdateReviewer(req, res) {
                         };
                         innerDone(err, papDetail);
                     });
-                } else {
+                } else if (sendBackCount > 0) {
+                    let updateQuery = {
+                        "updatedAt": new Date(),
+                        "updatedBy": parseInt(req.body.updatedBy),
+                        "reviewerStatus": "SendBack"
+                    }
+                    PapMasterDetails.updateOne({ _id: papDetail.pap_master_id }, updateQuery, (err, papMaster) => {
+                        if (err) {
+                            innerDone(err, papMaster);
+                        };
+                        innerDone(err, papDetail);
+                    });
+                }
+                else {
                     innerDone(null, papDetail);
                 }
             })
