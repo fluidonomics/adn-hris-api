@@ -14,7 +14,8 @@ let PapMasterSchema = new Schema(
     createdBy: { type: Number, required: true },
     isDeleted: { type: Boolean, default: false },
     grievanceStatus: { type: String, default: null },
-    reviewerStatus: { type: String, default: null }
+    reviewerStatus: { type: String, default: null },
+    overallRating: { type: Number, default: null }
   },
   {
     timestamps: true,
