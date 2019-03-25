@@ -26,10 +26,12 @@ let express = require('express'),
     MidTermMaster = require('../models/midterm/midtermmaster'),
     MidTermDetails = require('../models/midterm/midtermdetails'),
     LearningDetails = require('../models/learning/learningdetails'),
-    LearningMaster = require('../models/learning/learningmaster')
+    LearningMaster = require('../models/learning/learningmaster'),
+    PapMaster = require('../models/pap/papMaster.model'),
+    PapDetails = require('../models/pap/papDetails.model')
 
 
-    AuditTrail = require('../class/auditTrail'),
+AuditTrail = require('../class/auditTrail'),
     SendEmail = require('../class/sendEmail'),
     Notify = require('../class/notify'),
     config = require('../config/config'),
@@ -2167,7 +2169,7 @@ function updateSupervisortransfer(req, res, done) {
                                     MidTermDetails.updateMany({ mtr_master_id: midtermmaster._id }, updateQuery, (err, doc) => {
                                         done(err, doc);
                                     })
-                                })
+                                });
 
 
                                 LearningMaster.find({ emp_id: _id }, (err, learningmaster) => {
@@ -2182,7 +2184,7 @@ function updateSupervisortransfer(req, res, done) {
                                     LearningDetails.updateMany({ learning_master_id: learningmaster._id }, updateQuery, (err, doc) => {
                                         done(err, doc);
                                     })
-                                    
+
                                 })
 
                                 PipMaster.find({ emp_id: _id }, (err, pipmaster) => {
@@ -2197,10 +2199,22 @@ function updateSupervisortransfer(req, res, done) {
                                     PipDetails.updateMany({ pip_master_id: pipmaster._id }, updateQuery, (err, doc) => {
                                         done(err, doc);
                                     })
-                                    
+
                                 })
+                            },
+                            (mtrResult, done) => {
+                                PapMaster.find({ emp_id: _id }, (err, papMaster) => {
+                                    checkError(err, papMaster);
+                                    let updateQuery = {
+                                        "updatedAt": updatedAt,
+                                        "supervisor_id": req.body.primarySupervisorEmp_id,
+                                        "updatedBy": updatedBy
+                                    };
+                                    PapDetails.updateMany({ pap_master_id: papMaster._id }, updateQuery, (err, doc) => {
+                                        done(err, doc);
+                                    });
+                                });
                             }
-                            
                         ], function (res) {
                             if (!res) {
                                 responseObject.apiStatus = false;
@@ -2302,17 +2316,17 @@ function updateSupervisortransfer(req, res, done) {
                                         "updatedAt": updatedAt,
                                         "updatedBy": updatedBy
                                     };
-                                    LearningDetails.updateMany({$and:[{supervisor_id: req.body.oldPrimarySupervisor},{ master_id: { $in: req.body.learningIds } },{status: {$ne: "Approved"}}]}, updateQueryprim, (err, res) => {
+                                    LearningDetails.updateMany({ $and: [{ supervisor_id: req.body.oldPrimarySupervisor }, { master_id: { $in: req.body.learningIds } }, { status: { $ne: "Approved" } }] }, updateQueryprim, (err, res) => {
                                         innerDone(err, res);
                                     });
 
-                                    
+
                                     let updateQuerysec = {
                                         "supervisor_id": req.body.secondarySupervisorEmp_id,
                                         "updatedAt": updatedAt,
                                         "updatedBy": updatedBy
                                     };
-                                    LearningDetails.updateMany({$and:[{supervisor_id: req.body.oldSecondarySupervisor},{ master_id: { $in: req.body.learningIds } },{status: {$ne: "Approved"}}]}, updateQuerysec, (err, res) => {
+                                    LearningDetails.updateMany({ $and: [{ supervisor_id: req.body.oldSecondarySupervisor }, { master_id: { $in: req.body.learningIds } }, { status: { $ne: "Approved" } }] }, updateQuerysec, (err, res) => {
                                         innerDone(err, res);
                                     });
 
@@ -2327,17 +2341,17 @@ function updateSupervisortransfer(req, res, done) {
                                         "updatedAt": updatedAt,
                                         "updatedBy": updatedBy
                                     };
-                                    PipDetails.updateMany({$and:[{supervisor_id: req.body.oldPrimarySupervisor},{ master_id: { $in: req.body.pipIds } },{status: {$ne: "Approved"}}]}, updateQueryprim, (err, res) => {
+                                    PipDetails.updateMany({ $and: [{ supervisor_id: req.body.oldPrimarySupervisor }, { master_id: { $in: req.body.pipIds } }, { status: { $ne: "Approved" } }] }, updateQueryprim, (err, res) => {
                                         innerDone(err, res);
                                     });
 
-                                    
+
                                     let updateQuerysec = {
                                         "supervisor_id": req.body.secondarySupervisorEmp_id,
                                         "updatedAt": updatedAt,
                                         "updatedBy": updatedBy
                                     };
-                                    PipDetails.updateMany({$and:[{supervisor_id: req.body.oldSecondarySupervisor},{ master_id: { $in: req.body.pipIds } },{status: {$ne: "Approved"}}]}, updateQuerysec, (err, res) => {
+                                    PipDetails.updateMany({ $and: [{ supervisor_id: req.body.oldSecondarySupervisor }, { master_id: { $in: req.body.pipIds } }, { status: { $ne: "Approved" } }] }, updateQuerysec, (err, res) => {
                                         innerDone(err, res);
                                     });
 
@@ -2345,6 +2359,19 @@ function updateSupervisortransfer(req, res, done) {
                                 } else {
                                     innerDone(null, null);
                                 }
+                            },
+                            (data, done) => {
+                                PapMaster.find({ emp_id: _id }, (err, papMaster) => {
+                                    checkError(err, papMaster);
+                                    let updateQuery = {
+                                        "updatedAt": updatedAt,
+                                        "supervisor_id": req.body.primarySupervisorEmp_id,
+                                        "updatedBy": updatedBy
+                                    };
+                                    PapDetails.updateMany({ pap_master_id: papMaster._id }, updateQuery, (err, doc) => {
+                                        done(err, doc);
+                                    });
+                                });
                             }
                         ], (err, result) => {
                             responseObject.apiStatus = true;
