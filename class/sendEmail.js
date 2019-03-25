@@ -434,6 +434,24 @@ let functions =
         };
         transporter.sendMail(mailOptions, callback);
     },
+    sendEmailToSupervisorToApprovePap: (data, callback) => {
+        if (data.supervisor_email === null || data.supervisor_email === "") {
+            return
+        }
+        let mailOptions = {
+            from: config.email.sendEmailToSupervisorToApprovePap.from, // sender address
+            to: data.supervisor_email,
+            subject: config.email.sendEmailToSupervisorToApprovePap.subject, // Subject line
+            template: 'email-notify-to-supvsr-for-pap-approve',
+            context: {
+                fullName: data.supervisor_name,
+                appliedDate: moment(new Date()).format('L'),
+                link: data.action_link,
+                empName: data.user_name
+            }
+        };
+        transporter.sendMail(mailOptions, callback);
+    },
     sendEmailToUserAboutMtrStatus: (data, callback) => {
         if (data.user_email === null || data.user_email === "") {
             return
@@ -552,7 +570,8 @@ let functions =
             context: {
                 appliedDate: moment(new Date()).format('L'),
                 link: data.action_link,
-                empName: data.emp_name
+                empName: data.emp_name,
+                createdBy: data.createdBy.fullName
             }
         };
         transporter.sendMail(mailOptions, callback);

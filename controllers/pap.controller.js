@@ -98,15 +98,45 @@ function getEmployeesForPapInitiate(req, res) {
         }
     },
     {
+        $lookup: {
+            'from': 'departments',
+            'localField': 'employee_office_details.department_id',
+            'foreignField': '_id',
+            'as': 'department'
+        }
+    },
+    {
+        $unwind: {
+            'path': '$department',
+            'preserveNullAndEmptyArrays': true
+        }
+    },
+    {
+        $lookup: {
+            'from': 'grades',
+            'localField': 'employee_details.grade_id',
+            'foreignField': '_id',
+            'as': 'grade'
+        }
+    },
+    {
+        $unwind: {
+            'path': '$grade',
+            'preserveNullAndEmptyArrays': true
+        }
+    },
+    {
         $project: {
             mtr_master_id: '$_id',
             emp_id: '$emp_id',
             userName: '$employee_details.userName',
             fullName: '$employee_details.fullName',
             grade_id: '$employee_details.grade_id',
+            grade: '$grade',
             profileImage: '$employee_details.profileImage',
             designation_id: '$employee_details.designation_id',
             designationName: '$designations.designationName',
+            department: '$department',
             department_id: '$employee_office_details.department_id',
             supervisor_id: '$employee_superviosr_details.primarySupervisorEmp_id',
             supervisorName: '$supervisor_details.fullName',
@@ -258,72 +288,116 @@ function initiatePapProcess(req, res) {
         },
         (papMasterData, done) => {
             let papDetailsToInsert = [];
-            papMasterData.forEach((data, index) => {
-                let papDetails = new PapDetails();
-                papDetails._id = papMasterData.pap_details_max_id + (index + 1);
-                papDetails.pap_master_id = data.pap_master_id;
-                papDetails.empId = data.emp_id;
-                papDetails.mtr_details_id = data._id;
-                papDetails.status = "Initiated";
-                papDetails.updatedBy = createdBy;
-                papDetails.createdBy = createdBy;
-                papDetails.createdAt = new Date();
-                papDetailsToInsert.push(papDetails);
-            });
-            PapDetails.insertMany(papDetailsToInsert, function (err, papDetailsResponse) {
-                AuditTrail.auditTrailEntry(
-                    0,
-                    "papDetails",
-                    papDetailsToInsert,
-                    "PAP",
-                    "initiatePapProcess",
-                    "ADDED"
-                );
-                done(err, papDetailsResponse);
+            let empIds = papMasterData.map(pap => pap.emp_id);
+            EmployeeDetails.aggregate([
+                {
+                    $match: {
+                        _id: {
+                            $in: empIds
+                        }
+                    }
+                },
+                {
+                    $lookup: {
+                        from: "employeesupervisordetails",
+                        localField: "_id",
+                        foreignField: "emp_id",
+                        as: "employeesupervisordetails"
+                    }
+                },
+                {
+                    $unwind: {
+                        path: '$employeesupervisordetails'
+                    }
+                }
+            ]).exec((err, employees) => {
+                papMasterData.forEach((data, index) => {
+                    let papDetails = new PapDetails();
+                    papDetails._id = papMasterData.pap_details_max_id + (index + 1);
+                    papDetails.pap_master_id = data.pap_master_id;
+                    papDetails.empId = data.emp_id;
+                    papDetails.supervisor_id = employees.find(emp => emp._id == data.emp_id).employeesupervisordetails.primarySupervisorEmp_id;
+                    papDetails.mtr_details_id = data._id;
+                    papDetails.status = "Initiated";
+                    papDetails.updatedBy = createdBy;
+                    papDetails.createdBy = createdBy;
+                    papDetails.createdAt = new Date();
+                    papDetailsToInsert.push(papDetails);
+                });
+                PapDetails.insertMany(papDetailsToInsert, function (err, papDetailsResponse) {
+                    AuditTrail.auditTrailEntry(
+                        0,
+                        "papDetails",
+                        papDetailsToInsert,
+                        "PAP",
+                        "initiatePapProcess",
+                        "ADDED"
+                    );
+                    done(err, papDetailsResponse);
+                });
             });
         },
         (papMasterData, done) => {
             let onlyEmpIds = [];
-            papMasterData.forEach(f => {
-                if (onlyEmpIds.indexOf(f.empId) === -1)
-                    onlyEmpIds.push(parseInt(f.empId))
-            });
-            EmployeeDetails.aggregate([{
-                '$lookup': {
-                    'from': 'employeeofficedetails',
-                    'localField': '_id',
-                    'foreignField': 'emp_id',
-                    'as': 'emp_email'
-                }
-            },
-            {
-                '$unwind': {
-                    'path': '$emp_email'
-                }
-            },
-            {
-                '$match': {
-                    '_id': {
-                        '$in': onlyEmpIds
+            let papMasterIds = papMasterData.map(pap => pap.pap_master_id);
+            PapMasterDetails.aggregate([
+                {
+                    $match: {
+                        _id: {
+                            $in: papMasterIds
+                        }
+                    }
+                },
+                {
+                    $lookup: {
+                        from: 'employeedetails',
+                        localField: 'emp_id',
+                        foreignField: '_id',
+                        as: 'employeedetails'
+                    }
+                },
+                {
+                    $unwind: {
+                        path: '$employeedetails'
+                    }
+                },
+                {
+                    $lookup: {
+                        from: 'employeeofficedetails',
+                        localField: 'employeedetails._id',
+                        foreignField: 'emp_id',
+                        as: 'employeeofficedetails'
+                    }
+                },
+                {
+                    $unwind: {
+                        path: '$employeeofficedetails'
+                    }
+                },
+                {
+                    $lookup: {
+                        from: 'employeedetails',
+                        localField: 'createdBy',
+                        foreignField: '_id',
+                        as: 'createdBy'
+                    }
+                },
+                {
+                    $unwind: {
+                        path: '$createdBy'
                     }
                 }
-            },
-            {
-                '$project': {
-                    'fullName': '$fullName',
-                    'officeEmail': '$emp_email.officeEmail'
-                }
-            }
-            ]).exec(function (err, response) {
+            ]).exec((err, response) => {
                 response.forEach(f => {
                     let data = {};
-                    data.emp_email = f.officeEmail;
-                    data.emp_name = f.fullName;
+                    data.emp_email = f.employeeofficedetails.officeEmail;
+                    data.emp_name = f.employeedetails.fullName;
                     data.action_link = action_link;
+                    data.createdBy = f.createdBy;
                     SendEmail.sendEmailToEmployeeForPapInitiate(data);
-                })
+                });
                 done(err, papMasterData);
-            })
+            });
         }
     ], (err, result) => {
         if (err) {
@@ -403,6 +477,9 @@ function getPapBatches(req, res) {
                 updatedBy: 1,
                 isRatingCommunicated: 1,
                 status: 1,
+                reviewerStatus: 1,
+                grievanceStatus: 1,
+                overallRating: 1,
                 emp_details: "$emp_details"
             }
         }
@@ -523,14 +600,14 @@ function getPapDetailsSingleEmployee(req, res) {
     {
         '$lookup': {
             'from': 'employeedetails',
-            'localField': 'midtermdetails.supervisor_id',
+            'localField': 'papdetails.supervisor_id',
             'foreignField': '_id',
-            'as': 'mtr_supervisorDetails'
+            'as': 'pap_supervisorDetails'
         }
     },
     {
         '$unwind': {
-            'path': '$mtr_supervisorDetails'
+            'path': '$pap_supervisorDetails'
         }
     },
     {
@@ -546,6 +623,9 @@ function getPapDetailsSingleEmployee(req, res) {
             "updatedBy": 1,
             "isRatingCommunicated": 1,
             "status": 1,
+            "reviewerStatus": 1,
+            "grievanceStatus": 1,
+            "overallRating": 1,
             "papbatches": {
                 "_id": 1,
                 "updatedAt": 1,
@@ -577,7 +657,7 @@ function getPapDetailsSingleEmployee(req, res) {
                 "empRemark": 1,
                 "emp_ratingScaleId": 1,
                 "midtermdetails": "$midtermdetails",
-                "mtr_supervisorDetails": "$mtr_supervisorDetails"
+                "pap_supervisorDetails": "$pap_supervisorDetails"
             }
         }
     },
@@ -617,6 +697,15 @@ function getPapDetailsSingleEmployee(req, res) {
             "status": {
                 $first: "$status"
             },
+            "reviewerStatus": {
+                $first: "$reviewerStatus"
+            },
+            "grievanceStatus": {
+                $first: "$grievanceStatus"
+            },
+            "overallRating": {
+                $first: "$overallRating"
+            },
             "papbatches": {
                 $first: "$papbatches"
             },
@@ -638,7 +727,8 @@ function getPapBySupervisor(req, res) {
             '$match': {
                 'status': {
                     $in: ["Submitted", "Pending Reviewer", "Approved", "SendBack"]
-                }
+                },
+                'supervisor_id': supervisorId
             }
         },
         {
@@ -652,11 +742,6 @@ function getPapBySupervisor(req, res) {
         {
             '$unwind': {
                 'path': '$mtr_details'
-            }
-        },
-        {
-            '$match': {
-                'mtr_details.supervisor_id': supervisorId
             }
         },
         {
@@ -815,6 +900,41 @@ function papSubmit(req, res) {
                 "UPDATED"
             );
             done(null, papDetails);
+        },
+        (papDetails, done) => {
+
+            PapDetails.aggregate([{
+                '$match': {
+                    'pap_master_id': parseInt(req.body.pap_master_id)
+                }
+            },
+            {
+                '$lookup': {
+                    'from': 'employeeofficedetails',
+                    'localField': 'supervisor_id',
+                    'foreignField': 'emp_id',
+                    'as': 'employeeofficedetails'
+                }
+            },
+            {
+                '$unwind': {
+                    'path': '$employeeofficedetails'
+                }
+            }
+            ]).exec(function (err, response) {
+                // EmployeeDetails.findById(createdBy, (err, emp) => {
+                //     response.forEach(f => {
+                //         let data = {};
+                //         data.emp_email = f.officeEmail;
+                //         data.emp_name = f.fullName;
+                //         data.action_link = action_link;
+                //         data.createdBy = emp;
+                //         SendEmail.sendEmailToEmployeeForPapInitiate(data);
+                //     })
+                done(err, papDetails);
+            });
+            //})
+
         }
     ], (err, results) => {
         sendResponse(res, err, results, 'Pap details updated successfully');
@@ -900,17 +1020,83 @@ function papUpdateReviewer(req, res) {
             })
         },
         (papDetail, innerDone) => {
-            PapDetails.find({ pap_master_id: papDetail.pap_master_id }, (err, papDetails) => {
+            PapDetails.aggregate([
+                {
+                    $match: {
+                        pap_master_id: papDetail.pap_master_id
+                    }
+                },
+                {
+                    $lookup: {
+                        from: 'midtermdetails',
+                        localField: 'mtr_details_id',
+                        foreignField: '_id',
+                        as: 'midtermdetails'
+                    }
+                },
+                {
+                    $unwind: {
+                        path: '$midtermdetails'
+                    }
+                },
+                {
+                    $lookup: {
+                        from: 'kradetails',
+                        localField: 'midtermdetails.kraDetailId',
+                        foreignField: '_id',
+                        as: 'kradetails'
+                    }
+                },
+                {
+                    $unwind: {
+                        path: '$kradetails'
+                    }
+                },
+                {
+                    $lookup: {
+                        from: 'kraweightagedetails',
+                        localField: 'kradetails.weightage_id',
+                        foreignField: '_id',
+                        as: 'kraweightagedetails'
+                    }
+                },
+                {
+                    $unwind: {
+                        path: '$kraweightagedetails'
+                    }
+                },
+                {
+                    $lookup: {
+                        from: 'papratingscales',
+                        localField: 'sup_ratingScaleId',
+                        foreignField: '_id',
+                        as: 'papratingscales'
+                    }
+                },
+                {
+                    $unwind: {
+                        path: '$papratingscales',
+                        preserveNullAndEmptyArrays: true
+                    }
+                },
+            ]).exec((err, papDetails) => {
                 if (err) {
                     innerDone(err, papDetails);
                 };
 
                 let approvedCount = papDetails.filter(pap => pap.status == 'Approved').length || 0;
+                let sendBackCount = papDetails.filter(pap => pap.status == 'SendBack').length || 0;
                 if (approvedCount == papDetails.length) {
+                    let overallRating = 0;
+                    papDetails.forEach(pap => {
+                        let rating = (parseFloat(pap.papratingscales.ratingScale) * parseFloat(pap.kraweightagedetails.kraWeightageName)) / 100;
+                        overallRating = overallRating + rating;
+                    });
                     let updateQuery = {
                         "updatedAt": new Date(),
                         "updatedBy": parseInt(req.body.updatedBy),
-                        "reviewerStatus": "Approved"
+                        "reviewerStatus": "Approved",
+                        "overallRating": overallRating
                     }
                     PapMasterDetails.updateOne({ _id: papDetail.pap_master_id }, updateQuery, (err, papMaster) => {
                         if (err) {
@@ -918,10 +1104,26 @@ function papUpdateReviewer(req, res) {
                         };
                         innerDone(err, papDetail);
                     });
-                } else {
+                } else if (sendBackCount > 0) {
+                    let updateQuery = {
+                        "updatedAt": new Date(),
+                        "updatedBy": parseInt(req.body.updatedBy),
+                        "reviewerStatus": "SendBack"
+                    }
+                    PapMasterDetails.updateOne({ _id: papDetail.pap_master_id }, updateQuery, (err, papMaster) => {
+                        if (err) {
+                            innerDone(err, papMaster);
+                        };
+                        innerDone(err, papDetail);
+                    });
+                }
+                else {
                     innerDone(null, papDetail);
                 }
-            })
+            });
+            // PapDetails.find({ pap_master_id: papDetail.pap_master_id }, (err, papDetails) => {
+
+            // });
         },
         (papDetails, done) => {
             AuditTrail.auditTrailEntry(
@@ -936,7 +1138,7 @@ function papUpdateReviewer(req, res) {
         }
     ], (err, result) => {
         sendResponse(res, err, result, 'Pap details updated successfully');
-    })
+    });
 }
 
 function getPapByReviewer(req, res) {
@@ -957,91 +1159,93 @@ function getPapByReviewer(req, res) {
         },
         (papDetails, done) => {
             console.log(papDetails);
-            PapDetails.aggregate([{
-                '$lookup': {
-                    'from': 'midtermdetails',
-                    'localField': 'mtr_details_id',
-                    'foreignField': '_id',
-                    'as': 'mtr_details'
-                }
-            },
-            {
-                '$unwind': {
-                    'path': '$mtr_details'
-                }
-            },
-            {
-                '$lookup': {
-                    'from': 'employeedetails',
-                    'localField': 'empId',
-                    'foreignField': '_id',
-                    'as': 'emp_details'
-                }
-            },
-            {
-                '$unwind': {
-                    'path': '$emp_details'
-                }
-            },
-            {
-                '$match': {
-                    'mtr_details.supervisor_id': {
-                        '$in': papDetails
+            PapDetails.aggregate([
+                {
+                    '$match': {
+                        'supervisor_id': {
+                            '$in': papDetails
+                        }
+                    }
+                },
+                {
+                    '$lookup': {
+                        'from': 'midtermdetails',
+                        'localField': 'mtr_details_id',
+                        'foreignField': '_id',
+                        'as': 'mtr_details'
+                    }
+                },
+                {
+                    '$unwind': {
+                        'path': '$mtr_details'
+                    }
+                },
+                {
+                    '$lookup': {
+                        'from': 'employeedetails',
+                        'localField': 'empId',
+                        'foreignField': '_id',
+                        'as': 'emp_details'
+                    }
+                },
+                {
+                    '$unwind': {
+                        'path': '$emp_details'
+                    }
+                },
+
+                {
+                    '$project': {
+                        'emp_id': '$empId',
+                        'userName': '$emp_details.userName',
+                        'fullName': '$emp_details.fullName',
+                        'supervisor_id': '$supervisor_id',
+                        'updatedAt': '$updatedAt',
+                        'profileImage': '$emp_details.profileImage',
+                        'pap_master_id': '$pap_master_id',
+                        'group_obj': {
+                            'grievanceRemark': '$grievanceRemark',
+                            'grievance_ratingScaleId': '$grievance_ratingScaleId',
+                            'status': '$status',
+                            'reviewerRemark': '$reviewerRemark',
+                            'supRemark': '$supRemark',
+                            'sup_ratingScaleId': '$sup_ratingScaleId',
+                            'empRemark': '$empRemark',
+                            'emp_ratingScaleId': '$emp_ratingScaleId',
+                            'kra': '$mtr_details.mtr_kra',
+                            'measureOfSuccess': '$mtr_details.measureOfSuccess',
+                            'unitOfSuccess': '$mtr_details.unitOfSuccess',
+                            'category_id': '$mtr_details.category_id',
+                            'weightage_id': '$mtr_details.weightage_id'
+                        }
+                    }
+                },
+                {
+                    '$group': {
+                        '_id': '$emp_id',
+                        'userName': {
+                            '$first': '$userName'
+                        },
+                        'fullName': {
+                            '$first': '$fullName'
+                        },
+                        'supervisor_id': {
+                            '$first': '$supervisor_id'
+                        },
+                        'updatedAt': {
+                            '$first': '$updatedAt'
+                        },
+                        'profileImage': {
+                            '$first': '$profileImage'
+                        },
+                        'pap_master_id': {
+                            '$first': '$pap_master_id'
+                        },
+                        'kra_details': {
+                            '$push': '$group_obj'
+                        }
                     }
                 }
-            },
-            {
-                '$project': {
-                    'emp_id': '$empId',
-                    'userName': '$emp_details.userName',
-                    'fullName': '$emp_details.fullName',
-                    'supervisor_id': '$mtr_details.supervisor_id',
-                    'updatedAt': '$updatedAt',
-                    'profileImage': '$emp_details.profileImage',
-                    'pap_master_id': '$pap_master_id',
-                    'group_obj': {
-                        'grievanceRemark': '$grievanceRemark',
-                        'grievance_ratingScaleId': '$grievance_ratingScaleId',
-                        'status': '$status',
-                        'reviewerRemark': '$reviewerRemark',
-                        'supRemark': '$supRemark',
-                        'sup_ratingScaleId': '$sup_ratingScaleId',
-                        'empRemark': '$empRemark',
-                        'emp_ratingScaleId': '$emp_ratingScaleId',
-                        'kra': '$mtr_details.mtr_kra',
-                        'measureOfSuccess': '$mtr_details.measureOfSuccess',
-                        'unitOfSuccess': '$mtr_details.unitOfSuccess',
-                        'category_id': '$mtr_details.category_id',
-                        'weightage_id': '$mtr_details.weightage_id'
-                    }
-                }
-            },
-            {
-                '$group': {
-                    '_id': '$emp_id',
-                    'userName': {
-                        '$first': '$userName'
-                    },
-                    'fullName': {
-                        '$first': '$fullName'
-                    },
-                    'supervisor_id': {
-                        '$first': '$supervisor_id'
-                    },
-                    'updatedAt': {
-                        '$first': '$updatedAt'
-                    },
-                    'profileImage': {
-                        '$first': '$profileImage'
-                    },
-                    'pap_master_id': {
-                        '$first': '$pap_master_id'
-                    },
-                    'kra_details': {
-                        '$push': '$group_obj'
-                    }
-                }
-            }
             ]).exec(function (err, response) {
                 if (err) {
                     return res.status(403).json({
@@ -1081,6 +1285,19 @@ function papSubmitToReviewer(req, res) {
                 done(err, res);
             })
         },
+        (papDetails, innerDone) => {
+            let updateQuery = {
+                "updatedAt": new Date(),
+                "updatedBy": parseInt(req.body.updatedBy),
+                "reviewerStatus": null
+            }
+            PapMasterDetails.updateOne({ _id: parseInt(req.body.papMasterId) }, updateQuery, (err, papMaster) => {
+                if (err) {
+                    innerDone(err, papMaster);
+                };
+                innerDone(err, papDetails);
+            });
+        },
         (papDetails, done) => {
             AuditTrail.auditTrailEntry(
                 0,
@@ -1103,7 +1320,8 @@ function initiateFeedback(req, res) {
             let updateQuery = {
                 "updatedAt": new Date(),
                 "updatedBy": parseInt(req.body.updatedBy),
-                "isRatingCommunicated": true
+                "isRatingCommunicated": true,
+                'status': "Approved"
             }
             let updateCondition = {
                 'emp_id': {
@@ -1200,9 +1418,13 @@ function initiateGrievance(req, res) {
             };
             let updateQuery = {
                 "updatedAt": new Date(),
-                "updatedBy": parseInt(req.body.updatedBy),
-                "grievanceStatus": "Initiated"
+                "updatedBy": parseInt(req.body.updatedBy)
             };
+            if (req.body.flag) {
+                updateQuery.grievanceStatus = "Initiated";
+            } else {
+                updateQuery.grievanceStatus = "Satisfied";
+            }
 
             PapMasterDetails.update(condition, updateQuery, (err, res) => {
                 done(err, res);
