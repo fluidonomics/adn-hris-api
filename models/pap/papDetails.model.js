@@ -15,6 +15,7 @@ let PapDetailsSchema = new Schema(
     supRemark: { type: String, default: null},
     reviewerRemark: { type: String, default: null},
     status: { type: String, default: null},
+    grievanceStatus: { type: String, default: null},
     grievance_ratingScaleId: { type: Number, ref: 'performanceRating', default: null},
     grievanceRemark: { type: String, default: null},
     updatedBy: { type: Number, default: null },
