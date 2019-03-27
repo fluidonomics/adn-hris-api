@@ -648,7 +648,9 @@ function getPapDetailsSingleEmployee(req, res) {
                 "createdAt": 1,
                 "isDeleted": 1,
                 "updatedBy": 1,
-                "grievanceRemark": 1,
+                "grievanceStatus": 1,
+                "grievanceSupRemark": 1,
+                "grievanceRevRemark": 1,
                 "grievance_ratingScaleId": 1,
                 "status": 1,
                 "reviewerRemark": 1,
@@ -777,7 +779,8 @@ function getPapBySupervisor(req, res) {
                 'papmasters': '$papmasters',
                 'updatedAt': '$updatedAt',
                 'group_obj': {
-                    'grievanceRemark': '$grievanceRemark',
+                    'grievanceSupRemark': '$grievanceSupRemark',
+                    'grievanceRevRemark': '$grievanceRevRemark',
                     'grievance_ratingScaleId': '$grievance_ratingScaleId',
                     'status': '$status',
                     'reviewerRemark': '$reviewerRemark',
@@ -978,8 +981,13 @@ function papUpdateSupervisor(req, res) {
             let updateQuery = {
                 "updatedAt": new Date(),
                 "updatedBy": parseInt(req.body.updatedBy),
-                "supRemark": req.body.supRemark,
-                "sup_ratingScaleId": req.body.sup_ratingScaleId
+            }
+            if (req.body.grievanceStatus && req.body.grievanceStatus == 'Initiated') {
+                updateQuery.grievance_ratingScaleId = req.body.grievance_ratingScaleId;
+                updateQuery.grievanceSupRemark = req.body.grievanceSupRemark;
+            } else {
+                updateQuery.supRemark = req.body.supRemark;
+                updateQuery.sup_ratingScaleId = req.body.sup_ratingScaleId;
             }
             PapDetails.findOneAndUpdate({
                 _id: req.body.papDetailsId
@@ -1010,120 +1018,197 @@ function papUpdateReviewer(req, res) {
             let updateQuery = {
                 "updatedAt": new Date(),
                 "updatedBy": parseInt(req.body.updatedBy),
-                "status": req.body.isApproved ? "Approved" : "SendBack",
-                "reviewerRemark": req.body.reviewerRemark
+            }
+            if (req.body.grievanceStatus == 'Initiated') {
+                updateQuery.grievanceRevRemark = req.body.grievanceRevRemark;
+                updateQuery.grievanceStatus = req.body.isApproved ? "Approved" : "SendBack";
+            } else {
+                updateQuery.reviewerRemark = req.body.reviewerRemark;
+                updateQuery.status = req.body.isApproved ? "Approved" : "SendBack";
             }
             PapDetails.findOneAndUpdate({
                 _id: req.body.papDetailsId
             }, updateQuery, (err, res) => {
                 done(err, res);
-            })
+            });
         },
         (papDetail, innerDone) => {
-            PapDetails.aggregate([
-                {
-                    $match: {
-                        pap_master_id: papDetail.pap_master_id
-                    }
-                },
-                {
-                    $lookup: {
-                        from: 'midtermdetails',
-                        localField: 'mtr_details_id',
-                        foreignField: '_id',
-                        as: 'midtermdetails'
-                    }
-                },
-                {
-                    $unwind: {
-                        path: '$midtermdetails'
-                    }
-                },
-                {
-                    $lookup: {
-                        from: 'kradetails',
-                        localField: 'midtermdetails.kraDetailId',
-                        foreignField: '_id',
-                        as: 'kradetails'
-                    }
-                },
-                {
-                    $unwind: {
-                        path: '$kradetails'
-                    }
-                },
-                {
-                    $lookup: {
-                        from: 'kraweightagedetails',
-                        localField: 'kradetails.weightage_id',
-                        foreignField: '_id',
-                        as: 'kraweightagedetails'
-                    }
-                },
-                {
-                    $unwind: {
-                        path: '$kraweightagedetails'
-                    }
-                },
-                {
-                    $lookup: {
-                        from: 'papratingscales',
-                        localField: 'sup_ratingScaleId',
-                        foreignField: '_id',
-                        as: 'papratingscales'
-                    }
-                },
-                {
-                    $unwind: {
-                        path: '$papratingscales',
-                        preserveNullAndEmptyArrays: true
-                    }
-                },
-            ]).exec((err, papDetails) => {
-                if (err) {
-                    innerDone(err, papDetails);
-                };
+            if (req.body.grievanceStatus == 'Initiated') {
+                PapDetails.aggregate([
+                    {
+                        $match: {
+                            pap_master_id: papDetail.pap_master_id
+                        }
+                    },
+                    {
+                        $lookup: {
+                            from: 'midtermdetails',
+                            localField: 'mtr_details_id',
+                            foreignField: '_id',
+                            as: 'midtermdetails'
+                        }
+                    },
+                    {
+                        $unwind: {
+                            path: '$midtermdetails'
+                        }
+                    },
+                    {
+                        $lookup: {
+                            from: 'kradetails',
+                            localField: 'midtermdetails.kraDetailId',
+                            foreignField: '_id',
+                            as: 'kradetails'
+                        }
+                    },
+                    {
+                        $unwind: {
+                            path: '$kradetails'
+                        }
+                    },
+                    {
+                        $lookup: {
+                            from: 'kraweightagedetails',
+                            localField: 'kradetails.weightage_id',
+                            foreignField: '_id',
+                            as: 'kraweightagedetails'
+                        }
+                    },
+                    {
+                        $unwind: {
+                            path: '$kraweightagedetails'
+                        }
+                    },
+                    {
+                        $lookup: {
+                            from: 'papratingscales',
+                            localField: 'grievance_ratingScaleId',
+                            foreignField: '_id',
+                            as: 'papratingscales'
+                        }
+                    },
+                    {
+                        $unwind: {
+                            path: '$papratingscales',
+                            preserveNullAndEmptyArrays: true
+                        }
+                    },
+                ]).exec((err, papDetails) => {
+                    innerDone(err, { papDetail, papDetails });
+                });
+            } else {
+                PapDetails.aggregate([
+                    {
+                        $match: {
+                            pap_master_id: papDetail.pap_master_id
+                        }
+                    },
+                    {
+                        $lookup: {
+                            from: 'midtermdetails',
+                            localField: 'mtr_details_id',
+                            foreignField: '_id',
+                            as: 'midtermdetails'
+                        }
+                    },
+                    {
+                        $unwind: {
+                            path: '$midtermdetails'
+                        }
+                    },
+                    {
+                        $lookup: {
+                            from: 'kradetails',
+                            localField: 'midtermdetails.kraDetailId',
+                            foreignField: '_id',
+                            as: 'kradetails'
+                        }
+                    },
+                    {
+                        $unwind: {
+                            path: '$kradetails'
+                        }
+                    },
+                    {
+                        $lookup: {
+                            from: 'kraweightagedetails',
+                            localField: 'kradetails.weightage_id',
+                            foreignField: '_id',
+                            as: 'kraweightagedetails'
+                        }
+                    },
+                    {
+                        $unwind: {
+                            path: '$kraweightagedetails'
+                        }
+                    },
+                    {
+                        $lookup: {
+                            from: 'papratingscales',
+                            localField: 'sup_ratingScaleId',
+                            foreignField: '_id',
+                            as: 'papratingscales'
+                        }
+                    },
+                    {
+                        $unwind: {
+                            path: '$papratingscales',
+                            preserveNullAndEmptyArrays: true
+                        }
+                    },
+                ]).exec((err, papDetails) => {
+                    innerDone(err, { papDetail, papDetails });
+                });
+            }
 
-                let approvedCount = papDetails.filter(pap => pap.status == 'Approved').length || 0;
-                let sendBackCount = papDetails.filter(pap => pap.status == 'SendBack').length || 0;
-                if (approvedCount == papDetails.length) {
-                    let overallRating = 0;
-                    papDetails.forEach(pap => {
-                        let rating = (parseFloat(pap.papratingscales.ratingScale) * parseFloat(pap.kraweightagedetails.kraWeightageName)) / 100;
-                        overallRating = overallRating + rating;
-                    });
-                    let updateQuery = {
-                        "updatedAt": new Date(),
-                        "updatedBy": parseInt(req.body.updatedBy),
-                        "reviewerStatus": "Approved",
-                        "overallRating": overallRating
-                    }
-                    PapMasterDetails.updateOne({ _id: papDetail.pap_master_id }, updateQuery, (err, papMaster) => {
-                        if (err) {
-                            innerDone(err, papMaster);
-                        };
-                        innerDone(err, papDetail);
-                    });
-                } else if (sendBackCount > 0) {
-                    let updateQuery = {
-                        "updatedAt": new Date(),
-                        "updatedBy": parseInt(req.body.updatedBy),
-                        "reviewerStatus": "SendBack"
-                    }
-                    PapMasterDetails.updateOne({ _id: papDetail.pap_master_id }, updateQuery, (err, papMaster) => {
-                        if (err) {
-                            innerDone(err, papMaster);
-                        };
-                        innerDone(err, papDetail);
-                    });
-                }
-                else {
-                    innerDone(null, papDetail);
-                }
-            });
-            // PapDetails.find({ pap_master_id: papDetail.pap_master_id }, (err, papDetails) => {
+        },
+        (data, innerDone) => {
+            let approvedCount = 0;
+            let sendBackCount = 0;
 
-            // });
+            if (req.body.grievanceStatus == 'Initiated') {
+                approvedCount = data.papDetails.filter(pap => pap.grievanceStatus == 'Approved').length || 0;
+                sendBackCount = data.papDetails.filter(pap => pap.grievanceStatus == 'SendBack').length || 0;
+            } else {
+                approvedCount = data.papDetails.filter(pap => pap.status == 'Approved').length || 0;
+                sendBackCount = data.papDetails.filter(pap => pap.status == 'SendBack').length || 0;
+            }
+
+            if (approvedCount == data.papDetails.length) {
+                let overallRating = 0;
+                data.papDetails.forEach(pap => {
+                    let rating = (parseFloat(pap.papratingscales.ratingScale) * parseFloat(pap.kraweightagedetails.kraWeightageName)) / 100;
+                    overallRating = overallRating + rating;
+                });
+                let updateQuery = {
+                    "updatedAt": new Date(),
+                    "updatedBy": parseInt(req.body.updatedBy),
+                    "reviewerStatus": "Approved",
+                    "overallRating": overallRating
+                }
+
+                PapMasterDetails.updateOne({ _id: data.papDetail.pap_master_id }, updateQuery, (err, papMaster) => {
+                    if (err) {
+                        innerDone(err, papMaster);
+                    };
+                    innerDone(err, data.papDetail);
+                });
+            } else if (sendBackCount > 0) {
+                let updateQuery = {
+                    "updatedAt": new Date(),
+                    "updatedBy": parseInt(req.body.updatedBy),
+                    "reviewerStatus": "SendBack"
+                }
+                PapMasterDetails.updateOne({ _id: data.papDetail.pap_master_id }, updateQuery, (err, papMaster) => {
+                    if (err) {
+                        innerDone(err, papMaster);
+                    };
+                    innerDone(err, data.papDetail);
+                });
+            }
+            else {
+                innerDone(null, data.papDetail);
+            }
         },
         (papDetails, done) => {
             AuditTrail.auditTrailEntry(
@@ -1204,7 +1289,8 @@ function getPapByReviewer(req, res) {
                         'profileImage': '$emp_details.profileImage',
                         'pap_master_id': '$pap_master_id',
                         'group_obj': {
-                            'grievanceRemark': '$grievanceRemark',
+                            'grievanceSupRemark': '$grievanceSupRemark',
+                            'grievanceRevRemark': '$grievanceRevRemark',
                             'grievance_ratingScaleId': '$grievance_ratingScaleId',
                             'status': '$status',
                             'reviewerRemark': '$reviewerRemark',
@@ -1216,7 +1302,8 @@ function getPapByReviewer(req, res) {
                             'measureOfSuccess': '$mtr_details.measureOfSuccess',
                             'unitOfSuccess': '$mtr_details.unitOfSuccess',
                             'category_id': '$mtr_details.category_id',
-                            'weightage_id': '$mtr_details.weightage_id'
+                            'weightage_id': '$mtr_details.weightage_id',
+                            'grievanceStatus': '$grievanceStatus'
                         }
                     }
                 },
@@ -1275,21 +1362,32 @@ function papSubmitToReviewer(req, res) {
         (done) => {
             let updateQuery = {
                 "updatedAt": new Date(),
-                "updatedBy": parseInt(req.body.updatedBy),
-                "status": "Pending Reviewer",
+                "updatedBy": parseInt(req.body.updatedBy)
+            };
+            let matchQuery = {
+                pap_master_id: req.body.papMasterId
+            };
+            if (req.body.grievanceStatus == 'Initiated') {
+                updateQuery.grievanceStatus = "Pending Reviewer";
+                matchQuery.grievanceStatus = {
+                    $in: [null, "SendBack"]
+                };
+            } else {
+                updateQuery.status = "Pending Reviewer";
+                matchQuery.status = {
+                    $in: ["Submitted", "SendBack"]
+                };
             }
-            PapDetails.updateMany({
-                pap_master_id: req.body.papMasterId,
-                status: { $in: ["Submitted", "SendBack"] }
-            }, updateQuery, (err, res) => {
+
+            PapDetails.updateMany(matchQuery, updateQuery, (err, res) => {
                 done(err, res);
-            })
+            });
         },
         (papDetails, innerDone) => {
             let updateQuery = {
                 "updatedAt": new Date(),
                 "updatedBy": parseInt(req.body.updatedBy),
-                "reviewerStatus": null
+                "reviewerStatus": 'Pending'
             }
             PapMasterDetails.updateOne({ _id: parseInt(req.body.papMasterId) }, updateQuery, (err, papMaster) => {
                 if (err) {
@@ -1420,8 +1518,9 @@ function initiateGrievance(req, res) {
                 "updatedAt": new Date(),
                 "updatedBy": parseInt(req.body.updatedBy)
             };
-            if (req.body.flag) {
+            if (req.body.raiseGreivance) {
                 updateQuery.grievanceStatus = "Initiated";
+                updateQuery.reviewerStatus = null;
             } else {
                 updateQuery.grievanceStatus = "Satisfied";
             }

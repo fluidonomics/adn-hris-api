@@ -52,7 +52,8 @@ db.getCollection("papdetails").aggregate(
 			    fullName: '$emp_details.fullName',
 			  	supervisor_id: '$mtr_details.supervisor_id',
 			   	group_obj: {
-			   	grievanceRemark: '$grievanceRemark',
+			   	grievanceSupRemark: '$grievanceSupRemark',
+			   	grievanceRevRemark: '$grievanceRevRemark',
 			    grievance_ratingScaleId: '$grievance_ratingScaleId',
 			    status: '$status',
 			    reviewerRemark: '$reviewerRemark',
