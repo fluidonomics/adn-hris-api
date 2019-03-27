@@ -655,28 +655,31 @@ function submitEmployeeLearning(req, res) {
           }
         });
       } else {
-        email_details.supervisor_name = result.emp[0].user_name;
-        email_details.supervisor_email = result.emp[0].officeEmail;
-        SendEmail.sendEmailToSupervisorToApproveLearning(email_details, (email_err, email_result) => {
-          if (email_err) {
-            return res.status(300).json({
-              title: "Learning submitted, failed sending email to supervisor",
-              error: {
-                message: email_err
-              },
-              result: {
-                message: email_result
-              }
+        // email_details.supervisor_name = result.emp[0].user_name;
+        // email_details.supervisor_email = result.emp[0].officeEmail;
+        // SendEmail.sendEmailToSupervisorToApproveLearning(email_details, (email_err, email_result) => {
+        //   if (email_err) {
+        //     return res.status(300).json({
+        //       title: "Learning submitted, failed sending email to supervisor",
+        //       error: {
+        //         message: email_err
+        //       },
+        //       result: {
+        //         message: email_result
+        //       }
+        //     });
+        //   } else {
+        //     return res.status(200).json({
+        //       title: "Learning submitted, and email sent to supervisor",
+        //       result: {
+        //         message: email_result
+        //       }
+        //     });
+        //   }
+        // });
+              return res.status(200).json({
+              title: "Learning submitted, and email sent to supervisor"
             });
-          } else {
-            return res.status(200).json({
-              title: "Learning submitted, and email sent to supervisor",
-              result: {
-                message: email_result
-              }
-            });
-          }
-        });
       }
     }
   );
@@ -825,7 +828,7 @@ function getLearningApproval(req, res) {
               eligibleForEmail =true;
             }
             
-            if (!req.body.isApproved ) {
+            if (!req.body.isApproved || sendbackLearning.length > 0) {
               masterUpdateQuery.status = "SendBack";
               isLearningApproved = false;
               eligibleForEmail = true;
@@ -914,49 +917,49 @@ function getLearningApproval(req, res) {
         });
       } else {
         // #70 fix, email fix
-        if (eligibleForEmail) {
-          email_details.user_name = result.emp[0].user_name;
-          email_details.user_email = result.emp[0].officeEmail;
-          if (email_details.user_email) {
-            SendEmail.sendEmailToUserAboutLearningStatus(email_details, (email_err, email_result) => {
-              if (email_err) {
-                return res.status(300).json({
-                  title: "Learning agenda approved, failed sending email to employee",
-                  error: {
-                    message: "Learning agenda approved, failed sending email to employee"
-                  },
-                  result: {
-                    message: email_result
-                  }
-                });
-              } else {
-                return res.status(200).json({
-                  title: "Learning agenda approved, and email sent to employee",
-                  result: {
-                    message: email_result
-                  }
-                });
-              }
-            });
-          } else {
-            return res.status(300).json({
-              title: "Learning agenda approved, failed sending email to employee",
-              error: {
-                message: "Learning agenda approved, failed sending email to employee"
-              },
-              result: {
-                message: result
-              }
-            });
-          }
-        } else {
+        // if (eligibleForEmail) {
+        //   email_details.user_name = result.emp[0].user_name;
+        //   email_details.user_email = result.emp[0].officeEmail;
+        //   if (email_details.user_email) {
+        //     SendEmail.sendEmailToUserAboutLearningStatus(email_details, (email_err, email_result) => {
+        //       if (email_err) {
+        //         return res.status(300).json({
+        //           title: "Learning agenda approved, failed sending email to employee",
+        //           error: {
+        //             message: "Learning agenda approved, failed sending email to employee"
+        //           },
+        //           result: {
+        //             message: email_result
+        //           }
+        //         });
+        //       } else {
+        //         return res.status(200).json({
+        //           title: "Learning agenda approved, and email sent to employee",
+        //           result: {
+        //             message: email_result
+        //           }
+        //         });
+        //       }
+        //     });
+        //   } else {
+        //     return res.status(300).json({
+        //       title: "Learning agenda approved, failed sending email to employee",
+        //       error: {
+        //         message: "Learning agenda approved, failed sending email to employee"
+        //       },
+        //       result: {
+        //         message: result
+        //       }
+        //     });
+        //   }
+        // } else {
           return res.status(200).json({
-            title: "Learning agenda submitted",
+            title: "Learning agenda approved",
             result: {
               message: result
             }
           });
-        }
+        // }
       }
     }
   );
