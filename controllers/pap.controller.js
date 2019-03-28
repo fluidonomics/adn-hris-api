@@ -1578,6 +1578,20 @@ function getEmployeesForGrievance(req, res) {
                 '$unwind': {
                     'path': '$employeeofficedetails'
                 }
+            },
+            {
+                '$lookup': {
+                    'from': 'designations',
+                    'localField': 'employeedetails.designation_id',
+                    'foreignField': '_id',
+                    'as': 'designations'
+                }
+            },
+            {
+                '$unwind': {
+                    'path': '$designations',
+                    'preserveNullAndEmptyArrays': true
+                }
             }
             ]).exec((err, result) => {
                 done(err, result);
