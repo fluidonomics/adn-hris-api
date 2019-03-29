@@ -1180,6 +1180,7 @@ function papUpdateReviewer(req, res) {
                     let rating = (parseFloat(pap.papratingscales.ratingScale) * parseFloat(pap.kraweightagedetails.kraWeightageName)) / 100;
                     overallRating = overallRating + rating;
                 });
+                overallRating = overallRating.toFixed(2);
                 let updateQuery = {
                     "updatedAt": new Date(),
                     "updatedBy": parseInt(req.body.updatedBy),
