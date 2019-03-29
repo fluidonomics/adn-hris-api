@@ -113,6 +113,18 @@ module.exports = {
       from: '"Team HRIS" <hris@adnsl.net>',
       subject: 'Learning Agenda initiated'
     }
+    'sendEmailToEmployeeForInitiatePIP': {
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'PIP initiated'
+    },
+    'sendEmailToSupervisorToApprovePip': {
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'PIP for approval'
+    },
+    'sendEmailToEmployeeForPipStatus': {
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'PIP status'
+    }
   },
   'aws':
   {
