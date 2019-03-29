@@ -8,6 +8,152 @@ SendEmail = require('../class/sendEmail'),
 
 function getEligiablePipEmployee(req, res) {
 
+  EmployeeDetails.aggregate([
+    {
+        "$lookup": {
+            "from": "designations",
+            "localField": "designation_id",
+            "foreignField": "_id",
+            "as": "designations"
+        }
+    },
+    {
+        "$unwind": "$designations"
+    },
+    {
+        "$lookup": {
+            "from": "employeeofficedetails",
+            "localField": "_id",
+            "foreignField": "emp_id",
+            "as": "officeDetails"
+        }
+    },
+    {
+        "$unwind": "$officeDetails"
+    },
+    {
+      $lookup: {
+        from: "pipmasters",
+        localField: "_id",
+        foreignField: "emp_id",
+        as: "pip_master_details"
+      }
+    },
+    {
+      $unwind: {
+        path: "$pip_master_details"
+      }
+    },
+    {
+        "$lookup": {
+            "from": "employeesupervisordetails",
+            "localField": "_id",
+            "foreignField": "emp_id",
+            "as": "supervisor"
+        }
+    },
+    {
+        "$unwind": "$supervisor"
+    },
+    {
+        "$lookup": {
+            "from": "employeedetails",
+            "localField": "supervisor.primarySupervisorEmp_id",
+            "foreignField": "_id",
+            "as": "employees"
+        }
+    },
+    {
+        "$unwind": {
+            "path": "$employees", "preserveNullAndEmptyArrays": true
+        }
+    },
+    {
+        "$lookup": {
+            "from": "employeedetails",
+            "localField": "supervisor.secondarySupervisorEmp_id",
+            "foreignField": "_id",
+            "as": "employeeSecondary"
+        }
+    },
+    {
+        "$unwind": {
+            "path": "$employeeSecondary", "preserveNullAndEmptyArrays": true
+        }
+    },
+    {
+        "$lookup": {
+            "from": "employeeprofileprocessdetails",
+            "localField": "_id",
+            "foreignField": "emp_id",
+            "as": "employeeprofileProcessDetails"
+        }
+    },
+    {
+        "$unwind": "$employeeprofileProcessDetails"
+    },
+    // {
+    //     "$lookup": {
+    //         "from": "kraworkflowdetails",
+    //         "localField": "_id",
+    //         "foreignField": "emp_id",
+    //         "as": "kraworkflowdetails"
+    //     }
+    // },
+    // {"$unwind": {
+    //     "path": "$kraworkflowdetails","preserveNullAndEmptyArrays": true
+    // }},
+
+    {
+      "$lookup": {
+        "from": "papmasters",
+        "localField": "_id",
+        "foreignField": "emp_id",
+        "as": "papdetails"
+      }
+    },
+    { "$match": { "isDeleted": false, "designations.isActive": true, "officeDetails.isDeleted": false, "papdetails.overallRating": {$gt: 1} } },
+    {
+        "$project": {
+            "_id": "$_id",
+            "fullName": "$fullName",
+            "userName": "$userName",
+            "isAccountActive": "$isAccountActive",
+            "profileImage": "$profileImage",
+            "officeEmail": "$officeDetails.officeEmail",
+            "designation": "$designations.designationName",
+            "supervisor": "$employees.fullName",
+            "hrScope_id": '$officeDetails.hrspoc_id',
+            "groupHrHead_id": '$officeDetails.groupHrHead_id',
+            "businessHrHead_id": '$officeDetails.businessHrHead_id',
+            "supervisor_id": "$employees._id",
+            "secondarySupervisor": "$employeeSecondary.fullName",
+            "secondarySupervisor_id": "$employeeSecondary._id",
+            "profileProcessDetails": "$employeeprofileProcessDetails",
+            "department_id": "$officeDetails.department_id",
+            "grade_id": "$grade_id",
+            "overallRating": "$papdetails.overallRating",
+            pip_status: "$pip_master_details.status",
+            pip_batch_id: "$pip_master_details.batch_id"
+            // "kraWorkflow": "$kraworkflowdetails",
+        }
+    }
+]).exec(function (err, results) {
+    if (err) {
+        return res.status(403).json({
+            title: 'There was a problem',
+            error: {
+                message: err
+            },
+            result: {
+                message: results
+            }
+        });
+    }
+    //results= results.filter((obj, pos, arr) => { return arr.map(mapObj =>mapObj['_id']).indexOf(obj['_id']) === pos;});
+    return res.status(200).json({ "data": results });
+});
+
 }
   
 function InitiatePip(req, res) {
@@ -22,6 +168,12 @@ function InitiatePip(req, res) {
   pipBatchDetails.isDeleted = false;
   pipBatchDetails.createdBy = createdby;
   let emp_id_array = req.body.emp_id_array;
+  let email_details = {
+    emp_email: '',
+    emp_name: '',
+    hr_name: req.body.createdByName,
+    action_link: req.body.action_link
+  };
   pipBatchDetails.save(function (err, pipBatchresp) {
 
     if (err) {
@@ -96,13 +248,77 @@ function InitiatePip(req, res) {
               "pipMaster",
               "ADDED"
             );
-
-            return res.status(200).json({
-              result: pipMasterResult
-            });
+            sendEmailToEmployee(emp_id_array, res, email_details);
+            // return res.status(200).json({
+            //   result: pipMasterResult
+            // });
           }
         });
       });
+    }
+  });
+}
+
+
+function sendEmailToEmployee(emp_id_array, res, email_details) {
+
+  EmployeeDetails.aggregate([
+    {
+      "$lookup": {
+        "from": "employeeofficedetails",
+        "localField": "_id",
+        "foreignField": "emp_id",
+        "as": "office_details"
+      }
+    },
+    {
+      "$unwind": {
+        "path": "$office_details"
+      }
+    },
+    {
+      "$match": {
+        "_id": {"$in": emp_id_array.map(emp => {return emp.emp_id}) },
+      }
+    },
+    {
+      "$project": {
+        "_id": "$_id",
+        "user_name": "$fullName",
+        "officeEmail": "$office_details.officeEmail"
+      }
+    }
+  ]).exec(function (err, data) {
+
+    if (err) {
+      return res.status(403).json({
+        title: "There was a problem",
+        error: {
+          message: err
+        },
+        result: {
+          message: data
+        }
+      });
+    } else {
+      //let count = 0;
+      data.forEach(f => { 
+        email_details.emp_name = f.user_name;
+        email_details.emp_email = f.officeEmail;
+        //forEwach {
+        SendEmail.sendEmailToEmployeeForInitiatePIP(email_details, (email_err, email_result) => {
+
+        });
+        
+      });
+
+        return res.status(200).json({
+          title: "PIP initiated, and email sent to employee",
+          // result: {
+          //   message: email_result
+          // }
+        });
+      
     }
   });
 }
@@ -562,7 +778,7 @@ function submitpip(req, res) {
       } else {
         email_details.supervisor_name = result.emp[0].user_name;
         email_details.supervisor_email = result.emp[0].officeEmail;
-        SendEmail.sendEmailToSupervisorToApproveMtr(email_details, (email_err, email_result) => {
+        SendEmail.sendEmailToSupervisorToApprovePip(email_details, (email_err, email_result) => {
           if (email_err) {
             return res.status(300).json({
               title: "Pip submitted, failed sending email to supervisor",
@@ -570,14 +786,14 @@ function submitpip(req, res) {
                 message: email_err
               },
               result: {
-                message: result
+                message: email_result
               }
             });
           } else {
             return res.status(200).json({
               title: "pip review submitted, and email sent to supervisor",
               result: {
-                message: result
+                message: email_result
               }
             });
           }
