@@ -112,7 +112,7 @@ module.exports = {
     'sendEmailToEmployeeForInitiatedLearning': {
       from: '"Team HRIS" <hris@adnsl.net>',
       subject: 'Learning Agenda initiated'
-    }
+    },
     'sendEmailToEmployeeForInitiatePIP': {
       from: '"Team HRIS" <hris@adnsl.net>',
       subject: 'PIP initiated'
