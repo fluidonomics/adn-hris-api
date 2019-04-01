@@ -446,6 +446,9 @@ function insertPip(req, res) {
     let updateQuery = {
       
       supervisor_id: supervisor_id,
+      employeeInitialComment: req.body.employeeInitialComment,
+      areaofImprovement: req.body.areaofImprovement,
+      actionPlan: req.body.actionPlan,
       measureOfSuccess: req.body.measureOfSuccess,
       progressStatus: req.body.progressStatus,
       employeeComment: req.body.employeeComment,
@@ -935,7 +938,7 @@ function getPipApproval(req, res) {
               eligibleForEmail =true;
             }
             
-            if (sendbackPip.length < 1 && !req.body.isApproved ) {
+            if (sendbackPip.length > 0) {
               masterUpdateQuery.status = "SendBack";
               eligibleForEmail = true;
             }
@@ -1405,13 +1408,13 @@ function updatepipMaster(req, res) {
 
   let master_id = req.body.masterId;
   let updateQuery = {
-    "updatedAt": new Date(),
-    "updatedBy": parseInt(req.body.updatedBy),
-    "hr_final_com": req.body.hrFinalCom,
-    "emp_final_com": req.body.empFinalCom,
-    "rev_final_com": req.body.revFinalCom,
-    "sup_final_com": req.body.supFinalCom,
-    "final_recommendation": parseInt(req.body.finalRecommendation)
+    updatedAt: new Date(),
+    updatedBy: parseInt(req.body.updatedBy),
+    hr_final_com: req.body.hrFinalCom,
+    emp_final_com: req.body.empFinalCom,
+    rev_final_com: req.body.revFinalCom,
+    sup_final_com: req.body.supFinalCom,
+    final_recommendation: req.body.finalRecommendation
   }
 
   pipMaster.findOneAndUpdate({_id:master_id}, updateQuery, (err, result) => {
