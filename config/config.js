@@ -101,6 +101,10 @@ module.exports = {
       from: '"Team HRIS" <hris@adnsl.net>',
       subject: 'Performance Appraisal Initaited'
     },
+    'sendEmailToSupervisorForPapInitiate': {
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'Performance Appraisal Initaited'
+    },
     'sendEmailToEmployeeForLearningStatus': {
       from: '"Team HRIS" <hris@adnsl.net>',
       subject: 'Learning Agenda Status'

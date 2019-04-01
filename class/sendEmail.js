@@ -559,6 +559,7 @@ let functions =
         transporter.sendMail(mailOptions, callback);
     },
     sendEmailToEmployeeForPapInitiate: (data, callback) => {
+       
         if (data.supervisor_email === null || data.supervisor_email === "") {
             return
         }
@@ -567,6 +568,27 @@ let functions =
             to: data.emp_email,
             subject: config.email.sendEmailToEmployeeForPapInitiate.subject, // Subject line
             template: 'email-notify-to-emp-for-pap-initiated',
+            context: {
+                appliedDate: moment(new Date()).format('L'),
+                link: data.action_link,
+                empName: data.emp_name,
+                createdBy: data.createdBy.fullName
+            }
+        };
+        transporter.sendMail(mailOptions, callback);
+    },
+
+    sendEmailToSupervisorForPapInitiate: (data, callback) => {
+      
+        if (data.supervisor_email === null || data.supervisor_email === "") {
+            return
+        }
+
+        let mailOptions = {
+            from: config.email.sendEmailToEmployeeForPapInitiate.from, // sender address
+            to: data.supervisor_email,
+            subject: config.email.sendEmailToSupervisorForPapInitiate.subject, // Subject line
+            template: 'email-notify-to-sup-for-pap-initiated',
             context: {
                 appliedDate: moment(new Date()).format('L'),
                 link: data.action_link,

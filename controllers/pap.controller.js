@@ -392,9 +392,11 @@ function initiatePapProcess(req, res) {
                     let data = {};
                     data.emp_email = f.employeeofficedetails.officeEmail;
                     data.emp_name = f.employeedetails.fullName;
+                    //data.supervisor_email = f.employeedetails.supervisor_email;
                     data.action_link = action_link;
                     data.createdBy = f.createdBy;
                     SendEmail.sendEmailToEmployeeForPapInitiate(data);
+                    SendEmail.sendEmailToSupervisorForPapInitiate(data);
                 });
                 done(err, papMasterData);
             });
