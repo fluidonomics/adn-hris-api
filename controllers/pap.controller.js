@@ -905,7 +905,6 @@ function papSubmit(req, res) {
             done(null, papDetails);
         },
         (papDetails, done) => {
-
             PapDetails.aggregate([{
                 '$match': {
                     'pap_master_id': parseInt(req.body.pap_master_id)
@@ -913,31 +912,63 @@ function papSubmit(req, res) {
             },
             {
                 '$lookup': {
-                    'from': 'employeeofficedetails',
+                    'from': 'employeedetails',
                     'localField': 'supervisor_id',
-                    'foreignField': 'emp_id',
-                    'as': 'employeeofficedetails'
+                    'foreignField': '_id',
+                    'as': 'supervisor'
                 }
             },
             {
                 '$unwind': {
-                    'path': '$employeeofficedetails'
+                    'path': '$supervisor'
+                }
+            },
+            {
+                '$lookup': {
+                    'from': 'employeeofficedetails',
+                    'localField': 'supervisor_id',
+                    'foreignField': 'emp_id',
+                    'as': 'supervisorofficedetails'
+                }
+            },
+            {
+                '$unwind': {
+                    'path': '$supervisorofficedetails'
+                }
+            },
+            {
+                '$lookup': {
+                    'from': 'employeedetails',
+                    'localField': 'empId',
+                    'foreignField': '_id',
+                    'as': 'employee'
+                }
+            },
+            {
+                '$unwind': {
+                    'path': '$employee'
+                }
+            },
+            {
+                '$group': {
+                    "_id": "$supervisor_id",
+                    "supervisor": { $first: "$supervisor" },
+                    "supervisorofficedetails": { $first: "$supervisorofficedetails" },
+                    "employee": { $first: "$employee" }
                 }
             }
             ]).exec(function (err, response) {
-                // EmployeeDetails.findById(createdBy, (err, emp) => {
-                //     response.forEach(f => {
-                //         let data = {};
-                //         data.emp_email = f.officeEmail;
-                //         data.emp_name = f.fullName;
-                //         data.action_link = action_link;
-                //         data.createdBy = emp;
-                //         SendEmail.sendEmailToEmployeeForPapInitiate(data);
-                //     })
+                response.forEach(f => {
+                    let data = {};
+                    data.supervisor = f.supervisor;
+                    data.emp_email = f.supervisorofficedetails.officeEmail;
+                    data.emp_name = f.employee.fullName;
+                    data.action_link = req.body.action_link;
+                    data.employee = f.employee;
+                    // SendEmail.sendEmailToEmployeeForPapInitiate(data);
+                });
                 done(err, papDetails);
             });
-            //})
-
         }
     ], (err, results) => {
         sendResponse(res, err, results, 'Pap details updated successfully');
