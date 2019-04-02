@@ -965,7 +965,7 @@ function papSubmit(req, res) {
                     data.emp_name = f.employee.fullName;
                     data.action_link = req.body.action_link;
                     data.employee = f.employee;
-                    // SendEmail.sendEmailToEmployeeForPapInitiate(data);
+                    SendEmail.sendEmailToSupervisorForPapSubmit(data);
                 });
                 done(err, papDetails);
             });

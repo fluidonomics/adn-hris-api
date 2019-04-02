@@ -577,6 +577,24 @@ let functions =
         transporter.sendMail(mailOptions, callback);
     },
 
+    sendEmailToSupervisorForPapSubmit: (data, callback) => {
+        if (data.supervisor_email === null || data.supervisor_email === "") {
+            return
+        }
+        let mailOptions = {
+            from: config.email.sendEmailToSupervisorForPapSubmit.from, // sender address
+            to: data.emp_email,
+            subject: config.email.sendEmailToSupervisorForPapSubmit.subject, // Subject line
+            template: 'email-notify-to-supvsr-for-pap-submit',
+            context: {
+                appliedDate: moment(new Date()).format('L'),
+                link: data.action_link,
+                empName: data.emp_name
+            }
+        };
+        transporter.sendMail(mailOptions, callback);
+    },
+
     sendEmailToEmployeeForInitiateLearning: (data, callback) => {
         if (data.emp_email === null || data.emp_email === "") {
             return
