@@ -25,8 +25,7 @@ let transporter = nodemailer.createTransport({
 });
 transporter.use('compile', hbs(options));
 
-let functions =
-{
+let functions = {
     sendEmail: (req, res) => {
         let toEmail = req.body.toEmail;
         let subject = req.body.subject;
@@ -42,7 +41,9 @@ let functions =
             if (err) {
                 return console.log("RESULT ERROR = ", error2);
             }
-            return res.status(200).json({ "message": "Email Send SuccessFully." });
+            return res.status(200).json({
+                "message": "Email Send SuccessFully."
+            });
         });
 
     },
@@ -498,7 +499,7 @@ let functions =
         let mailOptions = {
             from: config.email.forget.from, // sender address
             to: toEmail,
-            subject: config.email.emailToPrevSupervsrForSupervsrTransfer.subject,// Subject line
+            subject: config.email.emailToPrevSupervsrForSupervsrTransfer.subject, // Subject line
             template: 'email-notify-to-prev-supervsr-for-supvsr-transfer',
             context: {
                 fullName: data.fullName,
@@ -521,7 +522,7 @@ let functions =
         let mailOptions = {
             from: config.email.forget.from, // sender address
             to: toEmail,
-            subject: config.email.emailToNewSupervsrForSupervsrTransfer.subject,// Subject line
+            subject: config.email.emailToNewSupervsrForSupervsrTransfer.subject, // Subject line
             template: 'email-notify-to-new-supervsr-for-supvsr-transfer',
             context: {
                 fullName: data.fullName,
@@ -594,7 +595,26 @@ let functions =
         };
         transporter.sendMail(mailOptions, callback);
     },
+    sendEmailToReviewerForPapSubmit: (data, callback) => {
 
+        if (data.emp_email === null || data.emp_email === "") {
+            return
+        }
+        let mailOptions = {
+            from: config.email.sendEmailToReviewerForPapSubmit.from, // sender address
+            to: data.emp_email,
+            subject: config.email.sendEmailToReviewerForPapSubmit.subject, // Subject line
+            template: 'email-notitfy-to-reviewer-for-pap-submit',
+            context: {
+                appliedDate: moment(new Date()).format('L'),
+                link: data.action_link,
+                reviewerName: data.reviewer.fullName,
+                supervisorName: data.supervisor.fullName
+            }
+        };
+        transporter.sendMail(mailOptions, callback);
+
+    },
     sendEmailToEmployeeForInitiateLearning: (data, callback) => {
         if (data.emp_email === null || data.emp_email === "") {
             return

@@ -1461,7 +1461,7 @@ function papSubmitToReviewer(req, res) {
             {
                 '$lookup': {
                     'from': 'employeedetails',
-                    'localField': 'employeesupervisordetails.primarySupervisorEmp_id',
+                    'localField': 'supervisor_id',
                     'foreignField': '_id',
                     'as': 'supervisor'
                 }
@@ -1469,6 +1469,19 @@ function papSubmitToReviewer(req, res) {
             {
                 '$unwind': {
                     'path': '$supervisor'
+                }
+            },
+            {
+                '$lookup': {
+                    'from': 'employeedetails',
+                    'localField': 'employeesupervisordetails.primarySupervisorEmp_id',
+                    'foreignField': '_id',
+                    'as': 'reviewer'
+                }
+            },
+            {
+                '$unwind': {
+                    'path': '$reviewer'
                 }
             },
             {
@@ -1501,6 +1514,7 @@ function papSubmitToReviewer(req, res) {
                 '$group': {
                     "_id": "$supervisor_id",
                     "supervisor": { $first: "$supervisor" },
+                    "reviewer": { $first: "$reviewer" },
                     "supervisorofficedetails": { $first: "$supervisorofficedetails" },
                     "employee": { $first: "$employee" }
                 }
@@ -1508,12 +1522,13 @@ function papSubmitToReviewer(req, res) {
             ]).exec(function (err, response) {
                 response.forEach(f => {
                     let data = {};
+                    data.reviewer = f.reviewer;
                     data.supervisor = f.supervisor;
                     data.emp_email = f.supervisorofficedetails.officeEmail;
                     data.emp_name = f.employee.fullName;
                     data.action_link = req.body.action_link;
                     data.employee = f.employee;
-                    // SendEmail.sendEmailToEmployeeForPapInitiate(data);
+                    SendEmail.sendEmailToReviewerForPapSubmit(data);
                 });
                 done(err, papDetails);
             });
