@@ -1409,6 +1409,100 @@ function papSubmitToReviewer(req, res) {
                 "UPDATED"
             );
             done(null, papDetails);
+        },
+        (papDetails, done) => {
+            PapDetails.aggregate([{
+                '$match': {
+                    'pap_master_id': parseInt(req.body.papMasterId)
+                }
+            },
+            {
+                '$lookup': {
+                    'from': 'employeesupervisordetails',
+                    'localField': 'supervisor_id',
+                    'foreignField': 'emp_id',
+                    'as': 'employeesupervisordetails'
+                }
+            },
+            {
+                '$unwind': {
+                    'path': '$employeesupervisordetails'
+                }
+            },
+            {
+                '$lookup': {
+                    'from': 'employeedetails',
+                    'localField': 'supervisor_id',
+                    'foreignField': '_id',
+                    'as': 'supervisor'
+                }
+            },
+            {
+                '$unwind': {
+                    'path': '$supervisor'
+                }
+            },
+            {
+                '$lookup': {
+                    'from': 'employeedetails',
+                    'localField': 'employeesupervisordetails.primarySupervisorEmp_id',
+                    'foreignField': '_id',
+                    'as': 'reviewer'
+                }
+            },
+            {
+                '$unwind': {
+                    'path': '$reviewer'
+                }
+            },
+            {
+                '$lookup': {
+                    'from': 'employeeofficedetails',
+                    'localField': 'employeesupervisordetails.primarySupervisorEmp_id',
+                    'foreignField': 'emp_id',
+                    'as': 'supervisorofficedetails'
+                }
+            },
+            {
+                '$unwind': {
+                    'path': '$supervisorofficedetails'
+                }
+            },
+            {
+                '$lookup': {
+                    'from': 'employeedetails',
+                    'localField': 'empId',
+                    'foreignField': '_id',
+                    'as': 'employee'
+                }
+            },
+            {
+                '$unwind': {
+                    'path': '$employee'
+                }
+            },
+            {
+                '$group': {
+                    "_id": "$supervisor_id",
+                    "supervisor": { $first: "$supervisor" },
+                    "reviewer": { $first: "$reviewer" },
+                    "supervisorofficedetails": { $first: "$supervisorofficedetails" },
+                    "employee": { $first: "$employee" }
+                }
+            }
+            ]).exec(function (err, response) {
+                response.forEach(f => {
+                    let data = {};
+                    data.reviewer = f.reviewer;
+                    data.supervisor = f.supervisor;
+                    data.emp_email = f.supervisorofficedetails.officeEmail;
+                    data.emp_name = f.employee.fullName;
+                    data.action_link = req.body.action_link;
+                    data.employee = f.employee;
+                    SendEmail.sendEmailToReviewerForPapSubmit(data);
+                });
+                done(err, papDetails);
+            });
         }
     ], (err, result) => {
         sendResponse(res, err, result, 'Pap details updated successfully');

@@ -599,6 +599,27 @@ let functions =
         transporter.sendMail(mailOptions, callback);
     },
 
+    sendEmailToReviewerForPapSubmit: (data, callback) => {
+
+        if (data.emp_email === null || data.emp_email === "") {
+            return
+        }
+        let mailOptions = {
+            from: config.email.sendEmailToReviewerForPapSubmit.from, // sender address
+            to: data.emp_email,
+            subject: config.email.sendEmailToReviewerForPapSubmit.subject, // Subject line
+            template: 'email-notitfy-to-reviewer-for-pap-submit',
+            context: {
+                appliedDate: moment(new Date()).format('L'),
+                link: data.action_link,
+                reviewerName: data.reviewer.fullName,
+                supervisorName: data.supervisor.fullName
+            }
+        };
+        transporter.sendMail(mailOptions, callback);
+
+    },
+
     sendEmailToEmployeeForInitiateLearning: (data, callback) => {
         if (data.emp_email === null || data.emp_email === "") {
             return
