@@ -1223,7 +1223,7 @@ function papUpdateReviewer(req, res) {
                     if (err) {
                         innerDone(err, papMaster);
                     };
-                    innerDone(err, data.papDetail);
+                    innerDone(err, data);
                 });
             } else if (sendBackCount > 0) {
                 let updateQuery = {
@@ -1235,12 +1235,65 @@ function papUpdateReviewer(req, res) {
                     if (err) {
                         innerDone(err, papMaster);
                     };
-                    innerDone(err, data.papDetail);
+                    innerDone(err, data);
                 });
             }
             else {
-                innerDone(null, data.papDetail);
+                innerDone(null, data);
             }
+        },
+        (data, done) => {
+            if (req.body.isApproved == false) {
+                PapDetails.aggregate([
+                    {
+                        $match: {
+                            _id: req.body.papDetailsId
+                        }
+                    },
+                    {
+                        $lookup: {
+                            from: 'employeedetails',
+                            localField: 'supervisor_id',
+                            foreignField: '_id',
+                            as: 'supervisor'
+                        }
+                    },
+                    {
+                        $unwind: {
+                            path: '$supervisor'
+                        }
+                    },
+                    {
+                        $lookup: {
+                            from: 'employeeofficedetails',
+                            localField: 'supervisor_id',
+                            foreignField: 'emp_id',
+                            as: 'supervisorofficedetails'
+                        }
+                    },
+                    {
+                        $unwind: {
+                            path: '$supervisorofficedetails'
+                        }
+                    }
+                ]).exec((err, papAggResult) => {
+                    if (err) {
+                        done(err);
+                    }
+                    EmployeeDetails.findOne({ _id: req.body.updatedBy }, (err, reviewer) => {
+                        if (err) {
+                            done(err);
+                        }
+                        let data = {};
+                        data.supervisor = papAggResult.supervisor;
+                        data.supervisorofficedetails = papAggResult.supervisorofficedetails;
+                        data.reviewer = reviewer;
+                        data.action_link = req.body.action_link;
+                        // SendEmail.sendEmailToSupervisorForPapSubmit(data);
+                    });
+                });
+            }
+
         },
         (papDetails, done) => {
             AuditTrail.auditTrailEntry(
