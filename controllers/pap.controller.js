@@ -1280,17 +1280,20 @@ function papUpdateReviewer(req, res) {
                     if (err) {
                         done(err);
                     }
-                    EmployeeDetails.findOne({ _id: req.body.updatedBy }, (err, reviewer) => {
-                        if (err) {
-                            done(err);
-                        }
-                        let data = {};
-                        data.supervisor = papAggResult.supervisor;
-                        data.supervisorofficedetails = papAggResult.supervisorofficedetails;
-                        data.reviewer = reviewer;
-                        data.action_link = req.body.action_link;
-                        // SendEmail.sendEmailToSupervisorForPapSubmit(data);
-                    });
+                    papAggResult = papAggResult[0];
+                    if (papAggResult) {
+                        EmployeeDetails.findOne({ _id: req.body.updatedBy }, (err, reviewer) => {
+                            if (err) {
+                                done(err);
+                            }
+                            let data = {};
+                            data.supervisor = papAggResult.supervisor;
+                            data.supervisorofficedetails = papAggResult.supervisorofficedetails;
+                            data.reviewer = reviewer;
+                            data.action_link = req.body.action_link;
+                            // SendEmail.sendEmailToSupervisorForPapSubmit(data);
+                        });
+                    }
                 });
             }
 
