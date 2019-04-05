@@ -984,7 +984,7 @@ function updateBatch(req, res) {
                 "batchEndDate": req.body.batchEndDate
             }
             PapBatchDetails.update({
-                _id: parseInt(req.body.batchId)
+                _id: parseInt(req.body._id)
             }, updateQuery, (err, papBatchDetails) => {
                 done(err, papBatchDetails);
             })
