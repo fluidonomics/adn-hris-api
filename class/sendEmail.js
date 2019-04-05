@@ -617,12 +617,12 @@ let functions = {
     },
     sendEmailToSupervisorForPapSendBack: (data,callback) => {
 
-        if (data.emp_email === null || data.emp_email === "") {
+        if (data.supervisorofficedetails.officeEmail === null || data.supervisorofficedetails.officeEmail === "") {
             return
         }
         let mailOptions = {
             from: config.email.sendEmailToSupervisorForPapSendBack.from, // sender address
-            to: data.emp_email,
+            to: data.supervisorofficedetails.officeEmail,
             subject: config.email.sendEmailToSupervisorForPapSendBack.subject, // Subject line
             template: 'email-notify-to-supvsr-for-pap-sendback',
             context: {
