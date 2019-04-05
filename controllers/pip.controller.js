@@ -576,6 +576,7 @@ function getpipdetailspostinsertion(req, res) {
         hr_final_com: "$pipdetails.hr_final_com",
         final_recommendation: "$pipdetails.final_recommendation",
         status: "$status",
+        master_status: "$pipdetails.status",
         supervisor_id: "$supervisor_id",
         areaofImprovement: "$areaofImprovement",
         actionPlan: "$actionPlan",
@@ -598,7 +599,7 @@ function getpipdetailspostinsertion(req, res) {
         empComment_month6: "$empComment_month6",
         supComment_month6: "$supComment_month6",
         //dateDifference: {$divide: [{$subtract: [ new Date(), "$approvedAt" ]}, 3600000*24*2]}
-        dateDifference: { $literal: 2}
+        dateDifference: { $literal: 2.3}
   }
     }
   ]).exec(function (err, data) {
@@ -668,7 +669,7 @@ function getpipBySupervisor(req, res) {
         updatedAt: "$pip_master_details.updatedAt"
       }
     },
-    { $match: { status: status } },
+    { $match: { $or: [{status: status}, {status: "Completed"} ] } },
     {
       $group: {
         _id: "$pipMasterId",
@@ -939,7 +940,7 @@ function getPipApproval(req, res) {
               eligibleForEmail =true;
             }
             
-            if (sendbackPip.length > 0) {
+            if (sendbackPip.length > 0 || !req.body.isApproved) {
               masterUpdateQuery.status = "SendBack";
               eligibleForEmail = true;
             }
