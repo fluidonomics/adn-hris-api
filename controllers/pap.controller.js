@@ -1291,10 +1291,9 @@ function papUpdateReviewer(req, res) {
                             data.supervisorofficedetails = papAggResult.supervisorofficedetails;
                             data.reviewer = reviewer;
                             data.action_link = req.body.action_link;
-                            // SendEmail.sendEmailToSupervisorForPapSubmit(data);
+                            SendEmail.sendEmailToSupervisorForPapSendBack(data);
                         });
                     }
-                        SendEmail.sendEmailToSupervisorForPapSendBack(data);
                 });
             }
 
