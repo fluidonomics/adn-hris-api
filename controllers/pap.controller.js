@@ -1294,6 +1294,7 @@ function papUpdateReviewer(req, res) {
                             // SendEmail.sendEmailToSupervisorForPapSubmit(data);
                         });
                     }
+                        SendEmail.sendEmailToSupervisorForPapSendBack(data);
                 });
             }
 

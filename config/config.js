@@ -91,7 +91,7 @@ module.exports = {
     },
     'sendEmailToSupervisorToApprovePap': {
       from: '"Team HRIS" <hris@adnsl.net>',
-      subject: 'Pap Review for Approval'
+      subject: 'Performance Appraisal Review for Approval'
     },
     'sendEmailToEmployeeForMtrStatus': {
       from: '"Team HRIS" <hris@adnsl.net>',
@@ -113,14 +113,17 @@ module.exports = {
       from: '"Team HRIS" <hris@adnsl.net>',
       subject: 'Performance Appraisal Submitted'
     },
-
     'sendEmailToEmployeeForInitiatedLearning': {
       from: '"Team HRIS" <hris@adnsl.net>',
       subject: 'Learning Agenda initiated'
     },
     'sendEmailToReviewerForPapSubmit': {
       from: '"Team HRIS" <hris@adnsl.net>',
-      subject: 'Pap Submitted For Reviewer'
+      subject: 'Performance Appraisal Submitted For Reviewer'
+    },
+    'sendEmailToSupervisorForPapSendBack': {
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'Performance Appraisal SentBack From Reviewer'
     }
   },
   'aws':
