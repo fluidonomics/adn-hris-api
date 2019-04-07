@@ -1223,6 +1223,7 @@ function papUpdateReviewer(req, res) {
                     if (err) {
                         innerDone(err, papMaster);
                     };
+                    sendMailToHrofApproval(data.papDetail.pap_master_id);
                     innerDone(err, data);
                 });
             } else if (sendBackCount > 0) {
@@ -1295,8 +1296,9 @@ function papUpdateReviewer(req, res) {
                         });
                     }
                 });
+            } else {
+                done(null, data);
             }
-
         },
         (papDetails, done) => {
             AuditTrail.auditTrailEntry(
@@ -1311,6 +1313,61 @@ function papUpdateReviewer(req, res) {
         }
     ], (err, result) => {
         sendResponse(res, err, result, 'Pap details updated successfully');
+    });
+}
+
+// Send mail to hr for feedback init when reviewer approves pap.
+function sendMailToHrofApproval(pap_master_id) {
+    PapMasterDetails.aggregate([
+        {
+            $match: {
+                _id: pap_master_id
+            }
+        },
+        {
+            $lookup: {
+                from: 'employeedetails',
+                localField: 'emp_id',
+                foreignField: '_id',
+                as: 'employee'
+            }
+        },
+        {
+            $unwind: {
+                path: '$employee'
+            }
+        },
+        {
+            $lookup: {
+                from: 'employeedetails',
+                localField: 'createdBy',
+                foreignField: '_id',
+                as: 'hr'
+            }
+        },
+        {
+            $unwind: {
+                path: '$hr'
+            }
+        },
+        {
+            $lookup: {
+                from: 'employeeofficedetails',
+                localField: 'createdBy',
+                foreignField: 'emp_id',
+                as: 'hrOfficeDetails'
+            }
+        },
+        {
+            $unwind: {
+                path: '$hrOfficeDetails'
+            }
+        }
+    ]).exec((err, result) => {
+        result = result[0];
+        if (result) {
+            // SendEmail.sendEmailToReviewerForPapSubmit(result);
+        }
     });
 }
 
