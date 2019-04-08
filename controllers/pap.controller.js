@@ -1399,6 +1399,19 @@ function getPapByReviewer(req, res) {
                 },
                 {
                     '$lookup': {
+                        'from': 'papmasters',
+                        'localField': 'pap_master_id',
+                        'foreignField': '_id',
+                        'as': 'papmasters'
+                    }
+                },
+                {
+                    '$unwind': {
+                        'path': '$papmasters'
+                    }
+                },
+                {
+                    '$lookup': {
                         'from': 'midtermdetails',
                         'localField': 'mtr_details_id',
                         'foreignField': '_id',
@@ -1433,6 +1446,7 @@ function getPapByReviewer(req, res) {
                         'updatedAt': '$updatedAt',
                         'profileImage': '$emp_details.profileImage',
                         'pap_master_id': '$pap_master_id',
+                        'papmasters': '$papmasters',
                         'group_obj': {
                             'grievanceSupRemark': '$grievanceSupRemark',
                             'grievanceRevRemark': '$grievanceRevRemark',
@@ -1472,6 +1486,9 @@ function getPapByReviewer(req, res) {
                         },
                         'pap_master_id': {
                             '$first': '$pap_master_id'
+                        },
+                        'papmasters': {
+                            '$first': '$papmasters'
                         },
                         'kra_details': {
                             '$push': '$group_obj'
