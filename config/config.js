@@ -128,6 +128,10 @@ module.exports = {
     'sendMailToHrforApproval': {
       from: '"Team HRIS" <hris@adnsl.net>',
       subject: 'Performance Appraisal Of Employee Has Been Approved By Reviewer'
+    },
+    'sendMailForGrievance': {
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'Grievance Raised'
     }
   },
   'aws':

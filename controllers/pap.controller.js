@@ -1940,7 +1940,7 @@ function sendMailForGrievance(data) {
                     }
                 }
             ]).exec((err, result) => {
-                done(err, result);
+                done(err, result[0]||null);
             });
         },
         (aggData, innerDone) => {
@@ -1980,12 +1980,15 @@ function sendMailForGrievance(data) {
                 }
             ]).exec((err, result) => {
                 if (aggData) {
-                    aggData.hr = result;
+                    aggData.hr = result[0] || null;
                 }
                 innerDone(err, aggData);
             });
         }
     ], (err, result) => {
+        if(result) {
+            SendEmail.sendMailForGrievance(result);
+        }
         // sendmail code
     });
 }
