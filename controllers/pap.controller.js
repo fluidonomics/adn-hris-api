@@ -1223,7 +1223,7 @@ function papUpdateReviewer(req, res) {
                     if (err) {
                         innerDone(err, papMaster);
                     };
-                    sendMailToHrofApproval(data.papDetail.pap_master_id);
+                    sendMailToHrforApproval(data.papDetail.pap_master_id);
                     innerDone(err, data);
                 });
             } else if (sendBackCount > 0) {
@@ -1317,7 +1317,7 @@ function papUpdateReviewer(req, res) {
 }
 
 // Send mail to hr for feedback init when reviewer approves pap.
-function sendMailToHrofApproval(pap_master_id) {
+function sendMailToHrforApproval(pap_master_id) {
     PapMasterDetails.aggregate([
         {
             $match: {
@@ -1366,7 +1366,7 @@ function sendMailToHrofApproval(pap_master_id) {
     ]).exec((err, result) => {
         result = result[0];
         if (result) {
-            // SendEmail.sendEmailToReviewerForPapSubmit(result);
+            SendEmail.sendMailToHrforApproval(result);
         }
     });
 }

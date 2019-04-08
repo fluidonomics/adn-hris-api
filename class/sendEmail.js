@@ -453,6 +453,24 @@ let functions = {
         };
         transporter.sendMail(mailOptions, callback);
     },
+    sendMailToHrforApproval: (data, callback) => {
+        if (data.hrOfficeDetails.officeEmail === null || data.hrOfficeDetails.officeEmail === "") {
+            return
+        }
+        let mailOptions = {
+            from: config.email.sendMailToHrforApproval.from, // sender address
+            to: data.hrOfficeDetails.officeEmail,
+            subject: config.email.sendMailToHrforApproval.subject, // Subject line
+            template: 'email-notify-hr-pap-approved',
+            context: {
+                hrName: data.hr.fullName,
+                appliedDate: moment(new Date()).format('L'),
+                link: data.action_link,
+                empName: data.employee.fullName
+            }
+        };
+        transporter.sendMail(mailOptions, callback);
+    },
     sendEmailToUserAboutMtrStatus: (data, callback) => {
         if (data.user_email === null || data.user_email === "") {
             return
@@ -615,7 +633,7 @@ let functions = {
         transporter.sendMail(mailOptions, callback);
 
     },
-    sendEmailToSupervisorForPapSendBack: (data,callback) => {
+    sendEmailToSupervisorForPapSendBack: (data, callback) => {
 
         if (data.supervisorofficedetails.officeEmail === null || data.supervisorofficedetails.officeEmail === "") {
             return

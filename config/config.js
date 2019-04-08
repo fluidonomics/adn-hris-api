@@ -124,6 +124,10 @@ module.exports = {
     'sendEmailToSupervisorForPapSendBack': {
       from: '"Team HRIS" <hris@adnsl.net>',
       subject: 'Performance Appraisal SentBack From Reviewer'
+    },
+    'sendMailToHrforApproval': {
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'Performance Appraisal Of Employee Has Been Approved By Reviewer'
     }
   },
   'aws':
