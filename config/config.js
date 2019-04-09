@@ -91,7 +91,7 @@ module.exports = {
     },
     'sendEmailToSupervisorToApprovePap': {
       from: '"Team HRIS" <hris@adnsl.net>',
-      subject: 'Pap Review for Approval'
+      subject: 'Performance Appraisal Review for Approval'
     },
     'sendEmailToEmployeeForMtrStatus': {
       from: '"Team HRIS" <hris@adnsl.net>',
@@ -109,6 +109,10 @@ module.exports = {
       from: '"Team HRIS" <hris@adnsl.net>',
       subject: 'Learning Agenda for approval'
     },
+    'sendEmailToSupervisorForPapSubmit': {
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'Performance Appraisal Submitted'
+    },
     'sendEmailToEmployeeForInitiatedLearning': {
       from: '"Team HRIS" <hris@adnsl.net>',
       subject: 'Learning Agenda initiated'
@@ -124,6 +128,22 @@ module.exports = {
     'sendEmailToEmployeeForPipStatus': {
       from: '"Team HRIS" <hris@adnsl.net>',
       subject: 'PIP status'
+    },
+    'sendEmailToReviewerForPapSubmit': {
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'Performance Appraisal Submitted For Reviewer'
+    },
+    'sendEmailToSupervisorForPapSendBack': {
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'Performance Appraisal SentBack From Reviewer'
+    },
+    'sendMailToHrforApproval': {
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'Performance Appraisal Of Employee Has Been Approved By Reviewer'
+    },
+    'sendMailForGrievance': {
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'Grievance Raised'
     }
   },
   'aws':

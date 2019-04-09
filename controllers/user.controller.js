@@ -2361,7 +2361,7 @@ function updateSupervisortransfer(req, res, done) {
                                 }
                             },
                             (data, done) => {
-                                PapMaster.find({ emp_id: _id }, (err, papMaster) => {
+                                PapMaster.findOne({ emp_id: _id }, (err, papMaster) => {
                                     checkError(err, papMaster);
                                     let updateQuery = {
                                         "updatedAt": updatedAt,

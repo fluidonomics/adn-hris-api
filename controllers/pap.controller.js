@@ -905,7 +905,6 @@ function papSubmit(req, res) {
             done(null, papDetails);
         },
         (papDetails, done) => {
-
             PapDetails.aggregate([{
                 '$match': {
                     'pap_master_id': parseInt(req.body.pap_master_id)
@@ -913,31 +912,63 @@ function papSubmit(req, res) {
             },
             {
                 '$lookup': {
-                    'from': 'employeeofficedetails',
+                    'from': 'employeedetails',
                     'localField': 'supervisor_id',
-                    'foreignField': 'emp_id',
-                    'as': 'employeeofficedetails'
+                    'foreignField': '_id',
+                    'as': 'supervisor'
                 }
             },
             {
                 '$unwind': {
-                    'path': '$employeeofficedetails'
+                    'path': '$supervisor'
+                }
+            },
+            {
+                '$lookup': {
+                    'from': 'employeeofficedetails',
+                    'localField': 'supervisor_id',
+                    'foreignField': 'emp_id',
+                    'as': 'supervisorofficedetails'
+                }
+            },
+            {
+                '$unwind': {
+                    'path': '$supervisorofficedetails'
+                }
+            },
+            {
+                '$lookup': {
+                    'from': 'employeedetails',
+                    'localField': 'empId',
+                    'foreignField': '_id',
+                    'as': 'employee'
+                }
+            },
+            {
+                '$unwind': {
+                    'path': '$employee'
+                }
+            },
+            {
+                '$group': {
+                    "_id": "$supervisor_id",
+                    "supervisor": { $first: "$supervisor" },
+                    "supervisorofficedetails": { $first: "$supervisorofficedetails" },
+                    "employee": { $first: "$employee" }
                 }
             }
             ]).exec(function (err, response) {
-                // EmployeeDetails.findById(createdBy, (err, emp) => {
-                //     response.forEach(f => {
-                //         let data = {};
-                //         data.emp_email = f.officeEmail;
-                //         data.emp_name = f.fullName;
-                //         data.action_link = action_link;
-                //         data.createdBy = emp;
-                //         SendEmail.sendEmailToEmployeeForPapInitiate(data);
-                //     })
+                response.forEach(f => {
+                    let data = {};
+                    data.supervisor = f.supervisor;
+                    data.emp_email = f.supervisorofficedetails.officeEmail;
+                    data.emp_name = f.employee.fullName;
+                    data.action_link = req.body.action_link;
+                    data.employee = f.employee;
+                    SendEmail.sendEmailToSupervisorForPapSubmit(data);
+                });
                 done(err, papDetails);
             });
-            //})
-
         }
     ], (err, results) => {
         sendResponse(res, err, results, 'Pap details updated successfully');
@@ -953,7 +984,7 @@ function updateBatch(req, res) {
                 "batchEndDate": req.body.batchEndDate
             }
             PapBatchDetails.update({
-                _id: parseInt(req.body.batchId)
+                _id: parseInt(req.body._id)
             }, updateQuery, (err, papBatchDetails) => {
                 done(err, papBatchDetails);
             })
@@ -1192,7 +1223,8 @@ function papUpdateReviewer(req, res) {
                     if (err) {
                         innerDone(err, papMaster);
                     };
-                    innerDone(err, data.papDetail);
+                    sendMailToHrforApproval(data.papDetail.pap_master_id);
+                    innerDone(err, data);
                 });
             } else if (sendBackCount > 0) {
                 let updateQuery = {
@@ -1204,11 +1236,68 @@ function papUpdateReviewer(req, res) {
                     if (err) {
                         innerDone(err, papMaster);
                     };
-                    innerDone(err, data.papDetail);
+                    innerDone(err, data);
                 });
             }
             else {
-                innerDone(null, data.papDetail);
+                innerDone(null, data);
+            }
+        },
+        (data, done) => {
+            if (req.body.isApproved == false) {
+                PapDetails.aggregate([
+                    {
+                        $match: {
+                            _id: req.body.papDetailsId
+                        }
+                    },
+                    {
+                        $lookup: {
+                            from: 'employeedetails',
+                            localField: 'supervisor_id',
+                            foreignField: '_id',
+                            as: 'supervisor'
+                        }
+                    },
+                    {
+                        $unwind: {
+                            path: '$supervisor'
+                        }
+                    },
+                    {
+                        $lookup: {
+                            from: 'employeeofficedetails',
+                            localField: 'supervisor_id',
+                            foreignField: 'emp_id',
+                            as: 'supervisorofficedetails'
+                        }
+                    },
+                    {
+                        $unwind: {
+                            path: '$supervisorofficedetails'
+                        }
+                    }
+                ]).exec((err, papAggResult) => {
+                    if (err) {
+                        done(err);
+                    }
+                    papAggResult = papAggResult[0];
+                    if (papAggResult) {
+                        EmployeeDetails.findOne({ _id: req.body.updatedBy }, (err, reviewer) => {
+                            if (err) {
+                                done(err);
+                            }
+                            let data = {};
+                            data.supervisor = papAggResult.supervisor;
+                            data.supervisorofficedetails = papAggResult.supervisorofficedetails;
+                            data.reviewer = reviewer;
+                            data.action_link = req.body.action_link;
+                            SendEmail.sendEmailToSupervisorForPapSendBack(data);
+                        });
+                    }
+                });
+            } else {
+                done(null, data);
             }
         },
         (papDetails, done) => {
@@ -1224,6 +1313,61 @@ function papUpdateReviewer(req, res) {
         }
     ], (err, result) => {
         sendResponse(res, err, result, 'Pap details updated successfully');
+    });
+}
+
+// Send mail to hr for feedback init when reviewer approves pap.
+function sendMailToHrforApproval(pap_master_id) {
+    PapMasterDetails.aggregate([
+        {
+            $match: {
+                _id: pap_master_id
+            }
+        },
+        {
+            $lookup: {
+                from: 'employeedetails',
+                localField: 'emp_id',
+                foreignField: '_id',
+                as: 'employee'
+            }
+        },
+        {
+            $unwind: {
+                path: '$employee'
+            }
+        },
+        {
+            $lookup: {
+                from: 'employeedetails',
+                localField: 'createdBy',
+                foreignField: '_id',
+                as: 'hr'
+            }
+        },
+        {
+            $unwind: {
+                path: '$hr'
+            }
+        },
+        {
+            $lookup: {
+                from: 'employeeofficedetails',
+                localField: 'createdBy',
+                foreignField: 'emp_id',
+                as: 'hrOfficeDetails'
+            }
+        },
+        {
+            $unwind: {
+                path: '$hrOfficeDetails'
+            }
+        }
+    ]).exec((err, result) => {
+        result = result[0];
+        if (result) {
+            SendEmail.sendMailToHrforApproval(result);
+        }
     });
 }
 
@@ -1251,6 +1395,19 @@ function getPapByReviewer(req, res) {
                         'supervisor_id': {
                             '$in': papDetails
                         }
+                    }
+                },
+                {
+                    '$lookup': {
+                        'from': 'papmasters',
+                        'localField': 'pap_master_id',
+                        'foreignField': '_id',
+                        'as': 'papmasters'
+                    }
+                },
+                {
+                    '$unwind': {
+                        'path': '$papmasters'
                     }
                 },
                 {
@@ -1289,6 +1446,7 @@ function getPapByReviewer(req, res) {
                         'updatedAt': '$updatedAt',
                         'profileImage': '$emp_details.profileImage',
                         'pap_master_id': '$pap_master_id',
+                        'papmasters': '$papmasters',
                         'group_obj': {
                             'grievanceSupRemark': '$grievanceSupRemark',
                             'grievanceRevRemark': '$grievanceRevRemark',
@@ -1328,6 +1486,9 @@ function getPapByReviewer(req, res) {
                         },
                         'pap_master_id': {
                             '$first': '$pap_master_id'
+                        },
+                        'papmasters': {
+                            '$first': '$papmasters'
                         },
                         'kra_details': {
                             '$push': '$group_obj'
@@ -1407,6 +1568,100 @@ function papSubmitToReviewer(req, res) {
                 "UPDATED"
             );
             done(null, papDetails);
+        },
+        (papDetails, done) => {
+            PapDetails.aggregate([{
+                '$match': {
+                    'pap_master_id': parseInt(req.body.papMasterId)
+                }
+            },
+            {
+                '$lookup': {
+                    'from': 'employeesupervisordetails',
+                    'localField': 'supervisor_id',
+                    'foreignField': 'emp_id',
+                    'as': 'employeesupervisordetails'
+                }
+            },
+            {
+                '$unwind': {
+                    'path': '$employeesupervisordetails'
+                }
+            },
+            {
+                '$lookup': {
+                    'from': 'employeedetails',
+                    'localField': 'supervisor_id',
+                    'foreignField': '_id',
+                    'as': 'supervisor'
+                }
+            },
+            {
+                '$unwind': {
+                    'path': '$supervisor'
+                }
+            },
+            {
+                '$lookup': {
+                    'from': 'employeedetails',
+                    'localField': 'employeesupervisordetails.primarySupervisorEmp_id',
+                    'foreignField': '_id',
+                    'as': 'reviewer'
+                }
+            },
+            {
+                '$unwind': {
+                    'path': '$reviewer'
+                }
+            },
+            {
+                '$lookup': {
+                    'from': 'employeeofficedetails',
+                    'localField': 'employeesupervisordetails.primarySupervisorEmp_id',
+                    'foreignField': 'emp_id',
+                    'as': 'supervisorofficedetails'
+                }
+            },
+            {
+                '$unwind': {
+                    'path': '$supervisorofficedetails'
+                }
+            },
+            {
+                '$lookup': {
+                    'from': 'employeedetails',
+                    'localField': 'empId',
+                    'foreignField': '_id',
+                    'as': 'employee'
+                }
+            },
+            {
+                '$unwind': {
+                    'path': '$employee'
+                }
+            },
+            {
+                '$group': {
+                    "_id": "$supervisor_id",
+                    "supervisor": { $first: "$supervisor" },
+                    "reviewer": { $first: "$reviewer" },
+                    "supervisorofficedetails": { $first: "$supervisorofficedetails" },
+                    "employee": { $first: "$employee" }
+                }
+            }
+            ]).exec(function (err, response) {
+                response.forEach(f => {
+                    let data = {};
+                    data.reviewer = f.reviewer;
+                    data.supervisor = f.supervisor;
+                    data.emp_email = f.supervisorofficedetails.officeEmail;
+                    data.emp_name = f.employee.fullName;
+                    data.action_link = req.body.action_link;
+                    data.employee = f.employee;
+                    SendEmail.sendEmailToReviewerForPapSubmit(data);
+                });
+                done(err, papDetails);
+            });
         }
     ], (err, result) => {
         sendResponse(res, err, result, 'Pap details updated successfully');
@@ -1527,6 +1782,9 @@ function initiateGrievance(req, res) {
             }
 
             PapMasterDetails.update(condition, updateQuery, (err, res) => {
+                if (req.body.raiseGreivance) {
+                    sendMailForGrievance({ empId, papMasterId });
+                }
                 done(err, res);
             })
         },
@@ -1543,6 +1801,195 @@ function initiateGrievance(req, res) {
         }
     ], (err, result) => {
         sendResponse(res, err, result, 'Grievance Initiated');
+    });
+}
+
+function sendMailForGrievance(data) {
+    async.waterfall([
+        (done) => {
+            EmployeeDetails.aggregate([
+                {
+                    $match: {
+                        _id: data.empId
+                    }
+                },
+                {
+                    $lookup: {
+                        'from': 'employeeofficedetails',
+                        'localField': '_id',
+                        'foreignField': 'emp_id',
+                        'as': 'employeeofficedetails'
+                    }
+                },
+                {
+                    $unwind: {
+                        'path': '$employeeofficedetails',
+                        preserveNullAndEmptyArrays: true
+                    }
+                },
+                {
+                    $lookup: {
+                        'from': 'employeedetails',
+                        'localField': 'employeeofficedetails.businessHrHead_id',
+                        'foreignField': '_id',
+                        'as': 'businessHrHead'
+                    }
+                },
+                {
+                    $unwind: {
+                        'path': '$businessHrHead',
+                        preserveNullAndEmptyArrays: true
+                    }
+                },
+                {
+                    $lookup: {
+                        'from': 'employeeofficedetails',
+                        'localField': 'businessHrHead._id',
+                        'foreignField': 'emp_id',
+                        'as': 'businessHrHeadOfficedetails'
+                    }
+                },
+                {
+                    $unwind: {
+                        'path': '$businessHrHeadOfficedetails',
+                        preserveNullAndEmptyArrays: true
+                    }
+                },
+                {
+                    $lookup: {
+                        'from': 'employeesupervisordetails',
+                        'localField': '_id',
+                        'foreignField': 'emp_id',
+                        'as': 'employeesupervisordetails'
+                    }
+                },
+                {
+                    $unwind: {
+                        'path': '$employeesupervisordetails',
+                        preserveNullAndEmptyArrays: true
+                    }
+                },
+                {
+                    $lookup: {
+                        'from': 'employeedetails',
+                        'localField': 'employeesupervisordetails.primarySupervisorEmp_id',
+                        'foreignField': '_id',
+                        'as': 'supervisor'
+                    }
+                },
+                {
+                    $unwind: {
+                        'path': '$supervisor',
+                        preserveNullAndEmptyArrays: true
+                    }
+                },
+                {
+                    $lookup: {
+                        'from': 'employeeofficedetails',
+                        'localField': 'supervisor._id',
+                        'foreignField': 'emp_id',
+                        'as': 'supervisorOfficedetails'
+                    }
+                },
+                {
+                    $unwind: {
+                        'path': '$supervisorOfficedetails',
+                        preserveNullAndEmptyArrays: true
+                    }
+                },
+                {
+                    $lookup: {
+                        'from': 'employeesupervisordetails',
+                        'localField': 'supervisor._id',
+                        'foreignField': 'emp_id',
+                        'as': 'employeeReviewerDetails'
+                    }
+                },
+                {
+                    $unwind: {
+                        'path': '$employeeReviewerDetails',
+                        preserveNullAndEmptyArrays: true
+                    }
+                },
+                {
+                    $lookup: {
+                        'from': 'employeedetails',
+                        'localField': 'employeeReviewerDetails.primarySupervisorEmp_id',
+                        'foreignField': '_id',
+                        'as': 'reviewer'
+                    }
+                },
+                {
+                    $unwind: {
+                        'path': '$reviewer',
+                        preserveNullAndEmptyArrays: true
+                    }
+                },
+                {
+                    $lookup: {
+                        'from': 'employeeofficedetails',
+                        'localField': 'reviewer._id',
+                        'foreignField': 'emp_id',
+                        'as': 'reviewerOfficedetails'
+                    }
+                },
+                {
+                    $unwind: {
+                        'path': '$reviewerOfficedetails',
+                        preserveNullAndEmptyArrays: true
+                    }
+                }
+            ]).exec((err, result) => {
+                done(err, result[0]||null);
+            });
+        },
+        (aggData, innerDone) => {
+            PapMasterDetails.aggregate([
+                {
+                    $match: {
+                        _id: data.papMasterId
+                    }
+                },
+                {
+                    $lookup: {
+                        'from': 'employeedetails',
+                        'localField': 'createdBy',
+                        'foreignField': '_id',
+                        'as': 'hr'
+                    }
+                },
+                {
+                    $unwind: {
+                        'path': '$hr',
+                        preserveNullAndEmptyArrays: true
+                    }
+                },
+                {
+                    $lookup: {
+                        'from': 'employeeofficedetails',
+                        'localField': 'hr._id',
+                        'foreignField': 'emp_id',
+                        'as': 'hrOfficedetails'
+                    }
+                },
+                {
+                    $unwind: {
+                        'path': '$hrOfficedetails',
+                        preserveNullAndEmptyArrays: true
+                    }
+                }
+            ]).exec((err, result) => {
+                if (aggData) {
+                    aggData.hr = result[0] || null;
+                }
+                innerDone(err, aggData);
+            });
+        }
+    ], (err, result) => {
+        if(result) {
+            SendEmail.sendMailForGrievance(result);
+        }
+        // sendmail code
     });
 }
 
