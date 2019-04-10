@@ -1293,7 +1293,10 @@ function papUpdateReviewer(req, res) {
                             data.reviewer = reviewer;
                             data.action_link = req.body.action_link;
                             SendEmail.sendEmailToSupervisorForPapSendBack(data);
+                            done(null, data);
                         });
+                    } else {
+                        done(null, data);
                     }
                 });
             } else {
@@ -1940,7 +1943,7 @@ function sendMailForGrievance(data) {
                     }
                 }
             ]).exec((err, result) => {
-                done(err, result[0]||null);
+                done(err, result[0] || null);
             });
         },
         (aggData, innerDone) => {
@@ -1986,7 +1989,7 @@ function sendMailForGrievance(data) {
             });
         }
     ], (err, result) => {
-        if(result) {
+        if (result) {
             SendEmail.sendMailForGrievance(result);
         }
         // sendmail code
