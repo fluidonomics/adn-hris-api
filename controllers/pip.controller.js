@@ -407,7 +407,7 @@ function getpipDetails(req, res) {
 
 
 function insertPip(req, res) {
-
+  
   let master_id = parseInt(req.body.master_id);
   let supervisor_id = parseInt(req.body.supervisor_id);
   let cretedBy = req.body.createdBy;
@@ -421,25 +421,9 @@ function insertPip(req, res) {
   pipDetails.updatedBy = updatedBy;
   pipDetails.areaofImprovement = req.body.areaofImprovement;
   pipDetails.actionPlan = req.body.actionPlan;
-  pipDetails.finalReview = req.body.finalReview;
-  pipDetails.finalRating = req.body.finalRating;
   pipDetails.timelines = req.body.timelines;
   pipDetails.measureOfSuccess = req.body.measureOfSuccess;
   pipDetails.employeeInitialComment = req.body.employeeInitialComment;
-  pipDetails.superviserInitialComment = req.body.superviserInitialComment;
-  pipDetails.empComment_month1 = req.body.empComment_month1 === undefined ? null : req.body.empComment_month1;
-  pipDetails.supComment_month1 = req.body.supComment_month1;
-  pipDetails.empComment_month2 = req.body.empComment_month2;
-  pipDetails.supComment_month2 = req.body.supComment_month2;
-  pipDetails.empComment_month3 = req.body.empComment_month3;
-  pipDetails.supComment_month3 = req.body.suspComment_month3;
-  pipDetails.empComment_month4 = req.body.empComment_month4;
-  pipDetails.supComment_month4 = req.body.supComment_month4;
-  pipDetails.empComment_month5 = req.body.empComment_month5;
-  pipDetails.supComment_month5 = req.body.supComment_month5;
-  pipDetails.empComment_month6 = req.body.empComment_month6;
-  pipDetails.supComment_month6 = req.body.supComment_month6;
-
 
   if(req.body._id != null) {
 
@@ -461,17 +445,11 @@ function insertPip(req, res) {
       updatedAt: new Date(),
       completionDate: req.body.completionDate,
       empComment_month1: req.body.empComment_month1,
-      supComment_month1: req.body.supComment_month1,
       empComment_month2: req.body.empComment_month2,
-      supComment_month2: req.body.supComment_month2,
       empComment_month3: req.body.empComment_month3,
-      supComment_month3: req.body.supComment_month3,
       empComment_month4: req.body.empComment_month4,
-      supComment_month4: req.body.supComment_month4,
       empComment_month5: req.body.empComment_month5,
-      supComment_month5: req.body.supComment_month5,
       empComment_month6: req.body.empComment_month6,
-      supComment_month6: req.body.supComment_month6
     };
   
     pipdetails.findOneAndUpdate(
@@ -599,7 +577,7 @@ function getpipdetailspostinsertion(req, res) {
         empComment_month6: "$empComment_month6",
         supComment_month6: "$supComment_month6",
         //dateDifference: {$divide: [{$subtract: [ new Date(), "$approvedAt" ]}, 3600000*24*2]}
-        dateDifference: { $literal: 2.3}
+        dateDifference: { $literal: 6}
   }
     }
   ]).exec(function (err, data) {
@@ -1287,10 +1265,10 @@ function updatepipdetails(req, res) {
           done(err, null);
 
           let finalReviewLength = res.filter(pip => {
-            return (pip.supervisorPerformanceRating || pip.superviserFinalReview)
+            return (pip.finalRating == null || typeof  pip.finalRating == 'undefined');
           });
 
-          if(finalReviewLength <= 1 && req.body.supervisorPerformanceRating && req.body.superviserFinalReview) {
+          if(finalReviewLength.length <= 1 && req.body.supervisorPerformanceRating && req.body.superviserFinalReview) {
 
             pipMaster.findByIdAndUpdate({ _id: masterId }, masterUpdateQuery, (err, res) => {
               done(err, res);
@@ -1313,7 +1291,7 @@ function updatepipdetails(req, res) {
           supComment_month5: req.body.supComment_month5,
           supComment_month6: req.body.supComment_month6,
           //"timelines": parseInt(req.body.timelines),
-          finalRating: req.body.supervisorPerformanceRating,
+          finalRating: req.body.supervisorPerformanceRating === undefined ? null : req.body.supervisorPerformanceRating,
           finalReview: req.body.superviserFinalReview
           
         };
@@ -1459,7 +1437,7 @@ function updatepipMaster(req, res) {
     emp_final_com: req.body.empFinalCom,
     rev_final_com: req.body.revFinalCom,
     sup_final_com: req.body.supFinalCom,
-    final_recommendation: req.body.finalRecommendation
+    final_recommendation: req.body.finalRecommendation === undefined ? null : req.body.finalRecommendation
   }
 
   pipMaster.findOneAndUpdate({_id:master_id}, updateQuery, (err, result) => {
