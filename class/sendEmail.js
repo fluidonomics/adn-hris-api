@@ -815,7 +815,7 @@ let functions = {
             from: config.email.sendEmailToEmployeeForPipStatus.from, // sender address
             to: data.user_email,
             subject: config.email.sendEmailToEmployeeForPipStatus.subject, // Subject line
-            template: 'email-notify-to-emp-for-pip-status',
+            template: 'email-notify-to-emp-for-learning-status',
             context: {
                 fullName: data.supervisor_name,
                 appliedDate: moment(new Date()).format('L'),
