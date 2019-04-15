@@ -93,6 +93,18 @@ module.exports = {
       from: '"Team HRIS" <hris@adnsl.net>',
       subject: 'Midterm Review Status'
     },
+    'sendEmailToEmployeeForLearningStatus': {
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'Learning Agenda Status'
+    },
+    'sendEmailToSupervisorToApproveLearning': {
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'Learning Agenda for approval'
+    },
+    'sendEmailToEmployeeForInitiatedLearning': {
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'Learning Agenda initiated'
+    }
   },
   'aws':
   {
