@@ -812,9 +812,9 @@ let functions = {
             return
         }
         let mailOptions = {
-            from: config.email.sendEmailToEmployeeForPipStatus.from, // sender address
+            from: config.email.sendEmailToEmployeeForLearningStatus.from, // sender address
             to: data.user_email,
-            subject: config.email.sendEmailToEmployeeForPipStatus.subject, // Subject line
+            subject: config.email.sendEmailToEmployeeForLearningStatus.subject, // Subject line
             template: 'email-notify-to-emp-for-learning-status',
             context: {
                 fullName: data.supervisor_name,
