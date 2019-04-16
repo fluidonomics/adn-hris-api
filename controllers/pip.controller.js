@@ -539,6 +539,19 @@ function getpipdetailspostinsertion(req, res) {
       }
     },
     {
+      $lookup: {
+        from: "employeesupervisordetails",
+        localField: "pipdetails.emp_id",
+        foreignField: "emp_id",
+        as: "empsupdetails"
+      }
+    },
+    {
+      $unwind: {
+        path: "$empsupdetails"
+      }
+    },
+    {
       $project: {
 
         id: "$_id",
@@ -576,8 +589,10 @@ function getpipdetailspostinsertion(req, res) {
         supComment_month5: "$supComment_month5",
         empComment_month6: "$empComment_month6",
         supComment_month6: "$supComment_month6",
+        primary_supervisor: "$empsupdetails.primarySupervisorEmp_id",
+        secondary_supervisor: "$empsupdetails.secondarySupervisorEmp_id",
         //dateDifference: {$divide: [{$subtract: [ new Date(), "$approvedAt" ]}, 3600000*24*2]}
-        dateDifference: { $literal: 6}
+        dateDifference: { $literal: 3}
   }
     }
   ]).exec(function (err, data) {
