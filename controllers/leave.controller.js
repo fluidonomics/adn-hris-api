@@ -1,6 +1,6 @@
 let express = require('express'),
     LeaveWorkflowHistory = require('../models/leave/leaveWorkflowHistory.model'),
-    LeaveDetailsCarryForward = require('../models/master/leaveDetailsCarryForward.model');
+    LeaveDetailsCarryForward = require('../models/master/leaveDetailsCarryForward.model'),
     LeaveApply = require('../models/leave/leaveApply.model'),
     LeaveHoliday = require('../models/leave/leaveHoliday.model'),
     LeaveTransactionType = require('../models/leave/leaveTransactioType.model'),
@@ -17,21 +17,21 @@ let express = require('express'),
     EmployeeInfo = require('../models/employee/employeeDetails.model'),
     FinancialYear = require('../models/master/financialYear.model'),
     SupervisorInfo = require('../models/employee/employeeSupervisorDetails.model'),
-    uploadController = require('./upload.controller');
-uploadClass = require('../class/upload');
-moment = require('moment');
-config = require('../config/config'),
+    uploadController = require('./upload.controller'),
+    uploadClass = require('../class/upload'),
+    moment = require('moment'),
+    config = require('../config/config'),
     crypto = require('crypto'),
     async = require('async'),
     nodemailer = require('nodemailer'),
     hbs = require('nodemailer-express-handlebars'),
     sgTransport = require('nodemailer-sendgrid-transport'),
     uuidV1 = require('uuid/v1'),
-    SendEmail = require('../class/sendEmail');
-// json2xls = require('json2xls');
-// fs = require('fs');
-   xlsx2json = require('xlsx2json');
-   XLSX = require('xlsx');
+    SendEmail = require('../class/sendEmail'),
+    // json2xls = require('json2xls');
+    // fs = require('fs');
+    xlsx2json = require('xlsx2json'),
+    XLSX = require('xlsx');
 require('dotenv').load()
 function getAllLeaveBalance(req, res) {
     let _fiscalYearId = (req.query.fiscalYearId);
@@ -433,19 +433,19 @@ getLeaveTransaction: (req, res) => {
             }
         });
     })
-},
+};
 
-    function getLeavesByType(leaveTypesData, appliedLeaves, res) {
-        let response = [];
-        leaveTypesData.forEach((type) => {
-            const leaves = appliedLeaves.filter(leave => (leave.leave_type == type.id));
-            response.push({
-                "types": type.type,
-                "leaves": leaves
-            })
-        });
-        return res.status(200).json(response);
-    }
+function getLeavesByType(leaveTypesData, appliedLeaves, res) {
+    let response = [];
+    leaveTypesData.forEach((type) => {
+        const leaves = appliedLeaves.filter(leave => (leave.leave_type == type.id));
+        response.push({
+            "types": type.type,
+            "leaves": leaves
+        })
+    });
+    return res.status(200).json(response);
+}
 function applyLeave(req, res, done) {
     let fromDateBody = moment(req.body.fromDate + ' UTC').utc().format();
     let toDateBody = moment(req.body.toDate + ' UTC').utc().format();
@@ -618,52 +618,52 @@ function applyLeave(req, res, done) {
                                                 if (err) {
                                                     // Do nothing
                                                 }
-                                               
-                                                if(req.body.apply_by_id!=req.body.emp_id){
+
+                                                if (req.body.apply_by_id != req.body.emp_id) {
                                                     let queryForEmployeeOfficeDetails = {
                                                         _id: req.body.emp_id,
                                                         isDeleted: false
                                                     }
-                                                    OfficeDetails.findOne(queryForEmployeeOfficeDetails,function(err,officeDetails){
-                                                    if(err){
-
-                                                    }
-                                                    let queryForAppliedByData = {
-                                                        _id: req.body.apply_by_id,
-                                                        isDeleted: false
-                                                    }
-                                                    EmployeeInfo.findOne(queryForAppliedByData,function(err,appliedByDetails){
-                                                        if(err){
+                                                    OfficeDetails.findOne(queryForEmployeeOfficeDetails, function (err, officeDetails) {
+                                                        if (err) {
 
                                                         }
-                                                        let appliedLeaveId = leavesInfoData._id;
-                                                        let linktoSend = req.body.link + '/' + appliedLeaveId;
-                                                        let data = {
-                                                            fullName: supervisor.fullName,
-                                                            empName: employeee.fullName,
-                                                            appliedBy: appliedByDetails.fullName,
-                                                            leaveType: leaveType.type,
-                                                            appliedDate: new Date().toISOString().replace(/T/, ' ').replace(/\..+/, ''),
-                                                            fromDate: req.body.fromDate,
-                                                            toDate: req.body.toDate,
-                                                            action_link: linktoSend
-                                                        }                                                        
-                                                        SendEmail.sendEmailToSuprsvrNotifyAppliedLeave(supervisorOfficeDetail[0]['officeEmail'], data);                                                        
-                                                        data = {
-                                                            fullName: employeee.fullName,                                                            
-                                                            appliedBy: appliedByDetails.fullName,
-                                                            leaveType: leaveType.type,
-                                                            appliedDate: new Date().toISOString().replace(/T/, ' ').replace(/\..+/, ''),
-                                                            fromDate: req.body.fromDate,
-                                                            toDate: req.body.toDate,
-                                                            action_link: linktoSend
+                                                        let queryForAppliedByData = {
+                                                            _id: req.body.apply_by_id,
+                                                            isDeleted: false
                                                         }
-                                                        SendEmail.sendEmailToEmployeeNotifyAppliedLeave(officeDetails['officeEmail'], data);
+                                                        EmployeeInfo.findOne(queryForAppliedByData, function (err, appliedByDetails) {
+                                                            if (err) {
+
+                                                            }
+                                                            let appliedLeaveId = leavesInfoData._id;
+                                                            let linktoSend = req.body.link + '/' + appliedLeaveId;
+                                                            let data = {
+                                                                fullName: supervisor.fullName,
+                                                                empName: employeee.fullName,
+                                                                appliedBy: appliedByDetails.fullName,
+                                                                leaveType: leaveType.type,
+                                                                appliedDate: new Date().toISOString().replace(/T/, ' ').replace(/\..+/, ''),
+                                                                fromDate: req.body.fromDate,
+                                                                toDate: req.body.toDate,
+                                                                action_link: linktoSend
+                                                            }
+                                                            SendEmail.sendEmailToSuprsvrNotifyAppliedLeave(supervisorOfficeDetail[0]['officeEmail'], data);
+                                                            data = {
+                                                                fullName: employeee.fullName,
+                                                                appliedBy: appliedByDetails.fullName,
+                                                                leaveType: leaveType.type,
+                                                                appliedDate: new Date().toISOString().replace(/T/, ' ').replace(/\..+/, ''),
+                                                                fromDate: req.body.fromDate,
+                                                                toDate: req.body.toDate,
+                                                                action_link: linktoSend
+                                                            }
+                                                            SendEmail.sendEmailToEmployeeNotifyAppliedLeave(officeDetails['officeEmail'], data);
+                                                        })
+
                                                     })
-                                                   
-                                                })                                                    
                                                 }
-                                                else{
+                                                else {
                                                     let appliedLeaveId = leavesInfoData._id;
                                                     let linktoSend = req.body.link + '/' + appliedLeaveId;
                                                     let data = {
@@ -676,12 +676,12 @@ function applyLeave(req, res, done) {
                                                         toDate: req.body.toDate,
                                                         action_link: linktoSend
                                                     }
-                                                    
-                                                    
+
+
                                                     SendEmail.sendEmailToSuprsvrNotifyAppliedLeave(supervisorOfficeDetail[0]['officeEmail'], data);
 
                                                 }
-                                            });                                            
+                                            });
                                         }
                                     })
                                 }
@@ -806,6 +806,17 @@ function updateSickLeaveDocumentDetails(req, res, done) {
         return done(err, req);
     });
 }
+
+function getEmployeeForQuotaProvide(req, res, done) {
+    async.waterfall([
+        (innerDone) => {
+
+        }
+    ], (err, data) => {
+        done(err, data);
+    });
+}
+
 let functions = {
     uploadSickLeaveDocument: (req, res) => {
         async.waterfall([
@@ -949,7 +960,7 @@ let functions = {
     getLeaveTransactionDetails: (req, res) => {
         let queryObj = { '$match': {} };
         queryObj['$match']['$and'] = []
-        let projectQuery = { $project: { emp_id: 1, fiscalYearId: 1, leave_type: 1, fromDate: 1, toDate: 1, status: 1, reason: 1, days: 1, applyTo: 1,createdBy:1, supervisorReason: 1, supervisorReason2: 1, monthStart: { $month: '$fromDate' }, yearStart: { $year: '$fromDate' } } };
+        let projectQuery = { $project: { emp_id: 1, fiscalYearId: 1, leave_type: 1, fromDate: 1, toDate: 1, status: 1, reason: 1, days: 1, applyTo: 1, createdBy: 1, supervisorReason: 1, supervisorReason2: 1, monthStart: { $month: '$fromDate' }, yearStart: { $year: '$fromDate' } } };
         let empId;
         if (req.query.empId) {
             empId = parseInt(req.query.empId);
@@ -2277,16 +2288,16 @@ let functions = {
                                                                 action_link: linktoSend
                                                             }
                                                             SendEmail.sendEmailToSuprsvrNotifyWithdrawnLeave(supervisorEmailDetails.officeEmail, data);
-                                                            if(leaveapplydetails.emp_id!=leaveapplydetails.createdBy){
+                                                            if (leaveapplydetails.emp_id != leaveapplydetails.createdBy) {
                                                                 let queryForFindCreatedBy = {
                                                                     _id: leaveapplydetails.createdBy,
                                                                     isDeleted: false
                                                                 }
-                                                                OfficeDetails.findOne(queryForFindCreatedBy,function(err,officeDetails){
-                                                                    if(err){
+                                                                OfficeDetails.findOne(queryForFindCreatedBy, function (err, officeDetails) {
+                                                                    if (err) {
 
                                                                     }
-                                                                    EmployeeInfo.findOne(queryForFindCreatedBy,function(err,CreatedByInfo){
+                                                                    EmployeeInfo.findOne(queryForFindCreatedBy, function (err, CreatedByInfo) {
                                                                         let dataCreatedBy = {
                                                                             fullName: CreatedByInfo.fullName,
                                                                             empName: empDetails.fullName,
@@ -2298,7 +2309,7 @@ let functions = {
                                                                         }
                                                                         SendEmail.sendEmailToSuprsvrNotifyWithdrawnLeave(officeDetails.officeEmail, dataCreatedBy);
                                                                     });
-                                                                    
+
                                                                 })
                                                             }
                                                         }
@@ -2313,16 +2324,16 @@ let functions = {
                                                                 action_link: linktoSend
                                                             }
                                                             SendEmail.sendEmailToSuprsvrNotifyCancelLeave(supervisorEmailDetails.officeEmail, data);
-                                                            if(leaveapplydetails.emp_id!=leaveapplydetails.createdBy){
+                                                            if (leaveapplydetails.emp_id != leaveapplydetails.createdBy) {
                                                                 let queryForFindCreatedBy = {
                                                                     _id: leaveapplydetails.createdBy,
                                                                     isDeleted: false
                                                                 }
-                                                                OfficeDetails.findOne(queryForFindCreatedBy,function(err,officeDetails){
-                                                                    if(err){
+                                                                OfficeDetails.findOne(queryForFindCreatedBy, function (err, officeDetails) {
+                                                                    if (err) {
 
                                                                     }
-                                                                    EmployeeInfo.findOne(queryForFindCreatedBy,function(err,CreatedByInfo){
+                                                                    EmployeeInfo.findOne(queryForFindCreatedBy, function (err, CreatedByInfo) {
                                                                         let dataCreatedBy = {
                                                                             fullName: CreatedByInfo.fullName,
                                                                             empName: empDetails.fullName,
@@ -2333,7 +2344,7 @@ let functions = {
                                                                             toDate: leaveapplydetails.toDate.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
                                                                             action_link: linktoSend
                                                                         }
-                                                                       // SendEmail.sendEmailToHRNotifyCancelLeave(officeDetails.officeEmail, dataCreatedBy);
+                                                                        // SendEmail.sendEmailToHRNotifyCancelLeave(officeDetails.officeEmail, dataCreatedBy);
                                                                     });
                                                                 })
                                                             }
@@ -2667,96 +2678,96 @@ let functions = {
                                     toDate: _leaveDetails.toDate.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
                                     action_link: linktoSend
                                 }
-                                if(req.body.status == 'Applied' && req.body.approved) {                                    
-                                    if(_leaveDetails.emp_id != _leaveDetails.createdBy){
-                                       let queryForCreatedBy = {
-                                             _id: _leaveDetails.createdBy,
+                                if (req.body.status == 'Applied' && req.body.approved) {
+                                    if (_leaveDetails.emp_id != _leaveDetails.createdBy) {
+                                        let queryForCreatedBy = {
+                                            _id: _leaveDetails.createdBy,
                                             isDeleted: false
                                         }
-                                        OfficeDetails.findOne(queryForCreatedBy,function(err,createdByOfficeDetails){
-                                            if(err){
+                                        OfficeDetails.findOne(queryForCreatedBy, function (err, createdByOfficeDetails) {
+                                            if (err) {
 
                                             }
-                                            EmployeeInfo.findOne(queryForCreatedBy,function(err,createdByDetails){
-                                                    if(err){
-                                                        
-                                                    }
-                                                    let CrteatedBydata = {
-                                                        fullName: employeeDetail.fullName,
-                                                        empId: employeeDetail.userName,
-                                                        leaveType: leaveType.type,
-                                                        appliedBy: createdByDetails.fullName,
-                                                        fromDate: _leaveDetails.fromDate.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
-                                                        toDate: _leaveDetails.toDate.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
-                                                        action_link: linktoSend
-                                                    }
-                                                    data.appliedBy=createdByDetails.fullName;
-                                                    SendEmail.sendEmailToEmployeeForLeaveRequestApprovedOnBehalf(employeeOfficeDetails[0]['officeEmail'], data);
-                                                    SendEmail.sendEmailToAppliedByForLeaveRequestApproved(createdByOfficeDetails.officeEmail, CrteatedBydata);
+                                            EmployeeInfo.findOne(queryForCreatedBy, function (err, createdByDetails) {
+                                                if (err) {
+
+                                                }
+                                                let CrteatedBydata = {
+                                                    fullName: employeeDetail.fullName,
+                                                    empId: employeeDetail.userName,
+                                                    leaveType: leaveType.type,
+                                                    appliedBy: createdByDetails.fullName,
+                                                    fromDate: _leaveDetails.fromDate.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
+                                                    toDate: _leaveDetails.toDate.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
+                                                    action_link: linktoSend
+                                                }
+                                                data.appliedBy = createdByDetails.fullName;
+                                                SendEmail.sendEmailToEmployeeForLeaveRequestApprovedOnBehalf(employeeOfficeDetails[0]['officeEmail'], data);
+                                                SendEmail.sendEmailToAppliedByForLeaveRequestApproved(createdByOfficeDetails.officeEmail, CrteatedBydata);
 
                                             });
                                         });
                                     }
-                                    else{
+                                    else {
                                         SendEmail.sendEmailToEmployeeForLeaveRequestApproved(employeeOfficeDetails[0]['officeEmail'], data);
                                     }
-                                } else if(req.body.status == 'Applied' && req.body.rejected) {
+                                } else if (req.body.status == 'Applied' && req.body.rejected) {
                                     //rohan
-                                    
-                                    if(_leaveDetails.emp_id != _leaveDetails.createdBy){
+
+                                    if (_leaveDetails.emp_id != _leaveDetails.createdBy) {
                                         let queryForCreatedBy = {
-                                              _id: _leaveDetails.createdBy,
-                                             isDeleted: false
-                                         }
-                                         OfficeDetails.findOne(queryForCreatedBy,function(err,createdByOfficeDetails){
-                                             if(err){
- 
-                                             }                                             
-                                             EmployeeInfo.findOne(queryForCreatedBy,function(err,createdByDetails){
-                                                     if(err){
-                                                         
-                                                     }
-                                                     let queryForSupervsr = {
-                                                        _id: _leaveDetails.applyTo,
-                                                       isDeleted: false
-                                                   }
-                                                     EmployeeInfo.findOne(queryForSupervsr,function(err,supervisorDetails){
-                                                         if(err){
-                                                             }
-                                                        let CrteatedBydata = {
-                                                            fullName: employeeDetail.fullName,
-                                                            empId: employeeDetail.userName,
-                                                            supervisorName: supervisorDetails.fullName,
-                                                            appliedBy: createdByDetails.fullName,
-                                                            leaveType: leaveType.type,
-                                                            fromDate: _leaveDetails.fromDate.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
-                                                            toDate: _leaveDetails.toDate.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
-                                                            action_link: linktoSend
-                                                        }
-                                                        data.appliedBy=createdByDetails.fullName;
-                                                        SendEmail.sendEmailToEmployeeForLeaveRequestRejectedOnBehalf(employeeOfficeDetails[0]['officeEmail'], data);
-                                                        SendEmail.sendEmailToAppliedByForLeaveRequestRejected(createdByOfficeDetails.officeEmail, CrteatedBydata);
-                                                     })
-                                                    
- 
-                                             });
-                                         });
-                                     }
-                                     else{
+                                            _id: _leaveDetails.createdBy,
+                                            isDeleted: false
+                                        }
+                                        OfficeDetails.findOne(queryForCreatedBy, function (err, createdByOfficeDetails) {
+                                            if (err) {
+
+                                            }
+                                            EmployeeInfo.findOne(queryForCreatedBy, function (err, createdByDetails) {
+                                                if (err) {
+
+                                                }
+                                                let queryForSupervsr = {
+                                                    _id: _leaveDetails.applyTo,
+                                                    isDeleted: false
+                                                }
+                                                EmployeeInfo.findOne(queryForSupervsr, function (err, supervisorDetails) {
+                                                    if (err) {
+                                                    }
+                                                    let CrteatedBydata = {
+                                                        fullName: employeeDetail.fullName,
+                                                        empId: employeeDetail.userName,
+                                                        supervisorName: supervisorDetails.fullName,
+                                                        appliedBy: createdByDetails.fullName,
+                                                        leaveType: leaveType.type,
+                                                        fromDate: _leaveDetails.fromDate.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
+                                                        toDate: _leaveDetails.toDate.toISOString().replace(/T/, ' ').replace(/\..+/, ''),
+                                                        action_link: linktoSend
+                                                    }
+                                                    data.appliedBy = createdByDetails.fullName;
+                                                    SendEmail.sendEmailToEmployeeForLeaveRequestRejectedOnBehalf(employeeOfficeDetails[0]['officeEmail'], data);
+                                                    SendEmail.sendEmailToAppliedByForLeaveRequestRejected(createdByOfficeDetails.officeEmail, CrteatedBydata);
+                                                })
+
+
+                                            });
+                                        });
+                                    }
+                                    else {
                                         SendEmail.sendEmailToEmployeeForLeaveRequestRejected(employeeOfficeDetails[0]['officeEmail'], data)
-                                     }
-                                } else if(req.body.status == 'Pending Cancellation' && !req.body.cancelled && (req.body.cancelled != undefined)) {
+                                    }
+                                } else if (req.body.status == 'Pending Cancellation' && !req.body.cancelled && (req.body.cancelled != undefined)) {
                                     SendEmail.sendEmailToEmployeeForLeaveCancellationRejected(employeeOfficeDetails[0]['officeEmail'], data);
-                                    if(_leaveDetails.emp_id != _leaveDetails.createdBy){
+                                    if (_leaveDetails.emp_id != _leaveDetails.createdBy) {
                                         let queryForFindCreatedBy = {
                                             _id: _leaveDetails.createdBy,
                                             isDeleted: false
                                         }
-                                        OfficeDetails.findOne(queryForFindCreatedBy,function(err,officeDetails){
-                                            if(err){
+                                        OfficeDetails.findOne(queryForFindCreatedBy, function (err, officeDetails) {
+                                            if (err) {
 
                                             }
-                                            EmployeeInfo.findOne(queryForFindCreatedBy,function(err,CreatedByInfo){
+                                            EmployeeInfo.findOne(queryForFindCreatedBy, function (err, CreatedByInfo) {
                                                 let dataCreatedBy = {
                                                     fullName: CreatedByInfo.fullName,
                                                     empName: employeeDetail.fullName,
@@ -2770,21 +2781,21 @@ let functions = {
                                                 SendEmail.sendEmailToHRNotifyCancelLeaveRejected(officeDetails.officeEmail, dataCreatedBy);
                                             });
                                         })
-                                     }
-                                   
+                                    }
 
-                                } else if(req.body.status == 'Pending Cancellation' && req.body.cancelled) {
+
+                                } else if (req.body.status == 'Pending Cancellation' && req.body.cancelled) {
                                     SendEmail.sendEmailToEmployeeForLeaveCancellationApprove(employeeOfficeDetails[0]['officeEmail'], data);
-                                    if(_leaveDetails.emp_id != _leaveDetails.createdBy){
+                                    if (_leaveDetails.emp_id != _leaveDetails.createdBy) {
                                         let queryForFindCreatedBy = {
                                             _id: _leaveDetails.createdBy,
                                             isDeleted: false
                                         }
-                                        OfficeDetails.findOne(queryForFindCreatedBy,function(err,officeDetails){
-                                            if(err){
+                                        OfficeDetails.findOne(queryForFindCreatedBy, function (err, officeDetails) {
+                                            if (err) {
 
                                             }
-                                            EmployeeInfo.findOne(queryForFindCreatedBy,function(err,CreatedByInfo){
+                                            EmployeeInfo.findOne(queryForFindCreatedBy, function (err, CreatedByInfo) {
                                                 let dataCreatedBy = {
                                                     fullName: CreatedByInfo.fullName,
                                                     empName: employeeDetail.fullName,
@@ -2798,7 +2809,7 @@ let functions = {
                                                 SendEmail.sendEmailToHRNotifyCancelLeave(officeDetails.officeEmail, dataCreatedBy);
                                             });
                                         })
-                                     }
+                                    }
                                 }
                             })
                         }
@@ -2967,8 +2978,20 @@ let functions = {
                 }
             });
         })
+    },
+    getEmployeeForQuotaProvide: (req, res) => {
+        async.waterfall([
+            function (done) {
+                getEmployeeForQuotaProvide(req, res, done);
+            }
+        ], (err, data) => {
+            if (err) {
+                return res.status(400).json(err);
+            } else {
+                return res.status(200).json(data);
+            }
+        });
     }
-
 }
 
 
