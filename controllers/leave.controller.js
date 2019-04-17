@@ -807,10 +807,57 @@ function updateSickLeaveDocumentDetails(req, res, done) {
     });
 }
 
-function getEmployeeForQuotaProvide(req, res, done) {
+function getEmployeeForQuotaProvideMaternity(req, res, done) {
     async.waterfall([
         (innerDone) => {
+        Employee.aggregate([
+                {
+                $lookup: {
+                    'from': 'employeepersonaldetails',
+                    'localField': '_id',
+                    'foreignField': 'emp_id',
+                    'as': 'personal'
+                },
+            },
+            {
+                $unwind: {
+                    'path': '$personal'
+                },
+            },
+            {
+                $match: {
+                    'personal.gender': {$eq:'Female'}
+                }
+            }       
+        ]).exec((err,res) => {
+            innerDone(err,res);
+        });
+        }
+    ], (err, data) => {
+        done(err, data);
+    });
+}
 
+function getEmployeeForQuotaProvideSpecial(req, res, done) {
+    async.waterfall([
+        (innerDone) => {
+        Employee.aggregate([
+            {
+                $lookup: {
+                    'from': 'employeepersonaldetails',
+                    'localField': '_id',
+                    'foreignField': 'emp_id',
+                    'as': 'personal'
+                },
+            },
+            {
+                $unwind: {
+                    'path': '$personal'
+                },
+            },
+        ]).exec((err,res) => {
+            innerDone(err,res);
+        });
         }
     ], (err, data) => {
         done(err, data);
@@ -2982,7 +3029,11 @@ let functions = {
     getEmployeeForQuotaProvide: (req, res) => {
         async.waterfall([
             function (done) {
-                getEmployeeForQuotaProvide(req, res, done);
+                if(req.query.type == 'maternity') {
+                getEmployeeForQuotaProvideMaternity(req, res, done);
+                } else {
+                    getEmployeeForQuotaProvideSpecial(req,res,done);
+                }
             }
         ], (err, data) => {
             if (err) {
