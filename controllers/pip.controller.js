@@ -407,7 +407,7 @@ function getpipDetails(req, res) {
 
 
 function insertPip(req, res) {
-
+  
   let master_id = parseInt(req.body.master_id);
   let supervisor_id = parseInt(req.body.supervisor_id);
   let cretedBy = req.body.createdBy;
@@ -421,31 +421,18 @@ function insertPip(req, res) {
   pipDetails.updatedBy = updatedBy;
   pipDetails.areaofImprovement = req.body.areaofImprovement;
   pipDetails.actionPlan = req.body.actionPlan;
-  pipDetails.finalReview = req.body.finalReview;
-  pipDetails.finalRating = req.body.finalRating;
   pipDetails.timelines = req.body.timelines;
   pipDetails.measureOfSuccess = req.body.measureOfSuccess;
   pipDetails.employeeInitialComment = req.body.employeeInitialComment;
-  pipDetails.superviserInitialComment = req.body.superviserInitialComment;
-  pipDetails.empComment_month1 = req.body.empComment_month1 === undefined ? null : req.body.empComment_month1;
-  pipDetails.supComment_month1 = req.body.supComment_month1;
-  pipDetails.empComment_month2 = req.body.empComment_month2;
-  pipDetails.supComment_month2 = req.body.supComment_month2;
-  pipDetails.empComment_month3 = req.body.empComment_month3;
-  pipDetails.supComment_month3 = req.body.suspComment_month3;
-  pipDetails.empComment_month4 = req.body.empComment_month4;
-  pipDetails.supComment_month4 = req.body.supComment_month4;
-  pipDetails.empComment_month5 = req.body.empComment_month5;
-  pipDetails.supComment_month5 = req.body.supComment_month5;
-  pipDetails.empComment_month6 = req.body.empComment_month6;
-  pipDetails.supComment_month6 = req.body.supComment_month6;
-
 
   if(req.body._id != null) {
 
     let updateQuery = {
       
       supervisor_id: supervisor_id,
+      employeeInitialComment: req.body.employeeInitialComment,
+      areaofImprovement: req.body.areaofImprovement,
+      actionPlan: req.body.actionPlan,
       measureOfSuccess: req.body.measureOfSuccess,
       progressStatus: req.body.progressStatus,
       employeeComment: req.body.employeeComment,
@@ -458,17 +445,11 @@ function insertPip(req, res) {
       updatedAt: new Date(),
       completionDate: req.body.completionDate,
       empComment_month1: req.body.empComment_month1,
-      supComment_month1: req.body.supComment_month1,
       empComment_month2: req.body.empComment_month2,
-      supComment_month2: req.body.supComment_month2,
       empComment_month3: req.body.empComment_month3,
-      supComment_month3: req.body.supComment_month3,
       empComment_month4: req.body.empComment_month4,
-      supComment_month4: req.body.supComment_month4,
       empComment_month5: req.body.empComment_month5,
-      supComment_month5: req.body.supComment_month5,
       empComment_month6: req.body.empComment_month6,
-      supComment_month6: req.body.supComment_month6
     };
   
     pipdetails.findOneAndUpdate(
@@ -558,6 +539,32 @@ function getpipdetailspostinsertion(req, res) {
       }
     },
     {
+      $lookup: {
+        from: "employeesupervisordetails",
+        localField: "pipdetails.emp_id",
+        foreignField: "emp_id",
+        as: "empsupdetails"
+      }
+    },
+    {
+      $unwind: {
+        path: "$empsupdetails"
+      }
+    },
+    {
+      $lookup: {
+        from: "employeedetails",
+        localField: "supervisor_id",
+        foreignField: "_id",
+        as: "empdetails"
+      }
+    },
+    {
+      $unwind: {
+        path: "$empdetails"
+      }
+    },
+    {
       $project: {
 
         id: "$_id",
@@ -573,6 +580,7 @@ function getpipdetailspostinsertion(req, res) {
         hr_final_com: "$pipdetails.hr_final_com",
         final_recommendation: "$pipdetails.final_recommendation",
         status: "$status",
+        master_status: "$pipdetails.status",
         supervisor_id: "$supervisor_id",
         areaofImprovement: "$areaofImprovement",
         actionPlan: "$actionPlan",
@@ -594,7 +602,11 @@ function getpipdetailspostinsertion(req, res) {
         supComment_month5: "$supComment_month5",
         empComment_month6: "$empComment_month6",
         supComment_month6: "$supComment_month6",
-        dateDifference: {$divide: [{$subtract: [ new Date(), "$approvedAt" ]}, 3600000*24*2]}
+        primary_supervisor: "$empsupdetails.primarySupervisorEmp_id",
+        secondary_supervisor: "$empsupdetails.secondarySupervisorEmp_id",
+        supervisor_name: "$empdetails.fullName",
+        dateDifference: {$divide: [{$subtract: [ new Date(), "$approvedAt" ]}, 3600000*24*30]}
+        //dateDifference: { $literal: 3}
   }
     }
   ]).exec(function (err, data) {
@@ -664,7 +676,7 @@ function getpipBySupervisor(req, res) {
         updatedAt: "$pip_master_details.updatedAt"
       }
     },
-    { $match: { status: status } },
+    { $match: { $or: [{status: status}, {status: "Completed"} ] } },
     {
       $group: {
         _id: "$pipMasterId",
@@ -935,7 +947,7 @@ function getPipApproval(req, res) {
               eligibleForEmail =true;
             }
             
-            if (sendbackPip.length < 1 && !req.body.isApproved ) {
+            if (sendbackPip.length > 0 || !req.body.isApproved) {
               masterUpdateQuery.status = "SendBack";
               eligibleForEmail = true;
             }
@@ -1262,51 +1274,94 @@ function updatePipBatch(req, res) {
 function updatepipdetails(req, res) {
 
   let details_id = parseInt(req.body.pipDetailId);
+  let masterId = req.body.pipMasterId;
   //let supervisor_id = parseInt(req.body.supervisor_id);
   //let cretedBy = req.body.createdBy;
-  let updateQuery = {
-    "updatedAt": new Date(),
-    "updatedBy": parseInt(req.body.updatedBy),
-    "supComment_month1": req.body.supComment_month1,
-    "supComment_month2": req.body.supComment_month2,
-    "supComment_month3": req.body.supComment_month3,
-    "supComment_month4": req.body.supComment_month4,
-    "supComment_month5": req.body.supComment_month5,
-    "supComment_month6": req.body.supComment_month6,
-    //"timelines": parseInt(req.body.timelines),
-    "finalRating": parseInt(req.body.supervisorPerformanceRating),
-    "finalReview": req.body.superviserFinalReview
-    
-  };
 
-  pipdetails.findOneAndUpdate({ _id: details_id }, updateQuery, (err, result) => {
-    if (err) {
-      return res.status(403).json({
-        title: "There was a problem",
-        error: {
-          message: err
-        },
-        result: {
-          message: result
+  async.waterfall(
+    [
+      done => {
+
+        let masterUpdateQuery = {
+          updatedAt: new Date(),
+          updatedBy: parseInt(req.body.updatedBy),
+          status: "Completed"
         }
-      });
-    } else {
-      AuditTrail.auditTrailEntry(
-        0,
-        "pipdetails",
-        result,
-        "pip",
-        "updateDetails",
-        "UPDATED"
-      );
-      return res.status(200).json({
-        title: "Pip detail updated",
-        result: {
-          message: result
+
+        pipdetails.find({master_id: masterId}, (err, res) => {
+
+          if(err)
+          done(err, null);
+
+          let finalReviewLength = res.filter(pip => {
+            return (pip.finalRating == null || typeof  pip.finalRating == 'undefined');
+          });
+
+          if(finalReviewLength.length <= 1 && req.body.supervisorPerformanceRating && req.body.superviserFinalReview) {
+
+            pipMaster.findByIdAndUpdate({ _id: masterId }, masterUpdateQuery, (err, res) => {
+              done(err, res);
+            });
+          } else {
+            done(null, null);
+          }
+
+        });
+      },
+      done => {
+
+        let updateQuery = {
+          updatedAt: new Date(),
+          updatedBy: parseInt(req.body.updatedBy),
+          supComment_month1: req.body.supComment_month1,
+          supComment_month2: req.body.supComment_month2,
+          supComment_month3: req.body.supComment_month3,
+          supComment_month4: req.body.supComment_month4,
+          supComment_month5: req.body.supComment_month5,
+          supComment_month6: req.body.supComment_month6,
+          //"timelines": parseInt(req.body.timelines),
+          finalRating: req.body.supervisorPerformanceRating === undefined ? null : req.body.supervisorPerformanceRating,
+          finalReview: req.body.superviserFinalReview
+          
+        };
+
+        if(req.body.supervisorPerformanceRating && req.body.superviserFinalReview) {
+
+          updateQuery.status = "Completed";
         }
-      });
-    }
-  });
+
+        pipdetails.findOneAndUpdate({ _id: details_id }, updateQuery, (err, result) => {
+          if (err) {
+            return res.status(403).json({
+              title: "There was a problem",
+              error: {
+                message: err
+              },
+              result: {
+                message: result
+              }
+            });
+          } else {
+            AuditTrail.auditTrailEntry(
+              0,
+              "pipdetails",
+              result,
+              "pip",
+              "updateDetails",
+              "UPDATED"
+            );
+            return res.status(200).json({
+              title: "Pip detail updated",
+              result: {
+                message: result
+              }
+            });
+          }
+        });
+
+      }
+    ]
+  )
   
 }
 
@@ -1405,13 +1460,13 @@ function updatepipMaster(req, res) {
 
   let master_id = req.body.masterId;
   let updateQuery = {
-    "updatedAt": new Date(),
-    "updatedBy": parseInt(req.body.updatedBy),
-    "hr_final_com": req.body.hrFinalCom,
-    "emp_final_com": req.body.empFinalCom,
-    "rev_final_com": req.body.revFinalCom,
-    "sup_final_com": req.body.supFinalCom,
-    "final_recommendation": parseInt(req.body.finalRecommendation)
+    updatedAt: new Date(),
+    updatedBy: parseInt(req.body.updatedBy),
+    hr_final_com: req.body.hrFinalCom,
+    emp_final_com: req.body.empFinalCom,
+    rev_final_com: req.body.revFinalCom,
+    sup_final_com: req.body.supFinalCom,
+    final_recommendation: req.body.finalRecommendation === undefined ? null : req.body.finalRecommendation
   }
 
   pipMaster.findOneAndUpdate({_id:master_id}, updateQuery, (err, result) => {

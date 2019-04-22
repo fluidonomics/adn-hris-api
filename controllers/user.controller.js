@@ -25,10 +25,7 @@ let express = require('express'),
     FinancialYearDetails = require('../models/master/financialYearDetails.model'),
     MidTermMaster = require('../models/midterm/midtermmaster'),
     MidTermDetails = require('../models/midterm/midtermdetails'),
-    LearningDetails = require('../models/learning/learningdetails'),
-    LearningMaster = require('../models/learning/learningmaster'),
-    PapMaster = require('../models/pap/papMaster.model'),
-    PapDetails = require('../models/pap/papDetails.model')
+    PipDetails = require("../models/pip/pipdetails"),
 
 
 AuditTrail = require('../class/auditTrail'),
@@ -2196,7 +2193,7 @@ function updateSupervisortransfer(req, res, done) {
                                         "updatedBy": updatedBy
                                     };
 
-                                    PipDetails.updateMany({ pip_master_id: pipmaster._id }, updateQuery, (err, doc) => {
+                                    PipDetails.updateMany({ master_id: pipmaster._id }, updateQuery, (err, doc) => {
                                         done(err, doc);
                                     })
 
@@ -2341,7 +2338,7 @@ function updateSupervisortransfer(req, res, done) {
                                         "updatedAt": updatedAt,
                                         "updatedBy": updatedBy
                                     };
-                                    PipDetails.updateMany({ $and: [{ supervisor_id: req.body.oldPrimarySupervisor }, { master_id: { $in: req.body.pipIds } }, { status: { $ne: "Approved" } }] }, updateQueryprim, (err, res) => {
+                                    PipDetails.updateMany({$and:[{supervisor_id: req.body.oldPrimarySupervisor},{ master_id: { $in: req.body.pipIds } },{status: {$ne: "Approved"}}, {status: {$ne: "Completed"}}]}, updateQueryprim, (err, res) => {
                                         innerDone(err, res);
                                     });
 
@@ -2351,7 +2348,7 @@ function updateSupervisortransfer(req, res, done) {
                                         "updatedAt": updatedAt,
                                         "updatedBy": updatedBy
                                     };
-                                    PipDetails.updateMany({ $and: [{ supervisor_id: req.body.oldSecondarySupervisor }, { master_id: { $in: req.body.pipIds } }, { status: { $ne: "Approved" } }] }, updateQuerysec, (err, res) => {
+                                    PipDetails.updateMany({$and:[{supervisor_id: req.body.oldSecondarySupervisor},{ master_id: { $in: req.body.pipIds } },{status: {$ne: "Approved"}}, {status: {$ne: "Completed"}}]}, updateQuerysec, (err, res) => {
                                         innerDone(err, res);
                                     });
 
