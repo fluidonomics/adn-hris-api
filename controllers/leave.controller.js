@@ -3610,20 +3610,31 @@ let functions = {
                         done(err, leaveBalanceInfo);
                     });
                 } else {
-                    let leaveBalances = [];
-                    req.body.emp_id.forEach(empId => {
-                        leaveBalances.push({
-                            emp_id :empId,
-                            balance:req.body.balance,
-                            createdAt:req.body.createdAt,
-                            createdBy:req.body.createdBy,
-                            fiscalYearId:req.body.fiscalYearId,
-                            leave_type:req.body.leave_type
+                    LeaveBalance.find({}, {
+                        _id: 1
+                    }, {
+                        sort: {
+                            _id: -1
+                        },
+                        limit: 1
+                    }).exec((err, balances) => {
+                        let leaveBalances = [];
+                        let id = balances[0]._id + 1;
+                        req.body.emp_id.forEach((empId, i) => {
+                            leaveBalances.push({
+                                _id: id + i,
+                                emp_id: empId,
+                                balance: req.body.balance,
+                                createdAt: req.body.createdAt,
+                                createdBy: req.body.createdBy,
+                                fiscalYearId: req.body.fiscalYearId,
+                                leave_type: req.body.leave_type
+                            })
                         })
+                        LeaveBalance.insertMany(leaveBalances, function (err, res) {
+                            done(err, res);
+                        });
                     })
-                    LeaveBalance.create(leaveBalances,function(err,res) {
-                        done(err,res);
-                    });
                 }
             }
         ], (err, data) => {
