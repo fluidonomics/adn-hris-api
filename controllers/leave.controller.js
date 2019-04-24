@@ -1101,17 +1101,30 @@ function getEmployeeForQuotaProvideSpecial(req, res, done) {
                 },
                 {
                     $lookup: {
-                        'from': 'employeepersonaldetails',
+                        'from': 'employeeofficedetails',
                         'localField': '_id',
                         'foreignField': 'emp_id',
-                        'as': 'personal'
-                    },
+                        'as': 'office'
+                    }
                 },
                 {
                     $unwind: {
-                        'path': '$personal'
-                    },
+                        'path': '$office'
+                    }
                 },
+                {
+                    $lookup: {
+                        'from': 'designations',
+                        'localField': 'designation_id',
+                        'foreignField': '_id',
+                        'as': 'designation'
+                    }
+                },
+                {
+                    $unwind: {
+                        'path': '$designation'
+                    }
+                }
             ]).exec((err, res) => {
                 innerDone(err, res);
             });
@@ -3591,10 +3604,27 @@ let functions = {
     provideLeaveQuota: (req, res) => {
         async.waterfall([
             function (done) {
-                let leaveBalance = new LeaveBalance(req.body);
-                leaveBalance.save(function (err, leaveBalanceInfo) {
-                    done(err, leaveBalanceInfo);
-                });
+                if (req.body.leave_type == 3) {
+                    let leaveBalance = new LeaveBalance(req.body);
+                    leaveBalance.save(function (err, leaveBalanceInfo) {
+                        done(err, leaveBalanceInfo);
+                    });
+                } else {
+                    let leaveBalances = [];
+                    req.body.emp_id.forEach(empId => {
+                        leaveBalances.push({
+                            emp_id :empId,
+                            balance:req.body.balance,
+                            createdAt:req.body.createdAt,
+                            createdBy:req.body.createdBy,
+                            fiscalYearId:req.body.fiscalYearId,
+                            leave_type:req.body.leave_type
+                        })
+                    })
+                    LeaveBalance.create(leaveBalances,function(err,res) {
+                        done(err,res);
+                    });
+                }
             }
         ], (err, data) => {
             if (err) {
