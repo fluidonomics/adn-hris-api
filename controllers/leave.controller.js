@@ -2,6 +2,7 @@ let express = require('express'),
     LeaveWorkflowHistory = require('../models/leave/leaveWorkflowHistory.model'),
     LeaveDetailsCarryForward = require('../models/master/leaveDetailsCarryForward.model'),
     LeaveApply = require('../models/leave/leaveApply.model'),
+    LeaveMaster = require('../models/leave/leaveApplyMaster.model'),
     LeaveHoliday = require('../models/leave/leaveHoliday.model'),
     LeaveTransactionType = require('../models/leave/leaveTransactioType.model'),
     PersonalInfo = require('../models/employee/employeePersonalDetails.model'),
@@ -897,17 +898,19 @@ function applyLeave(req, res, done) {
 }
 
 function applyLeaveMaternitySpecial(req, res, done) {
-    let fromDates = [req.body.fromDate];
-    let toDates = [req.body.toDate];
+    let dates = [req.body.fromDate, req.body.toDate];
     let additionalLeaves = req.body.additionalLeaves;
     additionalLeaves.forEach(leave => {
-        fromDates.push(leave.fromDate);
-        toDates.push(leave.toDate);
+        dates.push(leave.fromDate);
+        dates.push(leave.toDate);
     })
-    let fromDateBody = moment(req.body.fromDate + ' UTC').utc().format();
-    let toDateBody = moment(req.body.toDate + ' UTC').utc().format();
-    let startd = new Date(new Date(req.body.fromDate).getTime() + 86400000),
-        endd = new Date(new Date(req.body.toDate).getTime() + 86400000);
+    let minFromDate = dateFn.min(dates);
+    let maxToDate = dateFn.max(dates);
+
+    let fromDateBody = moment(minFromDate + ' UTC').utc().format();
+    let toDateBody = moment(maxToDate + ' UTC').utc().format();
+    let startd = new Date(new Date(minFromDate).getTime() + 86400000),
+        endd = new Date(new Date(maxToDate).getTime() + 86400000);
     let flag = true;
     let message;
     const query = {
@@ -1117,8 +1120,8 @@ function applyLeaveMaternitySpecial(req, res, done) {
                                                                 appliedBy: appliedByDetails.fullName,
                                                                 leaveType: leaveType.type,
                                                                 appliedDate: new Date().toISOString().replace(/T/, ' ').replace(/\..+/, ''),
-                                                                fromDate: req.body.fromDate,
-                                                                toDate: req.body.toDate,
+                                                                fromDate: minFromDate,
+                                                                toDate: maxToDate,
                                                                 action_link: linktoSend
                                                             }
                                                             SendEmail.sendEmailToSuprsvrNotifyAppliedLeave(supervisorOfficeDetail[0]['officeEmail'], data);
@@ -1127,8 +1130,8 @@ function applyLeaveMaternitySpecial(req, res, done) {
                                                                 appliedBy: appliedByDetails.fullName,
                                                                 leaveType: leaveType.type,
                                                                 appliedDate: new Date().toISOString().replace(/T/, ' ').replace(/\..+/, ''),
-                                                                fromDate: req.body.fromDate,
-                                                                toDate: req.body.toDate,
+                                                                fromDate: minFromDate,
+                                                                toDate: maxToDate,
                                                                 action_link: linktoSend
                                                             }
                                                             SendEmail.sendEmailToEmployeeNotifyAppliedLeave(officeDetails['officeEmail'], data);
@@ -1144,8 +1147,8 @@ function applyLeaveMaternitySpecial(req, res, done) {
                                                         appliedBy: employeee.fullName,
                                                         leaveType: leaveType.type,
                                                         appliedDate: new Date().toISOString().replace(/T/, ' ').replace(/\..+/, ''),
-                                                        fromDate: req.body.fromDate,
-                                                        toDate: req.body.toDate,
+                                                        fromDate: minFromDate,
+                                                        toDate: maxToDate,
                                                         action_link: linktoSend
                                                     }
 
@@ -1175,6 +1178,26 @@ function applyLeaveMaternitySpecial(req, res, done) {
 
             });
         }
+    });
+}
+
+function createLeave(req) {
+    return new Promise((resolve, reject) => {
+        async.waterfall([
+            (done) => {
+                let leavedetails = new LeaveMaster(req.body);
+                leavedetails.emp_id = req.body.emp_id || req.query.emp_id;
+                leavedetails.status = req.body.status;
+                leavedetails.applyTo = req.body.supervisor_id;
+                leavedetails.createdBy = parseInt(req.body.apply_by_id);
+                leavedetails.fromDate = fromDateBody //moment(req.body.fromDate).format('MM/DD/YYYY');//new Date(req.body.fromDate).setUTCHours(0,0,0,0);
+                leavedetails.toDate = toDateBody //(new Date(req.body.toDate).setUTCHours(0,0,0,0));
+                leavedetails.updatedBy = parseInt(req.body.updatedBy);
+                leavedetails.days = req.body.days;
+            }
+        ], (err, result) => {
+
+        });
     });
 }
 
