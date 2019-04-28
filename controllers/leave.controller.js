@@ -898,14 +898,14 @@ function applyLeave(req, res, done) {
 }
 
 function applyLeaveMaternitySpecial(req, res, done) {
-    let dates = [req.body.fromDate, req.body.toDate];
+    let dates = [moment(req.body.fromDate), moment(req.body.toDate)];
     let additionalLeaves = req.body.additionalLeaves;
     additionalLeaves.forEach(leave => {
-        dates.push(leave.fromDate);
-        dates.push(leave.toDate);
+        dates.push(moment(leave.fromDate));
+        dates.push(moment(leave.toDate));
     })
-    let minFromDate = dateFn.min(dates);
-    let maxToDate = dateFn.max(dates);
+    let minFromDate = moment.min(dates).toDate();
+    let maxToDate = moment.max(dates).toDate();
 
     let fromDateBody = moment(minFromDate + ' UTC').utc().format();
     let toDateBody = moment(maxToDate + ' UTC').utc().format();
@@ -1024,27 +1024,11 @@ function applyLeaveMaternitySpecial(req, res, done) {
                     message = "Annual Leave should be applied in seven days advance";
                 }
                 if (flag) {
-                    let leavedetails = new LeaveApply(req.body);
-                    leavedetails.emp_id = req.body.emp_id || req.query.emp_id;
-                    leavedetails.status = req.body.status;
-                    leavedetails.applyTo = req.body.supervisor_id;
-                    leavedetails.createdBy = parseInt(req.body.apply_by_id);
-                    leavedetails.fromDate = fromDateBody //moment(req.body.fromDate).format('MM/DD/YYYY');//new Date(req.body.fromDate).setUTCHours(0,0,0,0);
-                    leavedetails.toDate = toDateBody //(new Date(req.body.toDate).setUTCHours(0,0,0,0));
-                    leavedetails.updatedBy = parseInt(req.body.updatedBy);
-                    leavedetails.days = req.body.days
-                    leavedetails.save(function (err, leavesInfoData) {
-                        if (err) {
-                            return res.status(403).json({
-                                title: 'There is a problem',
-                                error: {
-                                    message: err
-                                },
-                                result: {
-                                    message: leavesInfoData
-                                }
-                            });
-                        }
+                    let data = {
+                        fromDateBody: fromDateBody,
+                        toDateBody: toDateBody
+                    }
+                    createLeave(req, data).then(res => {
                         leaveWorkflowDetails(leavesInfoData, req.body.updatedBy, 'applied');
 
                         if (req.body.emailTo && req.body.emailTo != "") {
@@ -1181,19 +1165,47 @@ function applyLeaveMaternitySpecial(req, res, done) {
     });
 }
 
-function createLeave(req) {
+function createLeave(req, leaveData) {
     return new Promise((resolve, reject) => {
         async.waterfall([
             (done) => {
-                let leavedetails = new LeaveMaster(req.body);
-                leavedetails.emp_id = req.body.emp_id || req.query.emp_id;
-                leavedetails.status = req.body.status;
-                leavedetails.applyTo = req.body.supervisor_id;
-                leavedetails.createdBy = parseInt(req.body.apply_by_id);
-                leavedetails.fromDate = fromDateBody //moment(req.body.fromDate).format('MM/DD/YYYY');//new Date(req.body.fromDate).setUTCHours(0,0,0,0);
-                leavedetails.toDate = toDateBody //(new Date(req.body.toDate).setUTCHours(0,0,0,0));
-                leavedetails.updatedBy = parseInt(req.body.updatedBy);
-                leavedetails.days = req.body.days;
+                let leaveMaster = new LeaveMaster(req.body);
+                leaveMaster.emp_id = req.body.emp_id || req.query.emp_id;
+                leaveMaster.status = req.body.status;
+                leaveMaster.applyTo = req.body.supervisor_id;
+                leaveMaster.createdBy = parseInt(req.body.apply_by_id);
+                leaveMaster.fromDate = leaveData.fromDateBody //moment(req.body.fromDate).format('MM/DD/YYYY');//new Date(req.body.fromDate).setUTCHours(0,0,0,0);
+                leaveMaster.toDate = leaveData.toDateBody //(new Date(req.body.toDate).setUTCHours(0,0,0,0));
+                leaveMaster.updatedBy = parseInt(req.body.updatedBy);
+                leaveMaster.days = req.body.days;
+                leaveMaster.save(done);
+            },
+            (data, done) => {
+                let x = data;
+                let leaveDetailsArray = [];
+                let leaveDetails = new LeaveApply();
+                leaveDetails.emp_id = req.body.emp_id || req.query.emp_id;
+                leaveDetails.status = req.body.status;
+                leaveDetails.applyTo = req.body.supervisor_id;
+                leaveDetails.createdBy = parseInt(req.body.apply_by_id);
+                leaveDetails.fromDate = req.body.fromDate //moment(req.body.fromDate).format('MM/DD/YYYY');//new Date(req.body.fromDate).setUTCHours(0,0,0,0);
+                leaveDetails.toDate = req.body.toDate //(new Date(req.body.toDate).setUTCHours(0,0,0,0));
+                leaveDetails.updatedBy = parseInt(req.body.updatedBy);
+                leaveDetails.days = req.body.days;
+
+                if (req.body.additionalLeaves && req.body.additionalLeaves.length > 0) {
+                    req.body.additionalLeaves.forEach(leave => {
+                        let leaveDetails = new LeaveApply();
+                        leaveDetails.emp_id = req.body.emp_id || req.query.emp_id;
+                        leaveDetails.status = req.body.status;
+                        leaveDetails.applyTo = req.body.supervisor_id;
+                        leaveDetails.createdBy = parseInt(req.body.apply_by_id);
+                        leaveDetails.fromDate = req.body.fromDate //moment(req.body.fromDate).format('MM/DD/YYYY');//new Date(req.body.fromDate).setUTCHours(0,0,0,0);
+                        leaveDetails.toDate = req.body.toDate //(new Date(req.body.toDate).setUTCHours(0,0,0,0));
+                        leaveDetails.updatedBy = parseInt(req.body.updatedBy);
+                        leaveDetails.days = req.body.days;
+                    })
+                }
             }
         ], (err, result) => {
 
