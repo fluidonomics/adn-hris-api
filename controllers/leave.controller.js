@@ -1028,9 +1028,7 @@ function applyLeaveMaternitySpecial(req, res, done) {
                         fromDateBody: fromDateBody,
                         toDateBody: toDateBody
                     }
-                    createLeave(req, data).then(res => {
-                        leaveWorkflowDetails(leavesInfoData, req.body.updatedBy, 'applied');
-
+                    createLeave(req, data).then(leaveData => {
                         if (req.body.emailTo && req.body.emailTo != "") {
                             var ccToList = req.body.emailTo.split(',');
 
@@ -1096,7 +1094,7 @@ function applyLeaveMaternitySpecial(req, res, done) {
                                                             if (err) {
 
                                                             }
-                                                            let appliedLeaveId = leavesInfoData._id;
+                                                            let appliedLeaveId = leaveData._id;
                                                             let linktoSend = req.body.link + '/' + appliedLeaveId;
                                                             let data = {
                                                                 fullName: supervisor.fullName,
@@ -1123,7 +1121,7 @@ function applyLeaveMaternitySpecial(req, res, done) {
 
                                                     })
                                                 } else {
-                                                    let appliedLeaveId = leavesInfoData._id;
+                                                    let appliedLeaveId = leaveData._id;
                                                     let linktoSend = req.body.link + '/' + appliedLeaveId;
                                                     let data = {
                                                         fullName: supervisor.fullName,
@@ -1146,7 +1144,7 @@ function applyLeaveMaternitySpecial(req, res, done) {
                                 }
                             });
                         });
-                        return done(err, leavesInfoData);
+                        return done(err, leaveData);
                     });
                 } else {
                     return res.status(403).json({
@@ -1177,38 +1175,69 @@ function createLeave(req, leaveData) {
                 leaveMaster.fromDate = leaveData.fromDateBody //moment(req.body.fromDate).format('MM/DD/YYYY');//new Date(req.body.fromDate).setUTCHours(0,0,0,0);
                 leaveMaster.toDate = leaveData.toDateBody //(new Date(req.body.toDate).setUTCHours(0,0,0,0));
                 leaveMaster.updatedBy = parseInt(req.body.updatedBy);
-                leaveMaster.days = req.body.days;
-                leaveMaster.save(done);
+
+                let days = parseInt(req.body.days);
+                req.body.additionalLeaves.forEach(addLeave => days += parseInt(addLeave.days));
+                leaveMaster.days = days;
+                leaveMaster.save((err, doc) => {
+                    done(err, doc);
+                });
             },
             (data, done) => {
-                let x = data;
-                let leaveDetailsArray = [];
-                let leaveDetails = new LeaveApply();
-                leaveDetails.emp_id = req.body.emp_id || req.query.emp_id;
-                leaveDetails.status = req.body.status;
-                leaveDetails.applyTo = req.body.supervisor_id;
-                leaveDetails.createdBy = parseInt(req.body.apply_by_id);
-                leaveDetails.fromDate = req.body.fromDate //moment(req.body.fromDate).format('MM/DD/YYYY');//new Date(req.body.fromDate).setUTCHours(0,0,0,0);
-                leaveDetails.toDate = req.body.toDate //(new Date(req.body.toDate).setUTCHours(0,0,0,0));
-                leaveDetails.updatedBy = parseInt(req.body.updatedBy);
-                leaveDetails.days = req.body.days;
-
-                if (req.body.additionalLeaves && req.body.additionalLeaves.length > 0) {
-                    req.body.additionalLeaves.forEach(leave => {
+                LeaveApply.find({},
+                    {
+                        _id: 1
+                    }, {
+                        sort: {
+                            _id: -1
+                        },
+                        limit: 1
+                    }).exec((err, leave) => {
+                        let leaveId = leave._id + 1 || 1;
+                        let leaveDetailsArray = [];
                         let leaveDetails = new LeaveApply();
+                        leaveDetails._id = leaveId;
+                        leaveDetails.leaveMasterId = data._id;
                         leaveDetails.emp_id = req.body.emp_id || req.query.emp_id;
                         leaveDetails.status = req.body.status;
                         leaveDetails.applyTo = req.body.supervisor_id;
                         leaveDetails.createdBy = parseInt(req.body.apply_by_id);
-                        leaveDetails.fromDate = req.body.fromDate //moment(req.body.fromDate).format('MM/DD/YYYY');//new Date(req.body.fromDate).setUTCHours(0,0,0,0);
-                        leaveDetails.toDate = req.body.toDate //(new Date(req.body.toDate).setUTCHours(0,0,0,0));
+                        leaveDetails.fromDate = moment(req.body.fromDate + ' UTC').utc().format();
+                        leaveDetails.toDate = moment(req.body.toDate + ' UTC').utc().format();
                         leaveDetails.updatedBy = parseInt(req.body.updatedBy);
                         leaveDetails.days = req.body.days;
-                    })
-                }
+                        leaveDetails.fiscalYearId = req.body.fiscalYearId;
+                        leaveDetailsArray.push(leaveDetails);
+
+                        if (req.body.additionalLeaves && req.body.additionalLeaves.length > 0) {
+                            req.body.additionalLeaves.forEach((leave, i) => {
+                                let leaveDetails = new LeaveApply();
+                                leaveDetails._id = leaveId + i + 1;
+                                leaveDetails.leaveMasterId = data._id;
+                                leaveDetails.emp_id = req.body.emp_id || req.query.emp_id;
+                                leaveDetails.status = req.body.status;
+                                leaveDetails.applyTo = req.body.supervisor_id;
+                                leaveDetails.createdBy = parseInt(req.body.apply_by_id);
+                                leaveDetails.fromDate = moment(leave.fromDate + ' UTC').utc().format();
+                                leaveDetails.toDate = moment(leave.toDate + ' UTC').utc().format();
+                                leaveDetails.updatedBy = parseInt(req.body.updatedBy);
+                                leaveDetails.days = leave.days;
+                                leaveDetails.fiscalYearId = req.body.fiscalYearId;
+                                leaveDetailsArray.push(leaveDetails);
+                            })
+                        }
+
+                        LeaveApply.insertMany(leaveDetailsArray, (err, docs) => {
+                            data.leaveDetails = docs;
+                            done(err, data);
+                        });
+                    });
             }
         ], (err, result) => {
-
+            if (err) {
+                reject(err);
+            }
+            resolve(result);
         });
     });
 }
