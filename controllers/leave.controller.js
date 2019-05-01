@@ -2593,7 +2593,7 @@ let functions = {
             })
         }
 
-        LeaveApply.aggregate([
+        LeaveMaster.aggregate([
             queryObj,
             {
                 "$lookup": {
@@ -2666,6 +2666,14 @@ let functions = {
                 }
             },
             {
+                "$lookup": {
+                    "from": "leaveapplieddetails",
+                    "localField": "_id",
+                    "foreignField": "leaveMasterId",
+                    "as": "leaveDetails"
+                }
+            },
+            {
                 "$project": {
                     _id: 1,
                     isActive: 1,
@@ -2707,7 +2715,8 @@ let functions = {
                         "supervisorDetails": {
                             "_id": "$supervisorDetails._id",
                             "fullName": "$supervisorDetails.fullName"
-                        }
+                        },
+                        "leaveAppliedDetails": "$leaveDetails"
                     }
                 }
             }
@@ -3325,7 +3334,7 @@ let functions = {
                 ]
             })
         }
-        LeaveApply.aggregate([
+        LeaveMaster.aggregate([
             queryObj,
             {
                 "$match": {
@@ -3454,33 +3463,129 @@ let functions = {
             {
                 "$unwind": "$primarySupervisor"
             },
-            // {
-            //     "$project": {
-            //         "_id": "$_id",
-            //         "emp_id": "$emp_id",
-            //         "emp_name": "$emp_name.fullName",
-            //         "leave_type": "$leave_type",
-            //         "leave_type_name": "$leaveTypes.type",
-            //         "forwardTo": "$forwardTo",
-            //         "forwardTo_FullName": "$forwardTo_name.fullName",
-            //         "remark": "$remark",
-            //         "cancelLeaveApplyTo": "$cancelLeaveApplyTo",
-            //         "cancelLeaveApplyTo_name": "$cancelLeave_ApplyTo.fullName",
-            //         "cancelReason": "$cancelReason",
-            //         "isCancelled": "$isCancelled",
-            //         "isApproved": "$isApproved",
-            //         "ccTo": "$ccTo",
-            //         "contactDetails": "$contactDetails",
-            //         "applyTo": "$applyTo",
-            //         "applyTo_name": "$sup_name.fullName",
-            //         "toDate": "$toDate",
-            //         "fromDate": "$fromDate",
-            //         "reason": "$reason",
-            //         "status": '$status',
-            //         "employmentStatus": "$employeeofficedetails.employmentStatus_id"
-            //     }
-            // }
-
+            {
+                "$lookup": {
+                    "from": "leaveapplieddetails",
+                    "localField": "_id",
+                    "foreignField": "leaveMasterId",
+                    "as": "leaveDetails"
+                }
+            },
+            {
+                "$unwind": {
+                    path: "$leaveDetails",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "leaveTypes",
+                    "localField": "leaveDetails.leave_type",
+                    "foreignField": "_id",
+                    "as": "leaveDetails_leaveTypes"
+                }
+            },
+            {
+                "$unwind": {
+                    path: "$leaveDetails_leaveTypes",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                "$project": {
+                    "_id": 1,
+                    "leave_type": 1,
+                    "emp_id": 1,
+                    "cancelReason": 1,
+                    "supervisorReason2": 1,
+                    "supervisorReason": 1,
+                    "attachment": 1,
+                    "remark": 1,
+                    "systemApproved": 1,
+                    "toDate": 1,
+                    "fromDate": 1,
+                    "updatedAt": 1,
+                    "updatedBy": 1,
+                    "status": 1,
+                    "reason2": 1,
+                    "reason": 1,
+                    "isDeleted": 1,
+                    "fiscalYearId": 1,
+                    "days": 1,
+                    "createdAt": 1,
+                    "createdBy": 1,
+                    "cancelLeaveApplyTo": 1,
+                    "applyTo": 1,
+                    "emp_name": 1,
+                    "sup_name": 1,
+                    "leaveTypes": 1,
+                    "employeeofficedetails": 1,
+                    "supervisor": 1,
+                    "primarySupervisor": 1,
+                    "leaveDetails": {
+                        "_id": 1,
+                        "updatedAt": 1,
+                        "createdAt": 1,
+                        "leaveMasterId": 1,
+                        "emp_id": 1,
+                        "systemApproved": 1,
+                        "fiscalYearId": 1,
+                        "isDeleted": 1,
+                        "createdBy": 1,
+                        "updatedBy": 1,
+                        "forwardTo": 1,
+                        "remark": 1,
+                        "cancelLeaveApplyTo": 1,
+                        "cancelReason": 1,
+                        "supervisorReason2": 1,
+                        "supervisorReason": 1,
+                        "attachment": 1,
+                        "contactDetails": 1,
+                        "status": 1,
+                        "reason2": 1,
+                        "reason": 1,
+                        "applyTo": 1,
+                        "days": 1,
+                        "toDate": 1,
+                        "fromDate": 1,
+                        "leaveType": "$leaveDetails_leaveTypes"
+                    }
+                }
+            },
+            {
+                "$group": {
+                    _id: "$_id",
+                    "leave_type": { $first: "$leave_type" },
+                    "emp_id": { $first: "$emp_id" },
+                    "cancelReason": { $first: "$cancelReason" },
+                    "supervisorReason2": { $first: "$supervisorReason2" },
+                    "supervisorReason": { $first: "$supervisorReason" },
+                    "attachment": { $first: "$attachment" },
+                    "remark": { $first: "$remark" },
+                    "systemApproved": { $first: "$systemApproved" },
+                    "toDate": { $first: "$toDate" },
+                    "fromDate": { $first: "$fromDate" },
+                    "updatedAt": { $first: "$updatedAt" },
+                    "updatedBy": { $first: "$updatedBy" },
+                    "status": { $first: "$status" },
+                    "reason2": { $first: "$reason2" },
+                    "reason": { $first: "$reason" },
+                    "isDeleted": { $first: "$isDeleted" },
+                    "fiscalYearId": { $first: "$fiscalYearId" },
+                    "days": { $first: "$days" },
+                    "createdAt": { $first: "$createdAt" },
+                    "createdBy": { $first: "$createdBy" },
+                    "cancelLeaveApplyTo": { $first: "$cancelLeaveApplyTo" },
+                    "applyTo": { $first: "$applyTo" },
+                    "emp_name": { $first: "$emp_name" },
+                    "sup_name": { $first: "$sup_name" },
+                    "leaveTypes": { $first: "$leaveTypes" },
+                    "employeeofficedetails": { $first: "$employeeofficedetails" },
+                    "supervisor": { $first: "$supervisor" },
+                    "primarySupervisor": { $first: "$primarySupervisor" },
+                    "leaveDetails": { $push: "$leaveDetails" }
+                }
+            }
         ]).exec(function (err, results) {
             if (err) {
                 return res.status(403).json({
