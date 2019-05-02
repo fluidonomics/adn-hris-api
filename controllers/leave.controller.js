@@ -1198,6 +1198,7 @@ function createLeave(req, leaveData) {
                         let leaveDetails = new LeaveApply();
                         leaveDetails._id = leaveId;
                         leaveDetails.leaveMasterId = data._id;
+                        leaveDetails.leave_type = data.leave_type;
                         leaveDetails.emp_id = req.body.emp_id || req.query.emp_id;
                         leaveDetails.status = req.body.status;
                         leaveDetails.applyTo = req.body.supervisor_id;
@@ -1214,6 +1215,7 @@ function createLeave(req, leaveData) {
                                 let leaveDetails = new LeaveApply();
                                 leaveDetails._id = leaveId + i + 1;
                                 leaveDetails.leaveMasterId = data._id;
+                                leaveDetails.leave_type = leave.leaveType;
                                 leaveDetails.emp_id = req.body.emp_id || req.query.emp_id;
                                 leaveDetails.status = req.body.status;
                                 leaveDetails.applyTo = req.body.supervisor_id;
