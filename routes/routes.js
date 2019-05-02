@@ -356,6 +356,8 @@ module.exports = (app) => {
   //        leaveRoutes.post('/grantMaternityLeave', leave.grantMaternityLeave);
   leaveRoutes.get('/getEmpMaternityLeaveDetails', leave.getEmpMaternityLeaveDetails);
   leaveRoutes.get('/downloadFile', leave.downloadLeaveAttachment);
+  leaveRoutes.get('/getEmployeeForQuotaProvide',leave.getEmployeeForQuotaProvide);
+  leaveRoutes.post('/provideLeaveQuota',leave.provideLeaveQuota);
 
   //= ========================
 
