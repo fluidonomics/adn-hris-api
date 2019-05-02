@@ -10,6 +10,7 @@ let express  = require('express'),
     externalDocument = require('../controllers/externalDocument.controller'),
     Employee = require('../models/employee/employeeDetails.model'),
     batch = require('../controllers/batch.controller'),
+    dashboard = require('../controllers/dashboard.controller'),
     jwt = require('jsonwebtoken-refresh');
 
     function ensureAuthenticated(req, res, next) {
@@ -72,6 +73,7 @@ let express  = require('express'),
           hrRoutes = express.Router(),
           externalDocumentRoutes = express.Router(),
           batchRoutes=express.Router(),
+          dashboardRoutes = express.Router();
 
       //= ========================
       
@@ -561,5 +563,12 @@ let express  = require('express'),
 
       // Set url for API group routes, all endpoints start with /api/ eg http://localhost:3000/api/admin  || http://localhost:3000/api/auth
       app.use('/api', apiRoutes);
+
+      /*===================================
+      Dashboard API's
+      ===================================*/
+      apiRoutes.use('/dashboard', dashboardRoutes);
+      dashboardRoutes.get('/hrempratio', dashboard.getHrEmpratio);
+      dashboardRoutes.get('/emptyperatio', dashboard.getEmpType);
     };
 
