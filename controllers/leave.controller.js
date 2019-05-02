@@ -3666,7 +3666,7 @@ let functions = {
                 }
             };
         }
-        LeaveApply.findOneAndUpdate(query, updateQuery, {
+        LeaveMaster.findOneAndUpdate(query, updateQuery, {
             new: true
         }, function (err, _leaveDetails) {
             if (err) {
@@ -3680,6 +3680,24 @@ let functions = {
                     }
                 });
             }
+
+            LeaveApply.updateMany({
+                leaveMasterId: parseInt(req.body.id)
+            }, updateQuery,
+                function (err, _leaveDetails) {
+                    if (err) {
+                        return res.status(403).json({
+                            title: 'There was a problem',
+                            error: {
+                                message: err
+                            },
+                            result: {
+                                message: _leaveDetails
+                            }
+                        });
+                    }
+                });
+
             let queryForFindEmployeeDetail = {
                 _id: _leaveDetails.emp_id,
                 isDeleted: false
