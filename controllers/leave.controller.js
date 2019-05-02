@@ -1701,7 +1701,7 @@ let functions = {
             })
         }
 
-        LeaveApply.aggregate([
+        LeaveMaster.aggregate([
             projectQuery,
             queryObj,
             {
@@ -1744,6 +1744,14 @@ let functions = {
                 "$unwind": {
                     path: "$createdByDetails",
                     "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "leaveapplieddetails",
+                    "localField": "_id",
+                    "foreignField": "leaveMasterId",
+                    "as": "leaveDetails"
                 }
             },
             {
@@ -1800,6 +1808,7 @@ let functions = {
                     attachment: {
                         $first: "$attachment"
                     },
+                    leaveDetails: { $push: "$leaveDetails" }
                 }
             },
 
@@ -3061,7 +3070,7 @@ let functions = {
             // fromDate: { $gt: new Date() } 
         }
         let withdrawStatus;
-        LeaveApply.findOne(query, function (err, leaveapplydetails) {
+        LeaveMaster.findOne(query, function (err, leaveapplydetails) {
             let updateQuery;
             if ((new Date(leaveapplydetails.fromDate) > new Date()) && leaveapplydetails.status == "Applied") {
                 withdrawStatus = "Withdrawn;"
@@ -3109,12 +3118,9 @@ let functions = {
                         reason2: req.body.reason2
                     }
                 };
-
             }
-            LeaveApply.update(query, updateQuery, {
-                new: true
-            }, function (err, _leaveDetails) {
 
+            LeaveMaster.update(query, updateQuery, function (err, _leaveDetails) {
                 if (err) {
                     return res.status(403).json({
                         title: 'There was a problem',
@@ -3126,6 +3132,22 @@ let functions = {
                         }
                     });
                 } else {
+                    LeaveApply.updateMany({
+                        leaveMasterId: req.body._id
+                    }, updateQuery, function (err, _leaveDetails) {
+                        if (err) {
+                            return res.status(403).json({
+                                title: 'There was a problem',
+                                error: {
+                                    message: err
+                                },
+                                result: {
+                                    message: _leaveDetails
+                                }
+                            });
+                        }
+                    });
+
                     let x = req;
                     let y = leaveapplydetails;
                     let queryForFindSupervisor = {
