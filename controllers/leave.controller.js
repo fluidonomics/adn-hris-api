@@ -1177,7 +1177,7 @@ function createLeave(req, leaveData) {
                         },
                         limit: 1
                     }).exec((err, leave) => {
-                        let leaveId = leave[0]._id + 1 || 1;
+                        let leaveId = leave[0] ? leave[0]._id + 1 : 1;
                         let leaveDetailsArray = [];
                         let leaveDetails = new LeaveApply();
                         leaveDetails._id = leaveId;
