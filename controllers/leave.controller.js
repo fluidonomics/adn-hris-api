@@ -740,28 +740,12 @@ function applyLeave(req, res, done) {
                     message = "Annual Leave should be applied in seven days advance";
                 }
                 if (flag) {
-                    let leavedetails = new LeaveApply(req.body);
-                    leavedetails.emp_id = req.body.emp_id || req.query.emp_id;
-                    leavedetails.status = req.body.status;
-                    leavedetails.applyTo = req.body.supervisor_id;
-                    leavedetails.createdBy = parseInt(req.body.apply_by_id);
-                    leavedetails.fromDate = fromDateBody //moment(req.body.fromDate).format('MM/DD/YYYY');//new Date(req.body.fromDate).setUTCHours(0,0,0,0);
-                    leavedetails.toDate = toDateBody //(new Date(req.body.toDate).setUTCHours(0,0,0,0));
-                    leavedetails.updatedBy = parseInt(req.body.updatedBy);
-                    leavedetails.days = req.body.days
-                    leavedetails.save(function (err, leavesInfoData) {
-                        if (err) {
-                            return res.status(403).json({
-                                title: 'There is a problem',
-                                error: {
-                                    message: err
-                                },
-                                result: {
-                                    message: leavesInfoData
-                                }
-                            });
-                        }
-                        leaveWorkflowDetails(leavesInfoData, req.body.updatedBy, 'applied');
+                    let data = {
+                        fromDateBody: fromDateBody,
+                        toDateBody: toDateBody
+                    }
+                    createLeave(req, data).then(leaveData => {
+                        leaveWorkflowDetails(leaveData, req.body.updatedBy, 'applied');
 
                         if (req.body.emailTo && req.body.emailTo != "") {
                             var ccToList = req.body.emailTo.split(',');
@@ -828,7 +812,7 @@ function applyLeave(req, res, done) {
                                                             if (err) {
 
                                                             }
-                                                            let appliedLeaveId = leavesInfoData._id;
+                                                            let appliedLeaveId = leaveData._id;
                                                             let linktoSend = req.body.link + '/' + appliedLeaveId;
                                                             let data = {
                                                                 fullName: supervisor.fullName,
@@ -855,7 +839,7 @@ function applyLeave(req, res, done) {
 
                                                     })
                                                 } else {
-                                                    let appliedLeaveId = leavesInfoData._id;
+                                                    let appliedLeaveId = leaveData._id;
                                                     let linktoSend = req.body.link + '/' + appliedLeaveId;
                                                     let data = {
                                                         fullName: supervisor.fullName,
@@ -878,7 +862,7 @@ function applyLeave(req, res, done) {
                                 }
                             });
                         });
-                        return done(err, leavesInfoData);
+                        return done(err, leaveData);
                     });
                 } else {
                     return res.status(403).json({
@@ -1193,7 +1177,7 @@ function createLeave(req, leaveData) {
                         },
                         limit: 1
                     }).exec((err, leave) => {
-                        let leaveId = leave._id + 1 || 1;
+                        let leaveId = leave[0]._id + 1 || 1;
                         let leaveDetailsArray = [];
                         let leaveDetails = new LeaveApply();
                         leaveDetails._id = leaveId;
