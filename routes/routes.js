@@ -14,6 +14,7 @@ externalDocument = require('../controllers/externalDocument.controller'),
   Employee = require('../models/employee/employeeDetails.model'),
   batch = require('../controllers/batch.controller'),
   pap = require('../controllers/pap.controller'),
+  dashboard = require('../controllers/dashboard.controller'),
   jwt = require('jsonwebtoken-refresh');
 
 function ensureAuthenticated(req, res, next) {
@@ -76,7 +77,8 @@ module.exports = (app) => {
     hrRoutes = express.Router(),
     externalDocumentRoutes = express.Router(),
     batchRoutes = express.Router(),
-    papRoutes = express.Router();
+    papRoutes = express.Router(),
+    dashboardRoutes = express.Router();
 
   //= ========================
 
@@ -665,5 +667,12 @@ module.exports = (app) => {
   papRoutes.post('/initiateFeedback', pap.initiateFeedback);
   papRoutes.post('/initiateGrievance', pap.initiateGrievance);
   papRoutes.get('/getEmployeesForGrievance', pap.getEmployeesForGrievance);
+
+  /*===================================
+  Dashboard API's
+  ===================================*/
+  apiRoutes.use('/dashboard', dashboardRoutes);
+  dashboardRoutes.get('/hrempratio', dashboard.getHrEmpratio);
+  dashboardRoutes.get('/emptyperatio', dashboard.getEmpType);
 };
 
