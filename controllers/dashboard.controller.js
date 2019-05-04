@@ -1,6 +1,12 @@
 let Role = require("../models/master/role.model"),
     EmpRoleDetails = require("../models/employee/employeeRoleDetails.model"),
-    EmpOfficedetails = require("../models/employee/employeeOfficeDetails.model");
+    EmpOfficedetails = require("../models/employee/employeeOfficeDetails.model"),
+    KraWorkflowDetails = require("../models/kra/kraWorkFlowDetails.model");
+
+
+
+
+    
     
 
     function getHrEmpRatio(req, res) {
@@ -157,6 +163,139 @@ let Role = require("../models/master/role.model"),
           });
     }
 
+    function getKraDetail(req, res) {
+        
+
+        let queryObj = {
+            "$match": {}
+        };
+        queryObj['$match']['$and'] = [];
+        queryObj['$match']['$and'].push({
+            $and: [{
+                "createdAt": {
+                    $gte: new Date(req.query.fromDate)
+                }
+            },
+            {
+                "createdAt": {
+                    $lte: new Date(req.query.toDate)
+                }
+            }
+            ]
+        });
+        KraWorkflowDetails.aggregate([
+            queryObj,
+            {
+                    "$facet" : {
+                        "init_count" : [
+                            {
+                                "$match" : {
+                                    "status" : "Initiated"
+                                }
+                            }, 
+                            {
+                                "$count" : "init_count"
+                            }
+                        ], 
+                        "approved_count" : [
+                            {
+                                "$match" : {
+                                    "status" : "Approved"
+                                }
+                            }, 
+                            {
+                                "$count" : "approved_count"
+                            }
+                        ],
+                        "sendback_count" : [
+                            {
+                                "$match" : {
+                                    "status" : "SendBack"
+                                }
+                            }, 
+                            {
+                                "$count" : "sendback_count"
+                            }
+                        ],
+                        "submit_count" : [
+                            {
+                                "$match" : {
+                                    "status" : "Submitted"
+                                }
+                            }, 
+                            {
+                                "$count" : "submit_count"
+                            }
+                        ],
+                        "terminate_count" : [
+                            {
+                                "$match" : {
+                                    "status" : "Terminated"
+                                }
+                            }, 
+                            {
+                                "$count" : "terminate_count"
+                            }
+                        ],
+                    }
+                },
+                { 
+                    "$project" : {
+                        "init_count" : {
+                            "$arrayElemAt" : [
+                                "$init_count.init_count", 
+                                0.0
+                            ]
+                        }, 
+                        "approved_count" : {
+                            "$arrayElemAt" : [
+                                "$approved_count.approved_count", 
+                                0.0
+                            ]
+                        },
+                        "sendback_count" : {
+                            "$arrayElemAt" : [
+                                "$sendback_count.sendback_count", 
+                                0.0
+                            ]
+                        },
+                        "submit_count" : {
+                            "$arrayElemAt" : [
+                                "$submit_count.submit_count", 
+                                0.0
+                            ]
+                        },
+                        "terminate_count" : {
+                            "$arrayElemAt" : [
+                                "$terminate_count.terminate_count", 
+                                0.0
+                            ]
+                        }
+                    }
+                }
+        ]).exec(function (err, data) {
+            if (err) {
+              return res.status(403).json({
+                title: "There was a Problem",
+                error: {
+                  message: err
+                },
+                result: {
+                  message: data
+                }
+        
+              });
+            } else {
+              return res.status(200).json({
+                title: "KRA workflow details count",
+                result: {
+                  message: data
+                }
+              });
+            }
+        
+          });
+    }
 
     let functions = {
 
@@ -167,6 +306,10 @@ let Role = require("../models/master/role.model"),
         getEmpType: (req, res) => {
 
             getEmpTypeRatio(req, res);
+        },
+        getKraDetails: (req, res) => {
+
+            getKraDetail(req, res);
         }
     }
 

@@ -674,5 +674,6 @@ module.exports = (app) => {
   apiRoutes.use('/dashboard', dashboardRoutes);
   dashboardRoutes.get('/hrempratio', dashboard.getHrEmpratio);
   dashboardRoutes.get('/emptyperatio', dashboard.getEmpType);
+  dashboardRoutes.get('/kraempdetails', dashboard.getKraDetails);
 };
 
