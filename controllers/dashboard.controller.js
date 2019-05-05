@@ -297,6 +297,101 @@ let Role = require("../models/master/role.model"),
           });
     }
 
+    function getEmpDetail(req, res) {
+
+        let queryObj = {
+            "$match": {}
+        };
+        queryObj['$match']['$and'] = [];
+        queryObj['$match']['$and'].push({
+            $and: [{
+                "createdAt": {
+                    $gte: new Date(req.query.fromDate)
+                }
+            },
+            {
+                "createdAt": {
+                    $lte: new Date(req.query.toDate)
+                }
+            }
+            ]
+        });
+
+        KraWorkflowDetails.aggregate([
+            queryObj,
+            {
+                "$lookup": {
+                    "from": "employeedetails",
+                    "localField": "emp_id",
+                    "foreignField": "_id",
+                    "as": "employees"
+                }
+            },
+            {
+                "$unwind": {
+                    "path": "$employees", "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "employeesupervisordetails",
+                    "localField": "emp_id",
+                    "foreignField": "emp_id",
+                    "as": "supervisor"
+                }
+            },
+            {
+                "$unwind": {
+                    "path": "$supervisor", "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "employeedetails",
+                    "localField": "supervisor.primarySupervisorEmp_id",
+                    "foreignField": "_id",
+                    "as": "empsupdetails"
+                }
+            },
+            {
+                "$unwind": {
+                    "path": "$empsupdetails", "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                "$project": {
+                    "empName": "$employees.fullName",
+                    "supname": "$empsupdetails.fullName",
+                    "status": "$status",
+                    "createdDate": "$createdAt"
+
+
+                }
+            }
+        ]).exec(function (err, data) {
+            if (err) {
+              return res.status(403).json({
+                title: "There was a Problem",
+                error: {
+                  message: err
+                },
+                result: {
+                  message: data
+                }
+        
+              });
+            } else {
+              return res.status(200).json({
+                title: "KRA emp details count",
+                result: {
+                  message: data
+                }
+              });
+            }
+        
+          });
+    }
+
     let functions = {
 
         getHrEmpratio: (req, res) => {
@@ -310,6 +405,10 @@ let Role = require("../models/master/role.model"),
         getKraDetails: (req, res) => {
 
             getKraDetail(req, res);
+        },
+        getEmpDetails: (req, res) => {
+
+            getEmpDetail(req, res);
         }
     }
 
