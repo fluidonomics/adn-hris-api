@@ -181,7 +181,7 @@ let functions = {
         let mailOptions = {
             from: config.email.emailToEmployeeForLeaveRequestApproved.from, // sender address
             to: toEmail,
-            subject: data.leaveType + " " + config.email.emailToEmployeeForLeaveRequestApproved.subject + " " + data.fromDate + " " + data.toDate, // Subject line
+            subject: data.leaveType + " " + config.email.emailToEmployeeForLeaveRequestApproved.subject, // Subject line
             template: 'email-notify-to-emp-for-applied-leave-approved',
             context: {
                 fullName: data.fullName,
@@ -198,7 +198,7 @@ let functions = {
         let mailOptions = {
             from: config.email.emailToEmployeeForLeaveRequestApproved.from, // sender address
             to: toEmail,
-            subject: data.leaveType + " " + config.email.emailToEmployeeForLeaveRequestApproved.subject + " " + data.fromDate + " " + data.toDate, // Subject line
+            subject: data.leaveType + " " + config.email.emailToEmployeeForLeaveRequestApproved.subject, // Subject line
             template: 'email-notify-to-emp-for-applied-leave-approved-on-behalf',
             context: {
                 fullName: data.fullName,
@@ -472,66 +472,66 @@ let functions = {
         transporter.sendMail(mailOptions, callback);
     },
     sendMailForGrievance: (data, callback) => {
-        if(data.supervisorOfficedetails.officeEmail != null && data.supervisorOfficedetails.officeEmail != "") {
-        let mailOptions = {
-            from: config.email.sendMailForGrievance.from, // sender address
-            to: data.supervisorOfficedetails.officeEmail,
-            subject: config.email.sendMailForGrievance.subject, // Subject line
-            template: 'email-notify-grievance-raised',
-            context: {
-                fullName: data.supervisor.fullName,
-                appliedDate: moment(new Date()).format('L'),
-                link: data.action_link,
-                empName: data.fullName
-            }
-        };
-        transporter.sendMail(mailOptions, callback);
-    }
-    if(data.reviewerOfficedetails.officeEmail != null && data.reviewerOfficedetails.officeEmail != "") {
-        let mailOptions = {
-            from: config.email.sendMailForGrievance.from, // sender address
-            to: data.reviewerOfficedetails.officeEmail,
-            subject: config.email.sendMailForGrievance.subject, // Subject line
-            template: 'email-notify-grievance-raised',
-            context: {
-                fullName: data.reviewer.fullName,
-                appliedDate: moment(new Date()).format('L'),
-                link: data.action_link,
-                empName: data.fullName
-            }
-        };
-        transporter.sendMail(mailOptions, callback);
-    }
-    if(data.businessHrHeadOfficedetails.officeEmail != null && data.businessHrHeadOfficedetails.officeEmail != "") {
-        let mailOptions = {
-            from: config.email.sendMailForGrievance.from, // sender address
-            to: data.businessHrHeadOfficedetails.officeEmail,
-            subject: config.email.sendMailForGrievance.subject, // Subject line
-            template: 'email-notify-grievance-raised',
-            context: {
-                fullName: data.businessHrHead.fullName,
-                appliedDate: moment(new Date()).format('L'),
-                link: data.action_link,
-                empName: data.fullName
-            }
-        };
-        transporter.sendMail(mailOptions, callback);
-    }
-    if(data.hr.hrOfficedetails.officeEmail != null && data.hr.hrOfficedetails.officeEmail != "") {
-        let mailOptions = {
-            from: config.email.sendMailForGrievance.from, // sender address
-            to: data.hr.hrOfficedetails.officeEmail,
-            subject: config.email.sendMailForGrievance.subject, // Subject line
-            template: 'email-notify-grievance-raised',
-            context: {
-                fullName: data.hr.hr.fullName,
-                appliedDate: moment(new Date()).format('L'),
-                link: data.action_link,
-                empName: data.fullName
-            }
-        };
-        transporter.sendMail(mailOptions, callback);
-    }
+        if (data.supervisorOfficedetails.officeEmail != null && data.supervisorOfficedetails.officeEmail != "") {
+            let mailOptions = {
+                from: config.email.sendMailForGrievance.from, // sender address
+                to: data.supervisorOfficedetails.officeEmail,
+                subject: config.email.sendMailForGrievance.subject, // Subject line
+                template: 'email-notify-grievance-raised',
+                context: {
+                    fullName: data.supervisor.fullName,
+                    appliedDate: moment(new Date()).format('L'),
+                    link: data.action_link,
+                    empName: data.fullName
+                }
+            };
+            transporter.sendMail(mailOptions, callback);
+        }
+        if (data.reviewerOfficedetails.officeEmail != null && data.reviewerOfficedetails.officeEmail != "") {
+            let mailOptions = {
+                from: config.email.sendMailForGrievance.from, // sender address
+                to: data.reviewerOfficedetails.officeEmail,
+                subject: config.email.sendMailForGrievance.subject, // Subject line
+                template: 'email-notify-grievance-raised',
+                context: {
+                    fullName: data.reviewer.fullName,
+                    appliedDate: moment(new Date()).format('L'),
+                    link: data.action_link,
+                    empName: data.fullName
+                }
+            };
+            transporter.sendMail(mailOptions, callback);
+        }
+        if (data.businessHrHeadOfficedetails.officeEmail != null && data.businessHrHeadOfficedetails.officeEmail != "") {
+            let mailOptions = {
+                from: config.email.sendMailForGrievance.from, // sender address
+                to: data.businessHrHeadOfficedetails.officeEmail,
+                subject: config.email.sendMailForGrievance.subject, // Subject line
+                template: 'email-notify-grievance-raised',
+                context: {
+                    fullName: data.businessHrHead.fullName,
+                    appliedDate: moment(new Date()).format('L'),
+                    link: data.action_link,
+                    empName: data.fullName
+                }
+            };
+            transporter.sendMail(mailOptions, callback);
+        }
+        if (data.hr.hrOfficedetails.officeEmail != null && data.hr.hrOfficedetails.officeEmail != "") {
+            let mailOptions = {
+                from: config.email.sendMailForGrievance.from, // sender address
+                to: data.hr.hrOfficedetails.officeEmail,
+                subject: config.email.sendMailForGrievance.subject, // Subject line
+                template: 'email-notify-grievance-raised',
+                context: {
+                    fullName: data.hr.hr.fullName,
+                    appliedDate: moment(new Date()).format('L'),
+                    link: data.action_link,
+                    empName: data.fullName
+                }
+            };
+            transporter.sendMail(mailOptions, callback);
+        }
     },
     sendEmailToUserAboutMtrStatus: (data, callback) => {
         if (data.user_email === null || data.user_email === "") {
