@@ -1767,7 +1767,7 @@ function initiateFeedback(req, res) {
                     data.emp_name = f.employee.fullName;
                     data.action_link = req.body.action_link;
                     data.employee = f.employee;
-                    // SendEmail.sendEmailToSupervisorForPapSubmit(data);
+                    SendEmail.sendEmailToSupervisorForInitiateFeedback(data);
                 });
                 done(err, PapMasterDetails);
             });
