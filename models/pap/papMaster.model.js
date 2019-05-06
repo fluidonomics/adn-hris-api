@@ -10,6 +10,8 @@ let PapMasterSchema = new Schema(
     status: { type: String, default: 'Initiated' },
     mtr_master_id: { type: Number, ref: 'midtermmaster' },
     isRatingCommunicated: { type: Boolean, default: false },
+    isSentToSupervisor: { type: Boolean, default: false },
+    FeedbackReleaseEndDate: { type: Date, default: null },
     updatedBy: { type: Number, default: null },
     createdBy: { type: Number, required: true },
     isDeleted: { type: Boolean, default: false },
