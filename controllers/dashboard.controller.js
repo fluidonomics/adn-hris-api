@@ -2,8 +2,8 @@ let Role = require("../models/master/role.model"),
     EmpRoleDetails = require("../models/employee/employeeRoleDetails.model"),
     EmpOfficedetails = require("../models/employee/employeeOfficeDetails.model"),
     MidTermMaster = require("../models/midterm/midtermmaster"),
-    KraWorkflowDetails = require("../models/kra/kraWorkFlowDetails.model");
-
+    KraWorkflowDetails = require("../models/kra/kraWorkFlowDetails.model"),
+    LearningMaster = require("../models/learning/learningmaster");
 
 
 
@@ -360,11 +360,39 @@ let Role = require("../models/master/role.model"),
                 }
             },
             {
+                "$lookup": {
+                    "from": "employeedetails",
+                    "localField": "updatedBy",
+                    "foreignField": "_id",
+                    "as": "updatedetails"
+                }
+            },
+            {
+                "$unwind": {
+                    "path": "$updatedetails", "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "employeedetails",
+                    "localField": "createdBy",
+                    "foreignField": "_id",
+                    "as": "createdetails"
+                }
+            },
+            {
+                "$unwind": {
+                    "path": "$createdetails", "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
                 "$project": {
                     "empName": "$employees.fullName",
                     "supname": "$empsupdetails.fullName",
                     "status": "$status",
-                    "createdDate": "$createdAt"
+                    "createdDate": "$createdAt",
+                    "updatedBy": { $ifNull: [ "$updatedetails.fullName", "$createdetails.fullName" ] },
+                    "updatedDate": "$updatedAt"
 
 
                 }
@@ -649,6 +677,262 @@ let Role = require("../models/master/role.model"),
           });
     }
 
+    function getLearningStatuses(req, res) {
+
+        let queryObj = {
+            "$match": {}
+        };
+        queryObj['$match']['$and'] = [];
+        queryObj['$match']['$and'].push({
+            $and: [{
+                "createdAt": {
+                    $gte: new Date(req.query.fromDate)
+                }
+            },
+            {
+                "createdAt": {
+                    $lte: new Date(req.query.toDate)
+                }
+            }
+            ]
+        });
+
+        LearningMaster.aggregate([
+            queryObj,
+            {
+                    "$facet" : {
+                        "init_count" : [
+                            {
+                                "$match" : {
+                                    "status" : "Initiated"
+                                }
+                            }, 
+                            {
+                                "$count" : "init_count"
+                            }
+                        ], 
+                        "approved_count" : [
+                            {
+                                "$match" : {
+                                    "status" : "Approved"
+                                }
+                            }, 
+                            {
+                                "$count" : "approved_count"
+                            }
+                        ],
+                        "sendback_count" : [
+                            {
+                                "$match" : {
+                                    "status" : "SendBack"
+                                }
+                            }, 
+                            {
+                                "$count" : "sendback_count"
+                            }
+                        ],
+                        "submit_count" : [
+                            {
+                                "$match" : {
+                                    "status" : "Submitted"
+                                }
+                            }, 
+                            {
+                                "$count" : "submit_count"
+                            }
+                        ],
+                        "terminate_count" : [
+                            {
+                                "$match" : {
+                                    "status" : "Terminated"
+                                }
+                            }, 
+                            {
+                                "$count" : "terminate_count"
+                            }
+                        ],
+                    }
+                },
+                { 
+                    "$project" : {
+                        "init_count" : {
+                            "$arrayElemAt" : [
+                                "$init_count.init_count", 
+                                0.0
+                            ]
+                        }, 
+                        "approved_count" : {
+                            "$arrayElemAt" : [
+                                "$approved_count.approved_count", 
+                                0.0
+                            ]
+                        },
+                        "sendback_count" : {
+                            "$arrayElemAt" : [
+                                "$sendback_count.sendback_count", 
+                                0.0
+                            ]
+                        },
+                        "submit_count" : {
+                            "$arrayElemAt" : [
+                                "$submit_count.submit_count", 
+                                0.0
+                            ]
+                        },
+                        "terminate_count" : {
+                            "$arrayElemAt" : [
+                                "$terminate_count.terminate_count", 
+                                0.0
+                            ]
+                        }
+                    }
+                }
+        ]).exec(function (err, data) {
+            if (err) {
+              return res.status(403).json({
+                title: "There was a Problem",
+                error: {
+                  message: err
+                },
+                result: {
+                  message: data
+                }
+        
+              });
+            } else {
+              return res.status(200).json({
+                title: "Learning workflow details count",
+                result: {
+                  message: data
+                }
+              });
+            }
+        
+          });
+    }
+
+    function getLearningEmpDetail(req, res) {
+
+        let queryObj = {
+            "$match": {}
+        };
+        queryObj['$match']['$and'] = [];
+        queryObj['$match']['$and'].push({
+            $and: [{
+                "createdAt": {
+                    $gte: new Date(req.query.fromDate)
+                }
+            },
+            {
+                "createdAt": {
+                    $lte: new Date(req.query.toDate)
+                }
+            }
+            ]
+        });
+
+        LearningMaster.aggregate([
+            queryObj,
+            {
+                "$lookup": {
+                    "from": "employeedetails",
+                    "localField": "emp_id",
+                    "foreignField": "_id",
+                    "as": "employees"
+                }
+            },
+            {
+                "$unwind": {
+                    "path": "$employees", "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "employeesupervisordetails",
+                    "localField": "emp_id",
+                    "foreignField": "emp_id",
+                    "as": "supervisor"
+                }
+            },
+            {
+                "$unwind": {
+                    "path": "$supervisor", "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "employeedetails",
+                    "localField": "supervisor.primarySupervisorEmp_id",
+                    "foreignField": "_id",
+                    "as": "empsupdetails"
+                }
+            },
+            {
+                "$unwind": {
+                    "path": "$empsupdetails", "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "employeedetails",
+                    "localField": "updatedBy",
+                    "foreignField": "_id",
+                    "as": "updatedetails"
+                }
+            },
+            {
+                "$unwind": {
+                    "path": "$updatedetails", "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "employeedetails",
+                    "localField": "createdBy",
+                    "foreignField": "_id",
+                    "as": "createdetails"
+                }
+            },
+            {
+                "$unwind": {
+                    "path": "$createdetails", "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                "$project": {
+                    "empName": "$employees.fullName",
+                    "supname": "$empsupdetails.fullName",
+                    "status": "$status",
+                    "createdDate": "$createdAt",
+                    "updatedBy": { $ifNull: [ "$updatedetails.fullName", "$createdetails.fullName" ] },
+                    "updatedDate": "$updatedAt"
+
+                }
+            }
+        ]).exec(function (err, data) {
+            if (err) {
+              return res.status(403).json({
+                title: "There was a Problem",
+                error: {
+                  message: err
+                },
+                result: {
+                  message: data
+                }
+        
+              });
+            } else {
+              return res.status(200).json({
+                title: "Learning emp details count",
+                result: {
+                  message: data
+                }
+              });
+            }
+        
+          });
+    }
+
     let functions = {
 
         getHrEmpratio: (req, res) => {
@@ -674,6 +958,14 @@ let Role = require("../models/master/role.model"),
         getMtrEmpDetails: (req, res) => {
 
             getMtrEmpDetail(req, res);
+        },
+        getLearningStatus: (req, res) => {
+
+            getLearningStatuses(req, res);
+        },
+        getLearningEmpDetails: (req, res) => {
+
+            getLearningEmpDetail(req, res);
         }
     }
 
