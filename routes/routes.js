@@ -10,7 +10,7 @@ let express = require('express'),
   midterm = require('../controllers/midterm.controller'),
   learning = require('../controllers/learning.controller'),
   pip = require('../controllers/pip.controller'),
-externalDocument = require('../controllers/externalDocument.controller'),
+  externalDocument = require('../controllers/externalDocument.controller'),
   Employee = require('../models/employee/employeeDetails.model'),
   batch = require('../controllers/batch.controller'),
   pap = require('../controllers/pap.controller'),
@@ -73,8 +73,8 @@ module.exports = (app) => {
     leaveRoutes = express.Router(),
     midtermRoutes = express.Router(),
     learningRoutes = express.Router();
-    pipRoutes = express.Router();
-    hrRoutes = express.Router(),
+  pipRoutes = express.Router();
+  hrRoutes = express.Router(),
     externalDocumentRoutes = express.Router(),
     batchRoutes = express.Router(),
     papRoutes = express.Router(),
@@ -358,8 +358,8 @@ module.exports = (app) => {
   //        leaveRoutes.post('/grantMaternityLeave', leave.grantMaternityLeave);
   leaveRoutes.get('/getEmpMaternityLeaveDetails', leave.getEmpMaternityLeaveDetails);
   leaveRoutes.get('/downloadFile', leave.downloadLeaveAttachment);
-  leaveRoutes.get('/getEmployeeForQuotaProvide',leave.getEmployeeForQuotaProvide);
-  leaveRoutes.post('/provideLeaveQuota',leave.provideLeaveQuota);
+  leaveRoutes.get('/getEmployeeForQuotaProvide', leave.getEmployeeForQuotaProvide);
+  leaveRoutes.post('/provideLeaveQuota', leave.provideLeaveQuota);
 
   //= ========================
 
@@ -397,19 +397,19 @@ module.exports = (app) => {
   learningRoutes.get("/getlearningbatch", learning.getLearningBatch);
   learningRoutes.post("/updatelearningmaster", learning.updateLearningMaster);
 
-//==============================
+  //==============================
   //PIP API's
   //==============================
 
   apiRoutes.use('/pip', pipRoutes);
   pipRoutes.get("/getpipemployee", pip.getPipEmployee),
-  pipRoutes.post("/initiatepip", pip.initiatePipProcess);
+    pipRoutes.post("/initiatepip", pip.initiatePipProcess);
   pipRoutes.get("/getpipmaster", pip.getpipdetailsforsingalemployee);
   pipRoutes.post("/insertpip", pip.postNewPip);
   pipRoutes.get("/getpipdetails", pip.getpipdetails);
   pipRoutes.get("/supervisorgetpipdetails", pip.supervisorgetpip);
   pipRoutes.post("/submitpip", pip.submitpip);
-  pipRoutes.get("/pipbyreviewer",pip.pipByReviewer);
+  pipRoutes.get("/pipbyreviewer", pip.pipByReviewer);
   pipRoutes.post("/pipapproval", pip.pipApproval);
   pipRoutes.post("/updatebatch", pip.updateBatch);
   pipRoutes.get("/getpipbatch", pip.getPipBatch);
@@ -417,7 +417,7 @@ module.exports = (app) => {
   pipRoutes.get("/getpipbyhr", pip.getPipByHR);
   pipRoutes.post("/updatepipmaster", pip.updatePipMaster);
 
-  
+
 
   //hr dashboard routes
 
@@ -667,6 +667,8 @@ module.exports = (app) => {
   papRoutes.post('/initiateFeedback', pap.initiateFeedback);
   papRoutes.post('/initiateGrievance', pap.initiateGrievance);
   papRoutes.get('/getEmployeesForGrievance', pap.getEmployeesForGrievance);
+  papRoutes.post('/releaseFeedback', pap.releaseFeedback);
+  papRoutes.post('/initGrievancePhase', pap.initGrievancePhase);
 
   /*===================================
   Dashboard API's

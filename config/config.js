@@ -144,6 +144,10 @@ module.exports = {
     'sendMailForGrievance': {
       from: '"Team HRIS" <hris@adnsl.net>',
       subject: 'Grievance Raised'
+    },
+    'sendEmailToSupervisorForInitiateFeedback': {
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'Feedback Initiated'
     }
   },
   'aws':

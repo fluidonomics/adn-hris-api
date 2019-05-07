@@ -7,7 +7,8 @@ let async = require('async'),
     EmployeeSupervisorDetails = require('../models/employee/employeeSupervisorDetails.model'),
     EmployeeDetails = require('../models/employee/employeeDetails.model'),
     SendEmail = require('../class/sendEmail'),
-    PapDetails = require('../models/pap/papDetails.model');
+    PapDetails = require('../models/pap/papDetails.model'),
+    moment = require('moment');
 
 require('dotenv').load();
 
@@ -479,6 +480,9 @@ function getPapBatches(req, res) {
                 status: 1,
                 reviewerStatus: 1,
                 grievanceStatus: 1,
+                grievanceRaiseEndDate: 1,
+                FeedbackReleaseEndDate: 1,
+                isSentToSupervisor: 1,
                 overallRating: 1,
                 emp_details: "$emp_details"
             }
@@ -625,6 +629,9 @@ function getPapDetailsSingleEmployee(req, res) {
             "status": 1,
             "reviewerStatus": 1,
             "grievanceStatus": 1,
+            "grievanceRaiseEndDate": 1,
+            "FeedbackReleaseEndDate": 1,
+            "isSentToSupervisor": 1,
             "overallRating": 1,
             "papbatches": {
                 "_id": 1,
@@ -704,6 +711,15 @@ function getPapDetailsSingleEmployee(req, res) {
             },
             "grievanceStatus": {
                 $first: "$grievanceStatus"
+            },
+            "grievanceRaiseEndDate": {
+                $first: "$grievanceRaiseEndDate"
+            },
+            "FeedbackReleaseEndDate": {
+                $first: "$FeedbackReleaseEndDate"
+            },
+            "isSentToSupervisor": {
+                $first: "$isSentToSupervisor"
             },
             "overallRating": {
                 $first: "$overallRating"
@@ -1677,8 +1693,8 @@ function initiateFeedback(req, res) {
             let updateQuery = {
                 "updatedAt": new Date(),
                 "updatedBy": parseInt(req.body.updatedBy),
-                "isRatingCommunicated": true,
-                'status': "Approved"
+                "isSentToSupervisor": true,
+                "FeedbackReleaseEndDate": moment(new Date()).add(2, 'days').toDate()
             }
             let updateCondition = {
                 'emp_id': {
@@ -1700,6 +1716,76 @@ function initiateFeedback(req, res) {
                 "UPDATED"
             );
             done(null, PapMasterDetails);
+        },
+        (PapMasterDetails, done) => {
+            // Send mail to supervisor
+            PapDetails.aggregate([
+                {
+                    $match: {
+                        'empId': {
+                            '$in': req.body.empIds
+                        }
+                    }
+                },
+                {
+                    '$lookup': {
+                        'from': 'employeedetails',
+                        'localField': 'supervisor_id',
+                        'foreignField': '_id',
+                        'as': 'supervisor'
+                    }
+                },
+                {
+                    '$unwind': {
+                        'path': '$supervisor'
+                    }
+                },
+                {
+                    '$lookup': {
+                        'from': 'employeeofficedetails',
+                        'localField': 'supervisor_id',
+                        'foreignField': 'emp_id',
+                        'as': 'supervisorofficedetails'
+                    }
+                },
+                {
+                    '$unwind': {
+                        'path': '$supervisorofficedetails'
+                    }
+                },
+                {
+                    '$lookup': {
+                        'from': 'employeedetails',
+                        'localField': 'empId',
+                        'foreignField': '_id',
+                        'as': 'employee'
+                    }
+                },
+                {
+                    '$unwind': {
+                        'path': '$employee'
+                    }
+                },
+                {
+                    '$group': {
+                        "_id": "$supervisor_id",
+                        "supervisor": { $first: "$supervisor" },
+                        "supervisorofficedetails": { $first: "$supervisorofficedetails" },
+                        "employee": { $first: "$employee" }
+                    }
+                }
+            ]).exec(function (err, response) {
+                response.forEach(f => {
+                    let data = {};
+                    data.supervisor = f.supervisor;
+                    data.emp_email = f.supervisorofficedetails.officeEmail;
+                    data.emp_name = f.employee.fullName;
+                    data.action_link = req.body.action_link;
+                    data.employee = f.employee;
+                    SendEmail.sendEmailToSupervisorForInitiateFeedback(data);
+                });
+                done(err, PapMasterDetails);
+            });
         }
     ], (err, result) => {
         sendResponse(res, err, result, 'Feedback Initiated successfully');
@@ -1711,7 +1797,7 @@ function getEmployeesForFeedbackInit(req, res) {
         (done) => {
             PapMasterDetails.aggregate([{
                 '$match': {
-                    'isRatingCommunicated': false,
+                    'isSentToSupervisor': false,
                     'status': 'Submitted',
                     'reviewerStatus': 'Approved'
                 }
@@ -1761,6 +1847,41 @@ function getEmployeesForFeedbackInit(req, res) {
         }
     ], (err, result) => {
         sendResponse(res, err, result, 'Employees for Feedback Initiate');
+    });
+}
+
+function releaseFeedback(req, res) {
+    async.waterfall([
+        (done) => {
+            let updateQuery = {
+                "updatedAt": new Date(),
+                "updatedBy": parseInt(req.body.updatedBy),
+                "isRatingCommunicated": true,
+                'status': "Approved"
+            }
+            let updateCondition = {
+                'emp_id': {
+                    '$in': req.body.empIds
+                }
+            };
+
+            PapMasterDetails.update(updateCondition, updateQuery, (err, res) => {
+                done(err, res);
+            });
+        },
+        (PapMasterDetails, done) => {
+            AuditTrail.auditTrailEntry(
+                0,
+                "PapMasterDetails",
+                PapMasterDetails,
+                "PAP",
+                "initiateFeedback",
+                "UPDATED"
+            );
+            done(null, PapMasterDetails);
+        }
+    ], (err, result) => {
+        sendResponse(res, err, result, 'Feedback Initiated successfully');
     });
 }
 
@@ -2053,6 +2174,96 @@ function getEmployeesForGrievance(req, res) {
     });
 }
 
+
+function initGrievancePhase(req, res) {
+    async.waterfall([
+        (done) => {
+            PapMasterDetails.aggregate([
+                {
+                    $match: {
+                        "reviewerStatus": "Approved",
+                        "grievanceStatus": null,
+                        "grievanceRaiseEndDate": null,
+                        "isDeleted": false,
+                        "isSentToSupervisor": true,
+                        "isRatingCommunicated": true,
+                        "status": "Approved"
+                    }
+                },
+                {
+                    '$lookup': {
+                        'from': 'employeedetails',
+                        'localField': 'emp_id',
+                        'foreignField': '_id',
+                        'as': 'employee'
+                    }
+                },
+                {
+                    '$unwind': {
+                        'path': '$employee'
+                    }
+                },
+                {
+                    '$lookup': {
+                        'from': 'employeeofficedetails',
+                        'localField': 'emp_id',
+                        'foreignField': 'emp_id',
+                        'as': 'employeeofficedetails'
+                    }
+                },
+                {
+                    '$unwind': {
+                        'path': '$employeeofficedetails'
+                    }
+                },
+            ]).exec(function (err, data) {
+                done(null, data);
+            });
+        },
+        (papMasterData, done) => {
+            let updateQuery = {
+                "updatedAt": new Date(),
+                "updatedBy": parseInt(req.body.updatedBy),
+                "grievanceRaiseEndDate": moment(new Date()).add(2, 'days').toDate()
+            }
+
+            let updateCondition = {
+                "reviewerStatus": "Approved",
+                "grievanceStatus": null,
+                "grievanceRaiseEndDate": null,
+                "isDeleted": false,
+                "isSentToSupervisor": true,
+                "isRatingCommunicated": true,
+                "status": "Approved"
+            };
+
+            PapMasterDetails.update(updateCondition, updateQuery, (err, res) => {
+                done(err, papMasterData);
+            });
+        },
+        (papMasterData, done) => {
+            AuditTrail.auditTrailEntry(
+                0,
+                "PapMasterDetails",
+                papMasterData,
+                "PAP",
+                "initGrievancePhase",
+                "UPDATED"
+            );
+            done(null, papMasterData);
+        },
+        (papMasterData, done) => {
+            // Send Mail to all employees
+            papMasterData.forEach(pap => {
+
+            });
+            done(null, papMasterData);
+        }
+    ], (err, result) => {
+        sendResponse(res, err, result, 'Feedback Initiated successfully');
+    });
+}
+
 let functions = {
     getEmployeesForPapInitiate: (req, res) => {
         getEmployeesForPapInitiate(req, res);
@@ -2096,11 +2307,17 @@ let functions = {
     getEmployeesForFeedbackInit: (req, res) => {
         getEmployeesForFeedbackInit(req, res);
     },
+    releaseFeedback: (req, res) => {
+        releaseFeedback(req, res);
+    },
     initiateGrievance: (req, res) => {
         initiateGrievance(req, res);
     },
     getEmployeesForGrievance: (req, res) => {
         getEmployeesForGrievance(req, res);
+    },
+    initGrievancePhase: (req, res) => {
+        initGrievancePhase(req, res);
     }
 }
 
