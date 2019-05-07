@@ -678,5 +678,7 @@ module.exports = (app) => {
   dashboardRoutes.get('/empdetails', dashboard.getEmpDetails);
   dashboardRoutes.get('/mtrdetails', dashboard.germtrdetails);
   dashboardRoutes.get('/mtrempdetails', dashboard.getMtrEmpDetails);
+  dashboardRoutes.get('/learningstatus', dashboard.getLearningStatus);
+  dashboardRoutes.get('/learningempdetails', dashboard.getLearningEmpDetails);
 };
 
