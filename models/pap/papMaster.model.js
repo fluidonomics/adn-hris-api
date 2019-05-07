@@ -11,11 +11,12 @@ let PapMasterSchema = new Schema(
     mtr_master_id: { type: Number, ref: 'midtermmaster' },
     isRatingCommunicated: { type: Boolean, default: false },
     isSentToSupervisor: { type: Boolean, default: false },
-    FeedbackReleaseEndDate: { type: Date, default: null },
+    feedbackReleaseEndDate: { type: Date, default: null },
     updatedBy: { type: Number, default: null },
     createdBy: { type: Number, required: true },
     isDeleted: { type: Boolean, default: false },
     grievanceStatus: { type: String, default: null },
+    grievanceRaiseEndDate: { type: Date, default: null },
     reviewerStatus: { type: String, default: null },
     overallRating: { type: Number, default: null }
   },

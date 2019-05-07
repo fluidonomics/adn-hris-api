@@ -480,6 +480,9 @@ function getPapBatches(req, res) {
                 status: 1,
                 reviewerStatus: 1,
                 grievanceStatus: 1,
+                grievanceRaiseEndDate: 1,
+                FeedbackReleaseEndDate: 1,
+                isSentToSupervisor: 1,
                 overallRating: 1,
                 emp_details: "$emp_details"
             }
@@ -626,6 +629,9 @@ function getPapDetailsSingleEmployee(req, res) {
             "status": 1,
             "reviewerStatus": 1,
             "grievanceStatus": 1,
+            "grievanceRaiseEndDate": 1,
+            "FeedbackReleaseEndDate": 1,
+            "isSentToSupervisor": 1,
             "overallRating": 1,
             "papbatches": {
                 "_id": 1,
@@ -705,6 +711,15 @@ function getPapDetailsSingleEmployee(req, res) {
             },
             "grievanceStatus": {
                 $first: "$grievanceStatus"
+            },
+            "grievanceRaiseEndDate": {
+                $first: "$grievanceRaiseEndDate"
+            },
+            "FeedbackReleaseEndDate": {
+                $first: "$FeedbackReleaseEndDate"
+            },
+            "isSentToSupervisor": {
+                $first: "$isSentToSupervisor"
             },
             "overallRating": {
                 $first: "$overallRating"
@@ -2159,6 +2174,96 @@ function getEmployeesForGrievance(req, res) {
     });
 }
 
+
+function initGrievancePhase(req, res) {
+    async.waterfall([
+        (done) => {
+            PapMasterDetails.aggregate([
+                {
+                    $match: {
+                        "reviewerStatus": "Approved",
+                        "grievanceStatus": null,
+                        "grievanceRaiseEndDate": null,
+                        "isDeleted": false,
+                        "isSentToSupervisor": true,
+                        "isRatingCommunicated": true,
+                        "status": "Approved"
+                    }
+                },
+                {
+                    '$lookup': {
+                        'from': 'employeedetails',
+                        'localField': 'emp_id',
+                        'foreignField': '_id',
+                        'as': 'employee'
+                    }
+                },
+                {
+                    '$unwind': {
+                        'path': '$employee'
+                    }
+                },
+                {
+                    '$lookup': {
+                        'from': 'employeeofficedetails',
+                        'localField': 'emp_id',
+                        'foreignField': 'emp_id',
+                        'as': 'employeeofficedetails'
+                    }
+                },
+                {
+                    '$unwind': {
+                        'path': '$employeeofficedetails'
+                    }
+                },
+            ]).exec(function (err, data) {
+                done(null, data);
+            });
+        },
+        (papMasterData, done) => {
+            let updateQuery = {
+                "updatedAt": new Date(),
+                "updatedBy": parseInt(req.body.updatedBy),
+                "grievanceRaiseEndDate": moment(new Date()).add(2, 'days').toDate()
+            }
+
+            let updateCondition = {
+                "reviewerStatus": "Approved",
+                "grievanceStatus": null,
+                "grievanceRaiseEndDate": null,
+                "isDeleted": false,
+                "isSentToSupervisor": true,
+                "isRatingCommunicated": true,
+                "status": "Approved"
+            };
+
+            PapMasterDetails.update(updateCondition, updateQuery, (err, res) => {
+                done(err, papMasterData);
+            });
+        },
+        (papMasterData, done) => {
+            AuditTrail.auditTrailEntry(
+                0,
+                "PapMasterDetails",
+                papMasterData,
+                "PAP",
+                "initGrievancePhase",
+                "UPDATED"
+            );
+            done(null, papMasterData);
+        },
+        (papMasterData, done) => {
+            // Send Mail to all employees
+            papMasterData.forEach(pap => {
+
+            });
+            done(null, papMasterData);
+        }
+    ], (err, result) => {
+        sendResponse(res, err, result, 'Feedback Initiated successfully');
+    });
+}
+
 let functions = {
     getEmployeesForPapInitiate: (req, res) => {
         getEmployeesForPapInitiate(req, res);
@@ -2210,6 +2315,9 @@ let functions = {
     },
     getEmployeesForGrievance: (req, res) => {
         getEmployeesForGrievance(req, res);
+    },
+    initGrievancePhase: (req, res) => {
+        initGrievancePhase(req, res);
     }
 }
 
