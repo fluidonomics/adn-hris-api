@@ -2215,7 +2215,7 @@ function initGrievancePhase(req, res) {
                     '$unwind': {
                         'path': '$employeeofficedetails'
                     }
-                },
+                }
             ]).exec(function (err, data) {
                 done(null, data);
             });
@@ -2255,7 +2255,13 @@ function initGrievancePhase(req, res) {
         (papMasterData, done) => {
             // Send Mail to all employees
             papMasterData.forEach(pap => {
-
+                let data = {};
+                // data.supervisor = pap.supervisor;
+                data.emp_email = pap.employeeofficedetails.officeEmail;
+                data.emp_name = pap.employee.fullName;
+                data.action_link = req.body.action_link;
+                data.employee = pap.employee;
+                SendEmail.sendEmailToEmployeeForInitiateGreviance(data);
             });
             done(null, papMasterData);
         }
