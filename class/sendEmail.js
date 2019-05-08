@@ -825,6 +825,24 @@ let functions = {
         };
         transporter.sendMail(mailOptions, callback);
     },
+    sendEmailToEmployeeForInitiateGreviance: (data,callback) => {
+        if (data.emp_email === null || data.emp_email === "") {
+            return
+        }
+        let mailOptions = {
+            from: config.email.sendEmailToEmployeeForInitiateGreviance.from, // sender address
+            to: data.emp_email,
+            subject: config.email.sendEmailToEmployeeForInitiateGreviance.subject, // Subject line
+            template: 'email-notify-to-emp-for-initiate-greviance',
+            context: {
+                // fullName: data.supervisor.fullName,
+                appliedDate: moment(new Date()).format('L'),
+                link: data.action_link,
+                empName: data.emp_name
+            }
+        };
+        transporter.sendMail(mailOptions, callback);
+    },
     sendEmailToUserAboutLearningStatus: (data, callback) => {
         if (data.user_email === null || data.user_email === "") {
             return

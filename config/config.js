@@ -148,6 +148,10 @@ module.exports = {
     'sendEmailToSupervisorForInitiateFeedback': {
       from: '"Team HRIS" <hris@adnsl.net>',
       subject: 'Feedback Initiated'
+    },
+    'sendEmailToEmployeeForInitiateGreviance': {
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'Greviance Phase Initiated'
     }
   },
   'aws':
