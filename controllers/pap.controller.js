@@ -481,7 +481,7 @@ function getPapBatches(req, res) {
                 reviewerStatus: 1,
                 grievanceStatus: 1,
                 grievanceRaiseEndDate: 1,
-                FeedbackReleaseEndDate: 1,
+                feedbackReleaseEndDate: 1,
                 isSentToSupervisor: 1,
                 overallRating: 1,
                 emp_details: "$emp_details"
@@ -630,7 +630,7 @@ function getPapDetailsSingleEmployee(req, res) {
             "reviewerStatus": 1,
             "grievanceStatus": 1,
             "grievanceRaiseEndDate": 1,
-            "FeedbackReleaseEndDate": 1,
+            "feedbackReleaseEndDate": 1,
             "isSentToSupervisor": 1,
             "overallRating": 1,
             "papbatches": {
@@ -715,8 +715,8 @@ function getPapDetailsSingleEmployee(req, res) {
             "grievanceRaiseEndDate": {
                 $first: "$grievanceRaiseEndDate"
             },
-            "FeedbackReleaseEndDate": {
-                $first: "$FeedbackReleaseEndDate"
+            "feedbackReleaseEndDate": {
+                $first: "$feedbackReleaseEndDate"
             },
             "isSentToSupervisor": {
                 $first: "$isSentToSupervisor"
@@ -1694,7 +1694,7 @@ function initiateFeedback(req, res) {
                 "updatedAt": new Date(),
                 "updatedBy": parseInt(req.body.updatedBy),
                 "isSentToSupervisor": true,
-                "FeedbackReleaseEndDate": moment(new Date()).add(2, 'days').toDate()
+                "feedbackReleaseEndDate": moment(new Date()).add(2, 'days').toDate()
             }
             let updateCondition = {
                 'emp_id': {
@@ -2224,7 +2224,7 @@ function initGrievancePhase(req, res) {
             let updateQuery = {
                 "updatedAt": new Date(),
                 "updatedBy": parseInt(req.body.updatedBy),
-                "grievanceRaiseEndDate": moment(new Date()).add(2, 'days').toDate()
+                "grievanceRaiseEndDate": moment(req.body.grievanceEndDate)
             }
 
             let updateCondition = {
