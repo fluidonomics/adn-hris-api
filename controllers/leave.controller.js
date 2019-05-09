@@ -1311,7 +1311,7 @@ function updateSickLeaveDocumentDetails(req, res, done) {
         }
     }
 
-    LeaveApply.findOneAndUpdate(query, updateQuery, {
+    LeaveMaster.findOneAndUpdate(query, updateQuery, {
         new: true
     }, function (err, leaveApplyDetails) {
         if (err) {
@@ -4117,6 +4117,33 @@ let functions = {
                             });
                         })
                 }
+            },
+            (data, done) => {
+                let empId = req.body.emp_id;
+                EmployeeInfo.aggregate([
+                    {
+                        '$match': {
+                            _id: { $in: empId }
+                        }
+                    },
+                    {
+                        '$lookup': {
+                            'from': 'employeeofficedetails',
+                            'localField': '_id',
+                            'foreignField': 'emp_id',
+                            'as': 'employeeofficedetails'
+                        }
+                    },
+                    {
+                        '$unwind': {
+                            'path': '$employeeofficedetails'
+                        }
+                    }
+                ]).exec((err, employees) => {
+                    employees.forEach(emp => {
+                        // Send mail to employee
+                    });
+                });
             }
         ], (err, data) => {
             if (err) {
