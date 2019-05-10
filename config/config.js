@@ -152,6 +152,10 @@ module.exports = {
     'sendEmailToEmployeeForInitiateGreviance': {
       from: '"Team HRIS" <hris@adnsl.net>',
       subject: 'Greviance Phase Initiated'
+    },
+    'sendEmailToEmployeeForReleaseFeedback': {
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'Feedback Released'
     }
   },
   'aws':

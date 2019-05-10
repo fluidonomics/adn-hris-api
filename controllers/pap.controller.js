@@ -1875,13 +1875,47 @@ function releaseFeedback(req, res) {
                 "PapMasterDetails",
                 PapMasterDetails,
                 "PAP",
-                "initiateFeedback",
+                "releaseFeedback",
                 "UPDATED"
             );
             done(null, PapMasterDetails);
+        },
+        (PapMasterDetails, done) => {
+            EmployeeDetails.aggregate([
+                {
+                    $match: {
+                        '_id': {
+                            '$in': req.body.empIds
+                        }
+                    }
+                },
+                {
+                    '$lookup': {
+                        'from': 'employeeofficedetails',
+                        'localField': '_id',
+                        'foreignField': 'emp_id',
+                        'as': 'employeeofficedetails'
+                    }
+                },
+                {
+                    '$unwind': {
+                        'path': '$employeeofficedetails'
+                    }
+                },
+            ]).exec((err, employees) => {
+                employees.forEach(emp => {
+                    let data = {};
+                    data.emp_email = f.employeeofficedetails.officeEmail;
+                    data.emp_name = f.fullName;
+                    data.action_link = req.body.action_link;
+                    data.employee = f;
+                    SendEmail.sendEmailToEmployeeForReleaseFeedback(data);
+                });
+            });
+            done(null, PapMasterDetails);
         }
     ], (err, result) => {
-        sendResponse(res, err, result, 'Feedback Initiated successfully');
+        sendResponse(res, err, result, 'Feedback Released successfully');
     });
 }
 
