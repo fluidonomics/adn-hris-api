@@ -481,7 +481,7 @@ function getPapBatches(req, res) {
                 reviewerStatus: 1,
                 grievanceStatus: 1,
                 grievanceRaiseEndDate: 1,
-                FeedbackReleaseEndDate: 1,
+                feedbackReleaseEndDate: 1,
                 isSentToSupervisor: 1,
                 overallRating: 1,
                 emp_details: "$emp_details"
@@ -630,7 +630,7 @@ function getPapDetailsSingleEmployee(req, res) {
             "reviewerStatus": 1,
             "grievanceStatus": 1,
             "grievanceRaiseEndDate": 1,
-            "FeedbackReleaseEndDate": 1,
+            "feedbackReleaseEndDate": 1,
             "isSentToSupervisor": 1,
             "overallRating": 1,
             "papbatches": {
@@ -715,8 +715,8 @@ function getPapDetailsSingleEmployee(req, res) {
             "grievanceRaiseEndDate": {
                 $first: "$grievanceRaiseEndDate"
             },
-            "FeedbackReleaseEndDate": {
-                $first: "$FeedbackReleaseEndDate"
+            "feedbackReleaseEndDate": {
+                $first: "$feedbackReleaseEndDate"
             },
             "isSentToSupervisor": {
                 $first: "$isSentToSupervisor"
@@ -1694,7 +1694,7 @@ function initiateFeedback(req, res) {
                 "updatedAt": new Date(),
                 "updatedBy": parseInt(req.body.updatedBy),
                 "isSentToSupervisor": true,
-                "FeedbackReleaseEndDate": moment(new Date()).add(2, 'days').toDate()
+                "feedbackReleaseEndDate": moment(new Date()).add(2, 'days').toDate()
             }
             let updateCondition = {
                 'emp_id': {
@@ -1875,13 +1875,47 @@ function releaseFeedback(req, res) {
                 "PapMasterDetails",
                 PapMasterDetails,
                 "PAP",
-                "initiateFeedback",
+                "releaseFeedback",
                 "UPDATED"
             );
             done(null, PapMasterDetails);
+        },
+        (PapMasterDetails, done) => {
+            EmployeeDetails.aggregate([
+                {
+                    $match: {
+                        '_id': {
+                            '$in': req.body.empIds
+                        }
+                    }
+                },
+                {
+                    '$lookup': {
+                        'from': 'employeeofficedetails',
+                        'localField': '_id',
+                        'foreignField': 'emp_id',
+                        'as': 'employeeofficedetails'
+                    }
+                },
+                {
+                    '$unwind': {
+                        'path': '$employeeofficedetails'
+                    }
+                },
+            ]).exec((err, employees) => {
+                employees.forEach(emp => {
+                    let data = {};
+                    data.emp_email = f.employeeofficedetails.officeEmail;
+                    data.emp_name = f.fullName;
+                    data.action_link = req.body.action_link;
+                    data.employee = f;
+                    SendEmail.sendEmailToEmployeeForReleaseFeedback(data);
+                });
+            });
+            done(null, PapMasterDetails);
         }
     ], (err, result) => {
-        sendResponse(res, err, result, 'Feedback Initiated successfully');
+        sendResponse(res, err, result, 'Feedback Released successfully');
     });
 }
 
@@ -2224,7 +2258,7 @@ function initGrievancePhase(req, res) {
             let updateQuery = {
                 "updatedAt": new Date(),
                 "updatedBy": parseInt(req.body.updatedBy),
-                "grievanceRaiseEndDate": moment(new Date()).add(2, 'days').toDate()
+                "grievanceRaiseEndDate": moment(req.body.grievanceEndDate)
             }
 
             let updateCondition = {
@@ -2267,6 +2301,93 @@ function initGrievancePhase(req, res) {
         }
     ], (err, result) => {
         sendResponse(res, err, result, 'Feedback Initiated successfully');
+    });
+}
+
+
+function autoReleaseFeedback(req, res) {
+    async.waterfall([
+        (done) => {
+            PapMasterDetails.find({
+                "isRatingCommunicated": { $ne: true },
+                "isSentToSupervisor": true
+            }).exec((err, papMasterData) => {
+                if (err) {
+                    done(err, papMasterData);
+                }
+                else {
+                    let filtereData = papMasterData.filter(pap => {
+                        if (pap.feedbackReleaseEndDate) {
+                            if (moment(new Date()).isAfter(moment(pap.feedbackReleaseEndDate))) {
+                                return true;
+                            }
+                        }
+                        return false;
+                    });
+                    done(err, filtereData);
+                }
+            });
+        },
+        (papMasterData, done) => {
+            let updateQuery = {
+                "updatedAt": new Date(),
+                "isRatingCommunicated": true,
+                'status': "Approved"
+            }
+            let updateCondition = {
+                'emp_id': {
+                    '$in': papMasterData.map(p => p.emp_id)
+                }
+            };
+
+            PapMasterDetails.update(updateCondition, updateQuery, (err, res) => {
+                done(err, papMasterData);
+            });
+        },
+        (papMasterData, done) => {
+            EmployeeDetails.aggregate([
+                {
+                    $match: {
+                        '_id': {
+                            '$in': papMasterData.map(p => p.emp_id)
+                        }
+                    }
+                },
+                {
+                    '$lookup': {
+                        'from': 'employeeofficedetails',
+                        'localField': '_id',
+                        'foreignField': 'emp_id',
+                        'as': 'employeeofficedetails'
+                    }
+                },
+                {
+                    '$unwind': {
+                        'path': '$employeeofficedetails'
+                    }
+                },
+            ]).exec((err, employees) => {
+                employees.forEach(f => {
+                    let data = {};
+                    data.emp_email = f.employeeofficedetails.officeEmail;
+                    data.emp_name = f.fullName;
+                    data.employee = f;
+                    SendEmail.sendEmailToEmployeeForReleaseFeedback(data);
+                });
+                done(null, papMasterData);
+            });
+        }
+    ], (err, papMasterData) => {
+        if (papMasterData.length > 0) {
+            AuditTrail.auditTrailEntry(
+                0,
+                "PapMasterDetails",
+                papMasterData,
+                "PAP",
+                "autoReleaseFeedback",
+                "INITIATED"
+            );
+        }
     });
 }
 
@@ -2324,6 +2445,9 @@ let functions = {
     },
     initGrievancePhase: (req, res) => {
         initGrievancePhase(req, res);
+    },
+    autoReleaseFeedback: () => {
+        autoReleaseFeedback();
     }
 }
 

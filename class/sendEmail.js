@@ -827,7 +827,7 @@ let functions = {
         };
         transporter.sendMail(mailOptions, callback);
     },
-    sendEmailToSupervisorForInitiateFeedback: (data,callback) => {
+    sendEmailToSupervisorForInitiateFeedback: (data, callback) => {
         if (data.emp_email === null || data.emp_email === "") {
             return
         }
@@ -845,7 +845,7 @@ let functions = {
         };
         transporter.sendMail(mailOptions, callback);
     },
-    sendEmailToEmployeeForInitiateGreviance: (data,callback) => {
+    sendEmailToEmployeeForInitiateGreviance: (data, callback) => {
         if (data.emp_email === null || data.emp_email === "") {
             return
         }
@@ -881,7 +881,23 @@ let functions = {
             }
         };
         transporter.sendMail(mailOptions, callback);
-    }
+    },
+    sendEmailToEmployeeForReleaseFeedback: (data, callback) => {
+        if (data.emp_email === null || data.emp_email === "") {
+            return
+        }
+        let mailOptions = {
+            from: config.email.sendEmailToEmployeeForReleaseFeedback.from, // sender address
+            to: data.emp_email,
+            subject: config.email.sendEmailToEmployeeForReleaseFeedback.subject, // Subject line
+            template: 'email-notify-to-employee-for-release-feedback',
+            context: {
+                link: data.action_link,
+                empName: data.emp_name
+            }
+        };
+        transporter.sendMail(mailOptions, callback);
+    },
 }
 
 module.exports = functions;
