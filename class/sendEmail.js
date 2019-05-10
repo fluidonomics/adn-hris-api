@@ -789,6 +789,26 @@ let functions = {
         };
         transporter.sendMail(mailOptions, callback);
     },
+    sendEmailToEmployeeForLeaveQuota: (data, callback) => {
+        if (data.emp_email === null || data.emp_email === "") {
+            return
+        }
+        let mailOptions = {
+            from: config.email.sendEmailToEmployeeForLeaveQuota.from, // sender address
+            to: data.emp_email,
+            subject: config.email.sendEmailToEmployeeForLeaveQuota.subject, // Subject line
+            template: 'email-notify-to-emp-for-leave-quota',
+            context: {
+                fullName: data.emp_name,
+                appliedDate: moment(new Date()).format('L'),
+                link: data.action_link,
+                days: data.days,
+                leave: data.leave_type
+                // hrName: data.hr_name
+            }
+        }
+        transporter.sendMail(mailOptions, callback);
+    },
     sendEmailToSupervisorToApprovePip: (data, callback) => {
         if (data.supervisor_email === null || data.supervisor_email === "") {
             return

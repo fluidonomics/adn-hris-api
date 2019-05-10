@@ -1311,7 +1311,7 @@ function updateSickLeaveDocumentDetails(req, res, done) {
         }
     }
 
-    LeaveApply.findOneAndUpdate(query, updateQuery, {
+    LeaveMaster.findOneAndUpdate(query, updateQuery, {
         new: true
     }, function (err, leaveApplyDetails) {
         if (err) {
@@ -4117,6 +4117,50 @@ let functions = {
                             });
                         })
                 }
+            },
+            (data, innerDone) => {
+                let empId = [];
+                let leave_type = '';
+                if (req.body.leave_type == 3) {
+                    empId.push(req.body.emp_id);
+                    leave_type = 'Maternity Leave';
+                } else {
+                    empId = req.body.emp_id;
+                    leave_type = 'Special Leave';
+                }
+                EmployeeInfo.aggregate([
+                    {
+                        '$match': {
+                            _id: { $in: empId }
+                        }
+                    },
+                    {
+                        '$lookup': {
+                            'from': 'employeeofficedetails',
+                            'localField': '_id',
+                            'foreignField': 'emp_id',
+                            'as': 'employeeofficedetails'
+                        }
+                    },
+                    {
+                        '$unwind': {
+                            'path': '$employeeofficedetails'
+                        }
+                    }
+                ]).exec((err, employees) => {
+                    employees.forEach(emp => {
+                        let data = {};
+                        // data.supervisor = f.supervisor;
+                        data.emp_email = emp.employeeofficedetails.officeEmail;
+                        data.emp_name = emp.fullName;
+                        data.action_link = req.body.action_link;
+                        data.days = req.body.balance;
+                        data.leave_type = leave_type;
+                        data.employee = emp;
+                        SendEmail.sendEmailToEmployeeForLeaveQuota(data);
+                    });
+                    innerDone(err, employees);
+                });
             }
         ], (err, data) => {
             if (err) {
