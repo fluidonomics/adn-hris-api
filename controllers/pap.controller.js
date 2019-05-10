@@ -2304,6 +2304,93 @@ function initGrievancePhase(req, res) {
     });
 }
 
+
+function autoReleaseFeedback(req, res) {
+    async.waterfall([
+        (done) => {
+            PapMasterDetails.find({
+                "isRatingCommunicated": { $ne: true },
+                "isSentToSupervisor": true
+            }).exec((err, papMasterData) => {
+                if (err) {
+                    done(err, papMasterData);
+                }
+                else {
+                    let filtereData = papMasterData.filter(pap => {
+                        if (pap.feedbackReleaseEndDate) {
+                            if (moment(new Date()).isAfter(moment(pap.feedbackReleaseEndDate))) {
+                                return true;
+                            }
+                        }
+                        return false;
+                    });
+                    done(err, filtereData);
+                }
+            });
+        },
+        (papMasterData, done) => {
+            let updateQuery = {
+                "updatedAt": new Date(),
+                "isRatingCommunicated": true,
+                'status': "Approved"
+            }
+            let updateCondition = {
+                'emp_id': {
+                    '$in': papMasterData.map(p => p.emp_id)
+                }
+            };
+
+            PapMasterDetails.update(updateCondition, updateQuery, (err, res) => {
+                done(err, papMasterData);
+            });
+        },
+        (papMasterData, done) => {
+            EmployeeDetails.aggregate([
+                {
+                    $match: {
+                        '_id': {
+                            '$in': papMasterData.map(p => p.emp_id)
+                        }
+                    }
+                },
+                {
+                    '$lookup': {
+                        'from': 'employeeofficedetails',
+                        'localField': '_id',
+                        'foreignField': 'emp_id',
+                        'as': 'employeeofficedetails'
+                    }
+                },
+                {
+                    '$unwind': {
+                        'path': '$employeeofficedetails'
+                    }
+                },
+            ]).exec((err, employees) => {
+                employees.forEach(f => {
+                    let data = {};
+                    data.emp_email = f.employeeofficedetails.officeEmail;
+                    data.emp_name = f.fullName;
+                    data.employee = f;
+                    SendEmail.sendEmailToEmployeeForReleaseFeedback(data);
+                });
+                done(null, papMasterData);
+            });
+        }
+    ], (err, papMasterData) => {
+        if (papMasterData.length > 0) {
+            AuditTrail.auditTrailEntry(
+                0,
+                "PapMasterDetails",
+                papMasterData,
+                "PAP",
+                "autoReleaseFeedback",
+                "INITIATED"
+            );
+        }
+    });
+}
+
 let functions = {
     getEmployeesForPapInitiate: (req, res) => {
         getEmployeesForPapInitiate(req, res);
@@ -2358,6 +2445,9 @@ let functions = {
     },
     initGrievancePhase: (req, res) => {
         initGrievancePhase(req, res);
+    },
+    autoReleaseFeedback: () => {
+        autoReleaseFeedback();
     }
 }
 
