@@ -4118,8 +4118,16 @@ let functions = {
                         })
                 }
             },
-            (data, done) => {
-                let empId = req.body.emp_id;
+            (data, innerDone) => {
+                let empId = [];
+                let leave_type = '';
+                if (req.body.leave_type == 3) {
+                    empId.push(req.body.emp_id);
+                    leave_type = 'Maternity Leave';
+                } else {
+                    empId = req.body.emp_id;
+                    leave_type = 'Special Leave';
+                }
                 EmployeeInfo.aggregate([
                     {
                         '$match': {
@@ -4141,8 +4149,17 @@ let functions = {
                     }
                 ]).exec((err, employees) => {
                     employees.forEach(emp => {
-                        // Send mail to employee
+                        let data = {};
+                        // data.supervisor = f.supervisor;
+                        data.emp_email = emp.employeeofficedetails.officeEmail;
+                        data.emp_name = emp.fullName;
+                        data.action_link = req.body.action_link;
+                        data.days = req.body.balance;
+                        data.leave_type = leave_type;
+                        data.employee = emp;
+                        SendEmail.sendEmailToEmployeeForLeaveQuota(data);
                     });
+                    innerDone(err, employees);
                 });
             }
         ], (err, data) => {

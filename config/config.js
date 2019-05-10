@@ -137,6 +137,10 @@ module.exports = {
       from: '"Team HRIS" <hris@adnsl.net>',
       subject: 'Performance Appraisal SentBack From Reviewer'
     },
+    'sendEmailToEmployeeForLeaveQuota': {
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: "Leave Quota Provided"
+    },
     'sendMailToHrforApproval': {
       from: '"Team HRIS" <hris@adnsl.net>',
       subject: 'Performance Appraisal Of Employee Has Been Approved By Reviewer'
