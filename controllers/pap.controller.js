@@ -127,23 +127,50 @@ function getEmployeesForPapInitiate(req, res) {
         }
     },
     {
+        $group: {
+            _id: "$emp_id",
+            mtr_master_id: { $first: '$_id' },
+            emp_id: { $first: '$emp_id' },
+            userName: { $first: '$employee_details.userName' },
+            fullName: { $first: '$employee_details.fullName' },
+            grade_id: { $first: '$employee_details.grade_id' },
+            grade: { $first: '$grade' },
+            profileImage: { $first: '$employee_details.profileImage' },
+            designation_id: { $first: '$employee_details.designation_id' },
+            designationName: { $first: '$designations.designationName' },
+            department: { $first: '$department' },
+            department_id: { $first: '$employee_office_details.department_id' },
+            supervisor_id: { $first: '$employee_superviosr_details.primarySupervisorEmp_id' },
+            supervisorName: { $first: '$supervisor_details.fullName' },
+            emp_emailId: { $first: '$employee_office_details.officeEmail' },
+            hrspoc_id: { $first: '$employee_office_details.hrspoc_id' },
+            pap_master: { $push: '$pap_master' }
+        }
+    },
+    {
         $project: {
-            mtr_master_id: '$_id',
-            emp_id: '$emp_id',
-            userName: '$employee_details.userName',
-            fullName: '$employee_details.fullName',
-            grade_id: '$employee_details.grade_id',
-            grade: '$grade',
-            profileImage: '$employee_details.profileImage',
-            designation_id: '$employee_details.designation_id',
-            designationName: '$designations.designationName',
-            department: '$department',
-            department_id: '$employee_office_details.department_id',
-            supervisor_id: '$employee_superviosr_details.primarySupervisorEmp_id',
-            supervisorName: '$supervisor_details.fullName',
-            emp_emailId: '$employee_office_details.officeEmail',
-            pap_master_id: '$pap_master._id',
-            hrspoc_id: '$employee_office_details.hrspoc_id'
+            mtr_master_id: 1,
+            emp_id: 1,
+            userName: 1,
+            fullName: 1,
+            grade_id: 1,
+            grade: 1,
+            profileImage: 1,
+            designation_id: 1,
+            designationName: 1,
+            department: 1,
+            department_id: 1,
+            supervisor_id: 1,
+            supervisorName: 1,
+            emp_emailId: 1,
+            hrspoc_id: 1,
+            pap_master: {
+                $filter: {
+                    input: "$pap_master",
+                    as: "pap",
+                    cond: { $ne: ["$$pap.status", 'Terminated'] }
+                }
+            }
         }
     }
     ]).exec(function (err, response) {
@@ -160,6 +187,7 @@ function getEmployeesForPapInitiate(req, res) {
         } else {
             return res.status(200).json({
                 title: 'Data fetched successfully',
+                count: response.length,
                 result: {
                     message: response
                 }
@@ -668,6 +696,11 @@ function getPapDetailsSingleEmployee(req, res) {
                 "midtermdetails": "$midtermdetails",
                 "pap_supervisorDetails": "$pap_supervisorDetails"
             }
+        }
+    },
+    {
+        $match: {
+            "status": { $ne: 'Terminated' }
         }
     },
     {
@@ -1730,10 +1763,13 @@ function initiateFeedback(req, res) {
             let updateCondition = {
                 'emp_id': {
                     '$in': req.body.empIds
+                },
+                'status': {
+                    '$ne': 'Terminated'
                 }
             };
 
-            PapMasterDetails.update(updateCondition, updateQuery, (err, res) => {
+            PapMasterDetails.updateMany(updateCondition, updateQuery, (err, res) => {
                 done(err, res);
             });
         },
