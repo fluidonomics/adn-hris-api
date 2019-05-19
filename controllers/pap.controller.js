@@ -994,16 +994,47 @@ function papSubmit(req, res) {
 function updateBatch(req, res) {
     async.waterfall([
         (done) => {
-            let updateQuery = {
-                "updatedAt": new Date(),
-                "updatedBy": parseInt(req.body.updatedBy),
-                "batchEndDate": req.body.batchEndDate
+            if (req.body.status == 'Terminated') {
+                async.waterfall([
+                    (innerDone) => {
+                        let updateQuery = {
+                            "updatedAt": new Date(),
+                            "updatedBy": parseInt(req.body.updatedBy),
+                            "status": "Terminated"
+                        }
+                        PapBatchDetails.update({
+                            _id: parseInt(req.body._id)
+                        }, updateQuery, (err, papBatchDetails) => {
+                            innerDone(err, papBatchDetails);
+                        });
+                    },
+                    (papBatchDetails, innerDone) => {
+                        let updateQuery = {
+                            "updatedAt": new Date(),
+                            "updatedBy": parseInt(req.body.updatedBy),
+                            "status": "Terminated"
+                        };
+                        PapMasterDetails.updateMany({
+                            batch_id: parseInt(req.body._id)
+                        }, updateQuery, (err, papBatchDetails) => {
+                            innerDone(err, papBatchDetails);
+                        });
+                    }
+                ], (err, results) => {
+                    done(err, results);
+                });
+            } else {
+                let updateQuery = {
+                    "updatedAt": new Date(),
+                    "updatedBy": parseInt(req.body.updatedBy),
+                    "batchEndDate": req.body.batchEndDate
+                }
+                PapBatchDetails.update({
+                    _id: parseInt(req.body._id)
+                }, updateQuery, (err, papBatchDetails) => {
+                    done(err, papBatchDetails);
+                });
             }
-            PapBatchDetails.update({
-                _id: parseInt(req.body._id)
-            }, updateQuery, (err, papBatchDetails) => {
-                done(err, papBatchDetails);
-            })
         },
         (papBatchDetails, done) => {
             AuditTrail.auditTrailEntry(
