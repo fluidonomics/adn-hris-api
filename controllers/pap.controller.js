@@ -127,23 +127,50 @@ function getEmployeesForPapInitiate(req, res) {
         }
     },
     {
+        $group: {
+            _id: "$emp_id",
+            mtr_master_id: { $first: '$_id' },
+            emp_id: { $first: '$emp_id' },
+            userName: { $first: '$employee_details.userName' },
+            fullName: { $first: '$employee_details.fullName' },
+            grade_id: { $first: '$employee_details.grade_id' },
+            grade: { $first: '$grade' },
+            profileImage: { $first: '$employee_details.profileImage' },
+            designation_id: { $first: '$employee_details.designation_id' },
+            designationName: { $first: '$designations.designationName' },
+            department: { $first: '$department' },
+            department_id: { $first: '$employee_office_details.department_id' },
+            supervisor_id: { $first: '$employee_superviosr_details.primarySupervisorEmp_id' },
+            supervisorName: { $first: '$supervisor_details.fullName' },
+            emp_emailId: { $first: '$employee_office_details.officeEmail' },
+            hrspoc_id: { $first: '$employee_office_details.hrspoc_id' },
+            pap_master: { $push: '$pap_master' }
+        }
+    },
+    {
         $project: {
-            mtr_master_id: '$_id',
-            emp_id: '$emp_id',
-            userName: '$employee_details.userName',
-            fullName: '$employee_details.fullName',
-            grade_id: '$employee_details.grade_id',
-            grade: '$grade',
-            profileImage: '$employee_details.profileImage',
-            designation_id: '$employee_details.designation_id',
-            designationName: '$designations.designationName',
-            department: '$department',
-            department_id: '$employee_office_details.department_id',
-            supervisor_id: '$employee_superviosr_details.primarySupervisorEmp_id',
-            supervisorName: '$supervisor_details.fullName',
-            emp_emailId: '$employee_office_details.officeEmail',
-            pap_master_id: '$pap_master._id',
-            hrspoc_id: '$employee_office_details.hrspoc_id'
+            mtr_master_id: 1,
+            emp_id: 1,
+            userName: 1,
+            fullName: 1,
+            grade_id: 1,
+            grade: 1,
+            profileImage: 1,
+            designation_id: 1,
+            designationName: 1,
+            department: 1,
+            department_id: 1,
+            supervisor_id: 1,
+            supervisorName: 1,
+            emp_emailId: 1,
+            hrspoc_id: 1,
+            pap_master: {
+                $filter: {
+                    input: "$pap_master",
+                    as: "pap",
+                    cond: { $ne: ["$$pap.status", 'Terminated'] }
+                }
+            }
         }
     }
     ]).exec(function (err, response) {
@@ -160,6 +187,7 @@ function getEmployeesForPapInitiate(req, res) {
         } else {
             return res.status(200).json({
                 title: 'Data fetched successfully',
+                count: response.length,
                 result: {
                     message: response
                 }
@@ -671,6 +699,11 @@ function getPapDetailsSingleEmployee(req, res) {
         }
     },
     {
+        $match: {
+            "status": { $ne: 'Terminated' }
+        }
+    },
+    {
         '$group': {
             "_id": "$_id",
             "updatedAt": {
@@ -994,16 +1027,47 @@ function papSubmit(req, res) {
 function updateBatch(req, res) {
     async.waterfall([
         (done) => {
-            let updateQuery = {
-                "updatedAt": new Date(),
-                "updatedBy": parseInt(req.body.updatedBy),
-                "batchEndDate": req.body.batchEndDate
+            if (req.body.status == 'Terminated') {
+                async.waterfall([
+                    (innerDone) => {
+                        let updateQuery = {
+                            "updatedAt": new Date(),
+                            "updatedBy": parseInt(req.body.updatedBy),
+                            "status": "Terminated"
+                        }
+                        PapBatchDetails.update({
+                            _id: parseInt(req.body._id)
+                        }, updateQuery, (err, papBatchDetails) => {
+                            innerDone(err, papBatchDetails);
+                        });
+                    },
+                    (papBatchDetails, innerDone) => {
+                        let updateQuery = {
+                            "updatedAt": new Date(),
+                            "updatedBy": parseInt(req.body.updatedBy),
+                            "status": "Terminated"
+                        };
+                        PapMasterDetails.updateMany({
+                            batch_id: parseInt(req.body._id)
+                        }, updateQuery, (err, papBatchDetails) => {
+                            innerDone(err, papBatchDetails);
+                        });
+                    }
+                ], (err, results) => {
+                    done(err, results);
+                });
+            } else {
+                let updateQuery = {
+                    "updatedAt": new Date(),
+                    "updatedBy": parseInt(req.body.updatedBy),
+                    "batchEndDate": req.body.batchEndDate
+                }
+                PapBatchDetails.update({
+                    _id: parseInt(req.body._id)
+                }, updateQuery, (err, papBatchDetails) => {
+                    done(err, papBatchDetails);
+                });
             }
-            PapBatchDetails.update({
-                _id: parseInt(req.body._id)
-            }, updateQuery, (err, papBatchDetails) => {
-                done(err, papBatchDetails);
-            })
         },
         (papBatchDetails, done) => {
             AuditTrail.auditTrailEntry(
@@ -1699,10 +1763,13 @@ function initiateFeedback(req, res) {
             let updateCondition = {
                 'emp_id': {
                     '$in': req.body.empIds
+                },
+                'status': {
+                    '$ne': 'Terminated'
                 }
             };
 
-            PapMasterDetails.update(updateCondition, updateQuery, (err, res) => {
+            PapMasterDetails.updateMany(updateCondition, updateQuery, (err, res) => {
                 done(err, res);
             });
         },
@@ -2391,6 +2458,96 @@ function autoReleaseFeedback(req, res) {
     });
 }
 
+function getAllPap(req, res) {
+    async.waterfall([
+        (done) => {
+            PapMasterDetails.aggregate([
+                {
+                    '$lookup': {
+                        'from': 'papdetails',
+                        'localField': '_id',
+                        'foreignField': 'pap_master_id',
+                        'as': 'papdetails'
+                    }
+                },
+                {
+                    '$unwind': {
+                        'path': '$papdetails'
+                    }
+                },
+                {
+                    '$lookup': {
+                        'from': 'employeedetails',
+                        'localField': 'emp_id',
+                        'foreignField': '_id',
+                        'as': 'employeedetails'
+                    }
+                },
+                {
+                    '$unwind': {
+                        'path': '$employeedetails'
+                    }
+                },
+                {
+                    '$lookup': {
+                        'from': 'employeeofficedetails',
+                        'localField': 'emp_id',
+                        'foreignField': '_id',
+                        'as': 'employeeofficedetails'
+                    }
+                },
+                {
+                    '$unwind': {
+                        'path': '$employeeofficedetails'
+                    }
+                },
+                {
+                    '$lookup': {
+                        'from': 'designations',
+                        'localField': 'employeedetails.designation_id',
+                        'foreignField': '_id',
+                        'as': 'designations'
+                    }
+                },
+                {
+                    '$unwind': {
+                        'path': '$designations'
+                    }
+                },
+                {
+                    '$group': {
+                        '_id': '$_id',
+                        "updatedAt": { $first: '$updatedAt' },
+                        "createdAt": { $first: '$createdAt' },
+                        "createdBy": { $first: '$createdBy' },
+                        "emp_id": { $first: '$emp_id' },
+                        "batch_id": { $first: '$batch_id' },
+                        "mtr_master_id": { $first: '$mtr_master_id' },
+                        "overallRating": { $first: '$overallRating' },
+                        "reviewerStatus": { $first: '$reviewerStatus' },
+                        "grievanceRaiseEndDate": { $first: '$grievanceRaiseEndDate' },
+                        "grievanceStatus": { $first: '$grievanceStatus' },
+                        "isDeleted": { $first: '$isDeleted' },
+                        "updatedBy": { $first: '$updatedBy' },
+                        "feedbackReleaseEndDate": { $first: '$feedbackReleaseEndDate' },
+                        "isSentToSupervisor": { $first: '$isSentToSupervisor' },
+                        "isRatingCommunicated": { $first: '$isRatingCommunicated' },
+                        "status": { $first: '$status' },
+                        "employeedetails": { $first: '$employeedetails' },
+                        "employeeofficedetails": { $first: '$employeeofficedetails' },
+                        "designations": { $first: '$designations' },
+                        "papdetails": { $push: '$papdetails' },
+                    }
+                }
+            ]).exec((err, result) => {
+                done(err, result);
+            })
+        }
+    ], (err, result) => {
+        sendResponse(res, err, result, 'Employees for Feedback Initiate');
+    });
+}
+
 let functions = {
     getEmployeesForPapInitiate: (req, res) => {
         getEmployeesForPapInitiate(req, res);
@@ -2448,6 +2605,9 @@ let functions = {
     },
     autoReleaseFeedback: () => {
         autoReleaseFeedback();
+    },
+    getAllPap: (req, res) => {
+        getAllPap(req, res);
     }
 }
 
