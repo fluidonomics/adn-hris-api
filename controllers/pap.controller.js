@@ -2458,6 +2458,96 @@ function autoReleaseFeedback(req, res) {
     });
 }
 
+function getAllPap(req, res) {
+    async.waterfall([
+        (done) => {
+            PapMasterDetails.aggregate([
+                {
+                    '$lookup': {
+                        'from': 'papdetails',
+                        'localField': '_id',
+                        'foreignField': 'pap_master_id',
+                        'as': 'papdetails'
+                    }
+                },
+                {
+                    '$unwind': {
+                        'path': '$papdetails'
+                    }
+                },
+                {
+                    '$lookup': {
+                        'from': 'employeedetails',
+                        'localField': 'emp_id',
+                        'foreignField': '_id',
+                        'as': 'employeedetails'
+                    }
+                },
+                {
+                    '$unwind': {
+                        'path': '$employeedetails'
+                    }
+                },
+                {
+                    '$lookup': {
+                        'from': 'employeeofficedetails',
+                        'localField': 'emp_id',
+                        'foreignField': '_id',
+                        'as': 'employeeofficedetails'
+                    }
+                },
+                {
+                    '$unwind': {
+                        'path': '$employeeofficedetails'
+                    }
+                },
+                {
+                    '$lookup': {
+                        'from': 'designations',
+                        'localField': 'employeedetails.designation_id',
+                        'foreignField': '_id',
+                        'as': 'designations'
+                    }
+                },
+                {
+                    '$unwind': {
+                        'path': '$designations'
+                    }
+                },
+                {
+                    '$group': {
+                        '_id': '$_id',
+                        "updatedAt": { $first: '$updatedAt' },
+                        "createdAt": { $first: '$createdAt' },
+                        "createdBy": { $first: '$createdBy' },
+                        "emp_id": { $first: '$emp_id' },
+                        "batch_id": { $first: '$batch_id' },
+                        "mtr_master_id": { $first: '$mtr_master_id' },
+                        "overallRating": { $first: '$overallRating' },
+                        "reviewerStatus": { $first: '$reviewerStatus' },
+                        "grievanceRaiseEndDate": { $first: '$grievanceRaiseEndDate' },
+                        "grievanceStatus": { $first: '$grievanceStatus' },
+                        "isDeleted": { $first: '$isDeleted' },
+                        "updatedBy": { $first: '$updatedBy' },
+                        "feedbackReleaseEndDate": { $first: '$feedbackReleaseEndDate' },
+                        "isSentToSupervisor": { $first: '$isSentToSupervisor' },
+                        "isRatingCommunicated": { $first: '$isRatingCommunicated' },
+                        "status": { $first: '$status' },
+                        "employeedetails": { $first: '$employeedetails' },
+                        "employeeofficedetails": { $first: '$employeeofficedetails' },
+                        "designations": { $first: '$designations' },
+                        "papdetails": { $push: '$papdetails' },
+                    }
+                }
+            ]).exec((err, result) => {
+                done(err, result);
+            })
+        }
+    ], (err, result) => {
+        sendResponse(res, err, result, 'Employees for Feedback Initiate');
+    });
+}
+
 let functions = {
     getEmployeesForPapInitiate: (req, res) => {
         getEmployeesForPapInitiate(req, res);
@@ -2515,6 +2605,9 @@ let functions = {
     },
     autoReleaseFeedback: () => {
         autoReleaseFeedback();
+    },
+    getAllPap: (req, res) => {
+        getAllPap(req, res);
     }
 }
 

@@ -689,7 +689,8 @@ let functions = {
                 appliedDate: moment(new Date()).format('L'),
                 link: data.action_link,
                 reviewerName: data.reviewer.fullName,
-                supervisorName: data.supervisor.fullName
+                supervisorName: data.supervisor.fullName,
+                employeeName: data.emp_name
             }
         };
         transporter.sendMail(mailOptions, callback);
