@@ -3,7 +3,9 @@ let Role = require("../models/master/role.model"),
     EmpOfficedetails = require("../models/employee/employeeOfficeDetails.model"),
     MidTermMaster = require("../models/midterm/midtermmaster"),
     KraWorkflowDetails = require("../models/kra/kraWorkFlowDetails.model"),
-    LearningMaster = require("../models/learning/learningmaster");
+    LearningMaster = require("../models/learning/learningmaster"),
+    EmployeeDetails = require("../models/employee/employeeDetails.model"),
+    EmployeePersonalDetails = require("../models/employee/employeePersonalDetails.model");
 
 
 
@@ -25,7 +27,7 @@ let Role = require("../models/master/role.model"),
                     "hr_count" : [
                         {
                             "$match" : {
-                                "role_id" : 6.0
+                                $and: [{"role_id" : 2.0}, {"role_id" : {$ne: 6.0}}]
                             }
                         }, 
                         {
@@ -327,6 +329,7 @@ let Role = require("../models/master/role.model"),
                     "foreignField": "_id",
                     "as": "employees"
                 }
+                
             },
             {
                 "$unwind": {
@@ -939,6 +942,93 @@ let Role = require("../models/master/role.model"),
           });
     }
 
+    function getEmployeeAge(req, res) {
+
+        // EmployeeDetails.aggregate([
+
+        //     { $count: "emp_count" },
+        //     {
+        //         "$lookup": {
+        //             "from": "employeepersonaldetails",
+        //             "localField": "_id",
+        //             "foreignField": "emp_id",
+        //             "as": "updatedetails"
+        //         }
+        //     },
+        // ])
+        // const age = 9;
+        // EmployeePersonalDetails.aggregate([
+
+            // {
+            //     "$match" : {
+            //         // "status" : "Initiated"
+            //     //  "$gt": [{ "$subtract": ["dob", new Date()]}, 12]
+            //     {$subtract: ["dob", new Date()]}: {$gte: 6}
+            //     }
+            // }, 
+            // {
+            //     "$count" : "init_count"
+        //     // }
+        // ])
+        // .exec(function (err, data) {
+        //     if (err) {
+        //       return res.status(403).json({
+        //         title: "There was a Problem",
+        //         error: {
+        //           message: err
+        //         },
+        //         result: {
+        //           message: data
+        //         }
+        
+        //       });
+        //     } else {
+        //       return res.status(200).json({
+        //         title: "Learning emp details count",
+        //         result: {
+        //           message: data
+        //         }
+        //       });
+        //     }
+        
+        //   });
+    }
+
+    function getEmpCountByGrades(req, res) {
+
+        EmployeeDetails.aggregate([
+            { "$lookup": {
+                "from": "grades",
+                "localField": "grade_id",
+                "foreignField": "_id",
+                "as": "gradeinfo"
+              }},
+            {"$group" : {_id:"$grade_id", count: {$sum:1}, gradeName: {$first: "$gradeinfo.gradeName"}}}
+            
+        ]).exec(function (err, data) {
+            if (err) {
+              return res.status(403).json({
+                title: "There was a Problem",
+                error: {
+                  message: err
+                },
+                result: {
+                  message: data
+                }
+        
+              });
+            } else {
+              return res.status(200).json({
+                title: "Emp grades count",
+                result: {
+                  message: data
+                }
+              });
+            }
+        
+          });
+    }
+
     let functions = {
 
         getHrEmpratio: (req, res) => {
@@ -972,6 +1062,14 @@ let Role = require("../models/master/role.model"),
         getLearningEmpDetails: (req, res) => {
 
             getLearningEmpDetail(req, res);
+        },
+        getEmpAge: (req, res) => {
+
+            getEmployeeAge(req, res);
+        },
+        getEmpCountByGrade: (req, res) => {
+
+            getEmpCountByGrades(req, res);
         }
     }
 
