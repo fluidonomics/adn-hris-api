@@ -1002,7 +1002,7 @@ let Role = require("../models/master/role.model"),
                 "localField": "grade_id",
                 "foreignField": "_id",
                 "as": "gradeinfo"
-              }},
+            }},
             {"$group" : {_id:"$grade_id", count: {$sum:1}, gradeName: {$first: "$gradeinfo.gradeName"}}}
             
         ]).exec(function (err, data) {
@@ -1020,6 +1020,67 @@ let Role = require("../models/master/role.model"),
             } else {
               return res.status(200).json({
                 title: "Emp grades count",
+                result: {
+                  message: data
+                }
+              });
+            }
+        
+          });
+    }
+
+    function getEmpInfosAndGrade(req, res) {
+
+        EmployeeDetails.aggregate([
+
+            { "$lookup": {
+                "from": "grades",
+                "localField": "grade_id",
+                "foreignField": "_id",
+                "as": "gradeinfo"
+            }},
+            {
+                "$unwind": {
+                    "path": "$gradeinfo", "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "designations",
+                    "localField": "designation_id",
+                    "foreignField": "_id",
+                    "as": "designation"
+                }
+            },
+            {
+                "$unwind": {
+                    "path": "$designation", "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                "$project": {
+                    "empName": "$fullName",
+                    "empId": "$userName",
+                    "gradeName": "$gradeinfo.gradeName",
+                    "designation": "$designation.designationName"
+
+                }
+            }
+        ]).exec(function (err, data) {
+            if (err) {
+              return res.status(403).json({
+                title: "There was a Problem",
+                error: {
+                  message: err
+                },
+                result: {
+                  message: data
+                }
+        
+              });
+            } else {
+              return res.status(200).json({
+                title: "Emp grades details",
                 result: {
                   message: data
                 }
@@ -1070,6 +1131,10 @@ let Role = require("../models/master/role.model"),
         getEmpCountByGrade: (req, res) => {
 
             getEmpCountByGrades(req, res);
+        },
+        getEmpInfoAndGrade: (req, res) => {
+
+            getEmpInfosAndGrade(req, res);
         }
     }
 
