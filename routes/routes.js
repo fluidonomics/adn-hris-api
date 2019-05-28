@@ -654,6 +654,7 @@ module.exports = (app) => {
   papRoutes.get('/getEmployeesForPapInitiate', pap.getEmployeesForPapInitiate);
   papRoutes.post('/initiatePapProcess', pap.initiatePapProcess);
   papRoutes.get('/getPapBatches', pap.getPapBatches);
+  papRoutes.post('/terminatePap', pap.terminatePap);
   papRoutes.get('/getPapDetailsSingleEmployee', pap.getPapDetailsSingleEmployee);
   papRoutes.get('/getPapBySupervisor', pap.getPapBySupervisor);
   papRoutes.get('/getPapByReviewer', pap.getPapByReviewer);

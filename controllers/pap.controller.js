@@ -560,6 +560,15 @@ function getPapBatches(req, res) {
                 }
             });
         } else {
+            if (req.query.empName && req.query.empName != "") {
+                response.forEach(batch => {
+                    batch.pap_master = batch.pap_master.filter(pap => {
+                        let regex = new RegExp(".*" + req.query.empName + ".*", "i");
+                        let result = regex.test(pap.emp_details.fullName);
+                        return result;
+                    });
+                });
+            }
             return res.status(200).json({
                 title: 'Data fetched successfully',
                 result: {
@@ -568,6 +577,42 @@ function getPapBatches(req, res) {
             });
         }
     });
+}
+
+function terminatePap(req, res) {
+    async.waterfall([
+        (done) => {
+            async.waterfall([
+                (innerDone) => {
+                    let updateQuery = {
+                        "updatedAt": new Date(),
+                        "updatedBy": parseInt(req.body.updatedBy),
+                        "status": "Terminated"
+                    };
+                    PapMasterDetails.update({
+                        _id: parseInt(req.body._id)
+                    }, updateQuery, (err, papData) => {
+                        innerDone(err, papData);
+                    });
+                }
+            ], (err, results) => {
+                done(err, results);
+            });
+        },
+        (papData, done) => {
+            AuditTrail.auditTrailEntry(
+                0,
+                "PapMasterDetails",
+                req.body,
+                "PAP",
+                "terminatePap",
+                "UPDATED"
+            );
+            done(null, papData);
+        }
+    ], (err, results) => {
+        sendResponse(res, err, results, 'Pap Terminated successfully');
+    })
 }
 
 function getPapDetailsSingleEmployee(req, res) {
@@ -1304,6 +1349,8 @@ function papUpdateReviewer(req, res) {
                         innerDone(err, papMaster);
                     };
                     sendMailToHrforApproval(data.papDetail.pap_master_id);
+                    sendMailToSupervisorforApproval(data.papDetail.pap_master_id);
+                    sendMailToEmployeeforApproval(data.papDetail.pap_master_id);
                     innerDone(err, data);
                 });
             } else if (sendBackCount > 0) {
@@ -1450,6 +1497,103 @@ function sendMailToHrforApproval(pap_master_id) {
         result = result[0];
         if (result) {
             SendEmail.sendMailToHrforApproval(result);
+        }
+    });
+}
+
+// Send mail to hr for feedback init when reviewer approves pap.
+function sendMailToSupervisorforApproval(pap_master_id) {
+    PapDetails.aggregate([
+        {
+            $match: {
+                pap_master_id: pap_master_id
+            }
+        },
+        {
+            $lookup: {
+                from: 'employeedetails',
+                localField: 'emp_id',
+                foreignField: '_id',
+                as: 'employee'
+            }
+        },
+        {
+            $unwind: {
+                path: '$employee'
+            }
+        },
+        {
+            $lookup: {
+                from: 'employeedetails',
+                localField: 'supervisor_id',
+                foreignField: '_id',
+                as: 'supervisor'
+            }
+        },
+        {
+            $unwind: {
+                path: '$supervisor'
+            }
+        },
+        {
+            $lookup: {
+                from: 'employeeofficedetails',
+                localField: 'supervisor_id',
+                foreignField: 'emp_id',
+                as: 'supervisorOfficeDetails'
+            }
+        },
+        {
+            $unwind: {
+                path: '$supervisorOfficeDetails'
+            }
+        }
+    ]).exec((err, result) => {
+        result = result[0];
+        if (result) {
+            SendEmail.sendMailToSupervisorforApproval(result);
+        }
+    });
+}
+
+// Send mail to hr for feedback init when reviewer approves pap.
+function sendMailToEmployeeforApproval(pap_master_id) {
+    PapMasterDetails.aggregate([
+        {
+            $match: {
+                _id: pap_master_id
+            }
+        },
+        {
+            $lookup: {
+                from: 'employeedetails',
+                localField: 'emp_id',
+                foreignField: '_id',
+                as: 'employee'
+            }
+        },
+        {
+            $unwind: {
+                path: '$employee'
+            }
+        },
+        {
+            $lookup: {
+                from: 'employeeofficedetails',
+                localField: 'emp_id',
+                foreignField: 'emp_id',
+                as: 'employeeofficedetails'
+            }
+        },
+        {
+            $unwind: {
+                path: '$employeeofficedetails'
+            }
+        }
+    ]).exec((err, result) => {
+        result = result[0];
+        if (result) {
+            SendEmail.sendMailToEmployeeforApproval(result);
         }
     });
 }
@@ -2557,6 +2701,9 @@ let functions = {
     },
     getPapBatches: (req, res) => {
         getPapBatches(req, res);
+    },
+    terminatePap: (req, res) => {
+        terminatePap(req, res);
     },
     getPapDetailsSingleEmployee: (req, res) => {
         getPapDetailsSingleEmployee(req, res);
