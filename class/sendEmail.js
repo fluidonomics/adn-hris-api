@@ -471,6 +471,41 @@ let functions = {
         };
         transporter.sendMail(mailOptions, callback);
     },
+    sendMailToSupervisorforApproval: (data, callback) => {
+        if (data.supervisorOfficeDetails.officeEmail === null || data.supervisorOfficeDetails.officeEmail === "") {
+            return
+        }
+        let mailOptions = {
+            from: config.email.sendMailToHrforApproval.from, // sender address
+            to: data.supervisorOfficeDetails.officeEmail,
+            subject: config.email.sendMailToHrforApproval.subject, // Subject line
+            template: 'email-notify-to-spvsr-for-pap-approved',
+            context: {
+                supervisorName: data.supervisor.fullName,
+                appliedDate: moment(new Date()).format('L'),
+                link: data.action_link,
+                empName: data.employee.fullName
+            }
+        };
+        transporter.sendMail(mailOptions, callback);
+    },
+    sendMailToEmployeeforApproval: (data, callback) => {
+        if (data.employeeofficedetails.officeEmail === null || data.employeeofficedetails.officeEmail === "") {
+            return
+        }
+        let mailOptions = {
+            from: config.email.sendMailToHrforApproval.from, // sender address
+            to: data.employeeofficedetails.officeEmail,
+            subject: config.email.sendMailToHrforApproval.subject, // Subject line
+            template: 'email-notify-to-emp-for-pap-approved',
+            context: {
+                appliedDate: moment(new Date()).format('L'),
+                link: data.action_link,
+                empName: data.employee.fullName
+            }
+        };
+        transporter.sendMail(mailOptions, callback);
+    },
     sendMailForGrievance: (data, callback) => {
         if (data.supervisorOfficedetails.officeEmail != null && data.supervisorOfficedetails.officeEmail != "") {
             let mailOptions = {
@@ -482,7 +517,8 @@ let functions = {
                     fullName: data.supervisor.fullName,
                     appliedDate: moment(new Date()).format('L'),
                     link: data.action_link,
-                    empName: data.fullName
+                    empName: data.fullName,
+                    grievanceRaiseEndDate: moment(data.grievanceRaiseEndDate).format('L')
                 }
             };
             transporter.sendMail(mailOptions, callback);
