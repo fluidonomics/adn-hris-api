@@ -518,7 +518,7 @@ let functions = {
                     appliedDate: moment(new Date()).format('L'),
                     link: data.action_link,
                     empName: data.fullName,
-                    grievanceRaiseEndDate: moment(data.grievanceRaiseEndDate).format('L')
+                    grievanceRaiseEndDate: moment(data.hr.grievanceRaiseEndDate).format('L')
                 }
             };
             transporter.sendMail(mailOptions, callback);
@@ -533,7 +533,8 @@ let functions = {
                     fullName: data.reviewer.fullName,
                     appliedDate: moment(new Date()).format('L'),
                     link: data.action_link,
-                    empName: data.fullName
+                    empName: data.fullName,
+                    grievanceRaiseEndDate: moment(data.hr.grievanceRaiseEndDate).format('L')
                 }
             };
             transporter.sendMail(mailOptions, callback);
@@ -548,7 +549,8 @@ let functions = {
                     fullName: data.businessHrHead.fullName,
                     appliedDate: moment(new Date()).format('L'),
                     link: data.action_link,
-                    empName: data.fullName
+                    empName: data.fullName,
+                    grievanceRaiseEndDate: moment(data.hr.grievanceRaiseEndDate).format('L')
                 }
             };
             transporter.sendMail(mailOptions, callback);
@@ -563,7 +565,8 @@ let functions = {
                     fullName: data.hr.hr.fullName,
                     appliedDate: moment(new Date()).format('L'),
                     link: data.action_link,
-                    empName: data.fullName
+                    empName: data.fullName,
+                    grievanceRaiseEndDate: moment(data.hr.grievanceRaiseEndDate).format('L')
                 }
             };
             transporter.sendMail(mailOptions, callback);
@@ -935,6 +938,22 @@ let functions = {
         };
         transporter.sendMail(mailOptions, callback);
     },
+    sendEmailToEmployeeForPapTerminate: (data, callback) => {
+        if (data.emp_email === null || data.emp_email === "") {
+            return
+        }
+        let mailOptions = {
+            from: config.email.sendEmailToEmployeeForPapTerminate.from, // sender address
+            to: data.emp_email,
+            subject: config.email.sendEmailToEmployeeForPapTerminate.subject, // Subject line
+            template: 'email-notify-to-employee-for-pap-terminate',
+            context: {
+                link: data.action_link,
+                empName: data.emp_name
+            }
+        };
+        transporter.sendMail(mailOptions, callback);
+    }
 }
 
 module.exports = functions;
