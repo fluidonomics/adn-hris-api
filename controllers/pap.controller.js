@@ -563,9 +563,11 @@ function getPapBatches(req, res) {
             if (req.query.empName && req.query.empName != "") {
                 response.forEach(batch => {
                     batch.pap_master = batch.pap_master.filter(pap => {
-                        let regex = new RegExp(".*" + req.query.empName + ".*", "i");
-                        let result = regex.test(pap.emp_details.fullName);
-                        return result;
+                        let fullnameRegex = new RegExp(".*" + req.query.empName + ".*", "i");
+                        let fullNameResult = fullnameRegex.test(pap.emp_details.fullName);
+                        let usernameRegex = new RegExp(".*" + req.query.empName + ".*", "i");
+                        let usernameResult = usernameRegex.test(pap.emp_details.userName);
+                        return fullNameResult || usernameResult;
                     });
                 });
             }
@@ -609,6 +611,36 @@ function terminatePap(req, res) {
                 "UPDATED"
             );
             done(null, papData);
+        },
+        (papDate, done) => {
+            PapMasterDetails.aggregate([
+                {
+                    $match: {
+                        _id: req.body._id
+                    }
+                },
+                {
+                    '$lookup': {
+                        'from': 'employeedetails',
+                        'localField': 'emp_id',
+                        'foreignField': '_id',
+                        'as': 'employee'
+                    }
+                },
+                {
+                    '$lookup': {
+                        'from': 'employeeofficedetails',
+                        'localField': 'emp_id',
+                        'foreignField': 'emp_id',
+                        'as': 'employeeofficedetails'
+                    }
+                }
+            ]).exec((err, papData) => {
+                let data = {};
+                data.emp_email = papData[0].employeeofficedetails[0].officeEmail;
+                data.emp_name = papData[0].employee[0].fullName;
+                SendEmail.sendEmailToEmployeeForPapTerminate(data);
+            });
         }
     ], (err, results) => {
         sendResponse(res, err, results, 'Pap Terminated successfully');
@@ -2114,7 +2146,7 @@ function releaseFeedback(req, res) {
                     }
                 },
             ]).exec((err, employees) => {
-                employees.forEach(emp => {
+                employees.forEach(f => {
                     let data = {};
                     data.emp_email = f.employeeofficedetails.officeEmail;
                     data.emp_name = f.fullName;

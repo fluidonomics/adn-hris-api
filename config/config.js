@@ -160,6 +160,10 @@ module.exports = {
     'sendEmailToEmployeeForReleaseFeedback': {
       from: '"Team HRIS" <hris@adnsl.net>',
       subject: 'Feedback Released'
+    },
+    'sendEmailToEmployeeForPapTerminate': {
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'PAP Terminated'
     }
   },
   'aws':
