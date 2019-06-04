@@ -943,55 +943,42 @@ let Role = require("../models/master/role.model"),
     }
 
     function getEmployeeAge(req, res) {
+        let emp = 36;
 
-        // EmployeeDetails.aggregate([
-
-        //     { $count: "emp_count" },
-        //     {
-        //         "$lookup": {
-        //             "from": "employeepersonaldetails",
-        //             "localField": "_id",
-        //             "foreignField": "emp_id",
-        //             "as": "updatedetails"
-        //         }
-        //     },
-        // ])
-        // const age = 9;
-        // EmployeePersonalDetails.aggregate([
-
-            // {
-            //     "$match" : {
-            //         // "status" : "Initiated"
-            //     //  "$gt": [{ "$subtract": ["dob", new Date()]}, 12]
-            //     {$subtract: ["dob", new Date()]}: {$gte: 6}
-            //     }
-            // }, 
-            // {
-            //     "$count" : "init_count"
-        //     // }
-        // ])
-        // .exec(function (err, data) {
-        //     if (err) {
-        //       return res.status(403).json({
-        //         title: "There was a Problem",
-        //         error: {
-        //           message: err
-        //         },
-        //         result: {
-        //           message: data
-        //         }
+        EmployeePersonalDetails.aggregate([
+            
+            {
+                "$match" : {
+                    $expr:{ $and: [{"$gt":[{"$subtract":[new Date(), "$dob"]}, 1000*60*60*24*365*59]}, {"$lt":[{"$subtract":[new Date(), "$dob"]}, 1000*60*60*24*365*60]}]}
+                }
+            },
+            {
+                $count: "retire"
+            }
+           
+        ]).exec(function (err, data) {
+            if (err) {
+              return res.status(403).json({
+                title: "There was a Problem",
+                error: {
+                  message: err
+                },
+                result: {
+                  message: data
+                }
         
-        //       });
-        //     } else {
-        //       return res.status(200).json({
-        //         title: "Learning emp details count",
-        //         result: {
-        //           message: data
-        //         }
-        //       });
-        //     }
+              });
+            } else {
+              return res.status(200).json({
+                title: "count of emp older than 59 Years",
+                result: {
+                  message: data
+                }
+              });
+            }
         
-        //   });
+          });
+        
     }
 
     function getEmpCountByGrades(req, res) {
