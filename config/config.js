@@ -164,7 +164,15 @@ module.exports = {
     'sendEmailToEmployeeForPapTerminate': {
       from: '"Team HRIS" <hris@adnsl.net>',
       subject: 'PAP Terminated'
-    }
+    },
+    'sendEmailToSupervisorForInitiateGrievanceFeedback': {
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'Grievance Feedback Initiated'
+    },
+    'sendEmailToEmployeeForGrievanceReleaseFeedback': {
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'Grievance Feedback Released'
+    },
   },
   'aws':
   {

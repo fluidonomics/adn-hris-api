@@ -18,7 +18,10 @@ let PapMasterSchema = new Schema(
     grievanceStatus: { type: String, default: null },
     grievanceRaiseEndDate: { type: Date, default: null },
     reviewerStatus: { type: String, default: null },
-    overallRating: { type: Number, default: null }
+    overallRating: { type: Number, default: null },
+    isGrievanceFeedbackSentToSupervisor: { type: Boolean, default: false },
+    grievanceFeedbackReleaseEndDate: { type: Date, default: null },
+    isGrievanceFeedbackReleased: { type: Boolean, default: false },
   },
   {
     timestamps: true,

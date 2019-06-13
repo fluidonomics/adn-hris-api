@@ -953,7 +953,41 @@ let functions = {
             }
         };
         transporter.sendMail(mailOptions, callback);
-    }
+    },
+    sendEmailToSupervisorForInitiateGrievanceFeedback: (data, callback) => {
+        if (data.emp_email === null || data.emp_email === "") {
+            return
+        }
+        let mailOptions = {
+            from: config.email.sendEmailToSupervisorForInitiateGrievanceFeedback.from, // sender address
+            to: data.emp_email,
+            subject: config.email.sendEmailToSupervisorForInitiateGrievanceFeedback.subject, // Subject line
+            template: 'email-notify-to-spvsr-for-initiate-grievancee-feedback',
+            context: {
+                fullName: data.supervisor.fullName,
+                appliedDate: moment(new Date()).format('L'),
+                link: data.action_link,
+                empName: data.emp_name
+            }
+        };
+        transporter.sendMail(mailOptions, callback);
+    },
+    sendEmailToEmployeeForGrievanceReleaseFeedback: (data, callback) => {
+        if (data.emp_email === null || data.emp_email === "") {
+            return
+        }
+        let mailOptions = {
+            from: config.email.sendEmailToEmployeeForGrievanceReleaseFeedback.from, // sender address
+            to: data.emp_email,
+            subject: config.email.sendEmailToEmployeeForGrievanceReleaseFeedback.subject, // Subject line
+            template: 'email-notify-to-employee-for-grievance-release-feedback',
+            context: {
+                link: data.action_link,
+                empName: data.emp_name
+            }
+        };
+        transporter.sendMail(mailOptions, callback);
+    },
 }
 
 module.exports = functions;
