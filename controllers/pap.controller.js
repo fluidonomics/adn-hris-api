@@ -512,6 +512,9 @@ function getPapBatches(req, res) {
                 feedbackReleaseEndDate: 1,
                 isSentToSupervisor: 1,
                 overallRating: 1,
+                isGrievanceFeedbackSentToSupervisor: 1,
+                grievanceFeedbackReleaseEndDate: 1,
+                isGrievanceFeedbackReleased: 1,
                 emp_details: "$emp_details"
             }
         }
@@ -640,6 +643,7 @@ function terminatePap(req, res) {
                 data.emp_email = papData[0].employeeofficedetails[0].officeEmail;
                 data.emp_name = papData[0].employee[0].fullName;
                 SendEmail.sendEmailToEmployeeForPapTerminate(data);
+                done(null, papData);
             });
         }
     ], (err, results) => {
@@ -738,6 +742,9 @@ function getPapDetailsSingleEmployee(req, res) {
             "feedbackReleaseEndDate": 1,
             "isSentToSupervisor": 1,
             "overallRating": 1,
+            "isGrievanceFeedbackSentToSupervisor": 1,
+            "grievanceFeedbackReleaseEndDate": 1,
+            "isGrievanceFeedbackReleased": 1,
             "papbatches": {
                 "_id": 1,
                 "updatedAt": 1,
@@ -834,6 +841,9 @@ function getPapDetailsSingleEmployee(req, res) {
             "overallRating": {
                 $first: "$overallRating"
             },
+            "isGrievanceFeedbackSentToSupervisor": { $first: "$isGrievanceFeedbackSentToSupervisor" },
+            "grievanceFeedbackReleaseEndDate": { $first: "$grievanceFeedbackReleaseEndDate" },
+            "isGrievanceFeedbackReleased": { $first: "$isGrievanceFeedbackReleased" },
             "papbatches": {
                 $first: "$papbatches"
             },
@@ -2709,6 +2719,9 @@ function getAllPap(req, res) {
                         "isSentToSupervisor": { $first: '$isSentToSupervisor' },
                         "isRatingCommunicated": { $first: '$isRatingCommunicated' },
                         "status": { $first: '$status' },
+                        "isGrievanceFeedbackSentToSupervisor": { $first: '$isGrievanceFeedbackSentToSupervisor' },
+                        "grievanceFeedbackReleaseEndDate": { $first: '$grievanceFeedbackReleaseEndDate' },
+                        "isGrievanceFeedbackReleased": { $first: '$isGrievanceFeedbackReleased' },
                         "employeedetails": { $first: '$employeedetails' },
                         "employeeofficedetails": { $first: '$employeeofficedetails' },
                         "designations": { $first: '$designations' },
@@ -2721,6 +2734,241 @@ function getAllPap(req, res) {
         }
     ], (err, result) => {
         sendResponse(res, err, result, 'Employees for Feedback Initiate');
+    });
+}
+
+function getEmployeesForGrievanceFeedbackInit(req, res) {
+    async.waterfall([
+        (done) => {
+            PapMasterDetails.aggregate([{
+                '$match': {
+                    "reviewerStatus": "Approved",
+                    "grievanceStatus": "Initiated",
+                    "status": "Approved",
+                    "isGrievanceFeedbackSentToSupervisor": false
+                }
+            },
+            {
+                '$lookup': {
+                    'from': 'employeedetails',
+                    'localField': 'emp_id',
+                    'foreignField': '_id',
+                    'as': 'employeedetails'
+                }
+            },
+            {
+                '$unwind': {
+                    'path': '$employeedetails'
+                }
+            },
+            {
+                '$lookup': {
+                    'from': 'employeeofficedetails',
+                    'localField': 'emp_id',
+                    'foreignField': '_id',
+                    'as': 'employeeofficedetails'
+                }
+            },
+            {
+                '$unwind': {
+                    'path': '$employeeofficedetails'
+                }
+            },
+            {
+                '$lookup': {
+                    'from': 'designations',
+                    'localField': 'employeedetails.designation_id',
+                    'foreignField': '_id',
+                    'as': 'designations'
+                }
+            },
+            {
+                '$unwind': {
+                    'path': '$designations'
+                }
+            }
+            ]).exec((err, result) => {
+                done(err, result);
+            })
+        }
+    ], (err, result) => {
+        sendResponse(res, err, result, 'Employees for Feedback Initiate');
+    });
+}
+
+function initiateGrievanceFeedback(req, res) {
+    async.waterfall([
+        (done) => {
+            let updateQuery = {
+                "updatedAt": new Date(),
+                "updatedBy": parseInt(req.body.updatedBy),
+                "isGrievanceFeedbackSentToSupervisor": true,
+                "grievanceFeedbackReleaseEndDate": moment(new Date()).add(2, 'days').toDate()
+            }
+            let updateCondition = {
+                'emp_id': {
+                    '$in': req.body.empIds
+                },
+                'status': {
+                    '$ne': 'Terminated'
+                }
+            };
+
+            PapMasterDetails.updateMany(updateCondition, updateQuery, (err, res) => {
+                done(err, res);
+            });
+        },
+        (PapMasterDetails, done) => {
+            AuditTrail.auditTrailEntry(
+                0,
+                "PapMasterDetails",
+                PapMasterDetails,
+                "PAP",
+                "initiateGrievanceFeedback",
+                "UPDATED"
+            );
+            done(null, PapMasterDetails);
+        },
+        (PapMasterDetails, done) => {
+            // Send mail to supervisor
+            PapDetails.aggregate([
+                {
+                    $match: {
+                        'empId': {
+                            '$in': req.body.empIds
+                        }
+                    }
+                },
+                {
+                    '$lookup': {
+                        'from': 'employeedetails',
+                        'localField': 'supervisor_id',
+                        'foreignField': '_id',
+                        'as': 'supervisor'
+                    }
+                },
+                {
+                    '$unwind': {
+                        'path': '$supervisor'
+                    }
+                },
+                {
+                    '$lookup': {
+                        'from': 'employeeofficedetails',
+                        'localField': 'supervisor_id',
+                        'foreignField': 'emp_id',
+                        'as': 'supervisorofficedetails'
+                    }
+                },
+                {
+                    '$unwind': {
+                        'path': '$supervisorofficedetails'
+                    }
+                },
+                {
+                    '$lookup': {
+                        'from': 'employeedetails',
+                        'localField': 'empId',
+                        'foreignField': '_id',
+                        'as': 'employee'
+                    }
+                },
+                {
+                    '$unwind': {
+                        'path': '$employee'
+                    }
+                },
+                {
+                    '$group': {
+                        "_id": "$supervisor_id",
+                        "supervisor": { $first: "$supervisor" },
+                        "supervisorofficedetails": { $first: "$supervisorofficedetails" },
+                        "employee": { $first: "$employee" }
+                    }
+                }
+            ]).exec(function (err, response) {
+                response.forEach(f => {
+                    let data = {};
+                    data.supervisor = f.supervisor;
+                    data.emp_email = f.supervisorofficedetails.officeEmail;
+                    data.emp_name = f.employee.fullName;
+                    data.action_link = req.body.action_link;
+                    data.employee = f.employee;
+                    SendEmail.sendEmailToSupervisorForInitiateGrievanceFeedback(data);
+                });
+                done(err, PapMasterDetails);
+            });
+        }
+    ], (err, result) => {
+        sendResponse(res, err, result, 'Grievance Feedback Initiated successfully');
+    });
+}
+
+function releaseGrievanceFeedback(req, res) {
+    async.waterfall([
+        (done) => {
+            let updateQuery = {
+                "updatedAt": new Date(),
+                "updatedBy": parseInt(req.body.updatedBy),
+                'isGrievanceFeedbackReleased': true
+            }
+            let updateCondition = {
+                'emp_id': {
+                    '$in': req.body.empIds
+                }
+            };
+
+            PapMasterDetails.update(updateCondition, updateQuery, (err, res) => {
+                done(err, res);
+            });
+        },
+        (PapMasterDetails, done) => {
+            AuditTrail.auditTrailEntry(
+                0,
+                "PapMasterDetails",
+                PapMasterDetails,
+                "PAP",
+                "releaseGrievanceFeedback",
+                "UPDATED"
+            );
+            done(null, PapMasterDetails);
+        },
+        (PapMasterDetails, done) => {
+            EmployeeDetails.aggregate([
+                {
+                    $match: {
+                        '_id': {
+                            '$in': req.body.empIds
+                        }
+                    }
+                },
+                {
+                    '$lookup': {
+                        'from': 'employeeofficedetails',
+                        'localField': '_id',
+                        'foreignField': 'emp_id',
+                        'as': 'employeeofficedetails'
+                    }
+                },
+                {
+                    '$unwind': {
+                        'path': '$employeeofficedetails'
+                    }
+                },
+            ]).exec((err, employees) => {
+                employees.forEach(f => {
+                    let data = {};
+                    data.emp_email = f.employeeofficedetails.officeEmail;
+                    data.emp_name = f.fullName;
+                    data.action_link = req.body.action_link;
+                    data.employee = f;
+                    SendEmail.sendEmailToEmployeeForGrievanceReleaseFeedback(data);
+                });
+            });
+            done(null, PapMasterDetails);
+        }
+    ], (err, result) => {
+        sendResponse(res, err, result, 'Feedback Released successfully');
     });
 }
 
@@ -2787,7 +3035,16 @@ let functions = {
     },
     getAllPap: (req, res) => {
         getAllPap(req, res);
-    }
+    },
+    getEmployeesForGrievanceFeedbackInit: (req, res) => {
+        getEmployeesForGrievanceFeedbackInit(req, res);
+    },
+    initiateGrievanceFeedback: (req, res) => {
+        initiateGrievanceFeedback(req, res);
+    },
+    releaseGrievanceFeedback: (req, res) => {
+        releaseGrievanceFeedback(req, res);
+    },
 }
 
 
