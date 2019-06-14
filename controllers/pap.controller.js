@@ -2115,7 +2115,8 @@ function releaseFeedback(req, res) {
             let updateCondition = {
                 'emp_id': {
                     '$in': req.body.empIds
-                }
+                },
+                'status': { $ne: 'Terminated' }
             };
 
             PapMasterDetails.update(updateCondition, updateQuery, (err, res) => {
