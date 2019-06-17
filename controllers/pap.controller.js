@@ -2916,6 +2916,9 @@ function releaseGrievanceFeedback(req, res) {
             let updateCondition = {
                 'emp_id': {
                     '$in': req.body.empIds
+                },
+                'status': {
+                    '$ne': 'Terminated'
                 }
             };
 
