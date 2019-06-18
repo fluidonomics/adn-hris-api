@@ -26,7 +26,7 @@ let express = require('express'),
     MidTermMaster = require('../models/midterm/midtermmaster'),
     MidTermDetails = require('../models/midterm/midtermdetails'),
     PipDetails = require("../models/pip/pipdetails"),
-
+    empSeparation = require("../models/employee/employeeSeparationDetails.model"),
 
 AuditTrail = require('../class/auditTrail'),
     SendEmail = require('../class/sendEmail'),
@@ -1273,6 +1273,159 @@ function updateSupervisorDetails(req, res, done) {
     //   });
     // })
 }
+
+function updateState(req, res) {
+    
+    let toggle = req.body.toggle_data;
+    let emp_id = req.body.emp_id;
+    query = {
+        _id: emp_id,
+    }
+
+    if(toggle === "Activate") {
+        updateQuery = {
+            isAccountActive: true
+        }
+    } else {
+        updateQuery = {
+            isAccountActive: false
+        }
+    }
+
+    EmployeeInfo.findOneAndUpdate(query, updateQuery, updateQuery, (err, result) => {
+        if (err) {
+          return res.status(403).json({
+            title: "There was a problem",
+            error: {
+              message: err
+            },
+            result: {
+              message: result
+            }
+          });
+        } else {
+          AuditTrail.auditTrailEntry(
+            0,
+            "EmployeeInfo",
+            result,
+            "empDetails",
+            "updateInfo",
+            "UPDATED"
+          );
+          return res.status(200).json({
+            title: "employee Info updated",
+            result: {
+              message: result
+            }
+          });
+        }
+      })
+}
+
+function getSeparation(req, res) {
+
+    //let empSeparationInfo = new empSeparation();
+    let emp_id = req.query.emp_id;
+    let query;
+    if (emp_id) {
+        query = {
+            emp_id: emp_id,
+        };
+    }
+
+    empSeparation.findOne(query, function (err, separationData) {
+        if (err) {
+            return res.status(403).json({
+                title: 'There was an error, please try again later',
+                error: err
+            });
+        }
+        return res.status(200).json(separationData);
+    });
+}
+
+function getStates(req, res) {
+
+    //let empSeparationInfo = new empSeparation();
+    let emp_id = req.query.emp_id;
+    let query;
+    if (emp_id) {
+        query = {
+            _id: emp_id,
+        };
+    }
+
+    EmployeeInfo.findOne(query, function (err, statesData) {
+        if (err) {
+            return res.status(403).json({
+                title: 'There was an error, please try again later',
+                error: err
+            });
+        }
+        return res.status(200).json(statesData);
+    });
+}
+// function getSeparation(req, res) {
+
+//     //let empSeparationInfo = new empSeparation();
+//     let empId = parseInt(req.query.emp_id);
+//     // let query;
+//     // if (emp_id) {
+//     //     query = {
+//     //         emp_id: emp_id,
+//     //     };
+//     // }
+
+//     empSeparation.aggregate([
+
+//         {
+//             $match: {
+//                 emp_id: empId
+//             }
+//         },
+//         {
+//             $lookup: {
+//               from: "employeedetails",
+//               localField: "emp_id",
+//               foreignField: "_id",
+//               as: "emp_details"
+//             }
+//         },
+//         {
+//             $unwind: {
+//               path: "$emp_details",
+//               preserveNullAndEmptyArrays: true
+//             }
+//         },
+//         {
+//             $project: {
+//                 "sep_id": "$_id",
+//                 "dateOfResignation": "$dateOfResignation",
+//                 "effectiveDate": "$effectiveDate",
+//                 "dateOfSeparation": "$dateOfSeparation",
+//                 "separationType": "$separationType",
+//                 "isActive": "$emp_details.isAccountActive",
+//                 "emp_id": "$emp_details._id"
+//             }
+//         }
+//     ]).exec(function(err, separationData){
+//         if (err) {
+//             return res.status(403).json({
+//               title: "There was a Problem",
+//               error: {
+//                 message: err
+//               },
+//               result: {
+//                 message: separationData
+//               }
+      
+//             });
+//           } else {
+//             return res.status(200).json(separationData);
+//           }
+//     })
+// }
+
 function getPersonalInfoDetails(req, res) {
     let emp_id = req.query.emp_id;
     let query = {
@@ -2726,6 +2879,15 @@ let functions = {
             return res.status(200).json({ "data": results });
         });
     },
+    getEmpSeparation: (req, res) => {
+        getSeparation(req, res);
+    },
+    getEmpStates: (req, res) => {
+        getStates(req, res);
+    },
+    updateEmpState: (req, res) => {
+        updateState(req, res);
+    },
     getPersonalInfo: (req, res) => {
         getPersonalInfoDetails(req, res);
     },
@@ -2983,6 +3145,45 @@ let functions = {
             }
         ]);
     },
+
+    addSeparation: (req, res) => {
+
+        //let emp_id = req.body.emp_id;
+        let empSeparationInfo = new empSeparation();
+        empSeparationInfo.emp_id = req.body.emp_id;
+        empSeparationInfo.dateOfResignation = req.body.dateOfResignation;
+        empSeparationInfo.dateOfSeparation = req.body.dateOfSeparation;
+        empSeparationInfo.effectiveDate = req.body.effectiveDate;
+        empSeparationInfo.createdBy = req.body.createdBy;
+        empSeparationInfo.separationType = req.body.separationType;
+
+        empSeparationInfo.save(function(err, empSeparationResp) {
+
+            if(err) {
+                return res.status(403).json({
+                    title: "There was a problem",
+                    error: {
+                        message: err
+                    },
+                    result: {
+                        message: empSeparationResp
+                    }
+                })
+            } else {
+
+                AuditTrail.auditTrailEntry(
+                    0,
+                    "empSeparationInfo",
+                    empSeparationResp,
+                    "user",
+                    "empSeparationInfo",
+                    "ADDED"
+                );
+                return res.status(200).json(empSeparationResp);
+            }
+        })
+    },
+
     addSalaryInfo: (req, res) => {
         let emp_id = req.body.emp_id || req.query.emp_id;
         Promise.all([
