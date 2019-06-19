@@ -251,6 +251,10 @@ module.exports = (app) => {
   // userRoutes.post('/provideQuota', user.provideQuota);
   userRoutes.post('/updateSupervisortransferInfo', user.updateSupervisortransferInfo);
 
+  userRoutes.post('/addseparation', user.addSeparation);
+  userRoutes.get('/getseparation', user.getEmpSeparation);
+  userRoutes.post('/changestate', user.updateEmpState);
+  userRoutes.get('/getstates', user.getEmpStates);
   //= ========================
 
   //= ========================
