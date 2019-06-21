@@ -1276,7 +1276,7 @@ function updateSupervisorDetails(req, res, done) {
 
 function updateState(req, res) {
     
-    let toggle = req.body.toggle_data;
+    let toggle = req.body.isActive;
     let emp_id = req.body.emp_id;
     query = {
         _id: emp_id,
