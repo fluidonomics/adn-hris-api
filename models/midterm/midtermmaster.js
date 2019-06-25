@@ -12,7 +12,8 @@ let MidTermMasterSchema = new Schema(
     status: { type: String, default: null },
     updatedBy: { type: Number, default: null },
     createdBy: { type: Number, default: null },
-    isDeleted: { type: Boolean, default: false }
+    isDeleted: { type: Boolean, default: false },
+    isSystemGenerated: { type: Boolean, default: false }
   },
   {
     timestamps: true,
