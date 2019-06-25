@@ -1,4 +1,5 @@
 let async = require('async'),
+    MidTermBatch = require("../models/midterm/midtermbatch"),
     MidTermMaster = require('../models/midterm/midtermmaster'),
     MidTermDetail = require('../models/midterm/midtermdetails'),
     AuditTrail = require('../class/auditTrail'),
@@ -8,188 +9,348 @@ let async = require('async'),
     EmployeeDetails = require('../models/employee/employeeDetails.model'),
     SendEmail = require('../class/sendEmail'),
     PapDetails = require('../models/pap/papDetails.model'),
+    KraMaster = require('../models/kra/kraWorkFlowDetails.model'),
+    KraDetail = require('../models/kra/kraDetails.model'),
     moment = require('moment');
 
 require('dotenv').load();
 
 function getEmployeesForPapInitiate(req, res) {
-    MidTermMaster.aggregate([{
-        $match: {
-            status: 'Approved',
-            isDeleted: false
-        }
-    },
-    {
-        $lookup: {
-            from: 'employeedetails',
-            localField: 'emp_id',
-            foreignField: '_id',
-            as: 'employee_details'
-        }
-    },
-    {
-        $unwind: {
-            path: '$employee_details'
-        }
-    },
-    {
-        $lookup: {
-            from: 'employeesupervisordetails',
-            localField: 'emp_id',
-            foreignField: 'emp_id',
-            as: 'employee_superviosr_details'
-        }
-    },
-    {
-        $unwind: {
-            path: '$employee_superviosr_details'
-        }
-    },
-    {
-        $lookup: {
-            from: 'employeeofficedetails',
-            localField: 'emp_id',
-            foreignField: 'emp_id',
-            as: 'employee_office_details'
-        }
-    },
-    {
-        $unwind: {
-            path: '$employee_office_details'
-        }
-    },
-    {
-        $lookup: {
-            from: 'designations',
-            localField: 'employee_details.designation_id',
-            foreignField: '_id',
-            as: 'designations'
-        }
-    },
-    {
-        $unwind: {
-            path: '$designations'
-        }
-    },
-    {
-        $lookup: {
-            from: 'employeedetails',
-            localField: 'employee_superviosr_details.primarySupervisorEmp_id',
-            foreignField: '_id',
-            as: 'supervisor_details'
-        }
-    },
-    {
-        $unwind: {
-            path: '$supervisor_details'
-        }
-    },
-    {
-        $lookup: {
-            'from': 'papmasters',
-            'localField': 'emp_id',
-            'foreignField': 'emp_id',
-            'as': 'pap_master'
-        }
-    },
-    {
-        $unwind: {
-            'path': '$pap_master',
-            'preserveNullAndEmptyArrays': true
-        }
-    },
-    {
-        $lookup: {
-            'from': 'departments',
-            'localField': 'employee_office_details.department_id',
-            'foreignField': '_id',
-            'as': 'department'
-        }
-    },
-    {
-        $unwind: {
-            'path': '$department',
-            'preserveNullAndEmptyArrays': true
-        }
-    },
-    {
-        $lookup: {
-            'from': 'grades',
-            'localField': 'employee_details.grade_id',
-            'foreignField': '_id',
-            'as': 'grade'
-        }
-    },
-    {
-        $unwind: {
-            'path': '$grade',
-            'preserveNullAndEmptyArrays': true
-        }
-    },
-    {
-        $group: {
-            _id: "$emp_id",
-            mtr_master_id: { $first: '$_id' },
-            emp_id: { $first: '$emp_id' },
-            userName: { $first: '$employee_details.userName' },
-            fullName: { $first: '$employee_details.fullName' },
-            grade_id: { $first: '$employee_details.grade_id' },
-            grade: { $first: '$grade' },
-            profileImage: { $first: '$employee_details.profileImage' },
-            designation_id: { $first: '$employee_details.designation_id' },
-            designationName: { $first: '$designations.designationName' },
-            department: { $first: '$department' },
-            department_id: { $first: '$employee_office_details.department_id' },
-            supervisor_id: { $first: '$employee_superviosr_details.primarySupervisorEmp_id' },
-            supervisorName: { $first: '$supervisor_details.fullName' },
-            emp_emailId: { $first: '$employee_office_details.officeEmail' },
-            hrspoc_id: { $first: '$employee_office_details.hrspoc_id' },
-            pap_master: { $push: '$pap_master' }
-        }
-    },
-    {
-        $project: {
-            mtr_master_id: 1,
-            emp_id: 1,
-            userName: 1,
-            fullName: 1,
-            grade_id: 1,
-            grade: 1,
-            profileImage: 1,
-            designation_id: 1,
-            designationName: 1,
-            department: 1,
-            department_id: 1,
-            supervisor_id: 1,
-            supervisorName: 1,
-            emp_emailId: 1,
-            hrspoc_id: 1,
-            pap_master: {
-                $filter: {
-                    input: "$pap_master",
-                    as: "pap",
-                    cond: { $ne: ["$$pap.status", 'Terminated'] }
+    async.waterfall([
+        (done) => {
+            MidTermMaster.aggregate([{
+                $match: {
+                    status: 'Approved',
+                    isDeleted: false
+                }
+            },
+            {
+                $lookup: {
+                    from: 'employeedetails',
+                    localField: 'emp_id',
+                    foreignField: '_id',
+                    as: 'employee_details'
+                }
+            },
+            {
+                $unwind: {
+                    path: '$employee_details'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'employeesupervisordetails',
+                    localField: 'emp_id',
+                    foreignField: 'emp_id',
+                    as: 'employee_superviosr_details'
+                }
+            },
+            {
+                $unwind: {
+                    path: '$employee_superviosr_details'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'employeeofficedetails',
+                    localField: 'emp_id',
+                    foreignField: 'emp_id',
+                    as: 'employee_office_details'
+                }
+            },
+            {
+                $unwind: {
+                    path: '$employee_office_details'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'designations',
+                    localField: 'employee_details.designation_id',
+                    foreignField: '_id',
+                    as: 'designations'
+                }
+            },
+            {
+                $unwind: {
+                    path: '$designations'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'employeedetails',
+                    localField: 'employee_superviosr_details.primarySupervisorEmp_id',
+                    foreignField: '_id',
+                    as: 'supervisor_details'
+                }
+            },
+            {
+                $unwind: {
+                    path: '$supervisor_details'
+                }
+            },
+            {
+                $lookup: {
+                    'from': 'papmasters',
+                    'localField': 'emp_id',
+                    'foreignField': 'emp_id',
+                    'as': 'pap_master'
+                }
+            },
+            {
+                $unwind: {
+                    'path': '$pap_master',
+                    'preserveNullAndEmptyArrays': true
+                }
+            },
+            {
+                $lookup: {
+                    'from': 'departments',
+                    'localField': 'employee_office_details.department_id',
+                    'foreignField': '_id',
+                    'as': 'department'
+                }
+            },
+            {
+                $unwind: {
+                    'path': '$department',
+                    'preserveNullAndEmptyArrays': true
+                }
+            },
+            {
+                $lookup: {
+                    'from': 'grades',
+                    'localField': 'employee_details.grade_id',
+                    'foreignField': '_id',
+                    'as': 'grade'
+                }
+            },
+            {
+                $unwind: {
+                    'path': '$grade',
+                    'preserveNullAndEmptyArrays': true
+                }
+            },
+            {
+                $group: {
+                    _id: "$emp_id",
+                    mtr_master_id: { $first: '$_id' },
+                    emp_id: { $first: '$emp_id' },
+                    userName: { $first: '$employee_details.userName' },
+                    fullName: { $first: '$employee_details.fullName' },
+                    grade_id: { $first: '$employee_details.grade_id' },
+                    grade: { $first: '$grade' },
+                    profileImage: { $first: '$employee_details.profileImage' },
+                    designation_id: { $first: '$employee_details.designation_id' },
+                    designationName: { $first: '$designations.designationName' },
+                    department: { $first: '$department' },
+                    department_id: { $first: '$employee_office_details.department_id' },
+                    supervisor_id: { $first: '$employee_superviosr_details.primarySupervisorEmp_id' },
+                    supervisorName: { $first: '$supervisor_details.fullName' },
+                    emp_emailId: { $first: '$employee_office_details.officeEmail' },
+                    hrspoc_id: { $first: '$employee_office_details.hrspoc_id' },
+                    pap_master: { $push: '$pap_master' }
+                }
+            },
+            {
+                $project: {
+                    mtr_master_id: 1,
+                    emp_id: 1,
+                    userName: 1,
+                    fullName: 1,
+                    grade_id: 1,
+                    grade: 1,
+                    profileImage: 1,
+                    designation_id: 1,
+                    designationName: 1,
+                    department: 1,
+                    department_id: 1,
+                    supervisor_id: 1,
+                    supervisorName: 1,
+                    emp_emailId: 1,
+                    hrspoc_id: 1,
+                    pap_master: {
+                        $filter: {
+                            input: "$pap_master",
+                            as: "pap",
+                            cond: { $ne: ["$$pap.status", 'Terminated'] }
+                        }
+                    },
+                    type: 'pap'
                 }
             }
+            ]).exec(function (err, response) {
+                done(err, response);
+            });
+        },
+        (papInitData, innerDone) => {
+            KraMaster.aggregate([
+                {
+                    $match: {
+                        'status': 'Approved'
+                    }
+                },
+                {
+                    $lookup: {
+                        from: 'employeedetails',
+                        localField: 'emp_id',
+                        foreignField: '_id',
+                        as: 'employee_details'
+                    }
+                },
+                {
+                    $unwind: {
+                        path: '$employee_details'
+                    }
+                },
+                {
+                    $lookup: {
+                        from: 'employeesupervisordetails',
+                        localField: 'emp_id',
+                        foreignField: 'emp_id',
+                        as: 'employee_superviosr_details'
+                    }
+                },
+                {
+                    $unwind: {
+                        path: '$employee_superviosr_details'
+                    }
+                },
+                {
+                    $lookup: {
+                        from: 'employeeofficedetails',
+                        localField: 'emp_id',
+                        foreignField: 'emp_id',
+                        as: 'employee_office_details'
+                    }
+                },
+                {
+                    $unwind: {
+                        path: '$employee_office_details'
+                    }
+                },
+                {
+                    $lookup: {
+                        from: 'designations',
+                        localField: 'employee_details.designation_id',
+                        foreignField: '_id',
+                        as: 'designations'
+                    }
+                },
+                {
+                    $unwind: {
+                        path: '$designations'
+                    }
+                },
+                {
+                    $lookup: {
+                        from: 'employeedetails',
+                        localField: 'employee_superviosr_details.primarySupervisorEmp_id',
+                        foreignField: '_id',
+                        as: 'supervisor_details'
+                    }
+                },
+                {
+                    $unwind: {
+                        path: '$supervisor_details'
+                    }
+                },
+                {
+                    $lookup: {
+                        'from': 'departments',
+                        'localField': 'employee_office_details.department_id',
+                        'foreignField': '_id',
+                        'as': 'department'
+                    }
+                },
+                {
+                    $unwind: {
+                        'path': '$department',
+                        'preserveNullAndEmptyArrays': true
+                    }
+                },
+                {
+                    $lookup: {
+                        'from': 'grades',
+                        'localField': 'employee_details.grade_id',
+                        'foreignField': '_id',
+                        'as': 'grade'
+                    }
+                },
+                {
+                    $unwind: {
+                        'path': '$grade',
+                        'preserveNullAndEmptyArrays': true
+                    }
+                },
+                {
+                    $project: {
+                        mtr_master_id: null,
+                        emp_id: 1,
+                        userName: '$employee_details.userName',
+                        fullName: '$employee_details.fullName',
+                        grade_id: '$employee_details.grade_id',
+                        grade: 1,
+                        profileImage: '$employee_details.profileImage',
+                        designation_id: '$employee_details.designation_id',
+                        designationName: '$designations.designationName',
+                        department: 1,
+                        department_id: '$employee_office_details.department_id',
+                        supervisor_id: '$employee_superviosr_details.primarySupervisorEmp_id',
+                        supervisorName: '$supervisor_details.fullName',
+                        emp_emailId: '$employee_office_details.officeEmail',
+                        hrspoc_id: '$employee_office_details.hrspoc_id',
+                        pap_master: null,
+                        type: 'kra'
+                    }
+                }
+            ]).exec(function (err, kraMasterData) {
+                innerDone(err, { papInitData: papInitData, kraMasterData: kraMasterData });
+            });
+        },
+        (data, innerDone) => {
+            MidTermMaster.find().exec((err, response) => {
+                data.mtrData = response;
+                innerDone(err, data);
+            });
+        },
+        (data, innerDone) => {
+            let finalData = [...data.papInitData];
+            let isPapExists = false;
+            let isMtrExists = false;
+            data.kraMasterData.forEach(kra => {
+                data.papInitData.forEach(pap => {
+                    if (pap.emp_id == kra.emp_id) {
+                        isPapExists = true;
+                    }
+                });
+                data.mtrData.forEach(mtr => {
+                    if (mtr.emp_id == kra.emp_id) {
+                        isMtrExists = true;
+                    }
+                });
+                if (!isPapExists && !isMtrExists) {
+                    finalData.push(kra);
+                }
+            });
+            innerDone(null, finalData);
         }
-    }
-    ]).exec(function (err, response) {
+    ], (err, result) => {
         if (err) {
             return res.status(403).json({
-                title: 'There is a problem while fetching data',
+                title: 'There is a problem while initiating batch',
                 error: {
                     message: err
                 },
                 result: {
-                    message: response
+                    message: result
                 }
             });
         } else {
             return res.status(200).json({
-                title: 'Data fetched successfully',
-                count: response.length,
+                title: 'Batch initiated successfully',
                 result: {
-                    message: response
+                    message: result
                 }
             });
         }
@@ -207,7 +368,27 @@ function initiatePapProcess(req, res) {
     papBatchDetails.createdBy = createdBy;
     papBatchDetails.batchName = req.body.batchName;
     async.waterfall([
-        done => {
+        (done) => {
+            let kraEmployees = emp_id_array.filter(item => item.type == 'kra');
+            if (kraEmployees.length > 0) {
+                generateMtr(kraEmployees, req).then(res => {
+                    if (res == true) {
+                        MidTermMaster.find().exec((err, mtrMasters) => {
+                            emp_id_array.forEach(emp => {
+                                let mtr = mtrMasters.find(mtr => mtr.emp_id == emp.emp_id && mtr.status == 'Approved');
+                                emp.mtr_master_id = mtr._id;
+                            });
+                            done(null, null);
+                        });
+                    } else {
+                        done(false, null);
+                    }
+                });
+            } else {
+                done(null, null);
+            }
+        },
+        (data, done) => {
             papBatchDetails.save(function (err, response) {
                 AuditTrail.auditTrailEntry(
                     0,
@@ -447,6 +628,214 @@ function initiatePapProcess(req, res) {
                 }
             });
         }
+    });
+}
+
+function generateMtr(kraEmployees, req) {
+    return new Promise((resolve, reject) => {
+        let createdBy = parseInt(req.body.createdBy);
+        let MidTermBatchDetails = new MidTermBatch();
+        MidTermBatchDetails.batchName = 'Auto Generated Batch | PAP Initiate';
+        MidTermBatchDetails.batchEndDate = moment(new Date()).add(1, 'days');;
+        MidTermBatchDetails.status = req.body.status;
+        MidTermBatchDetails.isDeleted = false;
+        MidTermBatchDetails.createdBy = createdBy;
+        MidTermBatchDetails.isSystemGenerated = true;
+        let emp_id_array = req.body.emp_id_array;
+        MidTermBatchDetails.save(function (err, midtermbatchresp) {
+            if (err) {
+                resolve(false);
+            } else {
+                AuditTrail.auditTrailEntry(
+                    0,
+                    "MidTermBatchDetails",
+                    midtermbatchresp,
+                    "user",
+                    "MidTermBatchDetails",
+                    "ADDED"
+                );
+                let batch_id = midtermbatchresp.id;
+                Promise.all([
+                    MidTermMaster.aggregate([
+                        {
+                            $sort: {
+                                _id: -1.0
+                            }
+                        },
+                        {
+                            $project: {
+                                _id: "$_id"
+                            }
+                        },
+                        {
+                            $limit: 1.0
+                        }
+                    ]).exec()
+                ]).then(function (counts) {
+                    let insertData = [];
+                    let midtermMaster_id =
+                        counts[0][0] === undefined ? 0 : counts[0][0]._id;
+                    emp_id_array.forEach(function (element, index) {
+                        insertData.push({
+                            batch_id: batch_id,
+                            emp_id: element.emp_id,
+                            status: "Approved",
+                            _id: midtermMaster_id + (index + 1),
+                            createdBy: createdBy,
+                            updatedBy: createdBy,
+                            isSystemGenerated: true
+                        });
+                    });
+                    MidTermMaster.insertMany(insertData, function (
+                        err,
+                        midTermMasterResult
+                    ) {
+                        if (err) {
+                            resolve(false);
+                        } else {
+                            AuditTrail.auditTrailEntry(
+                                0,
+                                "MidTermMaster",
+                                insertData,
+                                "user",
+                                "MidTermMaster",
+                                "ADDED"
+                            );
+                            let emp_id_collection = [];
+                            emp_id_array.forEach(element => {
+                                emp_id_collection.push(element.emp_id);
+                            });
+                            Promise.all([
+                                //query1
+                                KraMaster.aggregate([
+                                    {
+                                        $match: {
+                                            emp_id: {
+                                                $in: emp_id_collection
+                                            },
+                                            status: "Approved"
+                                        }
+                                    },
+                                    {
+                                        $lookup: {
+                                            from: "kradetails",
+                                            localField: "_id",
+                                            foreignField: "kraWorkflow_id",
+                                            as: "kra_details"
+                                        }
+                                    },
+                                    {
+                                        $unwind: {
+                                            path: "$kra_details",
+                                            preserveNullAndEmptyArrays: true
+                                        }
+                                    },
+                                    {
+                                        $project: {
+                                            kra_batch_id: "$batch_id",
+                                            kra_emp_id: "$emp_id",
+                                            kra_status: "$status",
+                                            kra_details_isDeleted: "$kra_details.isDeleted",
+                                            kra_details_sendBackComment: "$kra_details.sendBackComment",
+                                            kra_details_supervisorStatus:
+                                                "$kra_details.supervisorStatus",
+                                            kra_details_measureOfSuccess:
+                                                "$kra_details.measureOfSuccess",
+                                            kra_details_unitOfSuccess: "$kra_details.unitOfSuccess",
+                                            kra_details_weightage_id: "$kra_details.weightage_id",
+                                            kra_details_category_id: "$kra_details.category_id",
+                                            kra_details_kra: "$kra_details.kra",
+                                            kra_Details_id: "$kra_details._id"
+                                        }
+                                    }
+                                ]),
+                                MidTermDetail.aggregate([
+                                    {
+                                        $sort: {
+                                            _id: -1.0
+                                        }
+                                    },
+                                    {
+                                        $project: {
+                                            _id: "$_id"
+                                        }
+                                    },
+                                    {
+                                        $limit: 1.0
+                                    }
+                                ])
+                            ]).then(function (responses, err) {
+                                if (err) {
+                                    resolve(false);
+                                } else {
+                                    let mtrDetailsInsertData = [];
+                                    let kraWorklowResp = responses[0];
+                                    let mtrDetailsMaxId =
+                                        responses[1][0] === undefined ? 0 : responses[1][0]._id;
+                                    kraWorklowResp.forEach(f => {
+                                        f.mtr_batch_id = midTermMasterResult.find(
+                                            f1 => f1.emp_id === f.kra_emp_id
+                                        ).batch_id;
+                                        f.mtr_master_id = midTermMasterResult.find(
+                                            f1 => f1.emp_id === f.kra_emp_id
+                                        )._id;
+                                        f.emp_supervisor_id = emp_id_array.find(
+                                            f1 => f1.emp_id === f.kra_emp_id
+                                        ).supervisor_id;
+                                    });
+                                    console.log(kraWorklowResp);
+                                    kraWorklowResp.forEach((f, i) => {
+                                        if (f.kra_details_category_id !== undefined) {
+                                            mtrDetailsInsertData.push({
+                                                _id: mtrDetailsMaxId + (i + 1),
+                                                kraWorkflow_id: f._id, // in aggregate it is worklow id
+                                                kraDetailId: f.kra_Details_id,
+                                                supervisor_id: f.emp_supervisor_id,
+                                                status: "Approved",
+                                                mtr_batch_id: f.mtr_batch_id,
+                                                mtr_master_id: f.mtr_master_id,
+                                                isDeleted: false,
+                                                mtr_kra: f.kra_details_kra,
+                                                weightage_id: f.kra_details_weightage_id,
+                                                category_id: f.kra_details_category_id,
+                                                unitOfSuccess: f.kra_details_unitOfSuccess,
+                                                measureOfSuccess: f.kra_details_measureOfSuccess,
+                                                progressStatus: 'InProgress',
+                                                colorStatus: 'Green',
+                                                createdBy: createdBy,
+                                                updatedBy: createdBy,
+                                                isSystemGenerated: true
+                                            });
+                                        } else {
+                                        }
+                                    });
+                                    MidTermDetail.insertMany(mtrDetailsInsertData, function (
+                                        err,
+                                        midTermDetails
+                                    ) {
+                                        if (err) {
+                                            resolve(false);
+                                        } else {
+                                            AuditTrail.auditTrailEntry(
+                                                0,
+                                                "midTermDetails",
+                                                mtrDetailsInsertData,
+                                                "user",
+                                                "midTermDetails",
+                                                "ADDED"
+                                            );
+                                            // sendEmailToAllEmployee(emp_id_array, res);
+                                            // return res.status(200).json({ result: midTermDetails });
+                                            resolve(true);
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                    });
+                });
+            }
+        });
     });
 }
 
