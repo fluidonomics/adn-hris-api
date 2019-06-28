@@ -34,6 +34,7 @@ AuditTrail = require('../class/auditTrail'),
     config = require('../config/config'),
     crypto = require('crypto'),
     async = require('async'),
+    mongoose = require('mongoose'),
     // nodemailer        = require('nodemailer'),
     // hbs               = require('nodemailer-express-handlebars'),
     // sgTransport       = require('nodemailer-sendgrid-transport'),
@@ -3147,8 +3148,7 @@ let functions = {
     },
 
     addSeparation: (req, res) => {
-
-        //let emp_id = req.body.emp_id;
+        
         let empSeparationInfo = new empSeparation();
         empSeparationInfo.emp_id = req.body.emp_id;
         empSeparationInfo.dateOfResignation = req.body.dateOfResignation;
@@ -3156,32 +3156,66 @@ let functions = {
         empSeparationInfo.effectiveDate = req.body.effectiveDate;
         empSeparationInfo.createdBy = req.body.createdBy;
         empSeparationInfo.separationType = req.body.separationType;
+        empSeparationInfo.remarks = req.body.remarks;
 
-        empSeparationInfo.save(function(err, empSeparationResp) {
+        if(req.body._id) {
 
-            if(err) {
-                return res.status(403).json({
-                    title: "There was a problem",
-                    error: {
-                        message: err
-                    },
-                    result: {
-                        message: empSeparationResp
-                    }
-                })
-            } else {
+            empSeparation.findOneAndUpdate(
+                { _id: req.body._id },
+                empSeparationInfo,
+                function(err, empSeparationResp) {
+    
+                if(err) {
+                    return res.status(403).json({
+                        title: "There was a problem",
+                        error: {
+                            message: err
+                        },
+                        result: {
+                            message: empSeparationResp
+                        }
+                    })
+                } else {
+    
+                    AuditTrail.auditTrailEntry(
+                        0,
+                        "empSeparationInfo",
+                        empSeparationResp,
+                        "user",
+                        "empSeparationInfo",
+                        "Updated"
+                    );
+                    return res.status(200).json(empSeparationResp);
+                }
+            })
+        } else {
 
-                AuditTrail.auditTrailEntry(
-                    0,
-                    "empSeparationInfo",
-                    empSeparationResp,
-                    "user",
-                    "empSeparationInfo",
-                    "ADDED"
-                );
-                return res.status(200).json(empSeparationResp);
-            }
-        })
+            empSeparationInfo.save( function(err, empSeparationResp) {
+    
+                if(err) {
+                    return res.status(403).json({
+                        title: "There was a problem",
+                        error: {
+                            message: err
+                        },
+                        result: {
+                            message: empSeparationResp
+                        }
+                    })
+                } else {
+    
+                    AuditTrail.auditTrailEntry(
+                        0,
+                        "empSeparationInfo",
+                        empSeparationResp,
+                        "user",
+                        "empSeparationInfo",
+                        "ADDED"
+                    );
+                    return res.status(200).json(empSeparationResp);
+                }
+            })
+        }
     },
 
     addSalaryInfo: (req, res) => {
