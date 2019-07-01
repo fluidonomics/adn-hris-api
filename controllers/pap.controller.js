@@ -1812,6 +1812,19 @@ function papUpdateReviewer(req, res) {
                     {
                         $lookup: {
                             from: 'employeedetails',
+                            localField: 'empId',
+                            foreignField: '_id',
+                            as: 'employee'
+                        }
+                    },
+                    {
+                        $unwind: {
+                            path: '$employee'
+                        }
+                    },
+                    {
+                        $lookup: {
+                            from: 'employeedetails',
                             localField: 'supervisor_id',
                             foreignField: '_id',
                             as: 'supervisor'
@@ -1849,6 +1862,7 @@ function papUpdateReviewer(req, res) {
                             data.supervisor = papAggResult.supervisor;
                             data.supervisorofficedetails = papAggResult.supervisorofficedetails;
                             data.reviewer = reviewer;
+                            data.employee = papAggResult.employee;
                             data.action_link = req.body.action_link;
                             SendEmail.sendEmailToSupervisorForPapSendBack(data);
                             done(null, data);
