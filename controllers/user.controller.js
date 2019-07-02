@@ -27,8 +27,10 @@ let express = require('express'),
     MidTermDetails = require('../models/midterm/midtermdetails'),
     PipDetails = require("../models/pip/pipdetails"),
     empSeparation = require("../models/employee/employeeSeparationDetails.model"),
+    PapMaster = require("../models/pap/papMaster.model"),
+    PapDetails = require("../models/pap/papDetails.model"),
 
-AuditTrail = require('../class/auditTrail'),
+    AuditTrail = require('../class/auditTrail'),
     SendEmail = require('../class/sendEmail'),
     Notify = require('../class/notify'),
     config = require('../config/config'),
@@ -1276,14 +1278,14 @@ function updateSupervisorDetails(req, res, done) {
 }
 
 function updateState(req, res) {
-    
+
     let toggle = req.body.isActive;
     let emp_id = req.body.emp_id;
     query = {
         _id: emp_id,
     }
 
-    if(toggle === "Activate") {
+    if (toggle === "Activate") {
         updateQuery = {
             isAccountActive: true
         }
@@ -1295,32 +1297,32 @@ function updateState(req, res) {
 
     EmployeeInfo.findOneAndUpdate(query, updateQuery, updateQuery, (err, result) => {
         if (err) {
-          return res.status(403).json({
-            title: "There was a problem",
-            error: {
-              message: err
-            },
-            result: {
-              message: result
-            }
-          });
+            return res.status(403).json({
+                title: "There was a problem",
+                error: {
+                    message: err
+                },
+                result: {
+                    message: result
+                }
+            });
         } else {
-          AuditTrail.auditTrailEntry(
-            0,
-            "EmployeeInfo",
-            result,
-            "empDetails",
-            "updateInfo",
-            "UPDATED"
-          );
-          return res.status(200).json({
-            title: "employee Info updated",
-            result: {
-              message: result
-            }
-          });
+            AuditTrail.auditTrailEntry(
+                0,
+                "EmployeeInfo",
+                result,
+                "empDetails",
+                "updateInfo",
+                "UPDATED"
+            );
+            return res.status(200).json({
+                title: "employee Info updated",
+                result: {
+                    message: result
+                }
+            });
         }
-      })
+    })
 }
 
 function getSeparation(req, res) {
@@ -1419,7 +1421,7 @@ function getStates(req, res) {
 //               result: {
 //                 message: separationData
 //               }
-      
+
 //             });
 //           } else {
 //             return res.status(200).json(separationData);
@@ -2354,16 +2356,13 @@ function updateSupervisortransfer(req, res, done) {
                                 })
                             },
                             (mtrResult, done) => {
-                                PapMaster.find({ emp_id: _id }, (err, papMaster) => {
-                                    checkError(err, papMaster);
-                                    let updateQuery = {
-                                        "updatedAt": updatedAt,
-                                        "supervisor_id": req.body.primarySupervisorEmp_id,
-                                        "updatedBy": updatedBy
-                                    };
-                                    PapDetails.updateMany({ pap_master_id: papMaster._id }, updateQuery, (err, doc) => {
-                                        done(err, doc);
-                                    });
+                                let updateQuery = {
+                                    "updatedAt": updatedAt,
+                                    "supervisor_id": req.body.primarySupervisorEmp_id,
+                                    "updatedBy": updatedBy
+                                };
+                                PapDetails.updateMany({ empId: req.body.emp_id }, updateQuery, (err, doc) => {
+                                    done(err, doc);
                                 });
                             }
                         ], function (res) {
@@ -2492,7 +2491,7 @@ function updateSupervisortransfer(req, res, done) {
                                         "updatedAt": updatedAt,
                                         "updatedBy": updatedBy
                                     };
-                                    PipDetails.updateMany({$and:[{supervisor_id: req.body.oldPrimarySupervisor},{ master_id: { $in: req.body.pipIds } },{status: {$ne: "Approved"}}, {status: {$ne: "Completed"}}]}, updateQueryprim, (err, res) => {
+                                    PipDetails.updateMany({ $and: [{ supervisor_id: req.body.oldPrimarySupervisor }, { master_id: { $in: req.body.pipIds } }, { status: { $ne: "Approved" } }, { status: { $ne: "Completed" } }] }, updateQueryprim, (err, res) => {
                                         innerDone(err, res);
                                     });
 
@@ -2502,7 +2501,7 @@ function updateSupervisortransfer(req, res, done) {
                                         "updatedAt": updatedAt,
                                         "updatedBy": updatedBy
                                     };
-                                    PipDetails.updateMany({$and:[{supervisor_id: req.body.oldSecondarySupervisor},{ master_id: { $in: req.body.pipIds } },{status: {$ne: "Approved"}}, {status: {$ne: "Completed"}}]}, updateQuerysec, (err, res) => {
+                                    PipDetails.updateMany({ $and: [{ supervisor_id: req.body.oldSecondarySupervisor }, { master_id: { $in: req.body.pipIds } }, { status: { $ne: "Approved" } }, { status: { $ne: "Completed" } }] }, updateQuerysec, (err, res) => {
                                         innerDone(err, res);
                                     });
 
@@ -2512,16 +2511,13 @@ function updateSupervisortransfer(req, res, done) {
                                 }
                             },
                             (data, done) => {
-                                PapMaster.findOne({ emp_id: _id }, (err, papMaster) => {
-                                    checkError(err, papMaster);
-                                    let updateQuery = {
-                                        "updatedAt": updatedAt,
-                                        "supervisor_id": req.body.primarySupervisorEmp_id,
-                                        "updatedBy": updatedBy
-                                    };
-                                    PapDetails.updateMany({ pap_master_id: papMaster._id }, updateQuery, (err, doc) => {
-                                        done(err, doc);
-                                    });
+                                let updateQuery = {
+                                    "updatedAt": updatedAt,
+                                    "supervisor_id": req.body.primarySupervisorEmp_id,
+                                    "updatedBy": updatedBy
+                                };
+                                PapDetails.updateMany({ empId: req.body.emp_id }, updateQuery, (err, doc) => {
+                                    done(err, doc);
                                 });
                             }
                         ], (err, result) => {
@@ -3148,7 +3144,7 @@ let functions = {
     },
 
     addSeparation: (req, res) => {
-        
+
         let empSeparationInfo = new empSeparation();
         empSeparationInfo.emp_id = req.body.emp_id;
         empSeparationInfo.dateOfResignation = req.body.dateOfResignation;
@@ -3158,41 +3154,41 @@ let functions = {
         empSeparationInfo.separationType = req.body.separationType;
         empSeparationInfo.remarks = req.body.remarks;
 
-        if(req.body._id) {
+        if (req.body._id) {
 
             empSeparation.findOneAndUpdate(
                 { _id: req.body._id },
                 empSeparationInfo,
-                function(err, empSeparationResp) {
-    
-                if(err) {
-                    return res.status(403).json({
-                        title: "There was a problem",
-                        error: {
-                            message: err
-                        },
-                        result: {
-                            message: empSeparationResp
-                        }
-                    })
-                } else {
-    
-                    AuditTrail.auditTrailEntry(
-                        0,
-                        "empSeparationInfo",
-                        empSeparationResp,
-                        "user",
-                        "empSeparationInfo",
-                        "Updated"
-                    );
-                    return res.status(200).json(empSeparationResp);
-                }
-            })
+                function (err, empSeparationResp) {
+
+                    if (err) {
+                        return res.status(403).json({
+                            title: "There was a problem",
+                            error: {
+                                message: err
+                            },
+                            result: {
+                                message: empSeparationResp
+                            }
+                        })
+                    } else {
+
+                        AuditTrail.auditTrailEntry(
+                            0,
+                            "empSeparationInfo",
+                            empSeparationResp,
+                            "user",
+                            "empSeparationInfo",
+                            "Updated"
+                        );
+                        return res.status(200).json(empSeparationResp);
+                    }
+                })
         } else {
 
-            empSeparationInfo.save( function(err, empSeparationResp) {
-    
-                if(err) {
+            empSeparationInfo.save(function (err, empSeparationResp) {
+
+                if (err) {
                     return res.status(403).json({
                         title: "There was a problem",
                         error: {
@@ -3203,7 +3199,7 @@ let functions = {
                         }
                     })
                 } else {
-    
+
                     AuditTrail.auditTrailEntry(
                         0,
                         "empSeparationInfo",
