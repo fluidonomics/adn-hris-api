@@ -453,14 +453,15 @@ function singleEmployeeLeaveBalance(currentEmpId, fiscalYearId, month, year, fro
                     },
                     yearStart: {
                         $year: '$fromDate'
-                    }
+                    },
+                    fiscalYearId: 1
                 }
             },
             // Stage 1
             {
                 $match: {
                     "emp_id": empId,
-
+                    "fiscalYearId": _fiscalYearId
                     // "isApproved": true
                 }
             },
