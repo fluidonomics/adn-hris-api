@@ -43,6 +43,8 @@ let express = require('express'),
     CertificationInfo = require('../models/employee/employeeCertificationDetails.model'),
     PreviousEmploymentInfo = require('../models/employee/employeePreviousEmploymentDetails.model'),
     FamilyInfo = require('../models/employee/employeeFamilyDetails.model'),
+    
+    LeaveApply = require('../models/leave/leaveApply.model'),
 
     FinancialYear = require('../models/master/financialYearDetails.model'),
     ProfileProcessStatus = require('../models/employee/employeeProfileProcessDetails.model'),
@@ -2067,7 +2069,7 @@ let functions = {
     getPrePost_Report: (req, res) => {
 
         const fields = ['Description', 'Count'];
-        EmployeeInfo.aggregate([
+        Employee.aggregate([
             {
                 $group: {
                     _id: "_id",
