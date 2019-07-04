@@ -20,8 +20,10 @@ let express = require('express'),
   Education = require('../models/master/education.model'),
   Relation = require('../models/master/relation.model'),
   PerformanceRating = require('../models/master/performanceRating.model'),
-  FinancialYearDetail = require('../models/master/financialYearDetails.model')
-  FinancialYearCompany = require('../models/master/financialYear.model');
+  FinancialYearDetail = require('../models/master/financialYearDetails.model'),
+  FinancialYearCompany = require('../models/master/financialYear.model'),
+  PapRatingScale = require('../models/master/papRatingScale.model');
+
 //jwt                = require('jsonwebtoken'),
 // config            = require('../config/config'),
 // fs                = require('fs'),
@@ -560,6 +562,44 @@ let functions = {
       }
     });
 
+  },
+  createPapRatingScale: (req, res) => {
+    let ratingScale = new PapRatingScale();
+    ratingScale.ratingScale = req.body.ratingScale;
+    ratingScale.nomenclature = req.body.nomenclature;
+    ratingScale.definition = req.body.definition;
+    ratingScale.differentiator = req.body.differentiator;
+    ratingScale.updatedBy = req.body.emp_id;
+    ratingScale.createdBy = req.body.emp_id;
+    ratingScale.isDeleted = false;
+
+    ratingScale.save(function (err, result) {
+      if (result) {
+        return res.status(200).json({
+          status: '200', message: 'PAP Rating Scale added Successfully',
+        });
+      }
+      else {
+        return res.status(403).json({
+          title: 'PAP Rating Scale add failed!',
+          error: { message: err },
+          result: { message: result }
+        });
+      }
+    });
+
+  },
+  getPapRatingScale: (req, res) => {
+    PapRatingScale.find({}, (err, result) => {
+      if (err) {
+        return res.status(403).json({
+          title: 'There was an error, please try again later',
+          error: { message: err },
+          result: { message: result }
+        });
+      }
+      return res.status(200).json({ result });
+    });
   }
 };
 

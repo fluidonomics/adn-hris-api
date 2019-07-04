@@ -25,8 +25,7 @@ let transporter = nodemailer.createTransport({
 });
 transporter.use('compile', hbs(options));
 
-let functions =
-{
+let functions = {
     sendEmail: (req, res) => {
         let toEmail = req.body.toEmail;
         let subject = req.body.subject;
@@ -42,7 +41,9 @@ let functions =
             if (err) {
                 return console.log("RESULT ERROR = ", error2);
             }
-            return res.status(200).json({ "message": "Email Send SuccessFully." });
+            return res.status(200).json({
+                "message": "Email Send SuccessFully."
+            });
         });
 
     },
@@ -180,7 +181,7 @@ let functions =
         let mailOptions = {
             from: config.email.emailToEmployeeForLeaveRequestApproved.from, // sender address
             to: toEmail,
-            subject: data.leaveType + " " + config.email.emailToEmployeeForLeaveRequestApproved.subject + " " + data.fromDate + " " + data.toDate, // Subject line
+            subject: data.leaveType + " " + config.email.emailToEmployeeForLeaveRequestApproved.subject, // Subject line
             template: 'email-notify-to-emp-for-applied-leave-approved',
             context: {
                 fullName: data.fullName,
@@ -197,7 +198,7 @@ let functions =
         let mailOptions = {
             from: config.email.emailToEmployeeForLeaveRequestApproved.from, // sender address
             to: toEmail,
-            subject: data.leaveType + " " + config.email.emailToEmployeeForLeaveRequestApproved.subject + " " + data.fromDate + " " + data.toDate, // Subject line
+            subject: data.leaveType + " " + config.email.emailToEmployeeForLeaveRequestApproved.subject, // Subject line
             template: 'email-notify-to-emp-for-applied-leave-approved-on-behalf',
             context: {
                 fullName: data.fullName,
@@ -434,6 +435,143 @@ let functions =
         };
         transporter.sendMail(mailOptions, callback);
     },
+    sendEmailToSupervisorToApprovePap: (data, callback) => {
+        if (data.supervisor_email === null || data.supervisor_email === "") {
+            return
+        }
+        let mailOptions = {
+            from: config.email.sendEmailToSupervisorToApprovePap.from, // sender address
+            to: data.supervisor_email,
+            subject: config.email.sendEmailToSupervisorToApprovePap.subject, // Subject line
+            template: 'email-notify-to-supvsr-for-pap-approve',
+            context: {
+                fullName: data.supervisor_name,
+                appliedDate: moment(new Date()).format('L'),
+                link: data.action_link,
+                empName: data.user_name
+            }
+        };
+        transporter.sendMail(mailOptions, callback);
+    },
+    sendMailToHrforApproval: (data, callback) => {
+        if (data.hrOfficeDetails.officeEmail === null || data.hrOfficeDetails.officeEmail === "") {
+            return
+        }
+        let mailOptions = {
+            from: config.email.sendMailToHrforApproval.from, // sender address
+            to: data.hrOfficeDetails.officeEmail,
+            subject: config.email.sendMailToHrforApproval.subject, // Subject line
+            template: 'email-notify-hr-pap-approved',
+            context: {
+                hrName: data.hr.fullName,
+                appliedDate: moment(new Date()).format('L'),
+                link: data.action_link,
+                empName: data.employee.fullName
+            }
+        };
+        transporter.sendMail(mailOptions, callback);
+    },
+    sendMailToSupervisorforApproval: (data, callback) => {
+        if (data.supervisorOfficeDetails.officeEmail === null || data.supervisorOfficeDetails.officeEmail === "") {
+            return
+        }
+        let mailOptions = {
+            from: config.email.sendMailToHrforApproval.from, // sender address
+            to: data.supervisorOfficeDetails.officeEmail,
+            subject: config.email.sendMailToHrforApproval.subject, // Subject line
+            template: 'email-notify-to-spvsr-for-pap-approved',
+            context: {
+                supervisorName: data.supervisor.fullName,
+                appliedDate: moment(new Date()).format('L'),
+                link: data.action_link,
+                empName: data.employee.fullName
+            }
+        };
+        transporter.sendMail(mailOptions, callback);
+    },
+    sendMailToEmployeeforApproval: (data, callback) => {
+        if (data.employeeofficedetails.officeEmail === null || data.employeeofficedetails.officeEmail === "") {
+            return
+        }
+        let mailOptions = {
+            from: config.email.sendMailToHrforApproval.from, // sender address
+            to: data.employeeofficedetails.officeEmail,
+            subject: config.email.sendMailToHrforApproval.subject, // Subject line
+            template: 'email-notify-to-emp-for-pap-approved',
+            context: {
+                appliedDate: moment(new Date()).format('L'),
+                link: data.action_link,
+                empName: data.employee.fullName
+            }
+        };
+        transporter.sendMail(mailOptions, callback);
+    },
+    sendMailForGrievance: (data, callback) => {
+        if (data.supervisorOfficedetails.officeEmail != null && data.supervisorOfficedetails.officeEmail != "") {
+            let mailOptions = {
+                from: config.email.sendMailForGrievance.from, // sender address
+                to: data.supervisorOfficedetails.officeEmail,
+                subject: config.email.sendMailForGrievance.subject, // Subject line
+                template: 'email-notify-grievance-raised',
+                context: {
+                    fullName: data.supervisor.fullName,
+                    appliedDate: moment(new Date()).format('L'),
+                    link: data.action_link,
+                    empName: data.fullName,
+                    grievanceRaiseEndDate: moment(data.hr.grievanceRaiseEndDate).format('L')
+                }
+            };
+            transporter.sendMail(mailOptions, callback);
+        }
+        if (data.reviewerOfficedetails.officeEmail != null && data.reviewerOfficedetails.officeEmail != "") {
+            let mailOptions = {
+                from: config.email.sendMailForGrievance.from, // sender address
+                to: data.reviewerOfficedetails.officeEmail,
+                subject: config.email.sendMailForGrievance.subject, // Subject line
+                template: 'email-notify-grievance-raised',
+                context: {
+                    fullName: data.reviewer.fullName,
+                    appliedDate: moment(new Date()).format('L'),
+                    link: data.action_link,
+                    empName: data.fullName,
+                    grievanceRaiseEndDate: moment(data.hr.grievanceRaiseEndDate).format('L')
+                }
+            };
+            transporter.sendMail(mailOptions, callback);
+        }
+        if (data.businessHrHeadOfficedetails.officeEmail != null && data.businessHrHeadOfficedetails.officeEmail != "") {
+            let mailOptions = {
+                from: config.email.sendMailForGrievance.from, // sender address
+                to: data.businessHrHeadOfficedetails.officeEmail,
+                subject: config.email.sendMailForGrievance.subject, // Subject line
+                template: 'email-notify-grievance-raised',
+                context: {
+                    fullName: data.businessHrHead.fullName,
+                    appliedDate: moment(new Date()).format('L'),
+                    link: data.action_link,
+                    empName: data.fullName,
+                    grievanceRaiseEndDate: moment(data.hr.grievanceRaiseEndDate).format('L')
+                }
+            };
+            transporter.sendMail(mailOptions, callback);
+        }
+        if (data.hr.hrOfficedetails.officeEmail != null && data.hr.hrOfficedetails.officeEmail != "") {
+            let mailOptions = {
+                from: config.email.sendMailForGrievance.from, // sender address
+                to: data.hr.hrOfficedetails.officeEmail,
+                subject: config.email.sendMailForGrievance.subject, // Subject line
+                template: 'email-notify-grievance-raised',
+                context: {
+                    fullName: data.hr.hr.fullName,
+                    appliedDate: moment(new Date()).format('L'),
+                    link: data.action_link,
+                    empName: data.fullName,
+                    grievanceRaiseEndDate: moment(data.hr.grievanceRaiseEndDate).format('L')
+                }
+            };
+            transporter.sendMail(mailOptions, callback);
+        }
+    },
     sendEmailToUserAboutMtrStatus: (data, callback) => {
         if (data.user_email === null || data.user_email === "") {
             return
@@ -480,7 +618,7 @@ let functions =
         let mailOptions = {
             from: config.email.forget.from, // sender address
             to: toEmail,
-            subject: config.email.emailToPrevSupervsrForSupervsrTransfer.subject,// Subject line
+            subject: config.email.emailToPrevSupervsrForSupervsrTransfer.subject, // Subject line
             template: 'email-notify-to-prev-supervsr-for-supvsr-transfer',
             context: {
                 fullName: data.fullName,
@@ -503,7 +641,7 @@ let functions =
         let mailOptions = {
             from: config.email.forget.from, // sender address
             to: toEmail,
-            subject: config.email.emailToNewSupervsrForSupervsrTransfer.subject,// Subject line
+            subject: config.email.emailToNewSupervsrForSupervsrTransfer.subject, // Subject line
             template: 'email-notify-to-new-supervsr-for-supvsr-transfer',
             context: {
                 fullName: data.fullName,
@@ -540,7 +678,83 @@ let functions =
         };
         transporter.sendMail(mailOptions, callback);
     },
+    sendEmailToEmployeeForPapInitiate: (data, callback) => {
+        if (data.supervisor_email === null || data.supervisor_email === "") {
+            return
+        }
+        let mailOptions = {
+            from: config.email.sendEmailToEmployeeForPapInitiate.from, // sender address
+            to: data.emp_email,
+            subject: config.email.sendEmailToEmployeeForPapInitiate.subject, // Subject line
+            template: 'email-notify-to-emp-for-pap-initiated',
+            context: {
+                appliedDate: moment(new Date()).format('L'),
+                link: data.action_link,
+                empName: data.emp_name,
+                createdBy: data.createdBy.fullName
+            }
+        };
+        transporter.sendMail(mailOptions, callback);
+    },
+    sendEmailToSupervisorForPapSubmit: (data, callback) => {
+        if (data.supervisor_email === null || data.supervisor_email === "") {
+            return
+        }
+        let mailOptions = {
+            from: config.email.sendEmailToSupervisorForPapSubmit.from, // sender address
+            to: data.emp_email,
+            subject: config.email.sendEmailToSupervisorForPapSubmit.subject, // Subject line
+            template: 'email-notify-to-supvsr-for-pap-submit',
+            context: {
+                appliedDate: moment(new Date()).format('L'),
+                link: data.action_link,
+                empName: data.emp_name,
+                supervisorName: data.supervisor.fullName
+            }
+        };
+        transporter.sendMail(mailOptions, callback);
+    },
+    sendEmailToReviewerForPapSubmit: (data, callback) => {
 
+        if (data.emp_email === null || data.emp_email === "") {
+            return
+        }
+        let mailOptions = {
+            from: config.email.sendEmailToReviewerForPapSubmit.from, // sender address
+            to: data.emp_email,
+            subject: config.email.sendEmailToReviewerForPapSubmit.subject, // Subject line
+            template: 'email-notitfy-to-reviewer-for-pap-submit',
+            context: {
+                appliedDate: moment(new Date()).format('L'),
+                link: data.action_link,
+                reviewerName: data.reviewer.fullName,
+                supervisorName: data.supervisor.fullName,
+                employeeName: data.emp_name
+            }
+        };
+        transporter.sendMail(mailOptions, callback);
+
+    },
+    sendEmailToSupervisorForPapSendBack: (data, callback) => {
+
+        if (data.supervisorofficedetails.officeEmail === null || data.supervisorofficedetails.officeEmail === "") {
+            return
+        }
+        let mailOptions = {
+            from: config.email.sendEmailToSupervisorForPapSendBack.from, // sender address
+            to: data.supervisorofficedetails.officeEmail,
+            subject: config.email.sendEmailToSupervisorForPapSendBack.subject, // Subject line
+            template: 'email-notify-to-supvsr-for-pap-sendback',
+            context: {
+                appliedDate: moment(new Date()).format('L'),
+                link: data.action_link,
+                reviewerName: data.reviewer.fullName,
+                supervisorName: data.supervisor.fullName,
+                empName: data.employee.fullName
+            }
+        };
+        transporter.sendMail(mailOptions, callback);
+    },
     sendEmailToEmployeeForInitiateLearning: (data, callback) => {
         if (data.emp_email === null || data.emp_email === "") {
             return
@@ -597,7 +811,184 @@ let functions =
             }
         };
         transporter.sendMail(mailOptions, callback);
-    }
+    },
+    sendEmailToEmployeeForInitiatePIP: (data, callback) => {
+        if (data.emp_email === null || data.emp_email === "") {
+            return
+        }
+        let mailOptions = {
+            from: config.email.sendEmailToEmployeeForInitiatePIP.from, // sender address
+            to: data.emp_email,
+            subject: config.email.sendEmailToEmployeeForInitiatePIP.subject, // Subject line
+            template: 'email-notify-to-employee-for-initiated-pip',
+            context: {
+                fullName: data.emp_name,
+                appliedDate: moment(new Date()).format('L'),
+                link: data.action_link,
+                hrName: data.hr_name
+            }
+        };
+        transporter.sendMail(mailOptions, callback);
+    },
+    sendEmailToEmployeeForLeaveQuota: (data, callback) => {
+        if (data.emp_email === null || data.emp_email === "") {
+            return
+        }
+        let mailOptions = {
+            from: config.email.sendEmailToEmployeeForLeaveQuota.from, // sender address
+            to: data.emp_email,
+            subject: config.email.sendEmailToEmployeeForLeaveQuota.subject, // Subject line
+            template: 'email-notify-to-emp-for-leave-quota',
+            context: {
+                fullName: data.emp_name,
+                appliedDate: moment(new Date()).format('L'),
+                link: data.action_link,
+                days: data.days,
+                leave: data.leave_type
+                // hrName: data.hr_name
+            }
+        }
+        transporter.sendMail(mailOptions, callback);
+    },
+    sendEmailToSupervisorToApprovePip: (data, callback) => {
+        if (data.supervisor_email === null || data.supervisor_email === "") {
+            return
+        }
+        let mailOptions = {
+            from: config.email.sendEmailToSupervisorToApprovePip.from, // sender address
+            to: data.supervisor_email,
+            subject: config.email.sendEmailToSupervisorToApprovePip.subject, // Subject line
+            template: 'email-notify-to-supvsr-for-pip-approve',
+            context: {
+                fullName: data.supervisor_name,
+                appliedDate: moment(new Date()).format('L'),
+                link: data.action_link,
+                empName: data.user_name
+            }
+        };
+        transporter.sendMail(mailOptions, callback);
+    },
+    sendEmailToSupervisorForInitiateFeedback: (data, callback) => {
+        if (data.emp_email === null || data.emp_email === "") {
+            return
+        }
+        let mailOptions = {
+            from: config.email.sendEmailToSupervisorForInitiateFeedback.from, // sender address
+            to: data.emp_email,
+            subject: config.email.sendEmailToSupervisorForInitiateFeedback.subject, // Subject line
+            template: 'email-notify-to-spvsr-for-initiate-feedback',
+            context: {
+                fullName: data.supervisor.fullName,
+                appliedDate: moment(new Date()).format('L'),
+                link: data.action_link,
+                empName: data.emp_name
+            }
+        };
+        transporter.sendMail(mailOptions, callback);
+    },
+    sendEmailToEmployeeForInitiateGreviance: (data, callback) => {
+        if (data.emp_email === null || data.emp_email === "") {
+            return
+        }
+        let mailOptions = {
+            from: config.email.sendEmailToEmployeeForInitiateGreviance.from, // sender address
+            to: data.emp_email,
+            subject: config.email.sendEmailToEmployeeForInitiateGreviance.subject, // Subject line
+            template: 'email-notify-to-emp-for-initiate-greviance',
+            context: {
+                // fullName: data.supervisor.fullName,
+                appliedDate: moment(new Date()).format('L'),
+                link: data.action_link,
+                empName: data.emp_name
+            }
+        };
+        transporter.sendMail(mailOptions, callback);
+    },
+    sendEmailToUserAboutLearningStatus: (data, callback) => {
+        if (data.user_email === null || data.user_email === "") {
+            return
+        }
+        let mailOptions = {
+            from: config.email.sendEmailToEmployeeForLearningStatus.from, // sender address
+            to: data.user_email,
+            subject: config.email.sendEmailToEmployeeForLearningStatus.subject, // Subject line
+            template: 'email-notify-to-emp-for-learning-status',
+            context: {
+                fullName: data.supervisor_name,
+                appliedDate: moment(new Date()).format('L'),
+                link: data.action_link,
+                empName: data.user_name,
+                isApproved: data.isApproved
+            }
+        };
+        transporter.sendMail(mailOptions, callback);
+    },
+    sendEmailToEmployeeForReleaseFeedback: (data, callback) => {
+        if (data.emp_email === null || data.emp_email === "") {
+            return
+        }
+        let mailOptions = {
+            from: config.email.sendEmailToEmployeeForReleaseFeedback.from, // sender address
+            to: data.emp_email,
+            subject: config.email.sendEmailToEmployeeForReleaseFeedback.subject, // Subject line
+            template: 'email-notify-to-employee-for-release-feedback',
+            context: {
+                link: data.action_link,
+                empName: data.emp_name
+            }
+        };
+        transporter.sendMail(mailOptions, callback);
+    },
+    sendEmailToEmployeeForPapTerminate: (data, callback) => {
+        if (data.emp_email === null || data.emp_email === "") {
+            return
+        }
+        let mailOptions = {
+            from: config.email.sendEmailToEmployeeForPapTerminate.from, // sender address
+            to: data.emp_email,
+            subject: config.email.sendEmailToEmployeeForPapTerminate.subject, // Subject line
+            template: 'email-notify-to-employee-for-pap-terminate',
+            context: {
+                link: data.action_link,
+                empName: data.emp_name
+            }
+        };
+        transporter.sendMail(mailOptions, callback);
+    },
+    sendEmailToSupervisorForInitiateGrievanceFeedback: (data, callback) => {
+        if (data.emp_email === null || data.emp_email === "") {
+            return
+        }
+        let mailOptions = {
+            from: config.email.sendEmailToSupervisorForInitiateGrievanceFeedback.from, // sender address
+            to: data.emp_email,
+            subject: config.email.sendEmailToSupervisorForInitiateGrievanceFeedback.subject, // Subject line
+            template: 'email-notify-to-spvsr-for-initiate-grievancee-feedback',
+            context: {
+                fullName: data.supervisor.fullName,
+                appliedDate: moment(new Date()).format('L'),
+                link: data.action_link,
+                empName: data.emp_name
+            }
+        };
+        transporter.sendMail(mailOptions, callback);
+    },
+    sendEmailToEmployeeForGrievanceReleaseFeedback: (data, callback) => {
+        if (data.emp_email === null || data.emp_email === "") {
+            return
+        }
+        let mailOptions = {
+            from: config.email.sendEmailToEmployeeForGrievanceReleaseFeedback.from, // sender address
+            to: data.emp_email,
+            subject: config.email.sendEmailToEmployeeForGrievanceReleaseFeedback.subject, // Subject line
+            template: 'email-notify-to-employee-for-grievance-release-feedback',
+            context: {
+                link: data.action_link,
+                empName: data.emp_name
+            }
+        };
+        transporter.sendMail(mailOptions, callback);
+    },
 }
 
 module.exports = functions;

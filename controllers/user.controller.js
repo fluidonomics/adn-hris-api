@@ -25,9 +25,10 @@ let express = require('express'),
     FinancialYearDetails = require('../models/master/financialYearDetails.model'),
     MidTermMaster = require('../models/midterm/midtermmaster'),
     MidTermDetails = require('../models/midterm/midtermdetails'),
-    LearningDetails = require('../models/learning/learningdetails'),
-    LearningMaster = require('../models/learning/learningmaster')
-
+    PipDetails = require("../models/pip/pipdetails"),
+    empSeparation = require("../models/employee/employeeSeparationDetails.model"),
+    PapMaster = require("../models/pap/papMaster.model"),
+    PapDetails = require("../models/pap/papDetails.model"),
 
     AuditTrail = require('../class/auditTrail'),
     SendEmail = require('../class/sendEmail'),
@@ -35,6 +36,7 @@ let express = require('express'),
     config = require('../config/config'),
     crypto = require('crypto'),
     async = require('async'),
+    mongoose = require('mongoose'),
     // nodemailer        = require('nodemailer'),
     // hbs               = require('nodemailer-express-handlebars'),
     // sgTransport       = require('nodemailer-sendgrid-transport'),
@@ -1051,6 +1053,10 @@ function addOfficeInfoDetails(req, res, done) {
     });
 }
 function updateofficeInfoDetails(req, res) {
+    // function (done) {
+    //     addLeaveQuota(req, res, done);
+    //     Notify.sendNotifications(req.body.emp_id, 'Leave Quota Provided', 'Leave Quota Provided', parseInt(req.headers.uid), req.body._id, 1, null, parseInt(req.headers.uid));
+    // }
     let _id = req.body._id;
     let emp_id = req.body.emp_id;
     var query = {
@@ -1058,66 +1064,79 @@ function updateofficeInfoDetails(req, res) {
         isDeleted: false
     }
 
-    var queryUpdate = {};
-    queryUpdate = { $set: { updatedBy: parseInt(req.headers.uid), fullName: req.body.fullName } };
-    EmployeeInfo.findOneAndUpdate(query, queryUpdate,
-        function (err, employeeData) {
-            if (employeeData) {
-                query = {
-                    _id: _id,
-                    isDeleted: false
+    async.waterfall([
+        done => {
+            var queryUpdate = {};
+            queryUpdate = { $set: { updatedBy: parseInt(req.headers.uid), fullName: req.body.fullName } };
+            EmployeeInfo.findOneAndUpdate(query, queryUpdate, (err, employeeData) => {
+                if (employeeData) {
+                    query = {
+                        _id: _id,
+                        isDeleted: false
+                    }
+                    queryUpdate = {
+                        $set: {
+                            "idCardNumber": req.body.idCardNumber,
+                            "officeEmail": req.body.officeEmail,
+                            "officePhone": req.body.officePhone,
+                            "officeMobile": req.body.officeMobile,
+                            "facility_id": req.body.facility_id,
+                            "city": req.body.city,
+                            "country": req.body.country,
+                            "costCentre": req.body.costCentre,
+                            "dateOfJoining": req.body.dateOfJoining,
+                            "dateOfConfirmation": req.body.dateOfConfirmation,
+                            "workPermitNumber": req.body.workPermitNumber,
+                            "workPermitEffectiveDate": req.body.workPermitEffectiveDate,
+                            "workPermitExpiryDate": req.body.workPermitExpiryDate,
+                            "updatedBy": parseInt(req.headers.uid),
+                            "isCompleted": true
+                        }
+                    };
+                    OfficeInfo.findOneAndUpdate(query, queryUpdate, function (err, officeDetailsData) {
+                        done(err, officeDetailsData);
+                        if (officeDetailsData) {
+                            req.query.emp_id = req.body.emp_id;
+                            return getOfficeInfoDetails(req, res);
+                        }
+                        else {
+                            return res.status(403).json({
+                                title: 'There was a problem',
+                                error: {
+                                    message: err
+                                },
+                                result: {
+                                    message: officeDetailsData
+                                }
+                            });
+                        }
+                    });
                 }
-                queryUpdate = {
-                    $set: {
-                        "idCardNumber": req.body.idCardNumber,
-                        "officeEmail": req.body.officeEmail,
-                        "officePhone": req.body.officePhone,
-                        "officeMobile": req.body.officeMobile,
-                        "facility_id": req.body.facility_id,
-                        "city": req.body.city,
-                        "country": req.body.country,
-                        "costCentre": req.body.costCentre,
-                        "dateOfJoining": req.body.dateOfJoining,
-                        "dateOfConfirmation": req.body.dateOfConfirmation,
-                        "workPermitNumber": req.body.workPermitNumber,
-                        "workPermitEffectiveDate": req.body.workPermitEffectiveDate,
-                        "workPermitExpiryDate": req.body.workPermitExpiryDate,
-                        "updatedBy": parseInt(req.headers.uid),
-                        "isCompleted": true
-                    }
-                };
-                OfficeInfo.findOneAndUpdate(query, queryUpdate, function (err, officeDetailsData) {
-                    if (officeDetailsData) {
-                        req.query.emp_id = req.body.emp_id;
-                        return getOfficeInfoDetails(req, res);
-                    }
-                    else {
-                        return res.status(403).json({
-                            title: 'There was a problem',
-                            error: {
-                                message: err
-                            },
-                            result: {
-                                message: officeDetailsData
-                            }
-                        });
-                    }
-                });
-            }
-            else {
-                return res.status(403).json({
-                    title: 'There was a problem',
-                    error: {
-                        message: err
-                    },
-                    result: {
-                        message: officeDetailsData
-                    }
-                });
-            }
+                else {
+                    done(err, null);
+                }
+            });
+        },
+        (officeDetailsData, innerDone) => {
+
         }
-    )
+    ], (err, result) => {
+        if (err) {
+            return res.status(403).json({
+                title: 'There was a problem',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: officeDetailsData
+                }
+            });
+        } else {
+
+        }
+    });
 }
+
 function updatepositionInfoDetails(req, res) {
     let _id = req.body.emp_id;
     var query = {
@@ -1257,6 +1276,159 @@ function updateSupervisorDetails(req, res, done) {
     //   });
     // })
 }
+
+function updateState(req, res) {
+
+    let toggle = req.body.isActive;
+    let emp_id = req.body.emp_id;
+    query = {
+        _id: emp_id,
+    }
+
+    if (toggle === "Activate") {
+        updateQuery = {
+            isAccountActive: true
+        }
+    } else {
+        updateQuery = {
+            isAccountActive: false
+        }
+    }
+
+    EmployeeInfo.findOneAndUpdate(query, updateQuery, updateQuery, (err, result) => {
+        if (err) {
+            return res.status(403).json({
+                title: "There was a problem",
+                error: {
+                    message: err
+                },
+                result: {
+                    message: result
+                }
+            });
+        } else {
+            AuditTrail.auditTrailEntry(
+                0,
+                "EmployeeInfo",
+                result,
+                "empDetails",
+                "updateInfo",
+                "UPDATED"
+            );
+            return res.status(200).json({
+                title: "employee Info updated",
+                result: {
+                    message: result
+                }
+            });
+        }
+    })
+}
+
+function getSeparation(req, res) {
+
+    //let empSeparationInfo = new empSeparation();
+    let emp_id = req.query.emp_id;
+    let query;
+    if (emp_id) {
+        query = {
+            emp_id: emp_id,
+        };
+    }
+
+    empSeparation.findOne(query, function (err, separationData) {
+        if (err) {
+            return res.status(403).json({
+                title: 'There was an error, please try again later',
+                error: err
+            });
+        }
+        return res.status(200).json(separationData);
+    });
+}
+
+function getStates(req, res) {
+
+    //let empSeparationInfo = new empSeparation();
+    let emp_id = req.query.emp_id;
+    let query;
+    if (emp_id) {
+        query = {
+            _id: emp_id,
+        };
+    }
+
+    EmployeeInfo.findOne(query, function (err, statesData) {
+        if (err) {
+            return res.status(403).json({
+                title: 'There was an error, please try again later',
+                error: err
+            });
+        }
+        return res.status(200).json(statesData);
+    });
+}
+// function getSeparation(req, res) {
+
+//     //let empSeparationInfo = new empSeparation();
+//     let empId = parseInt(req.query.emp_id);
+//     // let query;
+//     // if (emp_id) {
+//     //     query = {
+//     //         emp_id: emp_id,
+//     //     };
+//     // }
+
+//     empSeparation.aggregate([
+
+//         {
+//             $match: {
+//                 emp_id: empId
+//             }
+//         },
+//         {
+//             $lookup: {
+//               from: "employeedetails",
+//               localField: "emp_id",
+//               foreignField: "_id",
+//               as: "emp_details"
+//             }
+//         },
+//         {
+//             $unwind: {
+//               path: "$emp_details",
+//               preserveNullAndEmptyArrays: true
+//             }
+//         },
+//         {
+//             $project: {
+//                 "sep_id": "$_id",
+//                 "dateOfResignation": "$dateOfResignation",
+//                 "effectiveDate": "$effectiveDate",
+//                 "dateOfSeparation": "$dateOfSeparation",
+//                 "separationType": "$separationType",
+//                 "isActive": "$emp_details.isAccountActive",
+//                 "emp_id": "$emp_details._id"
+//             }
+//         }
+//     ]).exec(function(err, separationData){
+//         if (err) {
+//             return res.status(403).json({
+//               title: "There was a Problem",
+//               error: {
+//                 message: err
+//               },
+//               result: {
+//                 message: separationData
+//               }
+
+//             });
+//           } else {
+//             return res.status(200).json(separationData);
+//           }
+//     })
+// }
+
 function getPersonalInfoDetails(req, res) {
     let emp_id = req.query.emp_id;
     let query = {
@@ -2150,7 +2322,7 @@ function updateSupervisortransfer(req, res, done) {
                                     MidTermDetails.updateMany({ mtr_master_id: midtermmaster._id }, updateQuery, (err, doc) => {
                                         done(err, doc);
                                     })
-                                })
+                                });
 
 
                                 LearningMaster.find({ emp_id: _id }, (err, learningmaster) => {
@@ -2165,10 +2337,34 @@ function updateSupervisortransfer(req, res, done) {
                                     LearningDetails.updateMany({ learning_master_id: learningmaster._id }, updateQuery, (err, doc) => {
                                         done(err, doc);
                                     })
-                                    
+
                                 })
+
+                                PipMaster.find({ emp_id: _id }, (err, pipmaster) => {
+                                    checkError(err, pipmaster);
+
+                                    let updateQuery = {
+                                        "updatedAt": updatedAt,
+                                        "supervisor_id": req.body.primarySupervisorEmp_id,
+                                        "updatedBy": updatedBy
+                                    };
+
+                                    PipDetails.updateMany({ master_id: pipmaster._id }, updateQuery, (err, doc) => {
+                                        done(err, doc);
+                                    })
+
+                                })
+                            },
+                            (mtrResult, done) => {
+                                let updateQuery = {
+                                    "updatedAt": updatedAt,
+                                    "supervisor_id": req.body.primarySupervisorEmp_id,
+                                    "updatedBy": updatedBy
+                                };
+                                PapDetails.updateMany({ empId: req.body.emp_id }, updateQuery, (err, doc) => {
+                                    done(err, doc);
+                                });
                             }
-                            
                         ], function (res) {
                             if (!res) {
                                 responseObject.apiStatus = false;
@@ -2182,13 +2378,32 @@ function updateSupervisortransfer(req, res, done) {
                         async.waterfall([
                             (innerDone) => {
                                 if (req.body.kraIds && req.body.kraIds.length > 0) {
-                                    let updateQuery = {
-                                        "supervisor_id": req.body.primarySupervisorEmp_id,
-                                        "updatedAt": updatedAt,
-                                        "updatedBy": updatedBy
-                                    };
-                                    kraDetails.updateMany({ _id: { $in: req.body.kraIds } }, updateQuery, (err, res) => {
-                                        innerDone(err, res);
+                                    let matchQuery = {
+                                        _id: {
+                                            $in: req.body.kraIds
+                                        }
+                                    }
+                                    kraDetails.find(matchQuery, (err, res) => {
+                                        if (err) {
+                                            innerDone(err);
+                                        }
+                                        if (res && res.length > 0) {
+                                            res.forEach(kra => {
+                                                let updateQuery = {
+                                                    "updatedAt": updatedAt,
+                                                    "updatedBy": updatedBy
+                                                };
+                                                if (kra.supervisor_id == responseObject.previousSupervisorInfo.primarySupervisorEmp_id) {
+                                                    updateQuery.supervisor_id = req.body.primarySupervisorEmp_id;
+                                                } else if (kra.supervisor_id == responseObject.previousSupervisorInfo.secondarySupervisorEmp_id) {
+                                                    updateQuery.supervisor_id = req.body.secondarySupervisorEmp_id;
+                                                }
+
+                                                kraDetails.updateOne({ _id: kra._id }, updateQuery, (err, res) => {
+                                                    innerDone(err, res);
+                                                });
+                                            });
+                                        }
                                     });
                                 } else {
                                     innerDone(null, null);
@@ -2196,27 +2411,50 @@ function updateSupervisortransfer(req, res, done) {
                             },
                             (kras, innerDone) => {
                                 if (req.body.leaveIds && req.body.leaveIds.length > 0) {
-                                    let updateQuery = {
-                                        "applyTo": req.body.primarySupervisorEmp_id,
-                                        "updatedAt": updatedAt,
-                                        "updatedBy": updatedBy
-                                    };
-                                    LeaveApply.updateMany({ _id: { $in: req.body.leaveIds } }, updateQuery, (err, res) => {
-                                        innerDone(err, res);
-                                    });
+                                    LeaveApply.find({ _id: { $in: req.body.leaveIds } }, (err, leaves) => {
+                                        if (err) {
+                                            innerDone(err);
+                                        }
+                                        if (leaves && leaves.length > 0) {
+                                            leaves.forEach(leave => {
+                                                let updateQuery = {
+                                                    "updatedAt": updatedAt,
+                                                    "updatedBy": updatedBy
+                                                };
+                                                if (leave.applyTo == responseObject.previousSupervisorInfo.primarySupervisorEmp_id) {
+                                                    updateQuery.applyTo = req.body.primarySupervisorEmp_id;
+                                                } else if (leave.applyTo == responseObject.previousSupervisorInfo.secondarySupervisorEmp_id) {
+                                                    updateQuery.applyTo = req.body.secondarySupervisorEmp_id;
+                                                }
+                                                LeaveApply.updateOne({ _id: leave._id }, updateQuery, (err, res) => {
+                                                    innerDone(err, res);
+                                                });
+                                            });
+                                        }
+                                    })
                                 } else {
                                     innerDone(null, null);
                                 }
                             },
                             (leaves, innerDone) => {
                                 if (req.body.mtrIds && req.body.mtrIds.length > 0) {
-                                    let updateQuery = {
-                                        "supervisor_id": req.body.primarySupervisorEmp_id,
-                                        "updatedAt": updatedAt,
-                                        "updatedBy": updatedBy
-                                    };
-                                    MidTermDetails.updateMany({ _id: { $in: req.body.mtrIds } }, updateQuery, (err, res) => {
-                                        innerDone(err, res);
+                                    MidTermDetails.find({ _id: { $in: req.body.mtrIds } }, (err, midTerms) => {
+                                        if (midTerms && midTerms.length > 0) {
+                                            midTerms.forEach(mtr => {
+                                                let updateQuery = {
+                                                    "updatedAt": updatedAt,
+                                                    "updatedBy": updatedBy
+                                                };
+                                                if (mtr.supervisor_id == responseObject.previousSupervisorInfo.primarySupervisorEmp_id) {
+                                                    updateQuery.supervisor_id = req.body.primarySupervisorEmp_id;
+                                                } else if (mtr.supervisor_id == responseObject.previousSupervisorInfo.secondarySupervisorEmp_id) {
+                                                    updateQuery.supervisor_id = req.body.secondarySupervisorEmp_id;
+                                                }
+                                                MidTermDetails.updateMany({ _id: mtr._id }, updateQuery, (err, res) => {
+                                                    innerDone(err, res);
+                                                });
+                                            })
+                                        }
                                     });
                                 } else {
                                     innerDone(null, null);
@@ -2228,17 +2466,17 @@ function updateSupervisortransfer(req, res, done) {
                                         "updatedAt": updatedAt,
                                         "updatedBy": updatedBy
                                     };
-                                    LearningDetails.updateMany({$and:[{supervisor_id: req.body.oldPrimarySupervisor},{ master_id: { $in: req.body.learningIds } },{status: {$ne: "Approved"}}]}, updateQueryprim, (err, res) => {
+                                    LearningDetails.updateMany({ $and: [{ supervisor_id: req.body.oldPrimarySupervisor }, { master_id: { $in: req.body.learningIds } }, { status: { $ne: "Approved" } }] }, updateQueryprim, (err, res) => {
                                         innerDone(err, res);
                                     });
 
-                                    
+
                                     let updateQuerysec = {
                                         "supervisor_id": req.body.secondarySupervisorEmp_id,
                                         "updatedAt": updatedAt,
                                         "updatedBy": updatedBy
                                     };
-                                    LearningDetails.updateMany({$and:[{supervisor_id: req.body.oldSecondarySupervisor},{ master_id: { $in: req.body.learningIds } },{status: {$ne: "Approved"}}]}, updateQuerysec, (err, res) => {
+                                    LearningDetails.updateMany({ $and: [{ supervisor_id: req.body.oldSecondarySupervisor }, { master_id: { $in: req.body.learningIds } }, { status: { $ne: "Approved" } }] }, updateQuerysec, (err, res) => {
                                         innerDone(err, res);
                                     });
 
@@ -2246,6 +2484,41 @@ function updateSupervisortransfer(req, res, done) {
                                 } else {
                                     innerDone(null, null);
                                 }
+
+                                if (req.body.pipIds && req.body.pipIds.length > 0) {
+                                    let updateQueryprim = {
+                                        "supervisor_id": req.body.primarySupervisorEmp_id,
+                                        "updatedAt": updatedAt,
+                                        "updatedBy": updatedBy
+                                    };
+                                    PipDetails.updateMany({ $and: [{ supervisor_id: req.body.oldPrimarySupervisor }, { master_id: { $in: req.body.pipIds } }, { status: { $ne: "Approved" } }, { status: { $ne: "Completed" } }] }, updateQueryprim, (err, res) => {
+                                        innerDone(err, res);
+                                    });
+
+
+                                    let updateQuerysec = {
+                                        "supervisor_id": req.body.secondarySupervisorEmp_id,
+                                        "updatedAt": updatedAt,
+                                        "updatedBy": updatedBy
+                                    };
+                                    PipDetails.updateMany({ $and: [{ supervisor_id: req.body.oldSecondarySupervisor }, { master_id: { $in: req.body.pipIds } }, { status: { $ne: "Approved" } }, { status: { $ne: "Completed" } }] }, updateQuerysec, (err, res) => {
+                                        innerDone(err, res);
+                                    });
+
+
+                                } else {
+                                    innerDone(null, null);
+                                }
+                            },
+                            (data, done) => {
+                                let updateQuery = {
+                                    "updatedAt": updatedAt,
+                                    "supervisor_id": req.body.primarySupervisorEmp_id,
+                                    "updatedBy": updatedBy
+                                };
+                                PapDetails.updateMany({ empId: req.body.emp_id }, updateQuery, (err, doc) => {
+                                    done(err, doc);
+                                });
                             }
                         ], (err, result) => {
                             responseObject.apiStatus = true;
@@ -2385,10 +2658,6 @@ let functions = {
                             function (done) {
                                 addProfileProcessInfoDetails(req, res, done);
                                 Notify.sendNotifications(req.body.emp_id, 'Please Fill Profile', 'Submit your profile', parseInt(req.headers.uid), req.body._id, 1, null, parseInt(req.headers.uid));
-                            },
-                            function (done) {
-                                addLeaveQuota(req, res, done);
-                                Notify.sendNotifications(req.body.emp_id, 'Leave Quota Provided', 'Leave Quota Provided', parseInt(req.headers.uid), req.body._id, 1, null, parseInt(req.headers.uid));
                             }
                         ],
                             function (done) {
@@ -2606,6 +2875,15 @@ let functions = {
             //results= results.filter((obj, pos, arr) => { return arr.map(mapObj =>mapObj['_id']).indexOf(obj['_id']) === pos;});
             return res.status(200).json({ "data": results });
         });
+    },
+    getEmpSeparation: (req, res) => {
+        getSeparation(req, res);
+    },
+    getEmpStates: (req, res) => {
+        getStates(req, res);
+    },
+    updateEmpState: (req, res) => {
+        updateState(req, res);
     },
     getPersonalInfo: (req, res) => {
         getPersonalInfoDetails(req, res);
@@ -2864,6 +3142,78 @@ let functions = {
             }
         ]);
     },
+
+    addSeparation: (req, res) => {
+
+        let empSeparationInfo = new empSeparation();
+        empSeparationInfo.emp_id = req.body.emp_id;
+        empSeparationInfo.dateOfResignation = req.body.dateOfResignation;
+        empSeparationInfo.dateOfSeparation = req.body.dateOfSeparation;
+        empSeparationInfo.effectiveDate = req.body.effectiveDate;
+        empSeparationInfo.createdBy = req.body.createdBy;
+        empSeparationInfo.separationType = req.body.separationType;
+        empSeparationInfo.remarks = req.body.remarks;
+
+        if (req.body._id) {
+
+            empSeparation.findOneAndUpdate(
+                { _id: req.body._id },
+                empSeparationInfo,
+                function (err, empSeparationResp) {
+
+                    if (err) {
+                        return res.status(403).json({
+                            title: "There was a problem",
+                            error: {
+                                message: err
+                            },
+                            result: {
+                                message: empSeparationResp
+                            }
+                        })
+                    } else {
+
+                        AuditTrail.auditTrailEntry(
+                            0,
+                            "empSeparationInfo",
+                            empSeparationResp,
+                            "user",
+                            "empSeparationInfo",
+                            "Updated"
+                        );
+                        return res.status(200).json(empSeparationResp);
+                    }
+                })
+        } else {
+
+            empSeparationInfo.save(function (err, empSeparationResp) {
+
+                if (err) {
+                    return res.status(403).json({
+                        title: "There was a problem",
+                        error: {
+                            message: err
+                        },
+                        result: {
+                            message: empSeparationResp
+                        }
+                    })
+                } else {
+
+                    AuditTrail.auditTrailEntry(
+                        0,
+                        "empSeparationInfo",
+                        empSeparationResp,
+                        "user",
+                        "empSeparationInfo",
+                        "ADDED"
+                    );
+                    return res.status(200).json(empSeparationResp);
+                }
+            })
+        }
+    },
+
     addSalaryInfo: (req, res) => {
         let emp_id = req.body.emp_id || req.query.emp_id;
         Promise.all([

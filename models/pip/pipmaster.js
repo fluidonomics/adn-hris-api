@@ -4,16 +4,27 @@ let mongoose = require('mongoose'),
   bcrypt = require('bcrypt');
 autoIncrement = require('mongoose-sequence')(mongoose);
 
-let MidTermMasterSchema = new Schema(
+let pipMasterSchema = new Schema(
   {
     _id: { type: Number },
-    batch_id: { type: Number, ref: 'midtermbatches' },
+    batch_id: { type: Number, ref: 'pipbatches' },
     emp_id: { type: Number, ref: 'employeedetails' },
     status: { type: String, default: null },
     updatedBy: { type: Number, default: null },
     createdBy: { type: Number, default: null },
     isDeleted: { type: Boolean, default: false },
-    isSystemGenerated: { type: Boolean, default: false }
+    sup_final_com: { type: String, default: null},
+    rev_final_com: { type: String, default: null},
+    emp_final_com: { type: String, default: null},
+    hr_final_com: { type: String, default: null},
+    final_status: { type: String, default: null},
+    final_recommendation: { type: Number, default: null},
+    final_remarks: { type: String, default: null},
+    isExtended: { type: Boolean, default: false },
+    fiscalYearId: { type: Number, default: null },
+    timelines: { type: Number, default: null }
+    
+
   },
   {
     timestamps: true,
@@ -22,11 +33,11 @@ let MidTermMasterSchema = new Schema(
   });
 
 // Update the Emp_id Hash user password when registering or when changing password
-MidTermMasterSchema.pre('save', function (next) {
+pipMasterSchema.pre('save', function (next) {
   var _this = this;
   if (_this.isNew) {
     //Check the Count of Collection and add 1 to the Count and Assign it to Emp_id 
-    mongoose.model('midtermmaster', MidTermMasterSchema).find().sort({ _id: -1 }).limit(1)
+    mongoose.model('pipmaster', pipMasterSchema).find().sort({ _id: -1 }).limit(1)
       .exec(function (err, doc) {
         if (doc.length > 0) {
           _this._id = doc[0]._id + 1;
@@ -41,6 +52,6 @@ MidTermMasterSchema.pre('save', function (next) {
 });
 
 
-MidTermMasterSchema.plugin(mongooseUniqueValidator);
+pipMasterSchema.plugin(mongooseUniqueValidator);
 
-module.exports = mongoose.model('midtermmaster', MidTermMasterSchema);
+module.exports = mongoose.model('pipmaster', pipMasterSchema);

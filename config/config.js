@@ -89,9 +89,17 @@ module.exports = {
       from: '"Team HRIS" <hris@adnsl.net>',
       subject: 'Midterm Review for Approval'
     },
+    'sendEmailToSupervisorToApprovePap': {
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'Performance Appraisal Review for Approval'
+    },
     'sendEmailToEmployeeForMtrStatus': {
       from: '"Team HRIS" <hris@adnsl.net>',
       subject: 'Midterm Review Status'
+    },
+    'sendEmailToEmployeeForPapInitiate': {
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'Performance Appraisal Initaited'
     },
     'sendEmailToEmployeeForLearningStatus': {
       from: '"Team HRIS" <hris@adnsl.net>',
@@ -101,10 +109,70 @@ module.exports = {
       from: '"Team HRIS" <hris@adnsl.net>',
       subject: 'Learning Agenda for approval'
     },
+    'sendEmailToSupervisorForPapSubmit': {
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'Performance Appraisal Submitted'
+    },
     'sendEmailToEmployeeForInitiatedLearning': {
       from: '"Team HRIS" <hris@adnsl.net>',
       subject: 'Learning Agenda initiated'
-    }
+    },
+    'sendEmailToEmployeeForInitiatePIP': {
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'PIP initiated'
+    },
+    'sendEmailToSupervisorToApprovePip': {
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'PIP for approval'
+    },
+    'sendEmailToEmployeeForPipStatus': {
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'PIP status'
+    },
+    'sendEmailToReviewerForPapSubmit': {
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'Performance Appraisal Submitted For Reviewer'
+    },
+    'sendEmailToSupervisorForPapSendBack': {
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'Performance Appraisal SentBack From Reviewer'
+    },
+    'sendEmailToEmployeeForLeaveQuota': {
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: "Leave Quota Provided"
+    },
+    'sendMailToHrforApproval': {
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'Performance Appraisal Of Employee Has Been Approved By Reviewer'
+    },
+    'sendMailForGrievance': {
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'Grievance Raised'
+    },
+    'sendEmailToSupervisorForInitiateFeedback': {
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'Feedback Initiated'
+    },
+    'sendEmailToEmployeeForInitiateGreviance': {
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'Greviance Phase Initiated'
+    },
+    'sendEmailToEmployeeForReleaseFeedback': {
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'Feedback Released'
+    },
+    'sendEmailToEmployeeForPapTerminate': {
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'PAP Terminated'
+    },
+    'sendEmailToSupervisorForInitiateGrievanceFeedback': {
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'Grievance Feedback Initiated'
+    },
+    'sendEmailToEmployeeForGrievanceReleaseFeedback': {
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'Grievance Feedback Released'
+    },
   },
   'aws':
   {

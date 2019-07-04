@@ -1,13 +1,13 @@
-let express      = require('express'),
-    path         = require('path'),
-    logger       = require('morgan'),
-    cookieParser = require('cookie-parser'),
-    bodyParser   = require('body-parser'),
-    mongoose     = require('mongoose'),
-    crontab      = require('./cron/cron'),
-    config       = require('./config/config');
-    require('dotenv').load()
-   
+let express = require('express'),
+  path = require('path'),
+  logger = require('morgan'),
+  cookieParser = require('cookie-parser'),
+  bodyParser = require('body-parser'),
+  mongoose = require('mongoose'),
+  crontab = require('./cron/cron'),
+  config = require('./config/config');
+require('dotenv').load()
+
 let app = express();
 
 
@@ -17,7 +17,7 @@ process.on('uncaughtException', function (err) {
 
 
 mongoose.Promise = global.Promise;  // gets rid of the mongoose promise deprecated warning
-mongoose.connect(process.env.DB,{useMongoClient:true});
+mongoose.connect(process.env.DB, { useMongoClient: true });
 mongoose.connection.on('open', (err) => {
   if (err) {
     console.log(err);
@@ -34,7 +34,7 @@ app.set('view engine', 'hbs');
 
 app.use(logger('dev'));
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended: false}));
+app.use(bodyParser.urlencoded({ extended: false }));
 app.disable('x-powered-by');
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, config.paths.dist)));
@@ -46,13 +46,13 @@ app.use(function (req, res, next) {
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, Authorization,access-token,client,expiry,token-type,uid');
   res.setHeader('Access-Control-Expose-Headers', 'X-Requested-With, Content-Type, access-token,client,expiry,token-type,uid');
-  
+
   next();
 });
 
 // setting up route
 require('./routes/routes')(app);
-// crontab.autoApproveLeave();
+crontab.initJobs();
 
 
 // catch 404 and rsforward to error handler
@@ -67,7 +67,7 @@ if (app.get('env') === 'development') {
     res.status(err.status || 500);
     res.json({
       message: err.message,
-      error  : err
+      error: err
     });
   });
 }
@@ -76,7 +76,7 @@ app.use(function (err, req, res, next) {
   res.status(err.status || 500);
   res.json({
     message: err.message,
-    error  : {}
+    error: {}
   });
 });
 

@@ -9,9 +9,12 @@ let express = require('express'),
   leave = require('../controllers/leave.controller'),
   midterm = require('../controllers/midterm.controller'),
   learning = require('../controllers/learning.controller'),
-externalDocument = require('../controllers/externalDocument.controller'),
+  pip = require('../controllers/pip.controller'),
+  externalDocument = require('../controllers/externalDocument.controller'),
   Employee = require('../models/employee/employeeDetails.model'),
   batch = require('../controllers/batch.controller'),
+  pap = require('../controllers/pap.controller'),
+  dashboard = require('../controllers/dashboard.controller'),
   jwt = require('jsonwebtoken-refresh');
 
 function ensureAuthenticated(req, res, next) {
@@ -70,18 +73,21 @@ module.exports = (app) => {
     leaveRoutes = express.Router(),
     midtermRoutes = express.Router(),
     learningRoutes = express.Router();
-    hrRoutes = express.Router(),
+  pipRoutes = express.Router();
+  hrRoutes = express.Router(),
     externalDocumentRoutes = express.Router(),
     batchRoutes = express.Router(),
+    papRoutes = express.Router(),
+    dashboardRoutes = express.Router();
 
-    //= ========================
+  //= ========================
 
-    //= ========================
-    // Auth Routes
-    //= ========================
+  //= ========================
+  // Auth Routes
+  //= ========================
 
-    // User Auth Routes endpoint: http://localhost:3000/api/auth
-    apiRoutes.use('/auth', authRoutes);
+  // User Auth Routes endpoint: http://localhost:3000/api/auth
+  apiRoutes.use('/auth', authRoutes);
 
   authRoutes.get('/validateToken', auth.validateToken);
 
@@ -245,6 +251,10 @@ module.exports = (app) => {
   // userRoutes.post('/provideQuota', user.provideQuota);
   userRoutes.post('/updateSupervisortransferInfo', user.updateSupervisortransferInfo);
 
+  userRoutes.post('/addseparation', user.addSeparation);
+  userRoutes.get('/getseparation', user.getEmpSeparation);
+  userRoutes.post('/changestate', user.updateEmpState);
+  userRoutes.get('/getstates', user.getEmpStates);
   //= ========================
 
   //= ========================
@@ -352,6 +362,8 @@ module.exports = (app) => {
   //        leaveRoutes.post('/grantMaternityLeave', leave.grantMaternityLeave);
   leaveRoutes.get('/getEmpMaternityLeaveDetails', leave.getEmpMaternityLeaveDetails);
   leaveRoutes.get('/downloadFile', leave.downloadLeaveAttachment);
+  leaveRoutes.get('/getEmployeeForQuotaProvide', leave.getEmployeeForQuotaProvide);
+  leaveRoutes.post('/provideLeaveQuota', leave.provideLeaveQuota);
 
   //= ========================
 
@@ -389,6 +401,25 @@ module.exports = (app) => {
   learningRoutes.get("/getlearningbatch", learning.getLearningBatch);
   learningRoutes.post("/updatelearningmaster", learning.updateLearningMaster);
 
+  //==============================
+  //PIP API's
+  //==============================
+
+  apiRoutes.use('/pip', pipRoutes);
+  pipRoutes.get("/getpipemployee", pip.getPipEmployee),
+    pipRoutes.post("/initiatepip", pip.initiatePipProcess);
+  pipRoutes.get("/getpipmaster", pip.getpipdetailsforsingalemployee);
+  pipRoutes.post("/insertpip", pip.postNewPip);
+  pipRoutes.get("/getpipdetails", pip.getpipdetails);
+  pipRoutes.get("/supervisorgetpipdetails", pip.supervisorgetpip);
+  pipRoutes.post("/submitpip", pip.submitpip);
+  pipRoutes.get("/pipbyreviewer", pip.pipByReviewer);
+  pipRoutes.post("/pipapproval", pip.pipApproval);
+  pipRoutes.post("/updatebatch", pip.updateBatch);
+  pipRoutes.get("/getpipbatch", pip.getPipBatch);
+  pipRoutes.post("/updatepipdetails", pip.updatepipdetails);
+  pipRoutes.get("/getpipbyhr", pip.getPipByHR);
+  pipRoutes.post("/updatepipmaster", pip.updatePipMaster);
 
 
 
@@ -421,6 +452,8 @@ module.exports = (app) => {
 
   // Register endpoint: http://localhost:3000/api/master/createDepartment
   masterRoutes.post('/createDepartment', ensureAuthenticated, master.createDepartment);
+
+
 
   // Register endpoint: http://localhost:3000/api/master/createVertical
   masterRoutes.post('/createVertical', ensureAuthenticated, master.createVertical);
@@ -469,7 +502,8 @@ module.exports = (app) => {
   // Register endpoint: http://localhost:3000/api/master/createFinancialYear
   masterRoutes.post('/createFinancialYear', master.createFinancialYear);
   masterRoutes.post('/createCompanyFinancialYear', master.createCompanyFinancialYear);
-
+  masterRoutes.post('/createPapRatingScale', master.createPapRatingScale);
+  masterRoutes.get('/getPapRatingScale', master.getPapRatingScale);
 
 
 
@@ -560,6 +594,7 @@ module.exports = (app) => {
   commonRoutes.get('/getFinincialYear', ensureAuthenticated, common.getFinincialYear);
   // commonRoutes.get('/sendNotification',ensureAuthenticated, common.sendNotification);
   commonRoutes.get('/getPrePost_Report', common.getPrePost_Report);
+  commonRoutes.get('/prepareProdClone', common.prepareProdClone);
 
   //= ========================
 
@@ -615,5 +650,49 @@ module.exports = (app) => {
 
   // Set url for API group routes, all endpoints start with /api/ eg http://localhost:3000/api/admin  || http://localhost:3000/api/auth
   app.use('/api', apiRoutes);
+
+  //= ========================
+  // Pap Routes
+  //= ========================
+  apiRoutes.use('/pap', papRoutes);
+  papRoutes.get('/getEmployeesForPapInitiate', pap.getEmployeesForPapInitiate);
+  papRoutes.post('/initiatePapProcess', pap.initiatePapProcess);
+  papRoutes.get('/getPapBatches', pap.getPapBatches);
+  papRoutes.post('/terminatePap', pap.terminatePap);
+  papRoutes.get('/getPapDetailsSingleEmployee', pap.getPapDetailsSingleEmployee);
+  papRoutes.get('/getPapBySupervisor', pap.getPapBySupervisor);
+  papRoutes.get('/getPapByReviewer', pap.getPapByReviewer);
+  papRoutes.post('/papUpdate', pap.papUpdate);
+  papRoutes.post('/papSubmit', pap.papSubmit);
+  papRoutes.post('/updateBatch', pap.updateBatch);
+  papRoutes.post('/papUpdateSupervisor', pap.papUpdateSupervisor);
+  papRoutes.post('/papSubmitToReviewer', pap.papSubmitToReviewer);
+  papRoutes.post('/papUpdateReviewer', pap.papUpdateReviewer);
+  papRoutes.get('/getEmployeesForFeedbackInit', pap.getEmployeesForFeedbackInit);
+  papRoutes.post('/initiateFeedback', pap.initiateFeedback);
+  papRoutes.post('/initiateGrievance', pap.initiateGrievance);
+  papRoutes.get('/getEmployeesForGrievance', pap.getEmployeesForGrievance);
+  papRoutes.post('/releaseFeedback', pap.releaseFeedback);
+  papRoutes.post('/initGrievancePhase', pap.initGrievancePhase);
+  papRoutes.get('/getAllPap', pap.getAllPap);
+  papRoutes.get('/getEmployeesForGrievanceFeedbackInit', pap.getEmployeesForGrievanceFeedbackInit);
+  papRoutes.post('/initiateGrievanceFeedback', pap.initiateGrievanceFeedback);
+  papRoutes.post('/releaseGrievanceFeedback', pap.releaseGrievanceFeedback);
+
+  /*===================================
+  Dashboard API's
+  ===================================*/
+  apiRoutes.use('/dashboard', dashboardRoutes);
+  dashboardRoutes.get('/hrempratio', dashboard.getHrEmpratio);
+  dashboardRoutes.get('/emptyperatio', dashboard.getEmpType);
+  dashboardRoutes.get('/kraempdetails', dashboard.getKraDetails);
+  dashboardRoutes.get('/empdetails', dashboard.getEmpDetails);
+  dashboardRoutes.get('/mtrdetails', dashboard.germtrdetails);
+  dashboardRoutes.get('/mtrempdetails', dashboard.getMtrEmpDetails);
+  dashboardRoutes.get('/learningstatus', dashboard.getLearningStatus);
+  dashboardRoutes.get('/learningempdetails', dashboard.getLearningEmpDetails);
+  dashboardRoutes.get('/empabouttoretire', dashboard.getEmpAge);
+  dashboardRoutes.get('/empcountbygrade', dashboard.getEmpCountByGrade);
+  dashboardRoutes.get('/empgradeinfo', dashboard.getEmpInfoAndGrade);
 };
 

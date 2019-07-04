@@ -1,0 +1,69 @@
+db.getCollection("papdetails").aggregate(
+
+	// Pipeline
+	[
+		// Stage 1
+		{
+			$lookup: // Equality Match
+			{
+			    from: "midtermdetails",
+			    localField: "mtr_details_id",
+			    foreignField: "_id",
+			    as: "mtr_details"
+			}
+		},
+
+		// Stage 2
+		{
+			$unwind: {
+			    path : "$mtr_details",
+			}
+		},
+
+		// Stage 3
+		{
+			$project: {
+			   	pap_master_id: "$pap_master_id",
+				empId: "$empId",
+				mtr_details_id: "$mtr_details_id",
+				createdBy: "$createdBy",
+				createdAt: "$createdAt",
+				isDeleted: "$isDeleted",
+				updatedBy: "$updatedBy",
+				grievanceSupRemark: "$grievanceSupRemark",
+				grievanceRevRemark: "$grievanceRevRemark",
+				grievance_ratingScaleId: "$grievance_ratingScaleId",
+				status: "$status",
+				reviewerRemark: "$reviewerRemark",
+				supRemark: "$supRemark",
+				sup_ratingScaleId: "$sup_ratingScaleId",
+				empRemark: "$empRemark",
+				emp_ratingScaleId: "$emp_ratingScaleId",
+				kraWorkflow_id: '$mtr_details.kraWorkflow_id',
+				supervisor_id: '$mtr_details.supervisor_id',
+				status: '$mtr_details.status',
+				colorStatus: '$mtr_details.colorStatus',
+				progressStatus: '$mtr_details.progressStatus',
+				supervisorComment: '$mtr_details.supervisorComment',
+				employeeComment: '$mtr_details.employeeComment',
+				measureOfSuccess: '$mtr_details.measureOfSuccess',
+				unitOfSuccess: '$mtr_details.unitOfSuccess',
+				category_id: '$mtr_details.category_id',
+				weightage_id: '$mtr_details.weightage_id',
+				mtr_kra: '$mtr_details.mtr_kra'
+			}
+		},
+
+		// Stage 4
+		{
+			$match: {
+				empId: 147
+			
+			}
+		},
+
+	]
+
+	// Created with Studio 3T, the IDE for MongoDB - https://studio3t.com/
+
+);
