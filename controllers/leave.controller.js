@@ -453,14 +453,15 @@ function singleEmployeeLeaveBalance(currentEmpId, fiscalYearId, month, year, fro
                     },
                     yearStart: {
                         $year: '$fromDate'
-                    }
+                    },
+                    fiscalYearId: 1
                 }
             },
             // Stage 1
             {
                 $match: {
                     "emp_id": empId,
-
+                    "fiscalYearId": _fiscalYearId
                     // "isApproved": true
                 }
             },
@@ -4160,6 +4161,22 @@ let functions = {
                         SendEmail.sendEmailToEmployeeForLeaveQuota(data);
                     });
                     innerDone(err, employees);
+                });
+            }
+        ], (err, data) => {
+            if (err) {
+                return res.status(400).json(err);
+            } else {
+                return res.status(200).json(data);
+            }
+        });
+    },
+    addLeaveBalance: (req, res) => {
+        async.waterfall([
+            function (done) {
+                let leaveBalance = new LeaveBalance(req.body);
+                leaveBalance.save(function (err, leaveBalanceInfo) {
+                    done(err, leaveBalanceInfo);
                 });
             }
         ], (err, data) => {
