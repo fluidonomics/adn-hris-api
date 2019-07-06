@@ -4170,6 +4170,22 @@ let functions = {
                 return res.status(200).json(data);
             }
         });
+    },
+    addLeaveBalance: (req, res) => {
+        async.waterfall([
+            function (done) {
+                let leaveBalance = new LeaveBalance(req.body);
+                leaveBalance.save(function (err, leaveBalanceInfo) {
+                    done(err, leaveBalanceInfo);
+                });
+            }
+        ], (err, data) => {
+            if (err) {
+                return res.status(400).json(err);
+            } else {
+                return res.status(200).json(data);
+            }
+        });
     }
 }
 
