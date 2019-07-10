@@ -4186,6 +4186,29 @@ let functions = {
                 return res.status(200).json(data);
             }
         });
+    },
+    migrateLeaveMergeToProd: (req, res) => {
+        async.waterfall([
+            function (done) {
+                let leaveMaster = new LeaveMaster(req.body.leaveMaster);
+                leaveMaster.save(function (err, leaveMasterInfo) {
+                    done(err, leaveMasterInfo);
+                });
+            },
+            function (leaveMaster, done) {
+                let leaveApply = new LeaveApply(req.body.leaveDetails);
+                leaveApply.leaveMasterId = leaveMaster._id;
+                leaveApply.save(function (err, leaveApplyInfo) {
+                    done(err, leaveApplyInfo);
+                });
+            }
+        ], (err, data) => {
+            if (err) {
+                return res.status(400).json(err);
+            } else {
+                return res.status(200).json(data);
+            }
+        });
     }
 }
 
