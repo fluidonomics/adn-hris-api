@@ -3157,12 +3157,13 @@ let functions = {
         empSeparationInfo.createdBy = req.body.createdBy;
         empSeparationInfo.separationType = req.body.separationType;
         empSeparationInfo.remarks = req.body.remarks;
+        empSeparationInfo.updatedBy = req.body.updatedBy;
 
         if(req.body._id) {
 
             empSeparation.findOneAndUpdate(
                 { _id: req.body._id },
-                empSeparationInfo,
+                empSeparationInfo, {new: true},
                 function(err, empSeparationResp) {
     
                 if(err) {
