@@ -320,7 +320,9 @@ function singleEmployeeLeaveBalance(currentEmpId, fiscalYearId, month, year, fro
             },
             yearStart: {
                 $year: '$startDate'
-            }
+            },
+            paid: 1,
+            unpaid: 1
         }
     };
     let matchQuery = {
@@ -4110,7 +4112,9 @@ let functions = {
                                     createdAt: req.body.createdAt,
                                     createdBy: req.body.createdBy,
                                     fiscalYearId: req.body.fiscalYearId,
-                                    leave_type: req.body.leave_type
+                                    leave_type: req.body.leave_type,
+                                    paid: req.body.paid,
+                                    unpaid: req.body.unpaid,
                                 })
                             })
                             LeaveBalance.insertMany(leaveBalances, function (err, res) {
