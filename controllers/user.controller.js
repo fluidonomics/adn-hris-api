@@ -3153,37 +3153,38 @@ let functions = {
         empSeparationInfo.createdBy = req.body.createdBy;
         empSeparationInfo.separationType = req.body.separationType;
         empSeparationInfo.remarks = req.body.remarks;
+        empSeparationInfo.updatedBy = req.body.updatedBy;
 
         if (req.body._id) {
 
             empSeparation.findOneAndUpdate(
                 { _id: req.body._id },
-                empSeparationInfo,
-                function (err, empSeparationResp) {
-
-                    if (err) {
-                        return res.status(403).json({
-                            title: "There was a problem",
-                            error: {
-                                message: err
-                            },
-                            result: {
-                                message: empSeparationResp
-                            }
-                        })
-                    } else {
-
-                        AuditTrail.auditTrailEntry(
-                            0,
-                            "empSeparationInfo",
-                            empSeparationResp,
-                            "user",
-                            "empSeparationInfo",
-                            "Updated"
-                        );
-                        return res.status(200).json(empSeparationResp);
-                    }
-                })
+                empSeparationInfo, {new: true},
+                function(err, empSeparationResp) {
+    
+                if(err) {
+                    return res.status(403).json({
+                        title: "There was a problem",
+                        error: {
+                            message: err
+                        },
+                        result: {
+                            message: empSeparationResp
+                        }
+                    })
+                } else {
+    
+                    AuditTrail.auditTrailEntry(
+                        0,
+                        "empSeparationInfo",
+                        empSeparationResp,
+                        "user",
+                        "empSeparationInfo",
+                        "Updated"
+                    );
+                    return res.status(200).json(empSeparationResp);
+                }
+            })
         } else {
 
             empSeparationInfo.save(function (err, empSeparationResp) {
