@@ -415,7 +415,8 @@ function singleEmployeeLeaveBalance(currentEmpId, fiscalYearId, month, year, fro
                 },
                 {
                     "emp_id": empId,
-                    "leave_type": 4
+                    "leave_type": 4,
+                    "isAvailed": false
                 }
                 ]
 
@@ -424,9 +425,9 @@ function singleEmployeeLeaveBalance(currentEmpId, fiscalYearId, month, year, fro
     }
     LeaveBalance.aggregate(
         // Pipeline
-        [projectQuery,
+        [
             query,
-            matchQuery,
+            projectQuery
         ]
     ).exec(function (err, results1) {
         if (err) {
@@ -1420,7 +1421,8 @@ function getEmployeeForQuotaProvideSpecial(req, res, done) {
     async.waterfall([
         (innerDone) => {
             LeaveBalance.find({
-                leave_type: 4
+                leave_type: 4,
+                isAvailed: false
             }).exec((err, data) => {
                 innerDone(err, data);
             });
@@ -3706,6 +3708,36 @@ let functions = {
                         });
                     }
                 });
+
+            LeaveApply.find({
+                leaveMasterId: parseInt(req.body.id)
+            }).exec((err, leave) => {
+                let leavBalanceMatchQuery = {
+                    leave_type: 4,
+                    emp_id: parseInt(leave[0].emp_id),
+                    isAvailed: false
+                };
+
+                let leavBalanceUpdateQuery = {
+                    isAvailed: true,
+                    updatedBy: req.body.updatedBy,
+                    updatedAt: new Date()
+                };
+
+                LeaveBalance.findOneAndUpdate(leavBalanceMatchQuery, leavBalanceUpdateQuery).exec((err, result) => {
+                    if (err) {
+                        return res.status(403).json({
+                            title: 'There was a problem',
+                            error: {
+                                message: err
+                            },
+                            result: {
+                                message: result
+                            }
+                        });
+                    }
+                });
+            });
 
             let queryForFindEmployeeDetail = {
                 _id: _leaveDetails.emp_id,

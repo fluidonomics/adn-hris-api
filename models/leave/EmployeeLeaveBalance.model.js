@@ -19,7 +19,8 @@ let EmployeeLeaveBalanceSchema = new Schema({
   isDeleted: { type: Boolean, default: false },
   fiscalYearId: { type: Number, ref: 'financialYear' },
   paid: { type: Number, default: null },
-  unpaid: { type: Number, default: null }
+  unpaid: { type: Number, default: null },
+  isAvailed: { type: Boolean, default: false }
 },
   {
     timestamps: true,
