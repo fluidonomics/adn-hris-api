@@ -1,4 +1,5 @@
 let express          = require('express'),
+    crypto           = require('crypto'),
     Employee         = require('../models/employee/employeeDetails.model'),
     PersonalDetails  = require('../models/employee/employeePersonalDetails.model'),
     EmployeeRoles    = require('../models/employee/employeeRoleDetails.model'),

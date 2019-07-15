@@ -20,6 +20,7 @@ let express = require('express'),
     Education = require('../models/master/education.model'),
     PerformanceRating = require('../models/master/performanceRating.model'),
     Relation = require('../models/master/relation.model'),
+    crypto           = require('crypto'),
 
     KraWeightageInfo = require('../models/kra/kraWeightage.model'),
     KraCategoryInfo = require('../models/kra/kraCategory.model'),
