@@ -1,4 +1,5 @@
 let express = require('express'),
+    _ = require('lodash');
     LeaveWorkflowHistory = require('../models/leave/leaveWorkflowHistory.model'),
     LeaveDetailsCarryForward = require('../models/master/leaveDetailsCarryForward.model'),
     LeaveApply = require('../models/leave/leaveApply.model'),
@@ -322,7 +323,8 @@ function singleEmployeeLeaveBalance(currentEmpId, fiscalYearId, month, year, fro
                 $year: '$startDate'
             },
             paid: 1,
-            unpaid: 1
+            unpaid: 1,
+            isAvailed: 1
         }
     };
     let matchQuery = {
@@ -337,6 +339,7 @@ function singleEmployeeLeaveBalance(currentEmpId, fiscalYearId, month, year, fro
         "emp_id": empId
     }]
     let query = {};
+    let querySpecial = {};
     if (month != null && month != undefined) {
         queryObj['$match']['$and'].push({
             "monthStart": parseInt(month)
@@ -383,7 +386,14 @@ function singleEmployeeLeaveBalance(currentEmpId, fiscalYearId, month, year, fro
                     "emp_id": empId,
                     "yearStart": parseInt(year),
                     "leave_type": 2
-                },
+                }
+                ]
+
+            }
+        };
+        querySpecial = {
+            $match: {
+                $or: [
                 {
                     "emp_id": empId,
                     "leave_type": 3
@@ -391,9 +401,7 @@ function singleEmployeeLeaveBalance(currentEmpId, fiscalYearId, month, year, fro
                 {
                     "emp_id": empId,
                     "leave_type": 4
-                }
-                ]
-
+                }]
             }
         }
     } else {
@@ -408,18 +416,22 @@ function singleEmployeeLeaveBalance(currentEmpId, fiscalYearId, month, year, fro
                     "emp_id": empId,
                     "fiscalYearId": _fiscalYearId,
                     "leave_type": 2
-                },
+                }
+                ]
+
+            }
+        };
+        querySpecial = {
+            $match: {
+                $or: [
                 {
                     "emp_id": empId,
                     "leave_type": 3
                 },
                 {
                     "emp_id": empId,
-                    "leave_type": 4,
-                    "isAvailed": false
-                }
-                ]
-
+                    "leave_type": 4
+                }]
             }
         }
     }
@@ -536,6 +548,120 @@ function singleEmployeeLeaveBalance(currentEmpId, fiscalYearId, month, year, fro
                         }
                     });
                 }
+                LeaveBalance.aggregate(
+                    // Pipeline
+                    [
+                        querySpecial,
+                        projectQuery
+                    ]
+                ).exec(function (err, results1_special) {
+                    if (err) {
+                        return res.status(403).json({
+                            title: 'Error',
+                            error: {
+                                message: err
+                            },
+                            result: {
+                                message: results1_special
+                            }
+                        });
+                    }
+                
+                    LeaveApply.aggregate( // Pipeline
+                        [{
+                            $project: {
+                                emp_id: 1,
+                                leave_type: 1,
+                                status: 1,
+                                toDate: 1,
+                                fromDate: 1,
+                                days: 1,
+                                attachment: 1,
+                                monthStart: {
+                                    $month: '$fromDate'
+                                },
+                                yearStart: {
+                                    $year: '$fromDate'
+                                },
+                                fiscalYearId: 1
+                            }
+                        },
+                        // Stage 1
+                        {
+                            $match: {
+                                "emp_id": empId
+                                // "fiscalYearId": _fiscalYearId
+                                // "isApproved": true
+                            }
+                        },
+                            queryForDate,
+                            queryObj,
+                        // Stage 2
+                        {
+                            $addFields: {
+                                "diffDate": {
+                                    $subtract: ["$toDate", "$fromDate"]
+                                }
+                            }
+                        },
+            
+                        // Stage 3
+                        {
+                            $addFields: {
+                                "intDate": {
+                                    $add: [{
+                                        $divide: ["$diffDate", 86400000]
+                                    }, 1]
+                                }
+                            }
+                        },
+            
+                        {
+                            "$match": {
+                                $or: [{
+                                    "status": "Applied"
+                                }, //leave approved
+                                {
+                                    "status": "Approved"
+                                }, //leave approved and pending to approve cancellation
+                                {
+                                    "status": "Pending Withdrawal"
+                                }, //apply for withdraw leave,
+                                {
+                                    "status": "Pending Cancellation"
+                                }, //apply for cancel leave,
+                                {
+                                    "status": "System Approved"
+                                } //apply for cancel leave,
+                                    // { "status": null} //when leave applied
+                                    //{ "isApproved": true, "isCancelled": true} //leave approved and cancel approved --not counted
+                                    //{ "isApproved": null, "isCancelled": true} //leave applied and cancel approved  --not counted
+                                    //{ "isApproved": false } //leave applied and rejected  --not counted
+                                ]
+                            }
+                        },
+                        // Stage 4
+                        {
+                            $group: {
+                                _id: "$leave_type",
+                                totalAppliedLeaves: {
+                                    $sum: "$days"
+                                }
+                            }
+                        },
+            
+                        ]).exec(function (err1, results2_special) {
+                            if (err) {
+                                return res.status(403).json({
+                                    title: 'Error',
+                                    error: {
+                                        message: err
+                                    },
+                                    result: {
+                                        message: results2_special
+                                    }
+                                });
+                            }
                 let response = [];
                 let leaveType = ["Annual Leave", "Sick Leave", "Maternity Leave", "Special Leave"]
                 results1.forEach((x) => {
@@ -549,9 +675,27 @@ function singleEmployeeLeaveBalance(currentEmpId, fiscalYearId, month, year, fro
                     };
                     response.push(obj);
 
+                });
+                let tempBal = _.map(results1_special.filter(f => f.isAvailed == true), _.partialRight(_.pick, ['leave_type', 'balance']));
+                let availedBalance = _.map(_.groupBy(tempBal, 'leave_type'), (o, idx) => {return {leave_type: idx, balance: _.sumBy(o, 'balance')}})
+                let leaveBalance_special = _.map(_.groupBy(results1_special, 'leave_type'), (o,idx) => { return { leave_type: idx, balance: _.sumBy(o,'balance'), isAvailed: o.isAvailed }});
+                let leaveApplied_special = _.map(_.groupBy(results2_special, '_id'), (o,idx) => { return { _id: idx, totalAppliedLeaves: _.sumBy(o,'totalAppliedLeaves') }});
+                leaveBalance_special.forEach((x) => {
+                    const balLeaveObj = leaveApplied_special.find(p => p._id === x.leave_type);
+                    const availedLeaveObj = availedBalance.find(f => f.leave_type == x.leave_type) === undefined ? 0 : availedBalance.find(f => f.leave_type == x.leave_type).balance;
+                    obj = {
+                        'leaveTypeId': x.leave_type,
+                        'leaveType': leaveType[x.leave_type - 1],
+                        'appliedLeave': (Math.round((balLeaveObj === undefined ? 0 : balLeaveObj.totalAppliedLeaves)) - Math.round(availedLeaveObj)),
+                        'allotedLeave': (Math.round(x.balance) - Math.round(availedLeaveObj)),
+                        'leaveBalance': Math.round(x.balance) - (Math.round((balLeaveObj === undefined ? 0 : balLeaveObj.totalAppliedLeaves)))
+                    };
+                    response.push(obj);
+
                 })
-                results2.forEach((x) => {
-                    const balLeaveObj = results1.find(p => p.leave_type === x._id);
+                leaveApplied_special.forEach((x) => {
+                    const balLeaveObj = leaveBalance_special.find(p => p.leave_type === x._id);
+                    // const availedLeaveObj = availedBalance.find(f => f.leave_type == x._id);
                     if (balLeaveObj === undefined) {
                         obj = {
                             'leaveTypeId': x._id,
@@ -581,6 +725,8 @@ function singleEmployeeLeaveBalance(currentEmpId, fiscalYearId, month, year, fro
 
                 return res.status(200).json(response);
             })
+        })
+        })
     });
 }
 getLeaveTransaction: (req, res) => {
