@@ -6,6 +6,7 @@ let Role = require("../models/master/role.model"),
     LearningMaster = require("../models/learning/learningmaster"),
     EmployeeDetails = require("../models/employee/employeeDetails.model"),
     EmployeePersonalDetails = require("../models/employee/employeePersonalDetails.model");
+    LeaveAppliedDetails = require("../models/leave/leaveApply.model");
 
 
 
@@ -1077,6 +1078,100 @@ let Role = require("../models/master/role.model"),
           });
     }
 
+    function getEmpLeaveDetails(req, res) {
+
+        let curDate = new Date();
+        let queryObj = {
+            "$match": {}
+        };
+        queryObj['$match']['$and'] = [];
+        queryObj['$match']['$and'].push({
+            $and: [{
+                "fromDate": {
+                    $lte: new Date(curDate)
+                }
+            },
+            {
+                "toDate": {
+                    $gte: new Date(curDate)
+                }
+            }
+            ]
+        });
+
+        LeaveAppliedDetails.aggregate([
+            
+            queryObj,
+            {
+                "$lookup": {
+                    "from": "employeedetails",
+                    "localField": "emp_id",
+                    "foreignField": "_id",
+                    "as": "employees"
+                }
+            },
+            {
+                "$unwind": "$employees"
+            },
+            {
+                "$lookup": {
+                    "from": "employeeofficedetails",
+                    "localField": "emp_id",
+                    "foreignField": "emp_id",
+                    "as": "employeeofficedetail"
+                }
+            },
+            {
+                "$unwind": "$employeeofficedetail"
+            },
+            {
+                "$lookup": {
+                    "from": "departments",
+                    "localField": "employeeofficedetail.department_id",
+                    "foreignField": "_id",
+                    "as": "department"
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "leaveTypes",
+                    "localField": "leave_type",
+                    "foreignField": "_id",
+                    "as": "leavetype"
+                }
+            },
+            {
+                "$unwind": "$leavetype"
+            },
+            {
+                "$project": {
+                    "fullName": "$employees.fullName",
+                    "userName": "$employees.userName",
+                    "toDate": "$toDate",
+                    "fromDate": "$fromDate",
+                    "departmentName": "$department.departmentName",
+                    "department_id": "$employeeofficedetail.department_id",
+                    "leaveType": "$leavetype.type"
+                }
+            }
+
+        ]).exec(function (err, results) {
+            if (err) {
+                return res.status(403).json({
+                    title: 'There was a problem',
+                    error: {
+                        message: err
+                    },
+                    result: {
+                        message: results
+                    }
+                });
+            }
+            //results= results.filter((obj, pos, arr) => { return arr.map(mapObj =>mapObj['_id']).indexOf(obj['_id']) === pos;});
+            return res.status(200).json({ "data": results });
+        });
+    }
+
     let functions = {
 
         getHrEmpratio: (req, res) => {
@@ -1122,6 +1217,10 @@ let Role = require("../models/master/role.model"),
         getEmpInfoAndGrade: (req, res) => {
 
             getEmpInfosAndGrade(req, res);
+        },
+        getLeaveDetails: (req, res) => {
+
+            getEmpLeaveDetails(req, res);
         }
     }
 
