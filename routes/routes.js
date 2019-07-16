@@ -366,6 +366,7 @@ module.exports = (app) => {
   leaveRoutes.post('/provideLeaveQuota', leave.provideLeaveQuota);
   leaveRoutes.post('/addLeaveBalance', leave.addLeaveBalance);
   leaveRoutes.post('/migrateLeaveMergeToProd', leave.migrateLeaveMergeToProd);
+  leaveRoutes.get('/getAllLeaveBalances', leave.getAllLeaveBalances);
 
   //= ========================
 

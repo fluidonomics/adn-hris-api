@@ -28,7 +28,9 @@ let LeaveAppliedMasterSchema = new Schema({
     attachment: { type: Object, default: null },
     supervisorReason: { type: String, default: null },
     supervisorReason2: { type: String, default: null },
-    cancelReason: { type: String, default: null }
+    cancelReason: { type: String, default: null },
+    paid: { type: Number, default: null },
+    unpaid: { type: Number, default: null }
 },
     {
         timestamps: true,
