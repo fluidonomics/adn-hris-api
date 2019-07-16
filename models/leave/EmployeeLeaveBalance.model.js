@@ -20,7 +20,8 @@ let EmployeeLeaveBalanceSchema = new Schema({
   fiscalYearId: { type: Number, ref: 'financialYear' },
   paid: { type: Number, default: null },
   unpaid: { type: Number, default: null },
-  isAvailed: { type: Boolean, default: false }
+  isAvailed: { type: Boolean, default: false },
+  remarks: { type: String, default: null }
 },
   {
     timestamps: true,

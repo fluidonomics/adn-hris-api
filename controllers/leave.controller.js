@@ -1167,6 +1167,10 @@ function createLeave(req, leaveData) {
                 let days = parseInt(req.body.days);
                 req.body.additionalLeaves.forEach(addLeave => days += parseInt(addLeave.days));
                 leaveMaster.days = days;
+                leaveMaster.leaveBalanceId = req.body.leaveBalanceId;
+                leaveMaster.paid = req.body.paid;
+                leaveMaster.unpaid = req.body.unpaid;
+
                 leaveMaster.save((err, doc) => {
                     done(err, doc);
                 });
@@ -1196,6 +1200,8 @@ function createLeave(req, leaveData) {
                         leaveDetails.updatedBy = parseInt(req.body.updatedBy);
                         leaveDetails.days = req.body.days;
                         leaveDetails.fiscalYearId = req.body.fiscalYearId;
+                        leaveDetails.paid = req.body.paid;
+                        leaveDetails.unpaid = req.body.unpaid;
                         leaveDetailsArray.push(leaveDetails);
 
                         if (req.body.additionalLeaves && req.body.additionalLeaves.length > 0) {
@@ -1642,6 +1648,8 @@ let functions = {
                 createdBy: 1,
                 supervisorReason: 1,
                 supervisorReason2: 1,
+                paid: 1,
+                unpaid: 1,
                 monthStart: {
                     $month: '$fromDate'
                 },
@@ -1796,6 +1804,12 @@ let functions = {
                     },
                     attachment: {
                         $first: "$attachment"
+                    },
+                    paid: {
+                        $first: "$paid"
+                    },
+                    unpaid: {
+                        $first: "$unpaid"
                     },
                     leaveDetails: { $push: "$leaveDetails" }
                 }
@@ -2039,8 +2053,9 @@ let functions = {
                 "status": "$status",
                 "attachment": "$attachment",
                 "department": "$employeeOfficeDetails.departments.departmentName",
-                "division": "$employeeOfficeDetails.divisions.divisionName"
-
+                "division": "$employeeOfficeDetails.divisions.divisionName",
+                "paid": "$paid",
+                "unpaid": "$unpaid"
             }
         }
 
@@ -2712,6 +2727,8 @@ let functions = {
                         "createdBy": "$createdBy",
                         "status": "$status",
                         "reason": "$reason",
+                        "paid": "$paid",
+                        "unpaid": "$unpaid",
                         "supervisorDetails": {
                             "_id": "$supervisorDetails._id",
                             "fullName": "$supervisorDetails.fullName"
@@ -3002,6 +3019,8 @@ let functions = {
                         "createdBy": 1,
                         "status": 1,
                         "reason": 1,
+                        "paid": 1,
+                        "unpaid": 1,
                         supervisorDetails: {
                             "_id": 1,
                             "fullName": 1
@@ -3522,6 +3541,8 @@ let functions = {
                     "status": 1,
                     "reason2": 1,
                     "reason": 1,
+                    "paid": 1,
+                    "unpaid": 1,
                     "isDeleted": 1,
                     "fiscalYearId": 1,
                     "days": 1,
@@ -3557,6 +3578,8 @@ let functions = {
                         "status": 1,
                         "reason2": 1,
                         "reason": 1,
+                        "paid": 1,
+                        "unpaid": 1,
                         "applyTo": 1,
                         "days": 1,
                         "toDate": 1,
@@ -3583,6 +3606,8 @@ let functions = {
                     "status": { $first: "$status" },
                     "reason2": { $first: "$reason2" },
                     "reason": { $first: "$reason" },
+                    "paid": { $first: "$paid" },
+                    "unpaid": { $first: "$unpaid" },
                     "isDeleted": { $first: "$isDeleted" },
                     "fiscalYearId": { $first: "$fiscalYearId" },
                     "days": { $first: "$days" },
@@ -4147,6 +4172,7 @@ let functions = {
                                     leave_type: req.body.leave_type,
                                     paid: req.body.paid,
                                     unpaid: req.body.unpaid,
+                                    remarks: req.body.remarks
                                 })
                             })
                             LeaveBalance.insertMany(leaveBalances, function (err, res) {
@@ -4237,6 +4263,26 @@ let functions = {
                 leaveApply.save(function (err, leaveApplyInfo) {
                     done(err, leaveApplyInfo);
                 });
+            }
+        ], (err, data) => {
+            if (err) {
+                return res.status(400).json(err);
+            } else {
+                return res.status(200).json(data);
+            }
+        });
+    },
+    getAllLeaveBalances: (req, res) => {
+        async.waterfall([
+            function (done) {
+                LeaveBalance.find({
+                    emp_id: req.query.emp_id,
+                    isAvailed: false
+                }).sort({
+                    _id: -1
+                }).exec((err, leaveBalances) => {
+                    done(err, leaveBalances);
+                })
             }
         ], (err, data) => {
             if (err) {

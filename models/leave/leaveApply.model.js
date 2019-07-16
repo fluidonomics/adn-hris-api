@@ -30,7 +30,10 @@ let LeaveAppliedDetailsSchema = new Schema({
   createdBy: { type: Number, ref: 'employeedetails', default: null },
   isDeleted: { type: Boolean, default: false },
   fiscalYearId: { type: Number, default: null },
-  systemApproved: { type: Boolean, default: false }
+  systemApproved: { type: Boolean, default: false },
+  leaveBalanceId: { type: Number, default: null },
+  paid: { type: Number, default: null },
+  unpaid: { type: Number, default: null }
 },
   {
     timestamps: true,
