@@ -695,5 +695,6 @@ module.exports = (app) => {
   dashboardRoutes.get('/empabouttoretire', dashboard.getEmpAge);
   dashboardRoutes.get('/empcountbygrade', dashboard.getEmpCountByGrade);
   dashboardRoutes.get('/empgradeinfo', dashboard.getEmpInfoAndGrade);
+  dashboardRoutes.get('/leavedetails', dashboard.getLeaveDetails);
 };
 
