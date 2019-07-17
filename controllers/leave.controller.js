@@ -1,5 +1,6 @@
 let express = require('express'),
-    LeaveWorkflowHistory = require('../models/leave/leaveWorkflowHistory.model'),
+    _ = require('lodash');
+LeaveWorkflowHistory = require('../models/leave/leaveWorkflowHistory.model'),
     LeaveDetailsCarryForward = require('../models/master/leaveDetailsCarryForward.model'),
     LeaveApply = require('../models/leave/leaveApply.model'),
     LeaveMaster = require('../models/leave/leaveApplyMaster.model'),
@@ -304,7 +305,7 @@ function getAllLeaveBalance(req, res) {
     });
 }
 
-function singleEmployeeLeaveBalance(currentEmpId, fiscalYearId, month, year, fromDate, endDate, res) {
+function singleEmployeeLeaveBalance(currentEmpId, fiscalYearId, fromDate, endDate, res) {
     let empId = parseInt(currentEmpId);
     let _fiscalYearId = parseInt(fiscalYearId);
     let projectQuery = {
@@ -320,31 +321,13 @@ function singleEmployeeLeaveBalance(currentEmpId, fiscalYearId, month, year, fro
             },
             yearStart: {
                 $year: '$startDate'
-            }
+            },
+            paid: 1,
+            unpaid: 1,
+            isAvailed: 1
         }
     };
-    let matchQuery = {
-        $match: {
-            "emp_id": empId
-        }
-    }
-    let queryObj = {
-        '$match': {}
-    };
-    queryObj['$match']['$and'] = [{
-        "emp_id": empId
-    }]
-    let query = {};
-    if (month != null && month != undefined) {
-        queryObj['$match']['$and'].push({
-            "monthStart": parseInt(month)
-        })
-    }
-    if (year != null && year != undefined) {
-        queryObj['$match']['$and'].push({
-            "yearStart": parseInt(year)
-        })
-    }
+
     let toDate = new Date(endDate);
     toDate.setDate(toDate.getDate() + 1)
     let queryForDate = {
@@ -368,175 +351,123 @@ function singleEmployeeLeaveBalance(currentEmpId, fiscalYearId, month, year, fro
             ]
         });
     }
-    if (year != null && year != undefined) {
-        // matchQuery = {$match: {"yearStart": parseInt(year)}};
-        query = {
-            $match: {
-                $or: [{
-                    "emp_id": empId,
-                    "yearStart": parseInt(year),
-                    "leave_type": 1
-                },
-                {
-                    "emp_id": empId,
-                    "yearStart": parseInt(year),
-                    "leave_type": 2
-                },
-                {
-                    "emp_id": empId,
-                    "leave_type": 3
-                },
-                {
-                    "emp_id": empId,
-                    "leave_type": 4
-                }
-                ]
 
-            }
-        }
-    } else {
-        query = {
-            $match: {
-                $or: [{
-                    "emp_id": empId,
-                    "fiscalYearId": _fiscalYearId,
-                    "leave_type": 1
-                },
-                {
-                    "emp_id": empId,
-                    "fiscalYearId": _fiscalYearId,
-                    "leave_type": 2
-                },
-                {
-                    "emp_id": empId,
-                    "leave_type": 3
-                },
-                {
-                    "emp_id": empId,
-                    "leave_type": 4
-                }
-                ]
-
-            }
+    let querySpecial = {
+        $match: {
+            $or: [{
+                "emp_id": empId,
+                "leave_type": 3
+            },
+            {
+                "emp_id": empId,
+                "leave_type": 4
+            }]
         }
     }
-    LeaveBalance.aggregate(
-        // Pipeline
-        [projectQuery,
-            query,
-            matchQuery,
-        ]
-    ).exec(function (err, results1) {
-        if (err) {
-            return res.status(403).json({
-                title: 'Error',
-                error: {
-                    message: err
-                },
-                result: {
-                    message: results1
-                }
-            });
-        }
-        LeaveApply.aggregate( // Pipeline
-            [{
-                $project: {
-                    emp_id: 1,
-                    leave_type: 1,
-                    status: 1,
-                    toDate: 1,
-                    fromDate: 1,
-                    days: 1,
-                    attachment: 1,
-                    monthStart: {
-                        $month: '$fromDate'
-                    },
-                    yearStart: {
-                        $year: '$fromDate'
-                    },
-                    fiscalYearId: 1
-                }
-            },
-            // Stage 1
-            {
+
+    async.waterfall([
+        (done) => {
+            let query = {
                 $match: {
-                    "emp_id": empId,
-                    "fiscalYearId": _fiscalYearId
-                    // "isApproved": true
-                }
-            },
-                queryForDate,
-                queryObj,
-            // Stage 2
-            {
-                $addFields: {
-                    "diffDate": {
-                        $subtract: ["$toDate", "$fromDate"]
-                    }
-                }
-            },
-
-            // Stage 3
-            {
-                $addFields: {
-                    "intDate": {
-                        $add: [{
-                            $divide: ["$diffDate", 86400000]
-                        }, 1]
-                    }
-                }
-            },
-
-            {
-                "$match": {
                     $or: [{
-                        "status": "Applied"
-                    }, //leave approved
+                        "emp_id": empId,
+                        "leave_type": 1,
+                        "fiscalYearId": _fiscalYearId
+                    },
                     {
-                        "status": "Approved"
-                    }, //leave approved and pending to approve cancellation
+                        "emp_id": empId,
+                        "leave_type": 2,
+                        "fiscalYearId": _fiscalYearId
+                    },
                     {
-                        "status": "Pending Withdrawal"
-                    }, //apply for withdraw leave,
+                        "emp_id": empId,
+                        "leave_type": 3,
+                        "isAvailed": false
+                    },
                     {
-                        "status": "Pending Cancellation"
-                    }, //apply for cancel leave,
-                    {
-                        "status": "System Approved"
-                    } //apply for cancel leave,
-                        // { "status": null} //when leave applied
-                        //{ "isApproved": true, "isCancelled": true} //leave approved and cancel approved --not counted
-                        //{ "isApproved": null, "isCancelled": true} //leave applied and cancel approved  --not counted
-                        //{ "isApproved": false } //leave applied and rejected  --not counted
-                    ]
+                        "emp_id": empId,
+                        "leave_type": 4,
+                        "isAvailed": false
+                    }]
                 }
-            },
-            // Stage 4
-            {
-                $group: {
-                    _id: "$leave_type",
-                    totalAppliedLeaves: {
-                        $sum: "$days"
+            };
+            LeaveBalance.aggregate(
+                [
+                    query,
+                    projectQuery
+                ]
+            ).exec(function (err, leaveBalances) {
+                done(err, leaveBalances);
+            });
+        },
+        (leaveBalances, done) => {
+            LeaveApply.aggregate( // Pipeline
+                [{
+                    $match: {
+                        "emp_id": empId,
+                    }
+                },
+                {
+                    "$match": {
+                        $or: [{
+                            $and: [{
+                                "leave_type": { $in: [1, 2] }
+                            },
+                            {
+                                "status": { $in: ["Applied", "Approved", "Pending Withdrawal", "Pending Cancellation", "System Approved"] }
+                            },
+                            {
+                                "fiscalYearId": _fiscalYearId
+                            }]
+                        },
+                        {
+                            $and: [{
+                                "leave_type": { $in: [3, 4] }
+                            },
+                            {
+                                "status": { $in: ["Applied", "Pending Withdrawal", "Pending Cancellation"] }
+                            }]
+                        }]
+                    }
+                },
+                    queryForDate,
+                {
+                    $project: {
+                        emp_id: 1,
+                        leave_type: 1,
+                        status: 1,
+                        toDate: 1,
+                        fromDate: 1,
+                        days: 1,
+                        attachment: 1,
+                        monthStart: {
+                            $month: '$fromDate'
+                        },
+                        yearStart: {
+                            $year: '$fromDate'
+                        },
+                        fiscalYearId: 1
+                    }
+                },
+                // Stage 4
+                {
+                    $group: {
+                        _id: "$leave_type",
+                        totalAppliedLeaves: {
+                            $sum: "$days"
+                        }
                     }
                 }
-            },
-
-            ]).exec(function (err1, results2) {
-                if (err1) {
-                    return res.status(403).json({
-                        title: 'Error',
-                        error: {
-                            message: err1
-                        },
-                        result: {
-                            message: results2
-                        }
-                    });
-                }
-                let response = [];
-                let leaveType = ["Annual Leave", "Sick Leave", "Maternity Leave", "Special Leave"]
-                results1.forEach((x) => {
-                    const balLeaveObj = results2.find(p => p._id === x.leave_type);
+                ]).exec(function (err, appliedLeaves) {
+                    done(err, { leaveBalances: leaveBalances, appliedLeaves: appliedLeaves });
+                });
+        },
+        (leaveData, done) => {
+            let finalBalances = [];
+            let leaveType = ["Annual Leave", "Sick Leave", "Maternity Leave", "Special Leave"]
+            if (leaveData.leaveBalances && leaveData.leaveBalances.length > 0) {
+                leaveData.leaveBalances.forEach((x) => {
+                    const balLeaveObj = leaveData.appliedLeaves.find(p => p._id === x.leave_type);
                     obj = {
                         'leaveTypeId': x.leave_type,
                         'leaveType': leaveType[x.leave_type - 1],
@@ -544,42 +475,27 @@ function singleEmployeeLeaveBalance(currentEmpId, fiscalYearId, month, year, fro
                         'allotedLeave': Math.round(x.balance),
                         'leaveBalance': Math.round(x.balance) - (Math.round((balLeaveObj === undefined ? 0 : balLeaveObj.totalAppliedLeaves)))
                     };
-                    response.push(obj);
-
-                })
-                results2.forEach((x) => {
-                    const balLeaveObj = results1.find(p => p.leave_type === x._id);
-                    if (balLeaveObj === undefined) {
-                        obj = {
-                            'leaveTypeId': x._id,
-                            'leaveType': leaveType[x._id - 1],
-                            'appliedLeave': Math.round(x.totalAppliedLeaves),
-                            'allotedLeave': (x.balance == null || x.balance == undefined) ? 0 : Math.round(x.balance),
-                            'leaveBalance': (x.balance == null || x.balance == undefined) ? 0 : Math.round(x.balance) - Math.round(x.totalAppliedLeaves)
-                        };
-                        response.push(obj);
-                    }
-                })
-                leaveType.forEach((x, index) => {
-                    let result = response.filter((obj) => {
-                        return obj.leaveType === x
-                    })
-                    if (result.length == 0) {
-                        response.push({
-                            'leaveTypeId': parseInt(index) + 1,
-                            'leaveType': x,
-                            'appliedLeave': 0,
-                            'allotedLeave': 0,
-                            'leaveBalance': 0
-                        })
-                    }
-
-                })
-
-                return res.status(200).json(response);
-            })
-    });
+                    finalBalances.push(obj);
+                });
+            }
+            done(null, finalBalances);
+        }
+    ], (err, response) => {
+        if (err) {
+            return res.status(403).json({
+                title: 'Error',
+                error: {
+                    message: err
+                },
+                result: {
+                    message: response
+                }
+            });
+        }
+        return res.status(200).json(response);
+    })
 }
+
 getLeaveTransaction: (req, res) => {
     let query = {
         isDeleted: false
@@ -1164,6 +1080,10 @@ function createLeave(req, leaveData) {
                 let days = parseInt(req.body.days);
                 req.body.additionalLeaves.forEach(addLeave => days += parseInt(addLeave.days));
                 leaveMaster.days = days;
+                leaveMaster.leaveBalanceId = req.body.leaveBalanceId;
+                leaveMaster.paid = req.body.paid;
+                leaveMaster.unpaid = req.body.unpaid;
+
                 leaveMaster.save((err, doc) => {
                     done(err, doc);
                 });
@@ -1193,6 +1113,8 @@ function createLeave(req, leaveData) {
                         leaveDetails.updatedBy = parseInt(req.body.updatedBy);
                         leaveDetails.days = req.body.days;
                         leaveDetails.fiscalYearId = req.body.fiscalYearId;
+                        leaveDetails.paid = req.body.paid;
+                        leaveDetails.unpaid = req.body.unpaid;
                         leaveDetailsArray.push(leaveDetails);
 
                         if (req.body.additionalLeaves && req.body.additionalLeaves.length > 0) {
@@ -1418,7 +1340,8 @@ function getEmployeeForQuotaProvideSpecial(req, res, done) {
     async.waterfall([
         (innerDone) => {
             LeaveBalance.find({
-                leave_type: 4
+                leave_type: 4,
+                isAvailed: false
             }).exec((err, data) => {
                 innerDone(err, data);
             });
@@ -1498,7 +1421,7 @@ let functions = {
         ]);
     },
     getLeaveBalance: (req, res) => {
-        singleEmployeeLeaveBalance(req.query.empId, req.query.fiscalYearId, req.query.month, req.query.year, req.query.fromDate, req.query.toDate, res);
+        singleEmployeeLeaveBalance(req.query.empId, req.query.fiscalYearId, req.query.fromDate, req.query.toDate, res);
     },
     getAllLeaveBalance: (req, res) => {
         getAllLeaveBalance(req, res);
@@ -1638,6 +1561,8 @@ let functions = {
                 createdBy: 1,
                 supervisorReason: 1,
                 supervisorReason2: 1,
+                paid: 1,
+                unpaid: 1,
                 monthStart: {
                     $month: '$fromDate'
                 },
@@ -1792,6 +1717,12 @@ let functions = {
                     },
                     attachment: {
                         $first: "$attachment"
+                    },
+                    paid: {
+                        $first: "$paid"
+                    },
+                    unpaid: {
+                        $first: "$unpaid"
                     },
                     leaveDetails: { $push: "$leaveDetails" }
                 }
@@ -2035,8 +1966,9 @@ let functions = {
                 "status": "$status",
                 "attachment": "$attachment",
                 "department": "$employeeOfficeDetails.departments.departmentName",
-                "division": "$employeeOfficeDetails.divisions.divisionName"
-
+                "division": "$employeeOfficeDetails.divisions.divisionName",
+                "paid": "$paid",
+                "unpaid": "$unpaid"
             }
         }
 
@@ -2708,6 +2640,8 @@ let functions = {
                         "createdBy": "$createdBy",
                         "status": "$status",
                         "reason": "$reason",
+                        "paid": "$paid",
+                        "unpaid": "$unpaid",
                         "supervisorDetails": {
                             "_id": "$supervisorDetails._id",
                             "fullName": "$supervisorDetails.fullName"
@@ -2998,6 +2932,8 @@ let functions = {
                         "createdBy": 1,
                         "status": 1,
                         "reason": 1,
+                        "paid": 1,
+                        "unpaid": 1,
                         supervisorDetails: {
                             "_id": 1,
                             "fullName": 1
@@ -3518,6 +3454,8 @@ let functions = {
                     "status": 1,
                     "reason2": 1,
                     "reason": 1,
+                    "paid": 1,
+                    "unpaid": 1,
                     "isDeleted": 1,
                     "fiscalYearId": 1,
                     "days": 1,
@@ -3553,6 +3491,8 @@ let functions = {
                         "status": 1,
                         "reason2": 1,
                         "reason": 1,
+                        "paid": 1,
+                        "unpaid": 1,
                         "applyTo": 1,
                         "days": 1,
                         "toDate": 1,
@@ -3579,6 +3519,8 @@ let functions = {
                     "status": { $first: "$status" },
                     "reason2": { $first: "$reason2" },
                     "reason": { $first: "$reason" },
+                    "paid": { $first: "$paid" },
+                    "unpaid": { $first: "$unpaid" },
                     "isDeleted": { $first: "$isDeleted" },
                     "fiscalYearId": { $first: "$fiscalYearId" },
                     "days": { $first: "$days" },
@@ -3704,6 +3646,36 @@ let functions = {
                         });
                     }
                 });
+
+            LeaveApply.find({
+                leaveMasterId: parseInt(req.body.id)
+            }).exec((err, leave) => {
+                let leavBalanceMatchQuery = {
+                    leave_type: 4,
+                    emp_id: parseInt(leave[0].emp_id),
+                    isAvailed: false
+                };
+
+                let leavBalanceUpdateQuery = {
+                    isAvailed: true,
+                    updatedBy: req.body.updatedBy,
+                    updatedAt: new Date()
+                };
+
+                LeaveBalance.findOneAndUpdate(leavBalanceMatchQuery, leavBalanceUpdateQuery).exec((err, result) => {
+                    if (err) {
+                        return res.status(403).json({
+                            title: 'There was a problem',
+                            error: {
+                                message: err
+                            },
+                            result: {
+                                message: result
+                            }
+                        });
+                    }
+                });
+            });
 
             let queryForFindEmployeeDetail = {
                 _id: _leaveDetails.emp_id,
@@ -4110,7 +4082,10 @@ let functions = {
                                     createdAt: req.body.createdAt,
                                     createdBy: req.body.createdBy,
                                     fiscalYearId: req.body.fiscalYearId,
-                                    leave_type: req.body.leave_type
+                                    leave_type: req.body.leave_type,
+                                    paid: req.body.paid,
+                                    unpaid: req.body.unpaid,
+                                    remarks: req.body.remarks
                                 })
                             })
                             LeaveBalance.insertMany(leaveBalances, function (err, res) {
@@ -4178,6 +4153,49 @@ let functions = {
                 leaveBalance.save(function (err, leaveBalanceInfo) {
                     done(err, leaveBalanceInfo);
                 });
+            }
+        ], (err, data) => {
+            if (err) {
+                return res.status(400).json(err);
+            } else {
+                return res.status(200).json(data);
+            }
+        });
+    },
+    migrateLeaveMergeToProd: (req, res) => {
+        async.waterfall([
+            function (done) {
+                let leaveMaster = new LeaveMaster(req.body.leaveMaster);
+                leaveMaster.save(function (err, leaveMasterInfo) {
+                    done(err, leaveMasterInfo);
+                });
+            },
+            function (leaveMaster, done) {
+                let leaveApply = new LeaveApply(req.body.leaveDetails);
+                leaveApply.leaveMasterId = leaveMaster._id;
+                leaveApply.save(function (err, leaveApplyInfo) {
+                    done(err, leaveApplyInfo);
+                });
+            }
+        ], (err, data) => {
+            if (err) {
+                return res.status(400).json(err);
+            } else {
+                return res.status(200).json(data);
+            }
+        });
+    },
+    getAllLeaveBalances: (req, res) => {
+        async.waterfall([
+            function (done) {
+                LeaveBalance.find({
+                    emp_id: req.query.emp_id,
+                    isAvailed: false
+                }).sort({
+                    _id: -1
+                }).exec((err, leaveBalances) => {
+                    done(err, leaveBalances);
+                })
             }
         ], (err, data) => {
             if (err) {
