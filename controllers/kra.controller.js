@@ -21,31 +21,6 @@ BatchCtrl = require('./batch.controller'),
 
 require('dotenv').load();
 
-
-// function addKraWorkFlowInfoDetails(req, res, done) {
-//     let kraWorkFlowDetails = new KraWorkFlowInfo(req.body);
-//     kraWorkFlowDetails.emp_id = req.body.emp_id || req.query.emp_id;
-//     kraWorkFlowDetails.timeline_id = 1;
-//     kraWorkFlowDetails.batch_id = 1;
-//     kraWorkFlowDetails.createdBy = parseInt(req.headers.uid);
-
-//     kraWorkFlowDetails.save(function (err, kraWorkFlowInfoData) {
-//         if (err) {
-//             return res.status(403).json({
-//                 title: 'There was a problem',
-//                 error: {
-//                     message: err
-//                 },
-//                 result: {
-//                     message: kraWorkFlowInfoData
-//                 }
-//             });
-//         }
-//         AuditTrail.auditTrailEntry(kraWorkFlowDetails.emp_id, "kraWorkFlowDetails", kraWorkFlowDetails, "user", "kraWorkFlowDetails", "ADDED");
-//         return done(err, kraWorkFlowInfoData);
-//     });
-// }
-
 function updateKraWorkFlowInfoDetails(req, res, done) {
     let batch_id = req.query.batch_id;
     let query = { _id: parseInt(req.body._id), isDeleted: false }
@@ -72,6 +47,7 @@ function updateKraWorkFlowInfoDetails(req, res, done) {
 }
 
 function addBulkKraInfoDetails(req, res, done) {
+    let fiscalYearId = req.body.fiscalYearId;
     let arr_emp_id = req.body.emp_id;
     var insertData = [];
     Promise.all([
@@ -79,7 +55,7 @@ function addBulkKraInfoDetails(req, res, done) {
     ]).then(function (kraData) {
         let maxId = Math.max.apply(Math, kraData[0].map(k => { return parseInt(k._id); }))
         arr_emp_id.forEach(function (element, index) {
-            insertData.push({ batch_id: req.body.batch_id, emp_id: element, status: 'Initiated', _id: maxId + (index + 1), createdBy: parseInt(req.headers.uid) });
+            insertData.push({ batch_id: req.body.batch_id, emp_id: element, status: 'Initiated', _id: maxId + (index + 1), createdBy: parseInt(req.headers.uid), fiscalYearId: parseInt(fiscalYearId) });
         });
         KraWorkFlowInfo.insertMany(insertData, function (err, results) {
             if (err) {
@@ -253,26 +229,6 @@ function deleteKraInfoDetails(req, res, done) {
         return done(err, data);
     })
 }
-
-// function deleteAllKraDetailsByEmpId(req,res,done)
-// {
-//     KraInfo.remove({kraWorkflow_id:parseInt(req.body.kraWorkflow_id)},function(err,data)
-//     {
-//         if (err) {
-//             return res.status(403).json({
-//                 title: 'There was a problem',
-//                 error: {
-//                     message: err
-//                 },
-//                 result: {
-//                     message: data
-//                 }
-//             });
-//         }
-//         return done(err,true);
-//     })
-// }
-
 
 function getKraInfoDetails(req, res) {
     let kraWorkflow_id = req.query.kraWorkflow_id;
@@ -669,26 +625,6 @@ function getKraByEmployeeId(req, res) {
     });
 }
 
-// function updateBatchStatus(req, res)
-// {
-//     let _id=parseInt(req.body._id);
-//     let batchType=req.body.batchType;
-//     if(batchType=='KRA')
-//     {
-//         let queryUpdate={ $set: {"status":req.body.status, "updatedBy":parseInt(req.headers.uid) }};
-//         KraWorkFlowInfo.update({"batch_id":_id,isDeleted:false},queryUpdate,{ new: true },function(err,batchStatusData)
-//         {
-//             if (err) {
-//                 return res.status(403).json({
-//                   title: 'There was an error',
-//                   error: err
-//                 });
-//               }
-//             return res.status(200).json(batchStatusData);
-//         });
-//     }
-// }
-
 
 let functions = {
     addKraWeightageInfo: (req, res) => {
@@ -701,7 +637,6 @@ let functions = {
             }
         ]);
     },
-
     addKraCategoryInfo: (req, res) => {
         async.waterfall([
             function (done) {
@@ -712,7 +647,6 @@ let functions = {
             }
         ]);
     },
-
     getKraWorkFlowInfo: (req, res) => {
         async.waterfall([
             function (done) {
@@ -725,7 +659,6 @@ let functions = {
             }
         ]);
     },
-
     addKraWorkFlowInfo: (req, res) => {
         async.waterfall([
             function (done) {
@@ -736,7 +669,6 @@ let functions = {
             }
         ]);
     },
-
     updateKraWorkFlowInfo: (req, res) => {
         async.waterfall([
             function (done) {
@@ -747,7 +679,6 @@ let functions = {
             }
         ]);
     },
-
     getEmployeeKraWorkFlowInfo: (req, res) => {
         async.waterfall([
             function (done) {
@@ -760,7 +691,6 @@ let functions = {
             }
         ]);
     },
-
     getKraWorkFlowInfoByBatch: (req, res) => {
         async.waterfall([
             function (done) {
@@ -773,8 +703,6 @@ let functions = {
             }
         ]);
     },
-
-
     addBulkKra: (req, res) => {
         async.waterfall([
             function (done) {
@@ -786,7 +714,6 @@ let functions = {
             }
         ]);
     },
-
     getKraInfo: (req, res) => {
         async.waterfall([
             function (done) {
@@ -799,7 +726,6 @@ let functions = {
             }
         ]);
     },
-
     addKraInfo: (req, res) => {
         async.waterfall([
             function (done) {
@@ -810,7 +736,6 @@ let functions = {
             }
         ]);
     },
-
     updateKraInfo: (req, res) => {
         async.waterfall([
             function (done) {
@@ -821,7 +746,6 @@ let functions = {
             }
         ]);
     },
-
     deleteKraInfo: (req, res) => {
         async.waterfall([
             function (done) {
@@ -832,7 +756,6 @@ let functions = {
             }
         ]);
     },
-
     getKraForApproval: (req, res) => {
         async.waterfall([
             function (done) {
