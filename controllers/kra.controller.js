@@ -77,6 +77,7 @@ function addBulkKraInfoDetails(req, res, done) {
 
 function getEmployeeKraWorkFlowInfoDetails(req, res) {
     let emp_id = req.query.emp_id;
+    let fiscalYearId = Number(req.query.fiscalYearId);
     KraWorkFlowInfo.aggregate([
         {
             "$lookup": {
@@ -100,7 +101,7 @@ function getEmployeeKraWorkFlowInfoDetails(req, res) {
         {
             "$unwind": "$employeedetails"
         },
-        { "$match": { "emp_id": parseInt(emp_id), "isDeleted": false, "employeedetails.isDeleted": false, "batchdetails.isDeleted": false } },
+        { "$match": { "emp_id": parseInt(emp_id), "isDeleted": false, "employeedetails.isDeleted": false, "batchdetails.isDeleted": false, "batchdetails.fiscalYearId": fiscalYearId } },
         { "$sort": { "createdAt": -1, "updatedAt": -1 } },
         {
             "$project": {
@@ -331,7 +332,7 @@ function getKraWorkFlowInfoDetailsByBatch(req, res) {
 
 function getKraForApproval(req, res) {
     let supervisorId = parseInt(req.query.supervisorId);
-
+    let fiscalYearId = parseInt(req.query.fiscalYearId);
     KraInfo.aggregate([
         { "$match": { "isDeleted": false, "supervisor_id": supervisorId } },
         {
@@ -346,6 +347,11 @@ function getKraForApproval(req, res) {
             "$unwind": {
                 path: "$kraWorkflow",
                 "preserveNullAndEmptyArrays": true
+            }
+        },
+        {
+            "$match": {
+                "kraWorkflow.fiscalYearId": fiscalYearId
             }
         },
         {
