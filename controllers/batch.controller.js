@@ -59,7 +59,8 @@ function updateBatchInfoDetails(req, res, done) {
 function getBatchInfoDetails(req, res, done) {
     let batchworkflow_id = req.query.batchworkflow_id;
     let query = {
-        isDeleted: false
+        isDeleted: false,
+        fiscalYearId: req.query.fiscalYearId
     };
     if (batchworkflow_id) {
         query = {
