@@ -2827,6 +2827,28 @@ let functions = {
             },
             {
                 "$lookup": {
+                    "from": "departments",
+                    "localField": "officeDetails.department_id",
+                    "foreignField": "_id",
+                    "as": "departmentDetails"
+                }
+            },
+            {
+                "$unwind": "$departmentDetails"
+            },
+            {
+                "$lookup": {
+                    "from": "grades",
+                    "localField": "grade_id",
+                    "foreignField": "_id",
+                    "as": "gradeDetails"
+                }
+            },
+            {
+                "$unwind": "$gradeDetails"
+            },
+            {
+                "$lookup": {
                     "from": "kraworkflowdetails",
                     "localField": "_id",
                     "foreignField": "emp_id",
@@ -2858,6 +2880,8 @@ let functions = {
                     "department_id": "$officeDetails.department_id",
                     "grade_id": "$grade_id",
                     "kraWorkflow": "$kraworkflowdetails",
+                    "departmentName": "$departmentDetails.departmentName",
+                    "grade": "$gradeDetails.gradeName"
                 }
             }
         ]).exec(function (err, results) {
