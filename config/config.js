@@ -85,6 +85,10 @@ module.exports = {
       from: '"Team HRIS" <hris@adnsl.net>',
       subject: 'New Subordinate is added'
     },
+    'sendEmailToEmployeeForKraInitiate': {
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'KRA Initaited'
+    },
     'sendEmailToSupervisorToApproveMtr': {
       from: '"Team HRIS" <hris@adnsl.net>',
       subject: 'Midterm Review for Approval'
