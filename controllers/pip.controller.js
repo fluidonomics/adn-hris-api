@@ -605,8 +605,10 @@ function getpipdetailspostinsertion(req, res) {
         primary_supervisor: "$empsupdetails.primarySupervisorEmp_id",
         secondary_supervisor: "$empsupdetails.secondarySupervisorEmp_id",
         supervisor_name: "$empdetails.fullName",
+        extended_by: "$pipdetails.extended_by",
+        isExtended: "$pipdetails.isExtended",
         //dateDifference: {$divide: [{$subtract: [ new Date(), "$approvedAt" ]}, 3600000*24*30]}
-        dateDifference: { $literal: 3}
+        dateDifference: { $literal: 4}
   }
     }
   ]).exec(function (err, data) {
@@ -1462,7 +1464,7 @@ function updatepipMaster(req, res) {
   let final_recommendation = req.body.finalRecommendation;
 
   let updateCondition = { master_id: master_id };
-  let updateQuery = {
+  let pipMasterUpdateQuery = {
     updatedAt: new Date(),
     updatedBy: parseInt(req.body.updatedBy),
     hr_final_com: req.body.hrFinalCom,
@@ -1470,18 +1472,27 @@ function updatepipMaster(req, res) {
     rev_final_com: req.body.revFinalCom,
     sup_final_com: req.body.supFinalCom,
     final_recommendation: req.body.finalRecommendation === undefined ? null : req.body.finalRecommendation,
-    //extended_by: req.body.extendedBy
-    statu: "PIP Completed",
+    extended_by: req.body.extendedBy,
+    status: "PIP Completed",
+    isExtended: false,
+    timelines: req.body.timelines
+  }
+  let pipDetailUpdateQuery = {
+    updatedAt: new Date(),
+    updatedBy: parseInt(req.body.updatedBy),
+    status: "PIP Completed",
     timelines: req.body.timelines
   }
 
   if(final_recommendation === 4) {
-    updateQuery.status = "Extended";
+    pipDetailUpdateQuery.status = "Extended";
+    pipMasterUpdateQuery.status = "Extended";
+    pipMasterUpdateQuery.isExtended = true;
   }
   async.waterfall(
     [
       done => {
-        pipdetails.updateMany(updateCondition, updateQuery, function (
+        pipdetails.updateMany(updateCondition, pipDetailUpdateQuery, function (
           err,
           response
         ) {
@@ -1491,9 +1502,29 @@ function updatepipMaster(req, res) {
       (response1, done) => {
         pipMaster.findOneAndUpdate(
           {_id: master_id },
-          updateQuery,
+          pipMasterUpdateQuery,
           (err, result) => {
-            done(err, result);
+            //done(err, result);
+            if(err) {
+
+                  return res.status(403).json({
+        
+                    title: "There was a problem",
+                    error: {
+                      message: err
+                    },
+                    message: {
+                      message: result
+                    }
+                  });
+            } else {
+              return res.status(200).json({
+                title: "Pip master updated",
+                result: {
+                  message: result
+                }
+              });
+            }
           }
         );
       }
@@ -1533,6 +1564,79 @@ function updatepipMaster(req, res) {
 
      
   // }
+}
+
+function updatepipMasterHR(req, res) {
+
+  let master_id = req.body.masterId;
+  let final_recommendation = req.body.finalRecommendation;
+
+  let updateCondition = { master_id: master_id };
+  let pipMasterUpdateQuery = {
+    updatedAt: new Date(),
+    updatedBy: parseInt(req.body.updatedBy),
+    hr_final_com: req.body.hrFinalCom,
+    emp_final_com: req.body.empFinalCom,
+    rev_final_com: req.body.revFinalCom,
+    sup_final_com: req.body.supFinalCom,
+    final_recommendation: req.body.finalRecommendation === undefined ? null : req.body.finalRecommendation,
+    extended_by: req.body.extendedBy,
+    status: "PIP Completed",
+    isExtended: false,
+    timelines: req.body.timelines
+  }
+  let pipDetailUpdateQuery = {
+    updatedAt: new Date(),
+    updatedBy: parseInt(req.body.updatedBy),
+    status: "PIP Completed",
+    timelines: req.body.timelines
+  }
+
+  if(final_recommendation === 4) {
+    pipDetailUpdateQuery.status = "Extended";
+    pipMasterUpdateQuery.status = "Extended";
+    pipMasterUpdateQuery.isExtended = true;
+  }
+  async.waterfall(
+    [
+      done => {
+        pipdetails.updateMany(updateCondition, pipDetailUpdateQuery, function (
+          err,
+          response
+        ) {
+          done(err, response);
+        });
+      },
+      (response1, done) => {
+        pipMaster.findOneAndUpdate(
+          {_id: master_id },
+          pipMasterUpdateQuery,
+          (err, result) => {
+            //done(err, result);
+            if(err) {
+
+                  return res.status(403).json({
+        
+                    title: "There was a problem",
+                    error: {
+                      message: err
+                    },
+                    message: {
+                      message: result
+                    }
+                  });
+            } else {
+              return res.status(200).json({
+                title: "Pip master updated",
+                result: {
+                  message: result
+                }
+              });
+            }
+          }
+        );
+      }
+    ]) 
 }
 
 let functions = {
@@ -1603,6 +1707,11 @@ let functions = {
   updatePipMaster: (req, res) => {
 
     updatepipMaster(req, res);
+  },
+
+  updatePipMasterHr: (req, res) => {
+
+    updatepipMasterHR(req, res);
   }
   // getLearningForSuperviser: (req, res) => {
   //   getLearningBySupervisor(req, res);                  
