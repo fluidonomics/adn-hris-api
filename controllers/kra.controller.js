@@ -70,6 +70,38 @@ function addBulkKraInfoDetails(req, res, done) {
                 });
             }
             AuditTrail.auditTrailEntry(0, "kraWorkFlowDetails", insertData, "user", "kraWorkFlowDetails", "ADDED");
+            arr_emp_id.forEach(empId => {
+                let data = {};
+                data.action_link = req.body.link;
+                EmployeeInfo.aggregate([
+                    {
+                        $match: {
+                            _id: empId
+                        }
+                    },
+                    {
+                        $lookup: {
+                            from: 'employeeofficedetails',
+                            localField: '_id',
+                            foreignField: 'emp_id',
+                            as: 'employeeofficedetails'
+                        }
+                    },
+                    {
+                        $unwind: {
+                            path: '$employeeofficedetails'
+                        }
+                    }
+                ]).exec((err, resEmployee) => {
+                    data.emp_email = resEmployee[0].employeeofficedetails.officeEmail;
+                    data.emp_name = resEmployee[0].fullName;
+
+                    EmployeeInfo.find({ _id: parseInt(req.headers.uid) }).exec((err, resCreatedBy) => {
+                        data.createdBy = resCreatedBy[0];
+                        SendEmail.sendEmailToEmployeeForKraInitiate(data);
+                    })
+                });
+            });
             return res.status(200).json(true);
         })
     });
