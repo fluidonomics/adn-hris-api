@@ -376,7 +376,8 @@ function getpipDetails(req, res) {
         final_recommendation: "$final_recommendation",
         final_remarks: "$final_remarks",
         status: "$status",
-        batchId: "$pip_master_details._id"
+        batchId: "$pip_master_details._id",
+        extended_by: "$extended_by"
 
       }
     },
@@ -1461,109 +1462,48 @@ function getPipByHr(req, res) {
 function updatepipMaster(req, res) {
 
   let master_id = req.body.masterId;
-  let final_recommendation = req.body.finalRecommendation;
 
-  let updateCondition = { master_id: master_id };
-  let pipMasterUpdateQuery = {
+  let updateQuery = {
     updatedAt: new Date(),
     updatedBy: parseInt(req.body.updatedBy),
     hr_final_com: req.body.hrFinalCom,
     emp_final_com: req.body.empFinalCom,
     rev_final_com: req.body.revFinalCom,
     sup_final_com: req.body.supFinalCom,
-    final_recommendation: req.body.finalRecommendation === undefined ? null : req.body.finalRecommendation,
-    extended_by: req.body.extendedBy,
-    status: "PIP Completed",
-    isExtended: false,
-    timelines: req.body.timelines
+    final_recommendation: req.body.finalRecommendation === undefined ? null : req.body.finalRecommendation
   }
-  let pipDetailUpdateQuery = {
-    updatedAt: new Date(),
-    updatedBy: parseInt(req.body.updatedBy),
-    status: "PIP Completed",
-    timelines: req.body.timelines
-  }
+  
+  pipMaster.findOneAndUpdate({_id:master_id}, updateQuery, (err, result) => {
 
-  if(final_recommendation === 4) {
-    pipDetailUpdateQuery.status = "Extended";
-    pipMasterUpdateQuery.status = "Extended";
-    pipMasterUpdateQuery.isExtended = true;
-  }
-  async.waterfall(
-    [
-      done => {
-        pipdetails.updateMany(updateCondition, pipDetailUpdateQuery, function (
-          err,
-          response
-        ) {
-          done(err, response);
-        });
-      },
-      (response1, done) => {
-        pipMaster.findOneAndUpdate(
-          {_id: master_id },
-          pipMasterUpdateQuery,
-          (err, result) => {
-            //done(err, result);
-            if(err) {
-
-                  return res.status(403).json({
+    if(err) {
+      return res.status(403).json({
         
-                    title: "There was a problem",
-                    error: {
-                      message: err
-                    },
-                    message: {
-                      message: result
-                    }
-                  });
-            } else {
-              return res.status(200).json({
-                title: "Pip master updated",
-                result: {
-                  message: result
-                }
-              });
-            }
-          }
-        );
-      }
-    ]) 
-  // pipMaster.findOneAndUpdate({_id:master_id}, updateQuery, (err, result) => {
+        title: "There was a problem",
+        error: {
+          message: err
+        },
+        message: {
+          message: result
+        }
+      });
+    } else {
+      AuditTrail.auditTrailEntry(
+        0,
+        "pipmaster",
+        result,
+        "pip",
+        "updateDetails",
+        "UPDATED"
+      );
+      return res.status(200).json({
+        title: "Pip master updated",
+        result: {
+          message: result
+        }
+      });
+    }
+  });
 
-  //   if(err) {
-  //     return res.status(403).json({
-        
-  //       title: "There was a problem",
-  //       error: {
-  //         message: err
-  //       },
-  //       message: {
-  //         message: result
-  //       }
-  //     });
-  //   } else {
-  //     AuditTrail.auditTrailEntry(
-  //       0,
-  //       "pipmaster",
-  //       result,
-  //       "pip",
-  //       "updateDetails",
-  //       "UPDATED"
-  //     );
-  //     return res.status(200).json({
-  //       title: "Pip master updated",
-  //       result: {
-  //         message: result
-  //       }
-  //     });
-  //   }
-  // });
-
-  // if(req.body.finalRecommendation === 4 && req.body.finalRecommendation !== undefined) {
-
-     
-  // }
 }
 
 function updatepipMasterHR(req, res) {
