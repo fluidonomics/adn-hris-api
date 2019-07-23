@@ -141,6 +141,7 @@ function EmpDetailsForMidTermInitiate(req, res) {
 }
 function InitiateMtrProcess(req, res) {
   let createdBy = parseInt(req.body.createdBy);
+  let fiscalYearId = parseInt(req.body.fiscalYearId);
   let MidTermBatchDetails = new MidTermBatch();
   MidTermBatchDetails.batchName = req.body.batchName;
   MidTermBatchDetails.batchEndDate = new Date(
@@ -149,6 +150,7 @@ function InitiateMtrProcess(req, res) {
   MidTermBatchDetails.status = req.body.status;
   MidTermBatchDetails.isDeleted = false;
   MidTermBatchDetails.createdBy = createdBy;
+  MidTermBatchDetails.fiscalYearId = fiscalYearId;
   let emp_id_array = req.body.emp_id_array;
   MidTermBatchDetails.transac;
   MidTermBatchDetails.save(function (err, midtermbatchresp) {
@@ -198,7 +200,8 @@ function InitiateMtrProcess(req, res) {
             emp_id: element.emp_id,
             status: "Initiated",
             _id: midtermMaster_id + (index + 1),
-            createdBy: createdBy
+            createdBy: createdBy,
+            fiscalYearId: fiscalYearId
           });
         });
         MidTermMaster.insertMany(insertData, function (
@@ -236,6 +239,7 @@ function InitiateMtrProcess(req, res) {
                     emp_id: {
                       $in: emp_id_collection
                     },
+                    fiscalYearId: fiscalYearId,
                     status: "Approved"
                   }
                 },
@@ -374,6 +378,7 @@ function InitiateMtrProcess(req, res) {
 }
 function GetMtrKraSingleDetails(req, res) {
   let emp_id = parseInt(req.query.emp_id);
+  let fiscalYearId = parseInt(req.query.fiscalYearId);
   MidTermDetails.aggregate([
     {
       $lookup: {
@@ -399,6 +404,11 @@ function GetMtrKraSingleDetails(req, res) {
     {
       $unwind: {
         path: "$mtr_batch"
+      }
+    },
+    {
+      $match: {
+        "mtr_batch.fiscalYearId": fiscalYearId
       }
     },
     {
@@ -584,11 +594,13 @@ function getMtrBySupervisor(req, res) {
   });
 }
 function getMtrBatches(req, res) {
+  let fiscalYearId = parseInt(req.query.fiscalYearId);
   let currentUserId = parseInt(req.query.empId);
   MidTermBatch.aggregate([
     {
       $match: {
-        createdBy: currentUserId
+        createdBy: currentUserId,
+        fiscalYearId: fiscalYearId
       }
     },
     {
