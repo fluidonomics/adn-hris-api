@@ -2681,6 +2681,7 @@ let functions = {
         ]);
     },
     getAllEmployeeByReviewerId: (req, res) => {
+        let fiscalYearId = Number(req.query.fiscalYearId);
         EmployeeInfo.aggregate([
             { "$match": { "_id": parseInt(req.query.id) } },
             {
@@ -2727,7 +2728,11 @@ let functions = {
             {
                 "$unwind": "$kraWorkflowDetails"
             },
-
+            {
+                "$match": {
+                    "kraWorkflowDetails.fiscalYearId": fiscalYearId
+                }  
+            },
             {
                 "$project": {
                     "employees": "$employees",
