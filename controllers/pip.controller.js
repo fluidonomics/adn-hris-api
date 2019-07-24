@@ -1470,7 +1470,6 @@ function updatepipMaster(req, res) {
     emp_final_com: req.body.empFinalCom,
     rev_final_com: req.body.revFinalCom,
     sup_final_com: req.body.supFinalCom,
-    final_recommendation: req.body.finalRecommendation === undefined ? null : req.body.finalRecommendation
   }
   
   pipMaster.findOneAndUpdate({_id:master_id}, updateQuery, (err, result) => {
