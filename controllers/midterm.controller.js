@@ -482,7 +482,7 @@ function GetMtrKraSingleDetails(req, res) {
         emp_full_name: "$emp_details.fullName",
         supervisor_userName: "$emp_supervisor_details.userName",
         supervisor_full_name: "$emp_supervisor_details.fullName",
-        kra_details: "$kra_details",
+        getMtrBySupervisor: "$kra_details",
         mtr_kra: "$mtr_kra",
         weightage_id: "$weightage_id",
         category_id: "$category_id",
@@ -523,6 +523,7 @@ function GetMtrKraSingleDetails(req, res) {
 }
 function getMtrBySupervisor(req, res) {
   let supervisorId = parseInt(req.query.supervisorId);
+  let fiscalYearId = parseInt(req.query.fiscalYearId);
   let status = req.query.status;
   MidTermDetails.aggregate([
     {
@@ -541,6 +542,11 @@ function getMtrBySupervisor(req, res) {
     {
       $unwind: {
         path: "$mtr_master_details"
+      }
+    },
+    {
+      $match: {
+        "mtr_master_details.fiscalYearId": fiscalYearId
       }
     },
     {
