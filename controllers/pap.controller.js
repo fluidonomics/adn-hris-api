@@ -316,9 +316,9 @@ function getEmployeesForPapInitiate(req, res) {
         },
         (data, innerDone) => {
             let finalData = [...data.papInitData];
-            let isPapExists = false;
-            let isMtrExists = false;
             data.kraMasterData.forEach(kra => {
+                let isPapExists = false;
+                let isMtrExists = false;
                 data.papInitData.forEach(pap => {
                     if (pap.emp_id == kra.emp_id) {
                         isPapExists = true;
