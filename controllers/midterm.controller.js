@@ -7,17 +7,20 @@ let KraWorkFlowInfo = require("../models/kra/kraWorkFlowDetails.model"),
 SendEmail = require('../class/sendEmail'),
   EmployeeDetails = require("../models/employee/employeeDetails.model");
 function EmpDetailsForMidTermInitiate(req, res) {
+  let fiscalYearId = Number(req.query.fiscalYearId);
   KraWorkFlowInfo.aggregate([
     {
       $project: {
         emp_id: "$emp_id",
         batch_id: "$batch_id",
-        status: "$status"
+        status: "$status",
+        fiscalYearId: "$fiscalYearId" 
       }
     },
     {
       $match: {
-        status: "Approved"
+        status: "Approved",
+        fiscalYearId: fiscalYearId
       }
     },
     {
