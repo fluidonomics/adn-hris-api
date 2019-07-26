@@ -609,7 +609,7 @@ function getpipdetailspostinsertion(req, res) {
         extended_by: "$pipdetails.extended_by",
         isExtended: "$pipdetails.isExtended",
         //dateDifference: {$divide: [{$subtract: [ new Date(), "$approvedAt" ]}, 3600000*24*30]}
-        dateDifference: { $literal: 4}
+        dateDifference: { $literal: 5}
   }
     }
   ]).exec(function (err, data) {
@@ -1519,22 +1519,23 @@ function updatepipMasterHR(req, res) {
     rev_final_com: req.body.revFinalCom,
     sup_final_com: req.body.supFinalCom,
     final_recommendation: req.body.finalRecommendation === undefined ? null : req.body.finalRecommendation,
-    extended_by: req.body.extendedBy,
     status: "PIP Completed",
-    isExtended: false,
-    timelines: req.body.timelines
   }
   let pipDetailUpdateQuery = {
     updatedAt: new Date(),
     updatedBy: parseInt(req.body.updatedBy),
-    status: "PIP Completed",
-    timelines: req.body.timelines
+    status: "PIP Completed"
   }
 
   if(final_recommendation === 4) {
     pipDetailUpdateQuery.status = "Extended";
     pipMasterUpdateQuery.status = "Extended";
     pipMasterUpdateQuery.isExtended = true;
+    pipMasterUpdateQuery.extended_by = req.body.extendedBy === undefined ? null : req.body.extendedBy;
+    pipMasterUpdateQuery.timelines = req.body.timelines;
+    pipDetailUpdateQuery.timelines = req.body.timelines;
+    pipDetailUpdateQuery.finalReview = null;
+    pipDetailUpdateQuery.finalRating = null;
   }
   async.waterfall(
     [
@@ -1543,6 +1544,19 @@ function updatepipMasterHR(req, res) {
           err,
           response
         ) {
+          if(err) {
+
+            return res.status(403).json({
+        
+              title: "There was a problem",
+              error: {
+                message: err
+              },
+              message: {
+                message: result
+              }
+            });
+          }
           done(err, response);
         });
       },
