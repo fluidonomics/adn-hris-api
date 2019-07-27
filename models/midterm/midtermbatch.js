@@ -13,7 +13,8 @@ let MidTermBatchSchema = new Schema(
     updatedBy: { type: Number, default: null },
     status: { type: String, default: 'Active' },
     isDeleted: { type: Boolean, default: false },
-    isSystemGenerated: { type: Boolean, default: false }
+    isSystemGenerated: { type: Boolean, default: false },
+    fiscalYearId: {type: Number, default: null}
   },
   {
     timestamps: true,

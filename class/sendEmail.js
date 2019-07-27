@@ -432,6 +432,21 @@ let functions = {
         };
         transporter.sendMail(mailOptions, callback);
     },
+    sendEmailToSupervisorForKraSubmitted: (data, callback) => {
+        let mailOptions = {
+            from: config.email.sendEmailToSupervisorForKraSubmitted.from, // sender address
+            to: data.employee.employeeofficedetails.officeEmail,
+            subject: config.email.sendEmailToSupervisorForKraSubmitted.subject, // Subject line
+            template: 'email-notify-to-supvsr-for-kra-submitted',
+            context: {
+                appliedDate: moment(new Date()).format('L'),
+                link: data.action_link,
+                empName: data.employee.fullName,
+                supervisorName: data.supervisor.fullName
+            }
+        };
+        transporter.sendMail(mailOptions, callback);
+    },
     sendEmailToSupervisorToApproveMtr: (data, callback) => {
         if (data.supervisor_email === null || data.supervisor_email === "") {
             return
