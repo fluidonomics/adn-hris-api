@@ -10,7 +10,8 @@ let PapBatchSchema = new Schema(
     status: { type: String, default: "Initiated" },
     updatedBy: { type: Number, default: null },
     createdBy: { type: Number, required: true },
-    isDeleted: { type: Boolean, default: false }
+    isDeleted: { type: Boolean, default: false },
+    fiscalYearId: {type: Number, default: null}
   },
   {
     timestamps: true,
