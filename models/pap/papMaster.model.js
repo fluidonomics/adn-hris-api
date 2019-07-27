@@ -22,6 +22,7 @@ let PapMasterSchema = new Schema(
     isGrievanceFeedbackSentToSupervisor: { type: Boolean, default: false },
     grievanceFeedbackReleaseEndDate: { type: Date, default: null },
     isGrievanceFeedbackReleased: { type: Boolean, default: false },
+    fiscalYearId: {type: Number, default: null}
   },
   {
     timestamps: true,

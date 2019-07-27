@@ -16,12 +16,14 @@ let async = require('async'),
 require('dotenv').load();
 
 function getEmployeesForPapInitiate(req, res) {
+    let fiscalYearId = Number(req.query.fiscalYearId);
     async.waterfall([
         (done) => {
             MidTermMaster.aggregate([{
                 $match: {
                     status: 'Approved',
-                    isDeleted: false
+                    isDeleted: false,
+                    fiscalYearId: fiscalYearId
                 }
             },
             {
@@ -187,7 +189,8 @@ function getEmployeesForPapInitiate(req, res) {
             KraMaster.aggregate([
                 {
                     $match: {
-                        'status': 'Approved'
+                        'status': 'Approved',
+                        fiscalYearId: fiscalYearId
                     }
                 },
                 {
@@ -359,6 +362,7 @@ function getEmployeesForPapInitiate(req, res) {
 
 function initiatePapProcess(req, res) {
     let createdBy = parseInt(req.body.createdBy);
+    let fiscalYearId = parseInt(req.body.fiscalYearId);
     let emp_id_array = req.body.emp_id_array;
     let action_link = req.body.action_link;
     let papBatchDetails = new PapBatchDetails();
@@ -367,6 +371,7 @@ function initiatePapProcess(req, res) {
     );
     papBatchDetails.createdBy = createdBy;
     papBatchDetails.batchName = req.body.batchName;
+    papBatchDetails.fiscalYearId = fiscalYearId;
     async.waterfall([
         (done) => {
             let kraEmployees = emp_id_array.filter(item => item.type == 'kra');
@@ -429,7 +434,8 @@ function initiatePapProcess(req, res) {
                     createdBy: createdBy,
                     emp_id: parseInt(element.emp_id),
                     batch_id: papMasterCount._id,
-                    mtr_master_id: parseInt(element.mtr_master_id)
+                    mtr_master_id: parseInt(element.mtr_master_id),
+                    fiscalYearId: fiscalYearId
                 });
             });
             PapMasterDetails.insertMany(dataToInsert, function (err, response) {
