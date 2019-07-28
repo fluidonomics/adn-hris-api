@@ -1050,9 +1050,11 @@ function terminatePap(req, res) {
 
 function getPapDetailsSingleEmployee(req, res) {
     let empId = parseInt(req.query.emp_id);
+    let fiscalYearId = parseInt(req.query.fiscalYearId);
     PapMasterDetails.aggregate([{
         "$match": {
-            "emp_id": empId
+            "emp_id": empId,
+            "fiscalYearId": fiscalYearId
         }
     },
     {
@@ -1257,6 +1259,7 @@ function getPapDetailsSingleEmployee(req, res) {
 
 function getPapBySupervisor(req, res) {
     let supervisorId = parseInt(req.query.empId);
+    let fiscalYearId = parseInt(req.query.fiscalYearId);
     PapDetails.aggregate([
         {
             '$match': {
@@ -1290,6 +1293,11 @@ function getPapBySupervisor(req, res) {
         {
             '$unwind': {
                 'path': '$papmasters'
+            }
+        },
+        {
+            '$match': {
+                'papmasters.fiscalYearId': fiscalYearId
             }
         },
         {
@@ -2053,6 +2061,7 @@ function sendMailToEmployeeforApproval(pap_master_id) {
 
 function getPapByReviewer(req, res) {
     let reviewerId = parseInt(req.query.empId);
+    let fiscalYearId = parseInt(req.query.fiscalYearId);
     async.waterfall([
         done => {
             EmployeeSupervisorDetails.find({
@@ -2088,6 +2097,11 @@ function getPapByReviewer(req, res) {
                 {
                     '$unwind': {
                         'path': '$papmasters'
+                    }
+                },
+                {
+                    '$match': {
+                        'papmasters.fiscalYearId' : fiscalYearId
                     }
                 },
                 {
