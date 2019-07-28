@@ -847,9 +847,11 @@ function generateMtr(kraEmployees, req) {
 
 function getPapBatches(req, res) {
     let currentUserId = parseInt(req.query.currentUserId);
+    let fiscalYearId = parseInt(req.query.fiscalYearId);
     PapBatchDetails.aggregate([{
         $match: {
-            createdBy: currentUserId
+            createdBy: currentUserId,
+            fiscalYearId: fiscalYearId
         }
     },
     {
