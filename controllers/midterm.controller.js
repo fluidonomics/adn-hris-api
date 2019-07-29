@@ -3,8 +3,8 @@ let KraWorkFlowInfo = require("../models/kra/kraWorkFlowDetails.model"),
   MidTermMaster = require("../models/midterm/midtermmaster"),
   MidTermDetails = require("../models/midterm/midtermdetails"),
   AuditTrail = require("../class/auditTrail"),
-  EmployeeSupervisorDetails = require("../models/employee/employeeSupervisorDetails.model");
-SendEmail = require('../class/sendEmail'),
+  EmployeeSupervisorDetails = require("../models/employee/employeeSupervisorDetails.model"),
+  SendEmail = require('../class/sendEmail'),
   EmployeeDetails = require("../models/employee/employeeDetails.model");
 function EmpDetailsForMidTermInitiate(req, res) {
   let fiscalYearId = Number(req.query.fiscalYearId);
@@ -14,7 +14,7 @@ function EmpDetailsForMidTermInitiate(req, res) {
         emp_id: "$emp_id",
         batch_id: "$batch_id",
         status: "$status",
-        fiscalYearId: "$fiscalYearId" 
+        fiscalYearId: "$fiscalYearId"
       }
     },
     {
@@ -120,7 +120,7 @@ function EmpDetailsForMidTermInitiate(req, res) {
         emp_designation_id: "$employee_details.designation_id",
         emp_designation_name: "$designation_details.designationName",
         emp_supervisor_id:
-        "$employee_supervisor_details.primarySupervisorEmp_id",
+          "$employee_supervisor_details.primarySupervisorEmp_id",
         emp_supervisor_name: "$supervisor_details.fullName",
         mtr_status: "$mtr_master_details.status",
         mtr_batch_id: "$mtr_master_details.batch_id"
@@ -268,9 +268,9 @@ function InitiateMtrProcess(req, res) {
                     kra_details_isDeleted: "$kra_details.isDeleted",
                     kra_details_sendBackComment: "$kra_details.sendBackComment",
                     kra_details_supervisorStatus:
-                    "$kra_details.supervisorStatus",
+                      "$kra_details.supervisorStatus",
                     kra_details_measureOfSuccess:
-                    "$kra_details.measureOfSuccess",
+                      "$kra_details.measureOfSuccess",
                     kra_details_unitOfSuccess: "$kra_details.unitOfSuccess",
                     kra_details_weightage_id: "$kra_details.weightage_id",
                     kra_details_category_id: "$kra_details.category_id",
@@ -367,7 +367,7 @@ function InitiateMtrProcess(req, res) {
                       "midTermDetails",
                       "ADDED"
                     );
-                    // sendEmailToAllEmployee(emp_id_array, res);
+                    sendMailForMtrInit(emp_id_array, req);
                     return res.status(200).json({ result: midTermDetails });
                   }
                 });
@@ -379,6 +379,21 @@ function InitiateMtrProcess(req, res) {
     }
   });
 }
+
+async function sendMailForMtrInit(emp_id_array, req) {
+  let hr = await EmployeeDetails.findOne({ _id: parseInt(req.body.createdBy) }).exec();
+  emp_id_array.forEach(async emp => {
+    let employee = await EmployeeDetails.findOne({ _id: emp.emp_id }).exec();
+    let data = {
+      mail: emp.officeEmail,
+      fullName: employee.fullName,
+      link: req.body.link,
+      hrName: hr.fullName
+    };
+    SendEmail.sendEmailToEmplyeeForMtrInitiate(data);
+  });
+}
+
 function GetMtrKraSingleDetails(req, res) {
   let emp_id = parseInt(req.query.emp_id);
   let fiscalYearId = parseInt(req.query.fiscalYearId);
