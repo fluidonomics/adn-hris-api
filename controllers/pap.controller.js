@@ -3459,6 +3459,125 @@ let functions = {
     releaseGrievanceFeedback: (req, res) => {
         releaseGrievanceFeedback(req, res);
     },
+    deleteDuplicatePap: (req, res) => {
+        async.waterfall([
+            (done) => {
+                EmployeeDetails.find(
+                    { userName: { $in: ['1010610', '1010438', '1010553', '1010494', '1010427', '1010413', '1010319', '1010410', '1010355', '1010477', '1010453'] } }
+                ).exec((err, employees) => {
+                    done(err, employees);
+                });
+            },
+            (employees, done) => {
+                deletePap(done, employees, 0);
+            }
+        ], (err, result) => {
+            sendResponse(res, err, result, 'deleteDuplicatePap successfully');
+        });
+    }
+}
+
+async function deletePap(done, employees, i) {
+    if (i < employees.length) {
+        let emp = employees[i];
+        console.log("Performing Operation for Employee", emp._id, emp.fullName, emp.userName);
+        let kraDetailsId = [];
+        let mtrDetailsId = [];
+        let mtrMasterId = 0;
+        let papMasterId = 0;
+        console.log("KraMaster.find", emp._id, emp.fullName, emp.userName);
+        let kra = await KraMaster.find({ emp_id: emp._id, fiscalYearId: 3 }).exec();
+
+        console.log("KraDetail.find", emp._id, emp.fullName, emp.userName);
+        KraDetail.find({ kraWorkflow_id: kra[0]._id }).exec((err, kraDetails) => {
+            if (err) {
+                done(err, null);
+            }
+            kraDetailsId = kraDetails.map(k => k._id);
+            MidTermDetail.find({ kraDetailId: { $in: kraDetailsId } }).exec((err, mtrDetails) => {
+                if (err) {
+                    done(err, null);
+                }
+                mtrDetailsId = mtrDetails.map(m => m._id);
+                if (mtrDetails.length > 0) {
+                    mtrMasterId = mtrDetails[0].mtr_master_id;
+                    PapDetails.find({ mtr_details_id: { $in: mtrDetailsId } }).exec((err, papDetails) => {
+                        if (err) {
+                            done(err, null);
+                        }
+                        papMasterId = papDetails[0].pap_master_id;
+
+                        console.log("Deleting papDetails based on mtrDetailId-", JSON.stringify(mtrDetailsId));
+
+                        PapDetails.deleteMany({ mtr_details_id: { $in: mtrDetailsId } }).exec((err, papDetailsDeleted) => {
+                            if (err) {
+                                done(err, null);
+                            }
+                            console.log("Deleting papDetails based on mtrDetailId--Success");
+                            console.log("Deleting papMaster based on papMasterId-", JSON.stringify(papMasterId));
+
+                            async.waterfall([
+                                (innerdone) => {
+                                    PapDetails.find({ pap_master_id: papMasterId }).exec((err, papMasterCheck) => {
+                                        if (err) {
+                                            done(err, null);
+                                        }
+                                        if (papMasterCheck.length > 0) {
+                                            console.log("Deleting papMaster based on papMasterId--Aborted | PAPDetails Data Exists", JSON.stringify(papMasterCheck.map(x => x._id)));
+                                            innerdone(null, null);
+                                        } else {
+                                            PapMasterDetails.deleteOne({ _id: papMasterId }).exec((err, papMasterDetailsDeleted) => {
+                                                if (err) {
+                                                    done(err, null);
+                                                }
+                                                console.log("Deleting papMaster based on papMasterId--Success");
+                                                innerdone(null, null);
+                                            });
+                                        }
+                                    });
+                                },
+                                (data, innerdone) => {
+                                    console.log("Deleting mtrDetails based on mtrDetailId-", JSON.stringify(mtrDetailsId));
+                                    MidTermDetail.deleteMany({ _id: { $in: mtrDetailsId } }).exec((err, mtrDetailsDeleted) => {
+                                        if (err) {
+                                            done(err, null);
+                                        }
+                                        console.log("Deleting mtrDetails based on mtrDetailId-Success");
+                                        console.log("Deleting mtrMaster based on mtrMasterId--", JSON.stringify(mtrMasterId));
+
+                                        MidTermDetail.find({ mtr_master_id: mtrMasterId }).exec((err, mtrMasterCheck) => {
+                                            if (err) {
+                                                done(err, null);
+                                            }
+                                            if (mtrMasterCheck.length > 0) {
+                                                console.log("Deleting mtrMaster based on mtrMasterId--Aborted | MTRDetails Data Exists", JSON.stringify(mtrMasterCheck.map(x => x._id)));
+                                                innerdone(null, null);
+                                            } else {
+                                                MidTermMaster.deleteOne({ _id: mtrMasterId }).exec((err, mtrMasterDeleted) => {
+                                                    if (err) {
+                                                        done(err, null);
+                                                    }
+                                                    console.log("Deleting mtrMaster based on mtrMasterId--Success");
+                                                    innerdone(null, null);
+                                                });
+                                            }
+                                        });
+                                    });
+                                }
+                            ], (err, result) => {
+                                deletePap(done, employees, i + 1);
+                            })
+                        });
+                    });
+                } else {
+                    console.log("No MTR & PAP Exists for this user");
+                    deletePap(done, employees, i + 1);
+                }
+            });
+        });
+    } else {
+        done(null, null);
+    }
 }
 
 
