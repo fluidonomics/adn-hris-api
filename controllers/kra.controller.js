@@ -138,6 +138,7 @@ function addBulkKraInfoDetails(req, res, done) {
                         }
                     }
                 ]).exec((err, resEmployee) => {
+                    data.action_link = req.body.link;
                     data.emp_email = resEmployee[0].employeeofficedetails.officeEmail;
                     data.emp_name = resEmployee[0].fullName;
 

@@ -447,6 +447,20 @@ let functions = {
         };
         transporter.sendMail(mailOptions, callback);
     },
+    sendEmailToEmplyeeForMtrInitiate: (data, callback) => {
+        let mailOptions = {
+            from: config.email.sendEmailToSupervisorToApproveMtr.from, // sender address
+            to: data.mail,
+            subject: "Mid Term Review Initiated", // Subject line
+            template: 'email-notify-to-employee-for-mtr-init',
+            context: {
+                fullName: data.fullName,
+                link: data.link,
+                hrName: data.hrName
+            }
+        };
+        transporter.sendMail(mailOptions, callback);
+    },
     sendEmailToSupervisorToApproveMtr: (data, callback) => {
         if (data.supervisor_email === null || data.supervisor_email === "") {
             return
