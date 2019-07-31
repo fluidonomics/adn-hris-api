@@ -79,11 +79,23 @@ function updateKraWorkFlowInfoDetails(req, res, done) {
                     }
                 }
             ]).exec((err, kra) => {
-                let data = {
-                    employee: kra[0].employeedetails_view,
-                    supervisor: kra[0].supervisordetails_view
+                if (kra) {
+                    let data = {
+                        employee: kra[0].employeedetails_view,
+                        supervisor: kra[0].supervisordetails_view
+                    }
+                    SendEmail.sendEmailToSupervisorForKraSubmitted(data, (err1, result1) => {
+                        if (err1) {
+                            return res.status(300).json(kra);
+
+                        } else {
+                            return res.status(200).json(kra);
+                        }
+                    });
+                } else {
+                    return res.status(301).json(false);
                 }
-                SendEmail.sendEmailToSupervisorForKraSubmitted(data);
+
             });
         }
     ], (err, result) => {
