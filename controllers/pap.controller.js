@@ -312,7 +312,7 @@ function getEmployeesForPapInitiate(req, res) {
             });
         },
         (data, innerDone) => {
-            MidTermMaster.find().exec((err, response) => {
+            MidTermMaster.find({fiscalYearId: fiscalYearId}).exec((err, response) => {
                 data.mtrData = response;
                 innerDone(err, data);
             });
@@ -638,6 +638,7 @@ function initiatePapProcess(req, res) {
 }
 
 function generateMtr(kraEmployees, req) {
+    let fiscalYearId = parseInt(req.body.fiscalYearId);
     return new Promise((resolve, reject) => {
         let createdBy = parseInt(req.body.createdBy);
         let MidTermBatchDetails = new MidTermBatch();
@@ -647,6 +648,7 @@ function generateMtr(kraEmployees, req) {
         MidTermBatchDetails.isDeleted = false;
         MidTermBatchDetails.createdBy = createdBy;
         MidTermBatchDetails.isSystemGenerated = true;
+        MidTermBatchDetails.fiscalYearId = fiscalYearId;
         let emp_id_array = req.body.emp_id_array;
         MidTermBatchDetails.save(function (err, midtermbatchresp) {
             if (err) {
@@ -689,7 +691,8 @@ function generateMtr(kraEmployees, req) {
                             _id: midtermMaster_id + (index + 1),
                             createdBy: createdBy,
                             updatedBy: createdBy,
-                            isSystemGenerated: true
+                            isSystemGenerated: true,
+                            fiscalYearId: fiscalYearId
                         });
                     });
                     MidTermMaster.insertMany(insertData, function (
@@ -719,7 +722,8 @@ function generateMtr(kraEmployees, req) {
                                             emp_id: {
                                                 $in: emp_id_collection
                                             },
-                                            status: "Approved"
+                                            status: "Approved",
+                                            fiscalYearId: fiscalYearId
                                         }
                                     },
                                     {
