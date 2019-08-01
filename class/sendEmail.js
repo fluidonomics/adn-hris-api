@@ -435,7 +435,7 @@ let functions = {
     sendEmailToSupervisorForKraSubmitted: (data, callback) => {
         let mailOptions = {
             from: config.email.sendEmailToSupervisorForKraSubmitted.from, // sender address
-            to: data.employee.employeeofficedetails.officeEmail,
+            to: data.supervisor.employeeofficedetails.officeEmail,
             subject: config.email.sendEmailToSupervisorForKraSubmitted.subject, // Subject line
             template: 'email-notify-to-supvsr-for-kra-submitted',
             context: {
