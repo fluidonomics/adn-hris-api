@@ -103,24 +103,51 @@ function EmpDetailsForMidTermInitiate(req, res) {
       }
     },
     {
+      $lookup: {
+        from: "departments",
+        localField: "employee_office_details.department_id",
+        foreignField: "_id",
+        as: "emp_departments_details"
+      }
+    },
+    {
+      $unwind: {
+        path: "$emp_departments_details"
+      }
+    }, 
+    { 
+        $lookup : {
+            from : "grades", 
+            localField : "employee_details.grade_id", 
+            foreignField : "_id", 
+            as : "emp_grade_details"
+        }
+    }, 
+    { 
+        $unwind : {
+            path : "$emp_grade_details"
+        }
+    }, 
+    {
       $project: {
         emp_id: "$emp_id",
         kra_batch_id: "$batch_id",
         kra_status: "$status",
         emp_full_name: "$employee_details.fullName",
         emp_grade_id: "$employee_details.grade_id",
+        emp_grade_name: "$emp_grade_details.gradeName",
         emp_isAccountActive: "$employee_details.isAccountActive",
         emp_profileImage: "$employee_details.profileImage",
         emp_userName: "$employee_details.userName",
         emp_employmentType_id: "$employee_details.employmentType_id",
         emp_isDeleted: "$employee_details.isDeleted",
         emp_department_id: "$employee_office_details.department_id",
+        emp_department_name: "$emp_departments_details.departmentName",
         emp_HRSpoc_id: "$employee_office_details.hrspoc_id",
         emp_officeEmail: "$employee_office_details.officeEmail",
         emp_designation_id: "$employee_details.designation_id",
         emp_designation_name: "$designation_details.designationName",
-        emp_supervisor_id:
-          "$employee_supervisor_details.primarySupervisorEmp_id",
+        emp_supervisor_id: "$employee_supervisor_details.primarySupervisorEmp_id",
         emp_supervisor_name: "$supervisor_details.fullName",
         mtr_status: "$mtr_master_details.status",
         mtr_batch_id: "$mtr_master_details.batch_id"
