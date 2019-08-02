@@ -82,16 +82,18 @@ function updateKraWorkFlowInfoDetails(req, res, done) {
                 if (kra) {
                     let data = {
                         employee: kra[0].employeedetails_view,
-                        supervisor: kra[0].supervisordetails_view
+                        supervisor: kra[0].supervisordetails_view,
+                        status: kra[0].status
                     }
-                    SendEmail.sendEmailToSupervisorForKraSubmitted(data, (err1, result1) => {
-                        if (err1) {
-                            return res.status(300).json(kra);
+                    if (kra[0].status == "Submitted") {
+                        SendEmail.sendEmailToSupervisorForKraSubmitted(data);
+                    } else if (kra[0].status == "Approved") {
+                        SendEmail.sendEmailToEmployeeForKraApprovedSendback(data);
+                    } else if (kra[0].status == "SendBack") {
+                        SendEmail.sendEmailToEmployeeForKraApprovedSendback(data);
+                    }
+                    return res.status(200).json(kra);
 
-                        } else {
-                            return res.status(200).json(kra);
-                        }
-                    });
                 } else {
                     return res.status(301).json(false);
                 }

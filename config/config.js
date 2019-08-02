@@ -93,6 +93,14 @@ module.exports = {
       from: '"Team HRIS" <hris@adnsl.net>',
       subject: 'KRA Submitted'
     },
+    'sendEmailToSupervisorForKraApproved': {
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'KRA Approved'
+    },
+    'sendEmailToSupervisorForKraSendback': {
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'KRA Sendback'
+    },
     'sendEmailToSupervisorToApproveMtr': {
       from: '"Team HRIS" <hris@adnsl.net>',
       subject: 'Midterm Review for Approval'
