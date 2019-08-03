@@ -13,7 +13,8 @@ let MidTermMasterSchema = new Schema(
     updatedBy: { type: Number, default: null },
     createdBy: { type: Number, default: null },
     isDeleted: { type: Boolean, default: false },
-    isSystemGenerated: { type: Boolean, default: false }
+    isSystemGenerated: { type: Boolean, default: false },
+    fiscalYearId: {type: Number, default: null}
   },
   {
     timestamps: true,

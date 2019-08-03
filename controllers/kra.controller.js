@@ -29,20 +29,79 @@ function updateKraWorkFlowInfoDetails(req, res, done) {
     }
     let queryUpdate = { $set: { "status": req.body.status, "updatedBy": parseInt(req.headers.uid) } };
 
-    KraWorkFlowInfo.update(query, queryUpdate, { new: true }, function (err, kraWorkFlowInfoData) {
-        if (err) {
-            return res.status(403).json({
-                title: 'There was a problem',
-                error: {
-                    message: err
-                },
-                result: {
-                    message: kraWorkFlowInfoData
+    async.waterfall([
+        (innerDone) => {
+            KraWorkFlowInfo.update(query, queryUpdate, { new: true }, function (err, kraWorkFlowInfoData) {
+                if (err) {
+                    return res.status(403).json({
+                        title: 'There was a problem',
+                        error: {
+                            message: err
+                        },
+                        result: {
+                            message: kraWorkFlowInfoData
+                        }
+                    });
                 }
+                AuditTrail.auditTrailEntry(kraWorkFlowInfoData.emp_id, "kraWorkFlowDetails", kraWorkFlowInfoData, "Kra", "kraWorkFlowDetails", "UPDATED");
+                innerDone(err, kraWorkFlowInfoData);
+            });
+        },
+        (kraWorkFlowInfoData, innerDone) => {
+            KraWorkFlowInfo.aggregate([
+                {
+                    $match: query
+                },
+                {
+                    $lookup: {
+                        from: 'employeedetails_view',
+                        localField: 'emp_id',
+                        foreignField: '_id',
+                        as: 'employeedetails_view'
+                    }
+                },
+                {
+                    $unwind: {
+                        path: '$employeedetails_view'
+                    }
+                },
+                {
+                    $lookup: {
+                        from: 'employeedetails_view',
+                        localField: 'employeedetails_view.supervisor._id',
+                        foreignField: '_id',
+                        as: 'supervisordetails_view'
+                    }
+                },
+                {
+                    $unwind: {
+                        path: '$supervisordetails_view'
+                    }
+                }
+            ]).exec((err, kra) => {
+                if (kra) {
+                    let data = {
+                        employee: kra[0].employeedetails_view,
+                        supervisor: kra[0].supervisordetails_view,
+                        status: kra[0].status
+                    }
+                    if (kra[0].status == "Submitted") {
+                        SendEmail.sendEmailToSupervisorForKraSubmitted(data);
+                    } else if (kra[0].status == "Approved") {
+                        SendEmail.sendEmailToEmployeeForKraApprovedSendback(data);
+                    } else if (kra[0].status == "SendBack") {
+                        SendEmail.sendEmailToEmployeeForKraApprovedSendback(data);
+                    }
+                    return res.status(200).json(kra);
+
+                } else {
+                    return res.status(301).json(false);
+                }
+
             });
         }
-        AuditTrail.auditTrailEntry(kraWorkFlowInfoData.emp_id, "kraWorkFlowDetails", kraWorkFlowInfoData, "Kra", "kraWorkFlowDetails", "UPDATED");
-        return done(err, kraWorkFlowInfoData);
+    ], (err, result) => {
+        done(err, result);
     });
 }
 
@@ -93,6 +152,7 @@ function addBulkKraInfoDetails(req, res, done) {
                         }
                     }
                 ]).exec((err, resEmployee) => {
+                    data.action_link = req.body.link;
                     data.emp_email = resEmployee[0].employeeofficedetails.officeEmail;
                     data.emp_name = resEmployee[0].fullName;
 

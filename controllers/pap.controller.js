@@ -16,12 +16,14 @@ let async = require('async'),
 require('dotenv').load();
 
 function getEmployeesForPapInitiate(req, res) {
+    let fiscalYearId = Number(req.query.fiscalYearId);
     async.waterfall([
         (done) => {
             MidTermMaster.aggregate([{
                 $match: {
                     status: 'Approved',
-                    isDeleted: false
+                    isDeleted: false,
+                    fiscalYearId: fiscalYearId
                 }
             },
             {
@@ -187,7 +189,8 @@ function getEmployeesForPapInitiate(req, res) {
             KraMaster.aggregate([
                 {
                     $match: {
-                        'status': 'Approved'
+                        'status': 'Approved',
+                        fiscalYearId: fiscalYearId
                     }
                 },
                 {
@@ -309,7 +312,7 @@ function getEmployeesForPapInitiate(req, res) {
             });
         },
         (data, innerDone) => {
-            MidTermMaster.find().exec((err, response) => {
+            MidTermMaster.find({fiscalYearId: fiscalYearId}).exec((err, response) => {
                 data.mtrData = response;
                 innerDone(err, data);
             });
@@ -359,6 +362,7 @@ function getEmployeesForPapInitiate(req, res) {
 
 function initiatePapProcess(req, res) {
     let createdBy = parseInt(req.body.createdBy);
+    let fiscalYearId = parseInt(req.body.fiscalYearId);
     let emp_id_array = req.body.emp_id_array;
     let action_link = req.body.action_link;
     let papBatchDetails = new PapBatchDetails();
@@ -367,6 +371,7 @@ function initiatePapProcess(req, res) {
     );
     papBatchDetails.createdBy = createdBy;
     papBatchDetails.batchName = req.body.batchName;
+    papBatchDetails.fiscalYearId = fiscalYearId;
     async.waterfall([
         (done) => {
             let kraEmployees = emp_id_array.filter(item => item.type == 'kra');
@@ -429,7 +434,8 @@ function initiatePapProcess(req, res) {
                     createdBy: createdBy,
                     emp_id: parseInt(element.emp_id),
                     batch_id: papMasterCount._id,
-                    mtr_master_id: parseInt(element.mtr_master_id)
+                    mtr_master_id: parseInt(element.mtr_master_id),
+                    fiscalYearId: fiscalYearId
                 });
             });
             PapMasterDetails.insertMany(dataToInsert, function (err, response) {
@@ -632,6 +638,7 @@ function initiatePapProcess(req, res) {
 }
 
 function generateMtr(kraEmployees, req) {
+    let fiscalYearId = parseInt(req.body.fiscalYearId);
     return new Promise((resolve, reject) => {
         let createdBy = parseInt(req.body.createdBy);
         let MidTermBatchDetails = new MidTermBatch();
@@ -641,6 +648,7 @@ function generateMtr(kraEmployees, req) {
         MidTermBatchDetails.isDeleted = false;
         MidTermBatchDetails.createdBy = createdBy;
         MidTermBatchDetails.isSystemGenerated = true;
+        MidTermBatchDetails.fiscalYearId = fiscalYearId;
         let emp_id_array = req.body.emp_id_array;
         MidTermBatchDetails.save(function (err, midtermbatchresp) {
             if (err) {
@@ -683,7 +691,8 @@ function generateMtr(kraEmployees, req) {
                             _id: midtermMaster_id + (index + 1),
                             createdBy: createdBy,
                             updatedBy: createdBy,
-                            isSystemGenerated: true
+                            isSystemGenerated: true,
+                            fiscalYearId: fiscalYearId
                         });
                     });
                     MidTermMaster.insertMany(insertData, function (
@@ -713,7 +722,8 @@ function generateMtr(kraEmployees, req) {
                                             emp_id: {
                                                 $in: emp_id_collection
                                             },
-                                            status: "Approved"
+                                            status: "Approved",
+                                            fiscalYearId: fiscalYearId
                                         }
                                     },
                                     {
@@ -841,9 +851,11 @@ function generateMtr(kraEmployees, req) {
 
 function getPapBatches(req, res) {
     let currentUserId = parseInt(req.query.currentUserId);
+    let fiscalYearId = parseInt(req.query.fiscalYearId);
     PapBatchDetails.aggregate([{
         $match: {
-            createdBy: currentUserId
+            createdBy: currentUserId,
+            fiscalYearId: fiscalYearId
         }
     },
     {
@@ -1042,9 +1054,11 @@ function terminatePap(req, res) {
 
 function getPapDetailsSingleEmployee(req, res) {
     let empId = parseInt(req.query.emp_id);
+    let fiscalYearId = parseInt(req.query.fiscalYearId);
     PapMasterDetails.aggregate([{
         "$match": {
-            "emp_id": empId
+            "emp_id": empId,
+            "fiscalYearId": fiscalYearId
         }
     },
     {
@@ -1249,6 +1263,7 @@ function getPapDetailsSingleEmployee(req, res) {
 
 function getPapBySupervisor(req, res) {
     let supervisorId = parseInt(req.query.empId);
+    let fiscalYearId = parseInt(req.query.fiscalYearId);
     PapDetails.aggregate([
         {
             '$match': {
@@ -1282,6 +1297,11 @@ function getPapBySupervisor(req, res) {
         {
             '$unwind': {
                 'path': '$papmasters'
+            }
+        },
+        {
+            '$match': {
+                'papmasters.fiscalYearId': fiscalYearId
             }
         },
         {
@@ -2045,6 +2065,7 @@ function sendMailToEmployeeforApproval(pap_master_id) {
 
 function getPapByReviewer(req, res) {
     let reviewerId = parseInt(req.query.empId);
+    let fiscalYearId = parseInt(req.query.fiscalYearId);
     async.waterfall([
         done => {
             EmployeeSupervisorDetails.find({
@@ -2080,6 +2101,11 @@ function getPapByReviewer(req, res) {
                 {
                     '$unwind': {
                         'path': '$papmasters'
+                    }
+                },
+                {
+                    '$match': {
+                        'papmasters.fiscalYearId' : fiscalYearId
                     }
                 },
                 {

@@ -12,7 +12,8 @@ let LearningMasterSchema = new Schema(
     status: { type: String, default: null },
     updatedBy: { type: Number, default: null },
     createdBy: { type: Number, default: null },
-    isDeleted: { type: Boolean, default: false }
+    isDeleted: { type: Boolean, default: false },
+    fiscalYearId: {type: Number, default: null}
   },
   {
     timestamps: true,

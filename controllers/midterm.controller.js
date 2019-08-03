@@ -3,21 +3,24 @@ let KraWorkFlowInfo = require("../models/kra/kraWorkFlowDetails.model"),
   MidTermMaster = require("../models/midterm/midtermmaster"),
   MidTermDetails = require("../models/midterm/midtermdetails"),
   AuditTrail = require("../class/auditTrail"),
-  EmployeeSupervisorDetails = require("../models/employee/employeeSupervisorDetails.model");
-SendEmail = require('../class/sendEmail'),
+  EmployeeSupervisorDetails = require("../models/employee/employeeSupervisorDetails.model"),
+  SendEmail = require('../class/sendEmail'),
   EmployeeDetails = require("../models/employee/employeeDetails.model");
 function EmpDetailsForMidTermInitiate(req, res) {
+  let fiscalYearId = Number(req.query.fiscalYearId);
   KraWorkFlowInfo.aggregate([
     {
       $project: {
         emp_id: "$emp_id",
         batch_id: "$batch_id",
-        status: "$status"
+        status: "$status",
+        fiscalYearId: "$fiscalYearId"
       }
     },
     {
       $match: {
-        status: "Approved"
+        status: "Approved",
+        fiscalYearId: fiscalYearId
       }
     },
     {
@@ -100,24 +103,51 @@ function EmpDetailsForMidTermInitiate(req, res) {
       }
     },
     {
+      $lookup: {
+        from: "departments",
+        localField: "employee_office_details.department_id",
+        foreignField: "_id",
+        as: "emp_departments_details"
+      }
+    },
+    {
+      $unwind: {
+        path: "$emp_departments_details"
+      }
+    }, 
+    { 
+        $lookup : {
+            from : "grades", 
+            localField : "employee_details.grade_id", 
+            foreignField : "_id", 
+            as : "emp_grade_details"
+        }
+    }, 
+    { 
+        $unwind : {
+            path : "$emp_grade_details"
+        }
+    }, 
+    {
       $project: {
         emp_id: "$emp_id",
         kra_batch_id: "$batch_id",
         kra_status: "$status",
         emp_full_name: "$employee_details.fullName",
         emp_grade_id: "$employee_details.grade_id",
+        emp_grade_name: "$emp_grade_details.gradeName",
         emp_isAccountActive: "$employee_details.isAccountActive",
         emp_profileImage: "$employee_details.profileImage",
         emp_userName: "$employee_details.userName",
         emp_employmentType_id: "$employee_details.employmentType_id",
         emp_isDeleted: "$employee_details.isDeleted",
         emp_department_id: "$employee_office_details.department_id",
+        emp_department_name: "$emp_departments_details.departmentName",
         emp_HRSpoc_id: "$employee_office_details.hrspoc_id",
         emp_officeEmail: "$employee_office_details.officeEmail",
         emp_designation_id: "$employee_details.designation_id",
         emp_designation_name: "$designation_details.designationName",
-        emp_supervisor_id:
-        "$employee_supervisor_details.primarySupervisorEmp_id",
+        emp_supervisor_id: "$employee_supervisor_details.primarySupervisorEmp_id",
         emp_supervisor_name: "$supervisor_details.fullName",
         mtr_status: "$mtr_master_details.status",
         mtr_batch_id: "$mtr_master_details.batch_id"
@@ -141,6 +171,7 @@ function EmpDetailsForMidTermInitiate(req, res) {
 }
 function InitiateMtrProcess(req, res) {
   let createdBy = parseInt(req.body.createdBy);
+  let fiscalYearId = parseInt(req.body.fiscalYearId);
   let MidTermBatchDetails = new MidTermBatch();
   MidTermBatchDetails.batchName = req.body.batchName;
   MidTermBatchDetails.batchEndDate = new Date(
@@ -149,6 +180,7 @@ function InitiateMtrProcess(req, res) {
   MidTermBatchDetails.status = req.body.status;
   MidTermBatchDetails.isDeleted = false;
   MidTermBatchDetails.createdBy = createdBy;
+  MidTermBatchDetails.fiscalYearId = fiscalYearId;
   let emp_id_array = req.body.emp_id_array;
   MidTermBatchDetails.transac;
   MidTermBatchDetails.save(function (err, midtermbatchresp) {
@@ -198,7 +230,8 @@ function InitiateMtrProcess(req, res) {
             emp_id: element.emp_id,
             status: "Initiated",
             _id: midtermMaster_id + (index + 1),
-            createdBy: createdBy
+            createdBy: createdBy,
+            fiscalYearId: fiscalYearId
           });
         });
         MidTermMaster.insertMany(insertData, function (
@@ -236,6 +269,7 @@ function InitiateMtrProcess(req, res) {
                     emp_id: {
                       $in: emp_id_collection
                     },
+                    fiscalYearId: fiscalYearId,
                     status: "Approved"
                   }
                 },
@@ -261,9 +295,9 @@ function InitiateMtrProcess(req, res) {
                     kra_details_isDeleted: "$kra_details.isDeleted",
                     kra_details_sendBackComment: "$kra_details.sendBackComment",
                     kra_details_supervisorStatus:
-                    "$kra_details.supervisorStatus",
+                      "$kra_details.supervisorStatus",
                     kra_details_measureOfSuccess:
-                    "$kra_details.measureOfSuccess",
+                      "$kra_details.measureOfSuccess",
                     kra_details_unitOfSuccess: "$kra_details.unitOfSuccess",
                     kra_details_weightage_id: "$kra_details.weightage_id",
                     kra_details_category_id: "$kra_details.category_id",
@@ -360,7 +394,7 @@ function InitiateMtrProcess(req, res) {
                       "midTermDetails",
                       "ADDED"
                     );
-                    // sendEmailToAllEmployee(emp_id_array, res);
+                    sendMailForMtrInit(emp_id_array, req);
                     return res.status(200).json({ result: midTermDetails });
                   }
                 });
@@ -372,8 +406,24 @@ function InitiateMtrProcess(req, res) {
     }
   });
 }
+
+async function sendMailForMtrInit(emp_id_array, req) {
+  let hr = await EmployeeDetails.findOne({ _id: parseInt(req.body.createdBy) }).exec();
+  emp_id_array.forEach(async emp => {
+    let employee = await EmployeeDetails.findOne({ _id: emp.emp_id }).exec();
+    let data = {
+      mail: emp.officeEmail,
+      fullName: employee.fullName,
+      link: req.body.link,
+      hrName: hr.fullName
+    };
+    SendEmail.sendEmailToEmplyeeForMtrInitiate(data);
+  });
+}
+
 function GetMtrKraSingleDetails(req, res) {
   let emp_id = parseInt(req.query.emp_id);
+  let fiscalYearId = parseInt(req.query.fiscalYearId);
   MidTermDetails.aggregate([
     {
       $lookup: {
@@ -399,6 +449,11 @@ function GetMtrKraSingleDetails(req, res) {
     {
       $unwind: {
         path: "$mtr_batch"
+      }
+    },
+    {
+      $match: {
+        "mtr_batch.fiscalYearId": fiscalYearId
       }
     },
     {
@@ -472,7 +527,7 @@ function GetMtrKraSingleDetails(req, res) {
         emp_full_name: "$emp_details.fullName",
         supervisor_userName: "$emp_supervisor_details.userName",
         supervisor_full_name: "$emp_supervisor_details.fullName",
-        kra_details: "$kra_details",
+        getMtrBySupervisor: "$kra_details",
         mtr_kra: "$mtr_kra",
         weightage_id: "$weightage_id",
         category_id: "$category_id",
@@ -513,6 +568,7 @@ function GetMtrKraSingleDetails(req, res) {
 }
 function getMtrBySupervisor(req, res) {
   let supervisorId = parseInt(req.query.supervisorId);
+  let fiscalYearId = parseInt(req.query.fiscalYearId);
   let status = req.query.status;
   MidTermDetails.aggregate([
     {
@@ -531,6 +587,11 @@ function getMtrBySupervisor(req, res) {
     {
       $unwind: {
         path: "$mtr_master_details"
+      }
+    },
+    {
+      $match: {
+        "mtr_master_details.fiscalYearId": fiscalYearId
       }
     },
     {
@@ -584,11 +645,13 @@ function getMtrBySupervisor(req, res) {
   });
 }
 function getMtrBatches(req, res) {
+  let fiscalYearId = parseInt(req.query.fiscalYearId);
   let currentUserId = parseInt(req.query.empId);
   MidTermBatch.aggregate([
     {
       $match: {
-        createdBy: currentUserId
+        createdBy: currentUserId,
+        fiscalYearId: fiscalYearId
       }
     },
     {

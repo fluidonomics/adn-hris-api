@@ -432,6 +432,68 @@ let functions = {
         };
         transporter.sendMail(mailOptions, callback);
     },
+    sendEmailToSupervisorForKraSubmitted: (data, callback) => {
+        let mailOptions = {
+            from: config.email.sendEmailToSupervisorForKraSubmitted.from, // sender address
+            to: data.supervisor.employeeofficedetails.officeEmail,
+            subject: config.email.sendEmailToSupervisorForKraSubmitted.subject, // Subject line
+            template: 'email-notify-to-supvsr-for-kra-submitted',
+            context: {
+                appliedDate: moment(new Date()).format('L'),
+                link: data.action_link,
+                empName: data.employee.fullName,
+                supervisorName: data.supervisor.fullName
+            }
+        };
+        transporter.sendMail(mailOptions, callback);
+    },
+    sendEmailToEmployeeForKraApprovedSendback: (data, callback) => {
+        if (data.status === 'Approved') {
+            let mailOptions = {
+                from: config.email.sendEmailToSupervisorForKraApproved.from, // sender address
+                to: data.employee.employeeofficedetails.officeEmail,
+                subject: config.email.sendEmailToSupervisorForKraApproved.subject, // Subject line
+                template: 'email-notify-to-employee-for-approve-sendback',
+                context: {
+                    appliedDate: moment(new Date()).format('L'),
+                    link: data.action_link,
+                    empName: data.employee.fullName,
+                    supervisorName: data.supervisor.fullName,
+                    status: data.status
+                }
+            };
+            transporter.sendMail(mailOptions, callback);
+        } else {
+            let mailOptions = {
+                from: config.email.sendEmailToSupervisorForKraSendback.from, // sender address
+                to: data.employee.employeeofficedetails.officeEmail,
+                subject: config.email.sendEmailToSupervisorForKraSendback.subject, // Subject line
+                template: 'email-notify-to-employee-for-approve-sendback',
+                context: {
+                    appliedDate: moment(new Date()).format('L'),
+                    link: data.action_link,
+                    empName: data.employee.fullName,
+                    supervisorName: data.supervisor.fullName
+                }
+            };
+            transporter.sendMail(mailOptions, callback);
+        }
+
+    },
+    sendEmailToEmplyeeForMtrInitiate: (data, callback) => {
+        let mailOptions = {
+            from: config.email.sendEmailToSupervisorToApproveMtr.from, // sender address
+            to: data.mail,
+            subject: "Mid Term Review Initiated", // Subject line
+            template: 'email-notify-to-employee-for-mtr-init',
+            context: {
+                fullName: data.fullName,
+                link: data.link,
+                hrName: data.hrName
+            }
+        };
+        transporter.sendMail(mailOptions, callback);
+    },
     sendEmailToSupervisorToApproveMtr: (data, callback) => {
         if (data.supervisor_email === null || data.supervisor_email === "") {
             return

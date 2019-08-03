@@ -7,8 +7,10 @@ EmployeeSupervisorDetails = require("../models/employee/employeeSupervisorDetail
 
 
 function InitiateLearning(req, res) {
+    let fiscalYearId = parseInt(req.body.fiscalYearId);
     let createdBy = parseInt(req.body.createdBy);
     let LearningBatchDetails = new LearningBatch();
+    LearningBatchDetails.fiscalYearId = fiscalYearId;
     LearningBatchDetails.batchName = req.body.batchName;
     LearningBatchDetails.batchEndDate = new Date(
       new Date(req.body.batchEndDate).getTime()
@@ -1008,10 +1010,12 @@ function updateBatch(req, res) {
 function getLearningBatch(req, res) {
 
   let currentUserId = parseInt(req.query.empId);
+  let fiscalYearId = parseInt(req.query.fiscalYearId);
   LearningBatch.aggregate([
     {
       $match: {
-        createdBy: currentUserId
+        createdBy: currentUserId,
+        fiscalYearId: fiscalYearId
       }
     },
     {
