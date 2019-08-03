@@ -448,17 +448,18 @@ let functions = {
         transporter.sendMail(mailOptions, callback);
     },
     sendEmailToEmployeeForKraApprovedSendback: (data, callback) => {
-        if(data.status === 'Approved') {
+        if (data.status === 'Approved') {
             let mailOptions = {
                 from: config.email.sendEmailToSupervisorForKraApproved.from, // sender address
                 to: data.employee.employeeofficedetails.officeEmail,
                 subject: config.email.sendEmailToSupervisorForKraApproved.subject, // Subject line
-                template: 'email-notify-to-supvsr-for-kra-submitted',
+                template: 'email-notify-to-employee-for-approve-sendback',
                 context: {
                     appliedDate: moment(new Date()).format('L'),
                     link: data.action_link,
                     empName: data.employee.fullName,
-                    supervisorName: data.supervisor.fullName
+                    supervisorName: data.supervisor.fullName,
+                    status: data.status
                 }
             };
             transporter.sendMail(mailOptions, callback);
@@ -467,7 +468,7 @@ let functions = {
                 from: config.email.sendEmailToSupervisorForKraSendback.from, // sender address
                 to: data.employee.employeeofficedetails.officeEmail,
                 subject: config.email.sendEmailToSupervisorForKraSendback.subject, // Subject line
-                template: 'email-notify-to-supvsr-for-kra-submitted',
+                template: 'email-notify-to-employee-for-approve-sendback',
                 context: {
                     appliedDate: moment(new Date()).format('L'),
                     link: data.action_link,
@@ -477,7 +478,7 @@ let functions = {
             };
             transporter.sendMail(mailOptions, callback);
         }
-        
+
     },
     sendEmailToEmplyeeForMtrInitiate: (data, callback) => {
         let mailOptions = {
