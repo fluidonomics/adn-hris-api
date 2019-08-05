@@ -73,7 +73,8 @@ function InitiateLearning(req, res) {
               emp_id: element.emp_id,
               status: "Initiated",
               _id: learningMaster_id + (index + 1),
-              createdBy: createdBy
+              createdBy: createdBy,
+              fiscalYearId: fiscalYearId
             });
           });
           LearningMaster.insertMany(insertData, function (
@@ -213,12 +214,13 @@ function sendEmailToEmployee(emp_id_array, res, email_details) {
 }
 
 function GetLearningSingleEmployee(req, res) {
-
+  let fiscalYearId = parseInt(req.query.fiscalYearId);
   let emp_id = parseInt(req.query.emp_id);
   LearningMaster.aggregate([
     {
       $match: {
-        emp_id: emp_id
+        emp_id: emp_id,
+        fiscalYearId: fiscalYearId
       }
     },
     {
@@ -493,7 +495,7 @@ function GetLearningDetailsEmployee(req, res) {
 }
 
 function getLearningBySupervisor(req, res) {
-
+  let fiscalYearId = parseInt(req.query.fiscalYearId);
   let supervisor_id = parseInt(req.query.supervisorId);
   let status = req.query.status;
   LearningDetails.aggregate([
@@ -513,6 +515,11 @@ function getLearningBySupervisor(req, res) {
     {
       $unwind: {
         path: "$learning_master_details"
+      }
+    },
+    {
+      $match: {
+        "learning_master_details.fiscalYearId": fiscalYearId
       }
     },
     {
@@ -689,7 +696,7 @@ function submitEmployeeLearning(req, res) {
 }
 
 function getLearningByReviewer(req, res) {
-
+  let fiscalYearId = parseInt(req.query.fiscalYearId);
   let reviewerId = parseInt(req.query.reviewerId);
   //console.log("primary id : ", primarySupervisorEmp_id);
   let statusTemp = "Approved";
@@ -722,6 +729,11 @@ function getLearningByReviewer(req, res) {
     {
       $unwind: {
         path: "$learning_master_details"
+      }
+    },
+    {
+      $match: {
+        "learning_master_details.fiscalYearId": fiscalYearId
       }
     },
     {
