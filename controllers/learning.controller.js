@@ -101,13 +101,11 @@ function InitiateLearning(req, res) {
                 "ADDED"
               );
               sendEmailToEmployee(emp_id_array, res, email_details);
-              //return res.status(200).json({ result: learningMasterResult });
             }
           });
         });
       }
     });
-    //sendEmailToAllEmployee(emp_id_array, res, email_details);
 }
 
 function sendEmailToEmployee(emp_id_array, res, email_details) {
@@ -151,64 +149,16 @@ function sendEmailToEmployee(emp_id_array, res, email_details) {
         }
       });
     } else {
-      //let count = 0;
       data.forEach(f => { 
         email_details.emp_name = f.user_name;
         email_details.emp_email = f.officeEmail;
-        //forEwach {
         SendEmail.sendEmailToEmployeeForInitiateLearning(email_details, (email_err, email_result) => {
-
         });
         
       });
-      // if(count == data.length) {
-
         return res.status(200).json({
           title: "Learning initiated, and email sent to employee",
-          // result: {
-          //   message: email_result
-          // }
         });
-      // } else {
-
-      //   return res.status(300).json({
-      //       title: "Learning initiated, failed sending email to employee",
-      //       // error: {
-      //       //   message: email_err
-      //       // },
-      //       // result: {
-      //       //   message: email_result
-      //       // }
-      //     });
-      // }
-        //}
-        // return res.status(200).json({
-        //   title: "Learning initiated, and email sent to employee",
-        //   result: {
-        //     message: "email sent"
-        //   }
-        // });
-        // SendEmail.sendEmailToSupervisorToApproveLearning(email_details, (email_err, email_result) => {
-
-        //   if (email_err) {
-            // return res.status(300).json({
-            //   title: "Learning initiated, failed sending email to employee",
-            //   error: {
-            //     message: email_err
-            //   },
-            //   result: {
-            //     message: email_result
-            //   }
-            // });
-        //   } else {
-        //     return res.status(200).json({
-        //       title: "Learning initiated, and email sent to employee",
-        //       result: {
-        //         message: email_result
-        //       }
-        //     });
-        //   }
-        // });
     }
   });
 }
@@ -583,6 +533,7 @@ function getLearningBySupervisor(req, res) {
 function submitEmployeeLearning(req, res) {
 
   let learning_master_id = parseInt(req.body.masterId);
+  let fiscalYearId = parseInt(req.body.fiscalYearId);
   let emp_id = parseInt(req.body.empId);
   let supervisor_id = parseInt(req.body.supervisorId);
   let email_details = {
@@ -666,6 +617,7 @@ function submitEmployeeLearning(req, res) {
       } else {
         email_details.supervisor_name = result.emp[0].user_name;
         email_details.supervisor_email = result.emp[0].officeEmail;
+        email_details.fiscalYearId = fiscalYearId;
         SendEmail.sendEmailToSupervisorToApproveLearning(email_details, (email_err, email_result) => {
           if (email_err) {
             return res.status(300).json({
@@ -686,9 +638,6 @@ function submitEmployeeLearning(req, res) {
             });
           }
         });
-            //   return res.status(200).json({
-            //   title: "Learning submitted, and email sent to supervisor"
-            // });
       }
     }
   );
@@ -698,7 +647,6 @@ function submitEmployeeLearning(req, res) {
 function getLearningByReviewer(req, res) {
   let fiscalYearId = parseInt(req.query.fiscalYearId);
   let reviewerId = parseInt(req.query.reviewerId);
-  //console.log("primary id : ", primarySupervisorEmp_id);
   let statusTemp = "Approved";
 
   EmployeeSupervisorDetails.aggregate([
@@ -753,7 +701,6 @@ function getLearningByReviewer(req, res) {
       $project: {
         learningMasterId: "$learning_master_details._id",
         emp_details: "$emp_details",
-        //learning_details: "$learning_details",
         learning_master_details: "$learning_master_details",
         status: "$learning_master_details.status",
         updatedAt: "$learning_master_details.updatedAt"
@@ -763,9 +710,6 @@ function getLearningByReviewer(req, res) {
     {
       $group: {
         _id: "$learningMasterId",
-        // emp_details: "$emp_details",
-        // learning_master_details: "$learning_master_details",
-        // learning_details: "$learning_details"
         emp_details: { $first: "$emp_details" },
         learning_master_details: { $first: "$learning_master_details" },
         learning_details: { $first: "$learning_details"},
@@ -800,6 +744,7 @@ function getLearningApproval(req, res) {
 
   let learningMasterId = parseInt(req.body.learningMasterId);
   let learningDetailId = parseInt(req.body.learningDetailId);
+  let fiscalYearId = parseInt(req.body.fiscalYearId);
   let empId = parseInt(req.body.empId);
   let supervisorId = parseInt(req.body.supervisorId);
   let eligibleForEmail = false;
@@ -869,20 +814,6 @@ function getLearningApproval(req, res) {
           done(err, res);
         });
       },
-      // (resp, done) => {
-      //   if (req.body.isApproved != true) {
-      //     let mtrDetailUpdateQuery = {
-      //       updatedBy: parseInt(req.body.supervisorId),
-      //       updatedAt: new Date(),
-      //       status: "SendBack"
-      //     };
-      //     MidTermDetails.updateMany({ mtr_master_id: mtrMasterId }, mtrDetailUpdateQuery, (err, res) => {
-      //       done(err, res);
-      //     });
-      //   } else {
-      //     done(null, null);
-      //   }
-      // },
       (response2, done) => {
         // for email details
         EmployeeDetails.aggregate(
@@ -934,6 +865,7 @@ function getLearningApproval(req, res) {
         if (eligibleForEmail) {
           email_details.user_name = result.emp[0].user_name;
           email_details.user_email = result.emp[0].officeEmail;
+          email_details.fiscalYearId = fiscalYearId
           if (email_details.user_email) {
             SendEmail.sendEmailToUserAboutLearningStatus(email_details, (email_err, email_result) => {
               if (email_err) {

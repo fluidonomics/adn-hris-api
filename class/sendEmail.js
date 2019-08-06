@@ -830,7 +830,7 @@ let functions = {
             context: {
                 fullName: data.supervisor_name,
                 appliedDate: moment(new Date()).format('L'),
-                link: data.action_link,
+                link: data.action_link + '?fiscalYearId=' + data.fiscalYearId,
                 empName: data.user_name
             }
         };
@@ -849,7 +849,7 @@ let functions = {
             context: {
                 fullName: data.supervisor_name,
                 appliedDate: moment(new Date()).format('L'),
-                link: data.action_link,
+                link: data.action_link + '?fiscalYearId=' + data.fiscalYearId,
                 empName: data.user_name,
                 isApproved: data.isApproved
             }
