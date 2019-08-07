@@ -429,6 +429,7 @@ module.exports = (app) => {
   pipRoutes.post("/updatepipdetails", pip.updatepipdetails);
   pipRoutes.get("/getpipbyhr", pip.getPipByHR);
   pipRoutes.post("/updatepipmaster", pip.updatePipMaster);
+  pipRoutes.post("/updatepipmasterhr", pip.updatePipMasterHr);
 
 
 

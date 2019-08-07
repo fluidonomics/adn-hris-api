@@ -158,10 +158,10 @@ function getEligiablePipEmployee(req, res) {
   
 function InitiatePip(req, res) {
   let createdby = parseInt(req.body.createdBy);
-  let timelines = parseInt(req.body.timelines);
+  let timelines = 3;
   let pipBatchDetails = new pipbatch();
   pipBatchDetails.batchName = req.body.batchName;
-  pipBatchDetails.timelines = req.body.timelines;
+  pipBatchDetails.timelines = 3;
   pipBatchDetails.batchEndDate = new Date(
     new Date(req.body.batchEndDate).getTime());
   pipBatchDetails.status = req.body.status;
@@ -376,7 +376,8 @@ function getpipDetails(req, res) {
         final_recommendation: "$final_recommendation",
         final_remarks: "$final_remarks",
         status: "$status",
-        batchId: "$pip_master_details._id"
+        batchId: "$pip_master_details._id",
+        extended_by: "$extended_by"
 
       }
     },
@@ -605,8 +606,10 @@ function getpipdetailspostinsertion(req, res) {
         primary_supervisor: "$empsupdetails.primarySupervisorEmp_id",
         secondary_supervisor: "$empsupdetails.secondarySupervisorEmp_id",
         supervisor_name: "$empdetails.fullName",
-        dateDifference: {$divide: [{$subtract: [ new Date(), "$approvedAt" ]}, 3600000*24*30]}
-        //dateDifference: { $literal: 3}
+        extended_by: "$pipdetails.extended_by",
+        isExtended: "$pipdetails.isExtended",
+        //dateDifference: {$divide: [{$subtract: [ new Date(), "$approvedAt" ]}, 3600000*24*30]}
+        dateDifference: { $literal: 5}
   }
     }
   ]).exec(function (err, data) {
@@ -1459,6 +1462,7 @@ function getPipByHr(req, res) {
 function updatepipMaster(req, res) {
 
   let master_id = req.body.masterId;
+
   let updateQuery = {
     updatedAt: new Date(),
     updatedBy: parseInt(req.body.updatedBy),
@@ -1466,9 +1470,8 @@ function updatepipMaster(req, res) {
     emp_final_com: req.body.empFinalCom,
     rev_final_com: req.body.revFinalCom,
     sup_final_com: req.body.supFinalCom,
-    final_recommendation: req.body.finalRecommendation === undefined ? null : req.body.finalRecommendation
   }
-
+  
   pipMaster.findOneAndUpdate({_id:master_id}, updateQuery, (err, result) => {
 
     if(err) {
@@ -1499,6 +1502,94 @@ function updatepipMaster(req, res) {
       });
     }
   });
+
+}
+
+function updatepipMasterHR(req, res) {
+
+  let master_id = req.body.masterId;
+  let final_recommendation = req.body.finalRecommendation;
+
+  let updateCondition = { master_id: master_id };
+  let pipMasterUpdateQuery = {
+    updatedAt: new Date(),
+    updatedBy: parseInt(req.body.updatedBy),
+    hr_final_com: req.body.hrFinalCom,
+    emp_final_com: req.body.empFinalCom,
+    rev_final_com: req.body.revFinalCom,
+    sup_final_com: req.body.supFinalCom,
+    final_recommendation: req.body.finalRecommendation === undefined ? null : req.body.finalRecommendation,
+    status: "PIP Completed",
+  }
+  let pipDetailUpdateQuery = {
+    updatedAt: new Date(),
+    updatedBy: parseInt(req.body.updatedBy),
+    status: "PIP Completed"
+  }
+
+  if(final_recommendation === 4) {
+    pipDetailUpdateQuery.status = "Extended";
+    pipMasterUpdateQuery.status = "Extended";
+    pipMasterUpdateQuery.isExtended = true;
+    pipMasterUpdateQuery.extended_by = req.body.extendedBy === undefined ? null : req.body.extendedBy;
+    pipMasterUpdateQuery.timelines = req.body.timelines;
+    pipDetailUpdateQuery.timelines = req.body.timelines;
+    pipDetailUpdateQuery.finalReview = null;
+    pipDetailUpdateQuery.finalRating = null;
+  }
+  async.waterfall(
+    [
+      done => {
+        pipdetails.updateMany(updateCondition, pipDetailUpdateQuery, function (
+          err,
+          response
+        ) {
+          if(err) {
+
+            return res.status(403).json({
+        
+              title: "There was a problem",
+              error: {
+                message: err
+              },
+              message: {
+                message: result
+              }
+            });
+          }
+          done(err, response);
+        });
+      },
+      (response1, done) => {
+        pipMaster.findOneAndUpdate(
+          {_id: master_id },
+          pipMasterUpdateQuery,
+          (err, result) => {
+            //done(err, result);
+            if(err) {
+
+                  return res.status(403).json({
+        
+                    title: "There was a problem",
+                    error: {
+                      message: err
+                    },
+                    message: {
+                      message: result
+                    }
+                  });
+            } else {
+              return res.status(200).json({
+                title: "Pip master updated",
+                result: {
+                  message: result
+                }
+              });
+            }
+          }
+        );
+      }
+    ]) 
 }
 
 let functions = {
@@ -1569,6 +1660,11 @@ let functions = {
   updatePipMaster: (req, res) => {
 
     updatepipMaster(req, res);
+  },
+
+  updatePipMasterHr: (req, res) => {
+
+    updatepipMasterHR(req, res);
   }
   // getLearningForSuperviser: (req, res) => {
   //   getLearningBySupervisor(req, res);                  
