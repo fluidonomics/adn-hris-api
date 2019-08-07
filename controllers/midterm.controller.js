@@ -51,6 +51,25 @@ function EmpDetailsForMidTermInitiate(req, res) {
     },
     {
       $lookup: {
+        from: "midtermdetails",
+        localField: "_id",
+        foreignField: "kraWorkflow_id",
+        as: "midtermdetails"
+      }
+    },
+    {
+      $unwind: {
+        path: "$midtermdetails",
+        preserveNullAndEmptyArrays: true
+      }
+    },
+    {
+      $match: {
+        "midtermdetails": null
+      }
+    },
+    {
+      $lookup: {
         from: "midtermmasters",
         localField: "emp_id",
         foreignField: "emp_id",
@@ -114,20 +133,20 @@ function EmpDetailsForMidTermInitiate(req, res) {
       $unwind: {
         path: "$emp_departments_details"
       }
-    }, 
-    { 
-        $lookup : {
-            from : "grades", 
-            localField : "employee_details.grade_id", 
-            foreignField : "_id", 
-            as : "emp_grade_details"
-        }
-    }, 
-    { 
-        $unwind : {
-            path : "$emp_grade_details"
-        }
-    }, 
+    },
+    {
+      $lookup: {
+        from: "grades",
+        localField: "employee_details.grade_id",
+        foreignField: "_id",
+        as: "emp_grade_details"
+      }
+    },
+    {
+      $unwind: {
+        path: "$emp_grade_details"
+      }
+    },
     {
       $project: {
         emp_id: "$emp_id",
@@ -150,7 +169,8 @@ function EmpDetailsForMidTermInitiate(req, res) {
         emp_supervisor_id: "$employee_supervisor_details.primarySupervisorEmp_id",
         emp_supervisor_name: "$supervisor_details.fullName",
         mtr_status: "$mtr_master_details.status",
-        mtr_batch_id: "$mtr_master_details.batch_id"
+        mtr_batch_id: "$mtr_master_details.batch_id",
+        mtr_master: "$mtr_master_details"
       }
     }
   ]).exec(function (err, response) {
