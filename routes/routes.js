@@ -15,6 +15,7 @@ let express = require('express'),
   batch = require('../controllers/batch.controller'),
   pap = require('../controllers/pap.controller'),
   dashboard = require('../controllers/dashboard.controller'),
+  patcher = require('../controllers/patcher.controller'),
   jwt = require('jsonwebtoken-refresh');
 
 function ensureAuthenticated(req, res, next) {
@@ -82,7 +83,8 @@ module.exports = (app) => {
     externalDocumentRoutes = express.Router(),
     batchRoutes = express.Router(),
     papRoutes = express.Router(),
-    dashboardRoutes = express.Router();
+    dashboardRoutes = express.Router(),
+    patcherRoutes = express.Router();
 
   //= ========================
 
@@ -427,6 +429,7 @@ module.exports = (app) => {
   pipRoutes.post("/updatepipdetails", pip.updatepipdetails);
   pipRoutes.get("/getpipbyhr", pip.getPipByHR);
   pipRoutes.post("/updatepipmaster", pip.updatePipMaster);
+  pipRoutes.post("/updatepipmasterhr", pip.updatePipMasterHr);
 
 
 
@@ -655,9 +658,6 @@ module.exports = (app) => {
   uploadRoutes.post('/deleteImage', upload.deleteImage);
   //= ========================
 
-  // Set url for API group routes, all endpoints start with /api/ eg http://localhost:3000/api/admin  || http://localhost:3000/api/auth
-  app.use('/api', apiRoutes);
-
   //= ========================
   // Pap Routes
   //= ========================
@@ -702,5 +702,17 @@ module.exports = (app) => {
   dashboardRoutes.get('/empcountbygrade', dashboard.getEmpCountByGrade);
   dashboardRoutes.get('/empgradeinfo', dashboard.getEmpInfoAndGrade);
   dashboardRoutes.get('/leavedetails', dashboard.getLeaveDetails);
+
+
+  //= ========================
+  // Pap Routes
+  //= ========================
+  apiRoutes.use('/patcher', patcherRoutes);
+  patcherRoutes.post('/fixFiscalYearIdOfCollections', patcher.fixFiscalYearIdOfCollections);
+  patcherRoutes.post('/fixKraWorkflowIdForMTRCollections', patcher.fixKraWorkflowIdForMTRCollections);
+
+  // Set url for API group routes, all endpoints start with /api/ eg http://localhost:3000/api/admin  || http://localhost:3000/api/auth
+  app.use('/api', apiRoutes);
+
 };
 
