@@ -24,8 +24,6 @@ let pipMasterSchema = new Schema(
     fiscalYearId: { type: Number, default: null },
     extended_by: {type: Number, default: null},
     timelines: { type: Number, default: null }
-    
-
   },
   {
     timestamps: true,

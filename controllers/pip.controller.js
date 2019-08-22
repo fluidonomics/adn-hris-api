@@ -167,6 +167,7 @@ function InitiatePip(req, res) {
   pipBatchDetails.status = req.body.status;
   pipBatchDetails.isDeleted = false;
   pipBatchDetails.createdBy = createdby;
+  pipBatchDetails.fiscalYearId = fiscalYearId;
   let emp_id_array = req.body.emp_id_array;
   let email_details = {
     emp_email: '',
@@ -1085,7 +1086,6 @@ function getPipApproval(req, res) {
 }
 function getBatch(req, res) {
   let fiscalYearId = parseInt(req.query.fiscalYearId);
-
   let currentUserId = parseInt(req.query.empId);
   pipbatch.aggregate([
     {
@@ -1581,7 +1581,6 @@ function updatepipMasterHR(req, res) {
     ])
 }
 let functions = {
-
   getPipEmployee: (req, res) => {
     getEligiablePipEmployee(req, res);
   },
