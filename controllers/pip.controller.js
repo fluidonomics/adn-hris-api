@@ -324,9 +324,11 @@ function sendEmailToEmployee(emp_id_array, res, email_details) {
 }
 function getpipDetails(req, res) {
   let empId = parseInt(req.query.emp_id);
+  let fiscalYearId = parseInt(req.query.fiscalYearId);
   pipMaster.aggregate([{
     $match: {
-      emp_id: empId
+      emp_id: empId,
+      fiscalYearId: fiscalYearId
     }
   },
   {
@@ -632,6 +634,7 @@ function getpipdetailspostinsertion(req, res) {
 }
 function getpipBySupervisor(req, res) {
   let supervisorId = parseInt(req.query.supervisor_id);
+  let fiscalYearId = parseInt(req.query.fiscalYearId);
   let status = req.query.status;
   pipdetails.aggregate([
     {
@@ -674,7 +677,7 @@ function getpipBySupervisor(req, res) {
         updatedAt: "$pip_master_details.updatedAt"
       }
     },
-    { $match: { $or: [{ status: status }, { status: "Completed" }] } },
+    { $match: { $or: [{ status: status }, { status: "Completed" }], "pip_master_details.fiscalYearId": fiscalYearId } },
     {
       $group: {
         _id: "$pipMasterId",
@@ -1597,9 +1600,7 @@ let functions = {
     getpipdetailspostinsertion(req, res);
   },
   supervisorgetpip: (req, res) => {
-
     getpipBySupervisor(req, res);
-
   },
   submitpip: (req, res) => {
 
