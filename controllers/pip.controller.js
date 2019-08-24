@@ -605,8 +605,8 @@ function getpipdetailspostinsertion(req, res) {
       supervisor_name: "$empdetails.fullName",
       extended_by: "$pipdetails.extended_by",
       isExtended: "$pipdetails.isExtended",
-      //dateDifference: {$divide: [{$subtract: [ new Date(), "$approvedAt" ]}, 3600000*24*30]}
-      dateDifference: { $literal: 5 }
+      dateDifference: {$divide: [{$subtract: [ new Date(), "$approvedAt" ]}, 3600000*24*30]}
+      //dateDifference: { $literal: 5 }
     }
   }
   ]).exec(function (err, data) {
