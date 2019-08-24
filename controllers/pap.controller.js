@@ -1892,7 +1892,11 @@ function papUpdateReviewer(req, res) {
                     }
                 });
             } else {
-                done(null, data);
+                if (data.papDetails.filter(f => f.status == "Approved").length === data.papDetails.length) {
+                    // semd email to HR for PAP approval
+                } else {
+                    done(null, data);
+                }
             }
         },
         (papDetails, done) => {
@@ -2475,13 +2479,15 @@ function initiateFeedback(req, res) {
 }
 
 function getEmployeesForFeedbackInit(req, res) {
+    let fiscalYearId = parseInt(req.query.fiscalYearId);
     async.waterfall([
         (done) => {
             PapMasterDetails.aggregate([{
                 '$match': {
                     'isSentToSupervisor': false,
                     'status': 'Submitted',
-                    'reviewerStatus': 'Approved'
+                    'reviewerStatus': 'Approved',
+                    'fiscalYearId': fiscalYearId
                 }
             },
             {
@@ -3169,6 +3175,7 @@ function getAllPap(req, res) {
 }
 
 function getEmployeesForGrievanceFeedbackInit(req, res) {
+    let fiscalYearId = parseInt(req.query.fiscalYearId);
     async.waterfall([
         (done) => {
             PapMasterDetails.aggregate([{
@@ -3176,7 +3183,8 @@ function getEmployeesForGrievanceFeedbackInit(req, res) {
                     "reviewerStatus": "Approved",
                     "grievanceStatus": "Initiated",
                     "status": "Approved",
-                    "isGrievanceFeedbackSentToSupervisor": false
+                    "isGrievanceFeedbackSentToSupervisor": false,
+                    'fiscalYearId': fiscalYearId
                 }
             },
             {
