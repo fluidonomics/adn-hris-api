@@ -652,7 +652,7 @@ function applyLeave(req, res, done) {
                 }
                 let d = moment(moment().add(7, 'days').format('YYYY-MM-DD') + ' UTC').utc().format();
 
-                if (((moment(toDateBody).diff(fromDateBody, 'days') + 1) > 3) && (req.body.leave_type == 1) && fromDateBody <= d && req.body.emp_id == req.body.apply_by_id) {
+                if (((moment(toDateBody).diff(fromDateBody, 'days') + 1) > 3) && (req.body.leave_type == 1) && fromDateBody <= d && req.body.emp_id == req.body.apply_by_id && req.body.userType == 'employee') {
                     flag = false;
                     message = "Annual Leave should be applied in seven days advance";
                 }
@@ -3647,35 +3647,37 @@ let functions = {
                     }
                 });
 
-            LeaveApply.find({
-                leaveMasterId: parseInt(req.body.id)
-            }).exec((err, leave) => {
-                let leavBalanceMatchQuery = {
-                    leave_type: 4,
-                    emp_id: parseInt(leave[0].emp_id),
-                    isAvailed: false
-                };
+            if (req.body.status == 'Applied' && req.body.approved) {
+                LeaveApply.find({
+                    leaveMasterId: parseInt(req.body.id)
+                }).exec((err, leave) => {
+                    let leavBalanceMatchQuery = {
+                        leave_type: 4,
+                        emp_id: parseInt(leave[0].emp_id),
+                        isAvailed: false
+                    };
 
-                let leavBalanceUpdateQuery = {
-                    isAvailed: true,
-                    updatedBy: req.body.updatedBy,
-                    updatedAt: new Date()
-                };
+                    let leavBalanceUpdateQuery = {
+                        isAvailed: true,
+                        updatedBy: req.body.updatedBy,
+                        updatedAt: new Date()
+                    };
 
-                LeaveBalance.findOneAndUpdate(leavBalanceMatchQuery, leavBalanceUpdateQuery).exec((err, result) => {
-                    if (err) {
-                        return res.status(403).json({
-                            title: 'There was a problem',
-                            error: {
-                                message: err
-                            },
-                            result: {
-                                message: result
-                            }
-                        });
-                    }
+                    LeaveBalance.findOneAndUpdate(leavBalanceMatchQuery, leavBalanceUpdateQuery).exec((err, result) => {
+                        if (err) {
+                            return res.status(403).json({
+                                title: 'There was a problem',
+                                error: {
+                                    message: err
+                                },
+                                result: {
+                                    message: result
+                                }
+                            });
+                        }
+                    });
                 });
-            });
+            }
 
             let queryForFindEmployeeDetail = {
                 _id: _leaveDetails.emp_id,
