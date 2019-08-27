@@ -424,6 +424,12 @@ function insertPip(req, res) {
   pipDetails.measureOfSuccess = req.body.measureOfSuccess;
   pipDetails.employeeInitialComment = req.body.employeeInitialComment;
 
+  let email_details = {
+    supervisor_email: '',
+    supervisor_name: '',
+    user_name: req.body.emp_name,
+    action_link: req.body.action_link
+  };
   if (req.body._id != null) {
 
     let updateQuery = {
@@ -474,6 +480,63 @@ function insertPip(req, res) {
             "pipdetails",
             "UPDATED"
           );
+          // pipMaster.aggregate([
+          //   {
+          //     "$lookup": {
+          //       "from": "employeedetails_view",
+          //       "localField": "emp_id",
+          //       "foreignField": "_id",
+          //       "as": "empDetails"
+          //     }
+          //   },
+          //   {
+          //     "$unwind": {
+          //       "path": "$empDetails"
+          //     }
+          //   },
+          //   {
+          //     "$match": {
+          //       "_id": 1.0
+          //     }
+          //   },
+          //   {
+          //     "$project": {
+          //       "companyId": "$empDetails.company_id",
+          //       "fullName": "$empDetails.fullName",
+          //       "userName": "$empDetails.userName",
+          //       "supervisorFullName": "$empDetails.supervisor.fullName",
+          //       "supervisorId": "$empDetails.supervisor._id",
+          //       "empOfficeEmail": "$empDetails.employeeofficedetails.officeEmail"
+          //     }
+          //   },
+          //   {
+          //     "$lookup": {
+          //       "from": "employeedetails_view",
+          //       "localField": "supervisorId",
+          //       "foreignField": "_id",
+          //       "as": "supervisorDetails"
+          //     }
+          //   },
+          //   {
+          //     "$unwind": {
+          //       "path": "$supervisorDetails"
+          //     }
+          //   },
+          //   {
+          //     "$project": {
+          //       "companyId": "$companyId",
+          //       "fullName": "$fullName",
+          //       "userName": "$userName",
+          //       "supervisorFullName": "$supervisorFullName",
+          //       "supervisorId": "$supervisorId",
+          //       "empOfficeEmail": "$empOfficeEmail",
+          //       "supervisorEmail": "$supervisorDetails.employeeofficedetails.officeEmail"
+          //     }
+          //   }
+          // ]).exec({
+
+          // })
+          // SendEmail.sendEmailToSupervisorToSubmitCommentPip(email_details);
           return res.status(200).json({
             title: "Learning Updated",
             result: {
@@ -978,20 +1041,6 @@ function getPipApproval(req, res) {
           done(err, res);
         });
       },
-      // (resp, done) => {
-      //   if (req.body.isApproved != true) {
-      //     let mtrDetailUpdateQuery = {
-      //       updatedBy: parseInt(req.body.supervisorId),
-      //       updatedAt: new Date(),
-      //       status: "SendBack"
-      //     };
-      //     MidTermDetails.updateMany({ mtr_master_id: mtrMasterId }, mtrDetailUpdateQuery, (err, res) => {
-      //       done(err, res);
-      //     });
-      //   } else {
-      //     done(null, null);
-      //   }
-      // },
       (response2, done) => {
         // for email details
         EmployeeDetails.aggregate(
@@ -1365,7 +1414,7 @@ function updatepipdetails(req, res) {
 function getPipByHr(req, res) {
 
   let hrId = parseInt(req.query.hrId);
-
+  let fiscalYearId = parseInt(req.query.fiscalYearId);
   pipbatch.aggregate([
 
     {
@@ -1384,6 +1433,11 @@ function getPipByHr(req, res) {
     {
       $unwind: {
         path: "$pip_master"
+      }
+    },
+    {
+      $match: {
+      "pip_master.fiscalYearId": fiscalYearId
       }
     },
     {
