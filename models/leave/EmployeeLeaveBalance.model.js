@@ -21,7 +21,8 @@ let EmployeeLeaveBalanceSchema = new Schema({
   paid: { type: Number, default: null },
   unpaid: { type: Number, default: null },
   isAvailed: { type: Boolean, default: false },
-  remarks: { type: String, default: null }
+  remarks: { type: String, default: null },
+  leaveId: { type: Number, default: null }
 },
   {
     timestamps: true,
