@@ -3652,7 +3652,7 @@ let functions = {
                     leaveMasterId: parseInt(req.body.id)
                 }).exec((err, leave) => {
                     let leavBalanceMatchQuery = {
-                        leave_type: 4,
+                        leave_type: { $in: [3, 4] },
                         emp_id: parseInt(leave[0].emp_id),
                         isAvailed: false
                     };
@@ -3660,7 +3660,40 @@ let functions = {
                     let leavBalanceUpdateQuery = {
                         isAvailed: true,
                         updatedBy: req.body.updatedBy,
-                        updatedAt: new Date()
+                        updatedAt: new Date(),
+                        leaveId: parseInt(req.body.id)
+                    };
+
+                    LeaveBalance.findOneAndUpdate(leavBalanceMatchQuery, leavBalanceUpdateQuery).exec((err, result) => {
+                        if (err) {
+                            return res.status(403).json({
+                                title: 'There was a problem',
+                                error: {
+                                    message: err
+                                },
+                                result: {
+                                    message: result
+                                }
+                            });
+                        }
+                    });
+                });
+            } else if ((req.body.status == 'Pending Withdrawal' && req.body.withdrawn) || (req.body.status == 'Pending Cancellation' && req.body.cancelled)) {
+                LeaveApply.find({
+                    leaveMasterId: parseInt(req.body.id)
+                }).exec((err, leave) => {
+                    let leavBalanceMatchQuery = {
+                        leave_type: 4,
+                        emp_id: parseInt(leave[0].emp_id),
+                        isAvailed: true,
+                        leaveId: parseInt(req.body.id)
+                    };
+
+                    let leavBalanceUpdateQuery = {
+                        isAvailed: false,
+                        updatedBy: req.body.updatedBy,
+                        updatedAt: new Date(),
+                        leaveId: null
                     };
 
                     LeaveBalance.findOneAndUpdate(leavBalanceMatchQuery, leavBalanceUpdateQuery).exec((err, result) => {
