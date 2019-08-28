@@ -4239,6 +4239,145 @@ let functions = {
                 return res.status(200).json(data);
             }
         });
+    },
+    getOverviewChartData: (req, res) => {
+        currentEmpId = req.query.empId;
+        fiscalYearId = req.query.fiscalYearId;
+        fromDate = req.query.fromDate;
+        endDate = req.query.toDate;
+
+        let empId = parseInt(currentEmpId);
+        let _fiscalYearId = parseInt(fiscalYearId);
+        let projectQuery = {
+            $project: {
+                emp_id: 1,
+                fiscalYearId: 1,
+                leave_type: 1,
+                balance: 1,
+                startDate: 1,
+                endDate: 1,
+                monthStart: {
+                    $month: '$startDate'
+                },
+                yearStart: {
+                    $year: '$startDate'
+                },
+                paid: 1,
+                unpaid: 1,
+                isAvailed: 1
+            }
+        };
+
+        let toDate = new Date(endDate);
+        toDate.setDate(toDate.getDate() + 1)
+        let queryForDate = {
+            '$match': {}
+        };
+        queryForDate['$match']['$and'] = [{
+            "emp_id": empId
+        }]
+        if (fromDate && endDate) {
+            queryForDate['$match']['$and'].push({
+                $and: [{
+                    "fromDate": {
+                        $gte: new Date(fromDate)
+                    }
+                },
+                {
+                    "fromDate": {
+                        $lte: toDate
+                    }
+                }
+                ]
+            });
+        }
+
+        async.waterfall([
+            (done) => {
+                LeaveApply.aggregate( // Pipeline
+                    [{
+                        $match: {
+                            "emp_id": empId,
+                        }
+                    },
+                    {
+                        "$match": {
+                            $or: [{
+                                $and: [{
+                                    "leave_type": { $in: [1, 2, 3, 4] }
+                                },
+                                {
+                                    "status": { $in: ["Applied", "Approved", "Pending Withdrawal", "Pending Cancellation", "System Approved"] }
+                                },
+                                {
+                                    "fiscalYearId": _fiscalYearId
+                                }]
+                            }]
+                        }
+                    },
+                        queryForDate,
+                    {
+                        "$lookup": {
+                            "from": "leaveTypes",
+                            "localField": "leave_type",
+                            "foreignField": "_id",
+                            "as": "leaveTypeName"
+                        }
+                    },
+                    {
+                        "$unwind": {
+                            path: "$leaveTypeName",
+                            "preserveNullAndEmptyArrays": true
+                        }
+                    },
+                    {
+                        $project: {
+                            emp_id: 1,
+                            leave_type: 1,
+                            status: 1,
+                            toDate: 1,
+                            fromDate: 1,
+                            days: 1,
+                            attachment: 1,
+                            monthStart: {
+                                $month: '$fromDate'
+                            },
+                            yearStart: {
+                                $year: '$fromDate'
+                            },
+                            fiscalYearId: 1,
+                            leaveTypeName: 1
+                        }
+                    },
+                    // Stage 4
+                    {
+                        $group: {
+                            _id: "$leave_type",
+                            totalAppliedLeaves: {
+                                $sum: "$days"
+                            },
+                            leaveTypeName: { $first: '$leaveTypeName' },
+                            leaveTypeId: { $first: '$leave_type' }
+                        }
+                    }
+                    ]).exec(function (err, appliedLeaves) {
+                        done(err, appliedLeaves);
+                    });
+            }
+        ], (err, response) => {
+            if (err) {
+                return res.status(403).json({
+                    title: 'Error',
+                    error: {
+                        message: err
+                    },
+                    result: {
+                        message: response
+                    }
+                });
+            }
+            return res.status(200).json(response);
+        })
     }
 }
 
