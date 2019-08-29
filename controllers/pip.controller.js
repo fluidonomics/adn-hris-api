@@ -7,114 +7,138 @@ SendEmail = require('../class/sendEmail'),
   EmployeeDetails = require("../models/employee/employeeDetails.model");
 
 function getEligiablePipEmployee(req, res) {
-
-  EmployeeDetails.aggregate([
-    {
-        "$lookup": {
+  let fiscalYearId = parseInt(req.query.fiscalYearId);
+  async.waterfall([
+    (done) => {
+      EmployeeDetails.aggregate([
+        {
+          "$lookup": {
             "from": "designations",
             "localField": "designation_id",
             "foreignField": "_id",
             "as": "designations"
-        }
-    },
-    {
-        "$unwind": "$designations"
-    },
-    {
-        "$lookup": {
+          }
+        },
+        {
+          "$unwind": {
+            "path": "$designations"
+          }
+        },
+        {
+          "$lookup": {
             "from": "employeeofficedetails",
             "localField": "_id",
             "foreignField": "emp_id",
             "as": "officeDetails"
-        }
-    },
-    {
-        "$unwind": "$officeDetails"
-    },
-    {
-      $lookup: {
-        from: "pipmasters",
-        localField: "_id",
-        foreignField: "emp_id",
-        as: "pip_master_details"
-      }
-    },
-    {
-      $unwind: {
-        path: "$pip_master_details"
-      }
-    },
-    {
-        "$lookup": {
+          }
+        },
+        {
+          "$unwind": {
+            "path": "$officeDetails"
+          }
+        },
+        {
+          "$lookup": {
+            "from": "pipmasters",
+            "localField": "_id",
+            "foreignField": "emp_id",
+            "as": "pip_master_details"
+          }
+        },
+        {
+          "$unwind": {
+            "path": "$pip_master_details",
+            "preserveNullAndEmptyArrays": true
+          }
+        },
+        {
+          "$lookup": {
             "from": "employeesupervisordetails",
             "localField": "_id",
             "foreignField": "emp_id",
             "as": "supervisor"
-        }
-    },
-    {
-        "$unwind": "$supervisor"
-    },
-    {
-        "$lookup": {
+          }
+        },
+        {
+          "$unwind": {
+            "path": "$supervisor"
+          }
+        },
+        {
+          "$lookup": {
             "from": "employeedetails",
             "localField": "supervisor.primarySupervisorEmp_id",
             "foreignField": "_id",
             "as": "employees"
-        }
-    },
-    {
-        "$unwind": {
-            "path": "$employees", "preserveNullAndEmptyArrays": true
-        }
-    },
-    {
-        "$lookup": {
+          }
+        },
+        {
+          "$unwind": {
+            "path": "$employees",
+            "preserveNullAndEmptyArrays": true
+          }
+        },
+        {
+          "$lookup": {
             "from": "employeedetails",
             "localField": "supervisor.secondarySupervisorEmp_id",
             "foreignField": "_id",
             "as": "employeeSecondary"
-        }
-    },
-    {
-        "$unwind": {
-            "path": "$employeeSecondary", "preserveNullAndEmptyArrays": true
-        }
-    },
-    {
-        "$lookup": {
+          }
+        },
+        {
+          "$unwind": {
+            "path": "$employeeSecondary",
+            "preserveNullAndEmptyArrays": true
+          }
+        },
+        {
+          "$lookup": {
             "from": "employeeprofileprocessdetails",
             "localField": "_id",
             "foreignField": "emp_id",
             "as": "employeeprofileProcessDetails"
-        }
-    },
-    {
-        "$unwind": "$employeeprofileProcessDetails"
-    },
-    // {
-    //     "$lookup": {
-    //         "from": "kraworkflowdetails",
-    //         "localField": "_id",
-    //         "foreignField": "emp_id",
-    //         "as": "kraworkflowdetails"
-    //     }
-    // },
-    // {"$unwind": {
-    //     "path": "$kraworkflowdetails","preserveNullAndEmptyArrays": true
-    // }},
-
-    {
-      "$lookup": {
-        "from": "papmasters",
-        "localField": "_id",
-        "foreignField": "emp_id",
-        "as": "papdetails"
-      }
-    },
-    { "$match": { "isDeleted": false, "designations.isActive": true, "officeDetails.isDeleted": false, "papdetails.overallRating": {$gt: 1} } },
-    {
-        "$project": {
+          }
+        },
+        {
+          "$unwind": {
+            "path": "$employeeprofileProcessDetails"
+          }
+        },
+        {
+          "$lookup": {
+            "from": "papmasters",
+            "localField": "_id",
+            "foreignField": "emp_id",
+            "as": "papdetails"
+          }
+        },
+        {
+          "$lookup": {
+            "from": "papmasters",
+            "localField": "_id",
+            "foreignField": "emp_id",
+            "as": "pipMasterdetails"
+          }
+        },
+        {
+          "$unwind": {
+            "path": "$pipMasterdetails"
+          }
+        },
+        {
+          "$match": {
+            "isDeleted": false,
+            "designations.isActive": true,
+            "pipMasterdetails.fiscalYearId": fiscalYearId,
+            "officeDetails.isDeleted": false,
+            "papdetails.overallRating": {
+              "$gt": 1.0
+            }
+          }
+        },
+        {
+          "$project": {
             "_id": "$_id",
             "fullName": "$fullName",
             "userName": "$userName",
@@ -123,9 +147,9 @@ function getEligiablePipEmployee(req, res) {
             "officeEmail": "$officeDetails.officeEmail",
             "designation": "$designations.designationName",
             "supervisor": "$employees.fullName",
-            "hrScope_id": '$officeDetails.hrspoc_id',
-            "groupHrHead_id": '$officeDetails.groupHrHead_id',
-            "businessHrHead_id": '$officeDetails.businessHrHead_id',
+            "hrScope_id": "$officeDetails.hrspoc_id",
+            "groupHrHead_id": "$officeDetails.groupHrHead_id",
+            "businessHrHead_id": "$officeDetails.businessHrHead_id",
             "supervisor_id": "$employees._id",
             "secondarySupervisor": "$employeeSecondary.fullName",
             "secondarySupervisor_id": "$employeeSecondary._id",
@@ -133,27 +157,37 @@ function getEligiablePipEmployee(req, res) {
             "department_id": "$officeDetails.department_id",
             "grade_id": "$grade_id",
             "overallRating": "$papdetails.overallRating",
-            pip_status: "$pip_master_details.status",
-            pip_batch_id: "$pip_master_details.batch_id"
-            // "kraWorkflow": "$kraworkflowdetails",
+            "pip_status": "$pip_master_details.status",
+            "pip_batch_id": "$pip_master_details.batch_id"
+          }
         }
-    }
-]).exec(function (err, results) {
-    if (err) {
-        return res.status(403).json({
+      ]).exec(function (err, results) {
+        done(err, results);
+      });
+    },
+    (empData, data2) => {
+      pipMaster.find({ fiscalYearId: fiscalYearId }).exec((err, response) => {
+        if (err) {
+          return res.status(403).json({
             title: 'There was a problem',
             error: {
-                message: err
+              message: err
             },
             result: {
-                message: results
+              message: response
             }
+          });
+        }
+        response.forEach(f => {
+          let index = empData.findIndex(i => i._id == f.emp_id);
+          if (index > -1)
+            empData.splice(index, 1);
         });
-    }
-    //results= results.filter((obj, pos, arr) => { return arr.map(mapObj =>mapObj['_id']).indexOf(obj['_id']) === pos;});
-    return res.status(200).json({ "data": results });
-});
+        return res.status(200).json({ "data": empData });
 
+      });
+    }
+  ]);
 }
   
 function InitiatePip(req, res) {
@@ -521,94 +555,96 @@ function insertPip(req, res) {
 function getpipdetailspostinsertion(req, res) {
   let master_id = parseInt(req.query.master_id);
   pipdetails.aggregate([{
-      $match: {
-        master_id: master_id
-      }
-    },
-    {
-      $lookup: {
-        from: "pipmasters",
-        localField: "master_id",
-        foreignField: "_id",
-        as: "pipdetails"
-      }
-    },
-    {
-      $unwind: {
-        path: "$pipdetails"
-      }
-    },
-    {
-      $lookup: {
-        from: "employeesupervisordetails",
-        localField: "pipdetails.emp_id",
-        foreignField: "emp_id",
-        as: "empsupdetails"
-      }
-    },
-    {
-      $unwind: {
-        path: "$empsupdetails"
-      }
-    },
-    {
-      $lookup: {
-        from: "employeedetails",
-        localField: "supervisor_id",
-        foreignField: "_id",
-        as: "empdetails"
-      }
-    },
-    {
-      $unwind: {
-        path: "$empdetails"
-      }
-    },
-    {
-      $project: {
-
-        id: "$_id",
-        createdby: "$createdBy",
-        createdAt: "createdAt",
-        updatedBy: "$updatedBy",
-        updatedAt: "$updatedAt",
-        master_id: "$pipdetails._id",
-        master_timelines: "$pipdetails.timelines",
-        emp_final_com: "$pipdetails.emp_final_com",
-        sup_final_com: "$pipdetails.sup_final_com",
-        rev_final_com: "$pipdetails.rev_final_com",
-        hr_final_com: "$pipdetails.hr_final_com",
-        final_recommendation: "$pipdetails.final_recommendation",
-        status: "$status",
-        master_status: "$pipdetails.status",
-        supervisor_id: "$supervisor_id",
-        areaofImprovement: "$areaofImprovement",
-        actionPlan: "$actionPlan",
-        superviserFinalReview: "$finalReview",
-        supervisorPerformanceRating: "$finalRating",
-        timelines: "$timelines",
-        measureOfSuccess: "$measureOfSuccess",
-        employeeInitialComment: "$employeeInitialComment",
-        superviserInitialComment: "$superviserInitialComment",
-        empComment_month1: "$empComment_month1",
-        supComment_month1: "$supComment_month1",
-        empComment_month2: "$empComment_month2",
-        supComment_month2: "$supComment_month2",
-        empComment_month3: "$empComment_month3",
-        supComment_month3: "$supComment_month3",
-        empComment_month4: "$empComment_month4",
-        supComment_month4: "$supComment_month4",
-        empComment_month5: "$empComment_month5",
-        supComment_month5: "$supComment_month5",
-        empComment_month6: "$empComment_month6",
-        supComment_month6: "$supComment_month6",
-        primary_supervisor: "$empsupdetails.primarySupervisorEmp_id",
-        secondary_supervisor: "$empsupdetails.secondarySupervisorEmp_id",
-        supervisor_name: "$empdetails.fullName",
-        dateDifference: {$divide: [{$subtract: [ new Date(), "$approvedAt" ]}, 3600000*24*30]}
-        //dateDifference: { $literal: 3}
-  }
+    $match: {
+      master_id: master_id
     }
+  },
+  {
+    $lookup: {
+      from: "pipmasters",
+      localField: "master_id",
+      foreignField: "_id",
+      as: "pipdetails"
+    }
+  },
+  {
+    $unwind: {
+      path: "$pipdetails"
+    }
+  },
+  {
+    $lookup: {
+      from: "employeesupervisordetails",
+      localField: "pipdetails.emp_id",
+      foreignField: "emp_id",
+      as: "empsupdetails"
+    }
+  },
+  {
+    $unwind: {
+      path: "$empsupdetails"
+    }
+  },
+  {
+    $lookup: {
+      from: "employeedetails",
+      localField: "supervisor_id",
+      foreignField: "_id",
+      as: "empdetails"
+    }
+  },
+  {
+    $unwind: {
+      path: "$empdetails"
+    }
+  },
+  {
+    $project: {
+
+      id: "$_id",
+      createdby: "$createdBy",
+      createdAt: "createdAt",
+      updatedBy: "$updatedBy",
+      updatedAt: "$updatedAt",
+      master_id: "$pipdetails._id",
+      master_timelines: "$pipdetails.timelines",
+      emp_final_com: "$pipdetails.emp_final_com",
+      sup_final_com: "$pipdetails.sup_final_com",
+      rev_final_com: "$pipdetails.rev_final_com",
+      hr_final_com: "$pipdetails.hr_final_com",
+      final_recommendation: "$pipdetails.final_recommendation",
+      status: "$status",
+      master_status: "$pipdetails.status",
+      supervisor_id: "$supervisor_id",
+      areaofImprovement: "$areaofImprovement",
+      actionPlan: "$actionPlan",
+      superviserFinalReview: "$finalReview",
+      supervisorPerformanceRating: "$finalRating",
+      timelines: "$timelines",
+      measureOfSuccess: "$measureOfSuccess",
+      employeeInitialComment: "$employeeInitialComment",
+      superviserInitialComment: "$superviserInitialComment",
+      empComment_month1: "$empComment_month1",
+      supComment_month1: "$supComment_month1",
+      empComment_month2: "$empComment_month2",
+      supComment_month2: "$supComment_month2",
+      empComment_month3: "$empComment_month3",
+      supComment_month3: "$supComment_month3",
+      empComment_month4: "$empComment_month4",
+      supComment_month4: "$supComment_month4",
+      empComment_month5: "$empComment_month5",
+      supComment_month5: "$supComment_month5",
+      empComment_month6: "$empComment_month6",
+      supComment_month6: "$supComment_month6",
+      primary_supervisor: "$empsupdetails.primarySupervisorEmp_id",
+      secondary_supervisor: "$empsupdetails.secondarySupervisorEmp_id",
+      supervisor_name: "$empdetails.fullName",
+      extended_by: "$pipdetails.extended_by",
+      isExtended: "$pipdetails.isExtended",
+      dateDifference: { $divide: [{ $subtract: [new Date(), "$approvedAt"] }, 3600000 * 24 * 30] }
+      //dateDifference: { $literal: 5 }
+    }
+  }
   ]).exec(function (err, data) {
 
     if (err) {
@@ -1052,14 +1088,14 @@ function getPipApproval(req, res) {
                     message: "Pip review approved, failed sending email to employee"
                   },
                   result: {
-                    message: result
+                    message: email_result
                   }
                 });
               } else {
                 return res.status(200).json({
                   title: "Pip review approved, and email sent to employee",
                   result: {
-                    message: result
+                    message: email_result
                   }
                 });
               }
@@ -1387,6 +1423,11 @@ function getPipByHr(req, res) {
     {
       $unwind: {
         path: "$pip_master"
+      }
+    },
+    {
+      $match: {
+        "pip_master.fiscalYearId": fiscalYearId
       }
     },
     {
