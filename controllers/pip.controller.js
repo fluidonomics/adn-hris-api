@@ -441,7 +441,6 @@ function getpipDetails(req, res) {
 
 
 function insertPip(req, res) {
-  
   let master_id = parseInt(req.body.master_id);
   let supervisor_id = parseInt(req.body.supervisor_id);
   let cretedBy = req.body.createdBy;
@@ -462,7 +461,6 @@ function insertPip(req, res) {
   if(req.body._id != null) {
 
     let updateQuery = {
-      
       supervisor_id: supervisor_id,
       employeeInitialComment: req.body.employeeInitialComment,
       areaofImprovement: req.body.areaofImprovement,
@@ -484,6 +482,7 @@ function insertPip(req, res) {
       empComment_month4: req.body.empComment_month4,
       empComment_month5: req.body.empComment_month5,
       empComment_month6: req.body.empComment_month6,
+
     };
   
     pipdetails.findOneAndUpdate(
@@ -519,7 +518,6 @@ function insertPip(req, res) {
       }
     );
   } else {
-
     pipDetails.save(function (err, response) {
       if (err) {
         return res.status(403).json({
@@ -549,7 +547,6 @@ function insertPip(req, res) {
       }
     });
   }
-  
 }
 
 function getpipdetailspostinsertion(req, res) {
@@ -1404,7 +1401,7 @@ function updatepipdetails(req, res) {
 function getPipByHr(req, res) {
 
   let hrId = parseInt(req.query.hrId);
-
+  let fiscalYearId = parseInt(req.query.fiscalYearId);
   pipbatch.aggregate([
 
     {
