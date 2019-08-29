@@ -3683,7 +3683,7 @@ let functions = {
                     leaveMasterId: parseInt(req.body.id)
                 }).exec((err, leave) => {
                     let leavBalanceMatchQuery = {
-                        leave_type: 4,
+                        leave_type: { $in: [3, 4] },
                         emp_id: parseInt(leave[0].emp_id),
                         isAvailed: true,
                         leaveId: parseInt(req.body.id)
