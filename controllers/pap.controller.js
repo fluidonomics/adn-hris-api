@@ -312,7 +312,7 @@ function getEmployeesForPapInitiate(req, res) {
             });
         },
         (data, innerDone) => {
-            MidTermMaster.find({fiscalYearId: fiscalYearId}).exec((err, response) => {
+            MidTermMaster.find({ fiscalYearId: fiscalYearId }).exec((err, response) => {
                 data.mtrData = response;
                 innerDone(err, data);
             });
@@ -2105,7 +2105,7 @@ function getPapByReviewer(req, res) {
                 },
                 {
                     '$match': {
-                        'papmasters.fiscalYearId' : fiscalYearId
+                        'papmasters.fiscalYearId': fiscalYearId
                     }
                 },
                 {
@@ -2894,11 +2894,13 @@ function getEmployeesForGrievance(req, res) {
 
 
 function initGrievancePhase(req, res) {
+    let papMasterIds = req.body.employees.map(e => e.papMasterId);
     async.waterfall([
         (done) => {
             PapMasterDetails.aggregate([
                 {
                     $match: {
+                        "_id": { $in: papMasterIds },
                         "reviewerStatus": "Approved",
                         "grievanceStatus": null,
                         "grievanceRaiseEndDate": null,
@@ -2946,6 +2948,7 @@ function initGrievancePhase(req, res) {
             }
 
             let updateCondition = {
+                "_id": { $in: papMasterIds },
                 "reviewerStatus": "Approved",
                 "grievanceStatus": null,
                 "grievanceRaiseEndDate": null,
@@ -3132,6 +3135,20 @@ function getAllPap(req, res) {
                     }
                 },
                 {
+                    $lookup: {
+                        'from': 'departments',
+                        'localField': 'employeeofficedetails.department_id',
+                        'foreignField': '_id',
+                        'as': 'department'
+                    }
+                },
+                {
+                    $unwind: {
+                        'path': '$department',
+                        'preserveNullAndEmptyArrays': true
+                    }
+                },
+                {
                     '$group': {
                         '_id': '$_id',
                         "updatedAt": { $first: '$updatedAt' },
@@ -3157,6 +3174,7 @@ function getAllPap(req, res) {
                         "employeeofficedetails": { $first: '$employeeofficedetails' },
                         "designations": { $first: '$designations' },
                         "papdetails": { $push: '$papdetails' },
+                        "department": { $first: '$department' },
                     }
                 }
             ]).exec((err, result) => {
