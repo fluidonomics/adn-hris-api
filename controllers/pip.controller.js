@@ -193,6 +193,7 @@ function getEligiablePipEmployee(req, res) {
 function InitiatePip(req, res) {
   let createdby = parseInt(req.body.createdBy);
   let timelines = parseInt(req.body.timelines);
+  let fiscalYearId =  parseInt(req.body.fiscalYearId);
   let pipBatchDetails = new pipbatch();
   pipBatchDetails.batchName = req.body.batchName;
   pipBatchDetails.timelines = req.body.timelines;
@@ -201,6 +202,7 @@ function InitiatePip(req, res) {
   pipBatchDetails.status = req.body.status;
   pipBatchDetails.isDeleted = false;
   pipBatchDetails.createdBy = createdby;
+  pipBatchDetails.fiscalYearId = fiscalYearId;
   let emp_id_array = req.body.emp_id_array;
   let email_details = {
     emp_email: '',
@@ -256,7 +258,8 @@ function InitiatePip(req, res) {
             status: "Initiated",
             timelines: timelines,
             _id: pipMaster_id + (index + 1),
-            createdBy: createdby
+            createdBy: createdby,
+            fiscalYearId: fiscalYearId
           });
         });
         pipMaster.insertMany(insertData, function (
@@ -849,7 +852,7 @@ function submitpip(req, res) {
 }
 function getpipByReviewer(req, res){
   let reviewerId = parseInt(req.query.reviewerId);
-
+  let fiscalYearId = parseInt(req.query.fiscalYearId);
   EmployeeSupervisorDetails.aggregate([
     {
       $match: {primarySupervisorEmp_id: reviewerId }
@@ -880,6 +883,7 @@ function getpipByReviewer(req, res){
         path: "$pip_master_details"
       }
     },
+    { $match: { "pip_master_details.fiscalYearId": fiscalYearId } },
     {
       $lookup: {
         from: "employeedetails",
@@ -902,7 +906,6 @@ function getpipByReviewer(req, res){
         updatedAt: "$pip_master_details.updatedAt"
       }
     },
-    // { $match: { status: status } },
     {
       $group: {
         _id: "$pip_master_details._id",
