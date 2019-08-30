@@ -3652,7 +3652,7 @@ let functions = {
                     leaveMasterId: parseInt(req.body.id)
                 }).exec((err, leave) => {
                     let leavBalanceMatchQuery = {
-                        leave_type: { $in: [3, 4] },
+                        leave_type: leave[0].leave_type,
                         emp_id: parseInt(leave[0].emp_id),
                         isAvailed: false
                     };
@@ -3683,7 +3683,7 @@ let functions = {
                     leaveMasterId: parseInt(req.body.id)
                 }).exec((err, leave) => {
                     let leavBalanceMatchQuery = {
-                        leave_type: { $in: [3, 4] },
+                        leave_type: leave[0].leave_type,
                         emp_id: parseInt(leave[0].emp_id),
                         isAvailed: true,
                         leaveId: parseInt(req.body.id)
