@@ -126,17 +126,17 @@ function getEligiablePipEmployee(req, res) {
             "path": "$pipMasterdetails"
           }
         },
-        {
-          "$match": {
-            "isDeleted": false,
-            "designations.isActive": true,
-            "pipMasterdetails.fiscalYearId": fiscalYearId,
-            "officeDetails.isDeleted": false,
-            "papdetails.overallRating": {
-              "$gt": 1.0
-            }
-          }
-        },
+        // {
+        //   "$match": {
+        //     "isDeleted": false,
+        //     "designations.isActive": true,
+        //     "pipMasterdetails.fiscalYearId": fiscalYearId,
+        //     "officeDetails.isDeleted": false,
+        //     "papdetails.overallRating": {
+        //       "$gt": 1.0
+        //     }
+        //   }
+        // },
         {
           "$project": {
             "_id": "$_id",
@@ -286,9 +286,6 @@ function InitiatePip(req, res) {
               "ADDED"
             );
             sendEmailToEmployee(emp_id_array, res, email_details);
-            // return res.status(200).json({
-            //   result: pipMasterResult
-            // });
           }
         });
       });
@@ -834,7 +831,7 @@ function submitpip(req, res) {
         email_details.supervisor_email = result.emp[0].officeEmail;
         SendEmail.sendEmailToSupervisorToApprovePip(email_details, (email_err, email_result) => {
           if (email_err) {
-            return res.status(300).json({
+            return res.status(301).json({
               title: "Pip submitted, failed sending email to supervisor",
               error: {
                 message: email_err
@@ -960,7 +957,6 @@ function getPipApproval(req, res) {
   };
   let isPipApproved = false;
   let contain = function(element) {
-
     return element._id === pipDetailId;
   }
   async.waterfall(
@@ -1020,20 +1016,6 @@ function getPipApproval(req, res) {
           done(err, res);
         });
       },
-      // (resp, done) => {
-      //   if (req.body.isApproved != true) {
-      //     let mtrDetailUpdateQuery = {
-      //       updatedBy: parseInt(req.body.supervisorId),
-      //       updatedAt: new Date(),
-      //       status: "SendBack"
-      //     };
-      //     MidTermDetails.updateMany({ mtr_master_id: mtrMasterId }, mtrDetailUpdateQuery, (err, res) => {
-      //       done(err, res);
-      //     });
-      //   } else {
-      //     done(null, null);
-      //   }
-      // },
       (response2, done) => {
         // for email details
         EmployeeDetails.aggregate(
@@ -1088,7 +1070,7 @@ function getPipApproval(req, res) {
           if (email_details.user_email) {
             SendEmail.sendEmailToUserAboutMtrStatus(email_details, (email_err, email_result) => {
               if (email_err) {
-                return res.status(300).json({
+                return res.status(301).json({
                   title: "Pip review approved, failed sending email to employee",
                   error: {
                     message: "Pip review approved, failed sending email to employee"
@@ -1107,7 +1089,7 @@ function getPipApproval(req, res) {
               }
             });
           } else {
-            return res.status(300).json({
+            return res.status(301).json({
               title: "Pip review approved, failed sending email to employee",
               error: {
                 message: "pip review approved, failed sending email to employee"
