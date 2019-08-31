@@ -315,7 +315,7 @@ function sendEmailToEmployee(emp_id_array, res, email_details) {
     },
     {
       "$match": {
-        "_id": {"$in": emp_id_array.map(emp => {return emp.emp_id}) },
+        "_id": { "$in": emp_id_array.map(emp => { return emp.emp_id }) },
       }
     },
     {
@@ -338,24 +338,30 @@ function sendEmailToEmployee(emp_id_array, res, email_details) {
         }
       });
     } else {
-      //let count = 0;
-      data.forEach(f => { 
+      data.forEach(f => {
         email_details.emp_name = f.user_name;
         email_details.emp_email = f.officeEmail;
-        //forEwach {
         SendEmail.sendEmailToEmployeeForInitiatePIP(email_details, (email_err, email_result) => {
-
+          if (email_err) {
+            return res.status(301).json({
+              title: "PIP initiated, failed sending email to employee",
+              error: {
+                message: email_err
+              },
+              result: {
+                message: email_result
+              }
+            });
+          } else {
+            return res.status(200).json({
+              title: "PIP initiated, and email sent to employee",
+              result: {
+                message: email_result
+              }
+            });
+          }
         });
-        
       });
-
-        return res.status(200).json({
-          title: "PIP initiated, and email sent to employee",
-          // result: {
-          //   message: email_result
-          // }
-        });
-      
     }
   });
 }
