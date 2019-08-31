@@ -889,24 +889,7 @@ let functions = {
         };
         transporter.sendMail(mailOptions, callback);
     },
-    sendEmailToEmployeeForInitiatePIP: (data, callback) => {
-        if (data.emp_email === null || data.emp_email === "") {
-            return
-        }
-        let mailOptions = {
-            from: config.email.sendEmailToEmployeeForInitiatePIP.from, // sender address
-            to: data.emp_email,
-            subject: config.email.sendEmailToEmployeeForInitiatePIP.subject, // Subject line
-            template: 'email-notify-to-employee-for-initiated-pip',
-            context: {
-                fullName: data.emp_name,
-                appliedDate: moment(new Date()).format('L'),
-                link: data.action_link,
-                hrName: data.hr_name
-            }
-        };
-        transporter.sendMail(mailOptions, callback);
-    },
+    
     sendEmailToEmployeeForLeaveQuota: (data, callback) => {
         if (data.emp_email === null || data.emp_email === "") {
             return
@@ -927,24 +910,7 @@ let functions = {
         }
         transporter.sendMail(mailOptions, callback);
     },
-    sendEmailToSupervisorToApprovePip: (data, callback) => {
-        if (data.supervisor_email === null || data.supervisor_email === "") {
-            return
-        }
-        let mailOptions = {
-            from: config.email.sendEmailToSupervisorToApprovePip.from, // sender address
-            to: data.supervisor_email,
-            subject: config.email.sendEmailToSupervisorToApprovePip.subject, // Subject line
-            template: 'email-notify-to-supvsr-for-pip-approve',
-            context: {
-                fullName: data.supervisor_name,
-                appliedDate: moment(new Date()).format('L'),
-                link: data.action_link,
-                empName: data.user_name
-            }
-        };
-        transporter.sendMail(mailOptions, callback);
-    },
+    
     sendEmailToSupervisorForInitiateFeedback: (data, callback) => {
         if (data.emp_email === null || data.emp_email === "") {
             return
@@ -1066,6 +1032,62 @@ let functions = {
         };
         transporter.sendMail(mailOptions, callback);
     },
+    //---------------------- PIP
+    sendEmailToEmployeeForInitiatePIP: (data, callback) => {
+        if (data.emp_email === null || data.emp_email === "") {
+            return
+        }
+        let mailOptions = {
+            from: config.email.sendEmailToEmployeeForInitiatePIP.from, // sender address
+            to: data.emp_email,
+            subject: config.email.sendEmailToEmployeeForInitiatePIP.subject, // Subject line
+            template: 'email-notify-to-employee-for-initiated-pip',
+            context: {
+                fullName: data.emp_name,
+                appliedDate: moment(new Date()).format('L'),
+                link: data.action_link,
+                hrName: data.hr_name
+            }
+        };
+        transporter.sendMail(mailOptions, callback);
+    },
+    sendEmailToSupervisorToApprovePip: (data, callback) => {
+        if (data.supervisor_email === null || data.supervisor_email === "") {
+            return
+        }
+        let mailOptions = {
+            from: config.email.sendEmailToSupervisorToApprovePip.from, // sender address
+            to: data.supervisor_email,
+            subject: config.email.sendEmailToSupervisorToApprovePip.subject, // Subject line
+            template: 'email-notify-to-supvsr-for-pip-approve',
+            context: {
+                fullName: data.supervisor_name,
+                appliedDate: moment(new Date()).format('L'),
+                link: data.action_link,
+                empName: data.user_name
+            }
+        };
+        transporter.sendMail(mailOptions, callback);
+    },
+    sendEmailToSupervisorToSubmitCommentPip: (data, callback) => {
+        if (data.supervisor_email === null || data.supervisor_email === "") {
+            return
+        }
+        let mailOptions = {
+            from: config.email.sendEmailToSupervisorToApprovePip.from, // sender address
+            to: data.supervisor_email,
+            subject: config.email.sendEmailToSupervisorToApprovePip.subject, // Subject line
+            template: 'email-notitfy-to-suprvsr-for-pip-comment-submit',
+            context: {
+                supervisor_name: data.supervisor_name,
+                appliedDate: moment(new Date()).format('L'),
+                link: data.action_link,
+                user_name: data.user_name
+            }
+        };
+        transporter.sendMail(mailOptions, callback);
+    },
+    //---------------------- PIP
 }
 
 module.exports = functions;
