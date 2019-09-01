@@ -870,26 +870,78 @@ let functions = {
         transporter.sendMail(mailOptions, callback);
     },
 
-    sendEmailToUserAboutLearningStatus: (data, callback) => {
-        if (data.user_email === null || data.user_email === "") {
+    sendEmailToEmployeeForInitiatePIP: (data, callback) => {
+        if (data.emp_email === null || data.emp_email === "") {
             return
         }
         let mailOptions = {
-            from: config.email.sendEmailToEmployeeForLearningStatus.from, // sender address
-            to: data.user_email,
-            subject: config.email.sendEmailToEmployeeForLearningStatus.subject, // Subject line
-            template: 'email-notify-to-emp-for-learning-status',
+            from: config.email.sendEmailToEmployeeForInitiatePIP.from, // sender address
+            to: data.emp_email,
+            subject: config.email.sendEmailToEmployeeForInitiatePIP.subject, // Subject line
+            template: 'email-notify-to-employee-for-initiated-pip',
             context: {
-                fullName: data.supervisor_name,
+                fullName: data.emp_name,
                 appliedDate: moment(new Date()).format('L'),
-                link: data.action_link + '?fiscalYearId=' + data.fiscalYearId,
-                empName: data.user_name,
-                isApproved: data.isApproved
+                link: data.action_link,
+                hrName: data.hr_name
             }
         };
         transporter.sendMail(mailOptions, callback);
     },
-    
+    sendEmailToEmployeeForApprovedPIP: (data, callback) => {
+       if (data.user_email === null || data.user_email === "") {
+            return
+        }
+        let mailOptions = {
+            from: config.email.sendEmailToEmployeeForApprovedPIP.from, // sender address
+            to: data.user_email,
+            subject: config.email.sendEmailToEmployeeForApprovedPIP.subject, // Subject line
+            template: 'email-notify-to-employee-for-pip-approve',
+            context: {
+                fullName: data.user_name,
+                appliedDate: moment(new Date()).format('L'),
+                link: data.action_link,
+                supName: data.supervisor_name
+            }
+        };
+        transporter.sendMail(mailOptions, callback);
+    },
+    sendEmailToSupervisorForMonthlyCommentPIP: (data, callback) => {
+        if (data.emp_email === null || data.emp_email === "") {
+            return
+        }
+        let mailOptions = {
+            from: config.email.sendEmailToSupervisorForMonthlyCommentPIP.from, // sender address
+            to: data.emp_email,
+            subject: config.email.sendEmailToSupervisorForMonthlyCommentPIP.subject, // Subject line
+            template: 'email-notify-to-supvsr-for-pip-monthly-comment',
+            context: {
+                empName: data.emp_name,
+                appliedDate: moment(new Date()).format('L'),
+                link: data.action_link,
+                supName: data.supervisor_name
+            }
+        };
+        transporter.sendMail(mailOptions, callback);
+    },
+     sendEmailToSupervisorToApprovePip: (data, callback) => {
+        if (data.supervisor_email === null || data.supervisor_email === "") {
+            return
+        }
+        let mailOptions = {
+            from: config.email.sendEmailToSupervisorToApprovePip.from, // sender address
+            to: data.supervisor_email,
+            subject: config.email.sendEmailToSupervisorToApprovePip.subject, // Subject line
+            template: 'email-notify-to-supvsr-for-pip-approve',
+            context: {
+                fullName: data.supervisor_name,
+                appliedDate: moment(new Date()).format('L'),
+                link: data.action_link,
+                empName: data.user_name
+            }
+        };
+        transporter.sendMail(mailOptions, callback);
+    },
     sendEmailToEmployeeForLeaveQuota: (data, callback) => {
         if (data.emp_email === null || data.emp_email === "") {
             return
@@ -910,7 +962,6 @@ let functions = {
         }
         transporter.sendMail(mailOptions, callback);
     },
-    
     sendEmailToSupervisorForInitiateFeedback: (data, callback) => {
         if (data.emp_email === null || data.emp_email === "") {
             return
@@ -1033,42 +1084,6 @@ let functions = {
         transporter.sendMail(mailOptions, callback);
     },
     //---------------------- PIP
-    sendEmailToEmployeeForInitiatePIP: (data, callback) => {
-        if (data.emp_email === null || data.emp_email === "") {
-            return
-        }
-        let mailOptions = {
-            from: config.email.sendEmailToEmployeeForInitiatePIP.from, // sender address
-            to: data.emp_email,
-            subject: config.email.sendEmailToEmployeeForInitiatePIP.subject, // Subject line
-            template: 'email-notify-to-employee-for-initiated-pip',
-            context: {
-                fullName: data.emp_name,
-                appliedDate: moment(new Date()).format('L'),
-                link: data.action_link,
-                hrName: data.hr_name
-            }
-        };
-        transporter.sendMail(mailOptions, callback);
-    },
-    sendEmailToSupervisorToApprovePip: (data, callback) => {
-        if (data.supervisor_email === null || data.supervisor_email === "") {
-            return
-        }
-        let mailOptions = {
-            from: config.email.sendEmailToSupervisorToApprovePip.from, // sender address
-            to: data.supervisor_email,
-            subject: config.email.sendEmailToSupervisorToApprovePip.subject, // Subject line
-            template: 'email-notify-to-supvsr-for-pip-approve',
-            context: {
-                fullName: data.supervisor_name,
-                appliedDate: moment(new Date()).format('L'),
-                link: data.action_link,
-                empName: data.user_name
-            }
-        };
-        transporter.sendMail(mailOptions, callback);
-    },
     sendEmailToSupervisorToSubmitCommentPip: (data, callback) => {
         if (data.supervisor_email === null || data.supervisor_email === "") {
             return

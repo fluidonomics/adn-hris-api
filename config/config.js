@@ -141,6 +141,14 @@ module.exports = {
       from: '"Team HRIS" <hris@adnsl.net>',
       subject: 'PIP for approval'
     },
+    'sendEmailToEmployeeForApprovedPIP': {
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'PIP approved'
+    },
+    'sendEmailToSupervisorForMonthlyCommentPIP': {
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'PIP Comment Submitted'
+    },
     'sendEmailToEmployeeForPipStatus': {
       from: '"Team HRIS" <hris@adnsl.net>',
       subject: 'PIP status'
