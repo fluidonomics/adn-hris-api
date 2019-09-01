@@ -295,7 +295,6 @@ function InitiatePip(req, res) {
 
 
 function sendEmailToEmployee(emp_id_array, res, email_details) {
-
   EmployeeDetails.aggregate([
     {
       "$lookup": {
@@ -323,7 +322,6 @@ function sendEmailToEmployee(emp_id_array, res, email_details) {
       }
     }
   ]).exec(function (err, data) {
-
     if (err) {
       return res.status(403).json({
         title: "There was a problem",
@@ -362,8 +360,99 @@ function sendEmailToEmployee(emp_id_array, res, email_details) {
     }
   });
 }
-
-
+function sendEmailToSupervisor(emp_id, res, email_details) {
+  
+  EmployeeDetails.aggregate([
+    {
+      "$lookup": {
+        "from": "employeeofficedetails",
+        "localField": "_id",
+        "foreignField": "emp_id",
+        "as": "office_details"
+      }
+    },
+    {
+      "$unwind": {
+        "path": "$office_details"
+      }
+    },
+    {
+      "$lookup": {
+        "from": "employeesupervisordetails",
+        "localField": "_id",
+        "foreignField": "emp_id",
+        "as": "emp_supDetails"
+      }
+    },
+    {
+      "$unwind": {
+        "path": "$emp_supDetails"
+      }
+    },
+    {
+      "$lookup": {
+        "from": "employeedetails",
+        "localField": "emp_supDetails.primarySupervisorEmp_id",
+        "foreignField": "_id",
+        "as": "emp_supDetails_name"
+      }
+    },
+    {
+      "$unwind": {
+        "path": "$emp_supDetails_name"
+      }
+    },
+    {
+      "$match": {
+        "_id": emp_id,
+      }
+    },
+    {
+      "$project": {
+        "_id": "$_id",
+        "user_name": "$fullName",
+        "officeEmail": "$office_details.officeEmail",
+        "sup_name": "$emp_supDetails_name.fullName"
+      }
+    }
+  ]).exec(function (err, data) {
+    if (err) {
+      return res.status(403).json({
+        title: "There was a problem",
+        error: {
+          message: err
+        },
+        result: {
+          message: data
+        }
+      });
+    } else {
+      email_details.emp_name = data[0].user_name;
+      email_details.emp_email = data[0].officeEmail;
+      email_details.supervisor_name = data[0].sup_name;
+      SendEmail.sendEmailToSupervisorForMonthlyCommentPIP(email_details, (email_err, email_result) => {
+        if (email_err) {
+          return res.status(301).json({
+            title: "PIP Comment Submitted, failed sending email to supervisor",
+            error: {
+              message: email_err
+            },
+            result: {
+              message: email_result
+            }
+          });
+        } else {
+          return res.status(200).json({
+            title: "PIP Comment Submitted, and email sent to supervisor",
+            result: {
+              message: email_result
+            }
+          });
+        }
+      });
+    }
+  });
+}
 function getpipDetails(req, res) {
   let empId = parseInt(req.query.emp_id);
   pipMaster.aggregate([{
@@ -444,14 +533,19 @@ function getpipDetails(req, res) {
 
   });
 }
-
-
 function insertPip(req, res) {
   let master_id = parseInt(req.body.master_id);
   let supervisor_id = parseInt(req.body.supervisor_id);
   let cretedBy = req.body.createdBy;
   let updatedBy = req.body.updatedBy;
   let pipDetails = new pipdetails();
+  let action_link = req.body.action_link;
+  let emp_id = parseInt(req.body.empId);
+  let email_details = {
+    emp_name: '',
+    emp_email: '',
+    action_link: action_link
+  }
   pipDetails.master_id = master_id;
   pipDetails.supervisor_id = supervisor_id;
   pipDetails.status = req.body.status;
@@ -465,7 +559,6 @@ function insertPip(req, res) {
   pipDetails.employeeInitialComment = req.body.employeeInitialComment;
 
   if(req.body._id != null) {
-
     let updateQuery = {
       supervisor_id: supervisor_id,
       employeeInitialComment: req.body.employeeInitialComment,
@@ -488,9 +581,7 @@ function insertPip(req, res) {
       empComment_month4: req.body.empComment_month4,
       empComment_month5: req.body.empComment_month5,
       empComment_month6: req.body.empComment_month6,
-
     };
-  
     pipdetails.findOneAndUpdate(
       { _id: parseInt(req.body._id) },
       updateQuery,
@@ -514,12 +605,8 @@ function insertPip(req, res) {
             "pipdetails",
             "UPDATED"
           );
-          return res.status(200).json({
-            title: "Learning Updated",
-            result: {
-              message: response
-            }
-          });
+          sendEmailToSupervisor(emp_id, res, email_details);
+          
         }
       }
     );
@@ -940,9 +1027,7 @@ function getpipByReviewer(req, res){
   });
 
 }
-
 function getPipApproval(req, res) {
-
   let pipMasterId = parseInt(req.body.pipMasterId);
   let pipDetailId = parseInt(req.body.pipDetailId);
   let empId = parseInt(req.body.empId);
@@ -1068,7 +1153,7 @@ function getPipApproval(req, res) {
           email_details.user_name = result.emp[0].user_name;
           email_details.user_email = result.emp[0].officeEmail;
           if (email_details.user_email) {
-            SendEmail.sendEmailToUserAboutMtrStatus(email_details, (email_err, email_result) => {
+            SendEmail.sendEmailToEmployeeForApprovedPIP(email_details, (email_err, email_result) => {
               if (email_err) {
                 return res.status(301).json({
                   title: "Pip review approved, failed sending email to employee",
@@ -1111,9 +1196,7 @@ function getPipApproval(req, res) {
     }
   );
 }
-
 function getBatch(req, res) {
-
   let currentUserId = parseInt(req.query.empId);
   pipbatch.aggregate([
     {
@@ -1254,11 +1337,8 @@ function getBatch(req, res) {
     }
   });
 }
-
 function updatePipBatch(req, res) {
-
   let batchId = parseInt(req.body.batchId);
-
   let updateQuery = {
     "updatedAt": new Date(),
     "updatedBy": parseInt(req.body.updatedBy),
@@ -1294,24 +1374,17 @@ function updatePipBatch(req, res) {
     }
   });
 }
-
 function updatepipdetails(req, res) {
-
   let details_id = parseInt(req.body.pipDetailId);
   let masterId = req.body.pipMasterId;
-  //let supervisor_id = parseInt(req.body.supervisor_id);
-  //let cretedBy = req.body.createdBy;
 
-  async.waterfall(
-    [
+  async.waterfall([
       done => {
-
         let masterUpdateQuery = {
           updatedAt: new Date(),
           updatedBy: parseInt(req.body.updatedBy),
           status: "Completed"
         }
-
         pipdetails.find({master_id: masterId}, (err, res) => {
 
           if(err)
@@ -1333,7 +1406,6 @@ function updatepipdetails(req, res) {
         });
       },
       done => {
-
         let updateQuery = {
           updatedAt: new Date(),
           updatedBy: parseInt(req.body.updatedBy),
@@ -1350,7 +1422,6 @@ function updatepipdetails(req, res) {
         };
 
         if(req.body.supervisorPerformanceRating && req.body.superviserFinalReview) {
-
           updateQuery.status = "Completed";
         }
 
@@ -1382,19 +1453,14 @@ function updatepipdetails(req, res) {
             });
           }
         });
-
       }
-    ]
-  )
-  
+    ]);
 }
-
 function getPipByHr(req, res) {
-
   let hrId = parseInt(req.query.hrId);
   let fiscalYearId = parseInt(req.query.fiscalYearId);
-  pipbatch.aggregate([
 
+  pipbatch.aggregate([
     {
       $match: {
         createdBy: hrId
@@ -1484,9 +1550,7 @@ function getPipByHr(req, res) {
     }
   });
 }
-
 function updatepipMaster(req, res) {
-
   let master_id = req.body.masterId;
   let updateQuery = {
     updatedAt: new Date(),
@@ -1497,9 +1561,7 @@ function updatepipMaster(req, res) {
     sup_final_com: req.body.supFinalCom,
     final_recommendation: req.body.finalRecommendation === undefined ? null : req.body.finalRecommendation
   }
-
   pipMaster.findOneAndUpdate({_id:master_id}, updateQuery, (err, result) => {
-
     if(err) {
       return res.status(403).json({
         
@@ -1529,100 +1591,49 @@ function updatepipMaster(req, res) {
     }
   });
 }
-
 let functions = {
-
   getPipEmployee: (req, res) => {
-
     getEligiablePipEmployee(req, res);
   },
-
   initiatePipProcess: (req, res) => {
     InitiatePip(req, res);
   },
-
   getpipdetailsforsingalemployee: (req, res) => {
     getpipDetails(req, res);
   },
-
   postNewPip: (req, res) => {
     insertPip(req, res);
   },
-
   getpipdetails: (req, res) => {
     getpipdetailspostinsertion(req, res);
   },
-
-
   supervisorgetpip:(req, res) => {
-  
     getpipBySupervisor(req, res);
- 
   },
-
   submitpip:(req, res) => {
-  
     submitpip(req, res);
   },
-
   pipByReviewer:(req, res) => {
-  
     getpipByReviewer(req, res);
   },
-
   pipApproval:(req, res) => {
-
     getPipApproval(req, res);
   },
-
   getPipBatch:(req, res) => {
-
     getBatch(req, res);
   },
-
   updateBatch: (req, res) => {
-
     updatePipBatch(req, res);
   },
-
   updatepipdetails: (req, res) => {
-
     updatepipdetails(req, res);
   },
-
   getPipByHR: (req, res) => {
-
     getPipByHr(req, res);
   },
-
   updatePipMaster: (req, res) => {
-
     updatepipMaster(req, res);
   }
-  // getLearningForSuperviser: (req, res) => {
-  //   getLearningBySupervisor(req, res);                  
-  // },
-
-  // submitLearning: (req, res) => {
-  //   submitEmployeeLearning(req, res);
-  // },
-
-  // learningByReviewer: (req, res) => {
-  //   getLearningByReviewer(req, res);
-  // },
-
-  // learningApproval: (req, res) => {
-  //   getLearningApproval(req, res);
-  // },
-
-  // updateBatch: (req, res) => {
-  //   updateBatch(req, res);
-  // },
-
-  // getLearningBatch: (req, res) => {
-  //   getLearningBatch(req, res);
-  // }
-
 };
 
 module.exports = functions;
