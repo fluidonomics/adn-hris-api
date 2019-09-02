@@ -3079,6 +3079,7 @@ function autoReleaseFeedback(req, res) {
 }
 
 function getAllPap(req, res) {
+    let fiscalYearId = parseInt(req.query.fiscalYearId);
     async.waterfall([
         (done) => {
             PapMasterDetails.aggregate([
@@ -3146,6 +3147,11 @@ function getAllPap(req, res) {
                     $unwind: {
                         'path': '$department',
                         'preserveNullAndEmptyArrays': true
+                    }
+                },
+                {
+                    $match: {
+                        'fiscalYearId': fiscalYearId
                     }
                 },
                 {
