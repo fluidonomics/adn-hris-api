@@ -358,7 +358,6 @@ function sendEmailToEmployee(emp_id_array, res, email_details) {
   });
 }
 function sendEmailToSupervisor(emp_id, res, email_details) {
-  
   EmployeeDetails.aggregate([
     {
       "$lookup": {
@@ -398,7 +397,20 @@ function sendEmailToSupervisor(emp_id, res, email_details) {
       "$unwind": {
         "path": "$emp_supDetails_name"
       }
-    },
+    }, 
+    { 
+        "$lookup" : {
+            "from" : "employeeofficedetails", 
+            "localField" : "emp_supDetails.primarySupervisorEmp_id", 
+            "foreignField" : "emp_id", 
+            "as" : "sup_office_details"
+        }
+    }, 
+    { 
+        "$unwind" : {
+            "path" : "$sup_office_details"
+        }
+    }, 
     {
       "$match": {
         "_id": emp_id,
@@ -409,7 +421,8 @@ function sendEmailToSupervisor(emp_id, res, email_details) {
         "_id": "$_id",
         "user_name": "$fullName",
         "officeEmail": "$office_details.officeEmail",
-        "sup_name": "$emp_supDetails_name.fullName"
+        "sup_name": "$emp_supDetails_name.fullName",
+        "supEmail" : "$sup_office_details.officeEmail"
       }
     }
   ]).exec(function (err, data) {
@@ -425,7 +438,7 @@ function sendEmailToSupervisor(emp_id, res, email_details) {
       });
     } else {
       email_details.emp_name = data[0].user_name;
-      email_details.emp_email = data[0].officeEmail;
+      email_details.emp_email = data[0].supEmail;
       email_details.supervisor_name = data[0].sup_name;
       SendEmail.sendEmailToSupervisorForMonthlyCommentPIP(email_details, (email_err, email_result) => {
         if (email_err) {
@@ -541,6 +554,7 @@ function insertPip(req, res) {
   let pipDetails = new pipdetails();
   let action_link = req.body.action_link;
   let emp_id = parseInt(req.body.empId);
+  let shouldSendEmail = Boolean(req.body.shouldSendEmail);
   let email_details = {
     emp_name: '',
     emp_email: '',
@@ -605,7 +619,16 @@ function insertPip(req, res) {
             "pipdetails",
             "UPDATED"
           );
-          sendEmailToSupervisor(emp_id, res, email_details);
+          if (shouldSendEmail)
+            sendEmailToSupervisor(emp_id, res, email_details);
+          else {
+            return res.status(200).json({
+              title: "PIP Comment Submitted",
+              result: {
+                message: response
+              }
+            });
+          }
         }
       }
     );
