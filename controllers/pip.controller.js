@@ -1038,7 +1038,7 @@ function getPipApproval(req, res) {
     supervisor_name: req.body.supervisor_name,
     user_name: '',
     action_link: req.body.action_link,
-    isApproved: req.body.isApproved ? "Approved" : "SendBack"
+    status: req.body.isApproved ? "Approved" : "SendBack"
   };
   let isPipApproved = false;
   let contain = function(element) {
@@ -1198,6 +1198,7 @@ function getPipApproval(req, res) {
 }
 function getBatch(req, res) {
   let currentUserId = parseInt(req.query.empId);
+  let fiscalYearId = parseInt(req.query.fiscalYearId);
   pipbatch.aggregate([
     {
       $match: {
