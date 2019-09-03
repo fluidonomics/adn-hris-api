@@ -916,10 +916,11 @@ let functions = {
         let mailOptions = {
             from: config.email.sendEmailToEmployeeForApprovedPIP.from, // sender address
             to: data.user_email,
-            subject: config.email.sendEmailToEmployeeForApprovedPIP.subject, // Subject line
+            subject: data.status == "Approved" ? config.email.sendEmailToEmployeeForApprovedPIP.subject : config.email.sendEmailToEmployeeForApprovedPIP.subject_sendback, // Subject line
             template: 'email-notify-to-employee-for-pip-approve',
             context: {
                 fullName: data.user_name,
+                status: data.status,
                 appliedDate: moment(new Date()).format('L'),
                 link: data.action_link,
                 supName: data.supervisor_name
