@@ -2835,12 +2835,14 @@ function sendMailForGrievance(data) {
 }
 
 function getEmployeesForGrievance(req, res) {
+    let fiscalYearId = parseInt(req.query.fiscalYearId);
     async.waterfall([
         (done) => {
             PapMasterDetails.aggregate([{
                 '$match': {
                     'grievanceStatus': 'Initiated',
-                    "status": { $ne: 'Terminated' }
+                    "status": { $ne: 'Terminated' },
+                    'fiscalYearId': fiscalYearId
                 }
             },
             {
