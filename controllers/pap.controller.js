@@ -2218,6 +2218,7 @@ function getPapByReviewer(req, res) {
 }
 
 function papSubmitToReviewer(req, res) {
+    let isGrievance = req.body.grievanceStatus == 'Initiated';
     async.waterfall([
         (done) => {
             let updateQuery = {
@@ -2356,7 +2357,10 @@ function papSubmitToReviewer(req, res) {
                     data.emp_name = f.employee.fullName;
                     data.action_link = req.body.action_link;
                     data.employee = f.employee;
-                    SendEmail.sendEmailToReviewerForPapSubmit(data);
+                    if (isGrievance)
+                        SendEmail.sendEmailToReviewerForGrievanceSubmit(data);
+                    else
+                        SendEmail.sendEmailToReviewerForPapSubmit(data);
                 });
                 done(err, papDetails);
             });

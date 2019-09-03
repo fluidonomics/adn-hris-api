@@ -812,6 +812,27 @@ let functions = {
         transporter.sendMail(mailOptions, callback);
 
     },
+    sendEmailToReviewerForGrievanceSubmit: (data, callback) => {
+
+        if (data.emp_email === null || data.emp_email === "") {
+            return
+        }
+        let mailOptions = {
+            from: config.email.sendEmailToReviewerForGrievanceSubmit.from, // sender address
+            to: data.emp_email,
+            subject: config.email.sendEmailToReviewerForGrievanceSubmit.subject, // Subject line
+            template: 'email-notitfy-to-reviewer-for-grievance-submit',
+            context: {
+                appliedDate: moment(new Date()).format('L'),
+                link: data.action_link,
+                reviewerName: data.reviewer.fullName,
+                supervisorName: data.supervisor.fullName,
+                employeeName: data.emp_name
+            }
+        };
+        transporter.sendMail(mailOptions, callback);
+
+    },
     sendEmailToSupervisorForPapSendBack: (data, callback) => {
 
         if (data.supervisorofficedetails.officeEmail === null || data.supervisorofficedetails.officeEmail === "") {

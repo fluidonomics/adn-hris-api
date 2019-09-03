@@ -157,6 +157,11 @@ module.exports = {
       from: '"Team HRIS" <hris@adnsl.net>',
       subject: 'Performance Appraisal Submitted For Reviewer'
     },
+    'sendEmailToReviewerForGrievanceSubmit': {
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'Grievance Remarks Submitted For Reviewer'
+    },
+    
     'sendEmailToSupervisorForPapSendBack': {
       from: '"Team HRIS" <hris@adnsl.net>',
       subject: 'Performance Appraisal SentBack From Reviewer'
