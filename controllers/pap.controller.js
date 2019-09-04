@@ -1725,21 +1725,8 @@ function papUpdateReviewer(req, res) {
                     },
                     {
                         $lookup: {
-                            from: 'kradetails',
-                            localField: 'midtermdetails.kraDetailId',
-                            foreignField: '_id',
-                            as: 'kradetails'
-                        }
-                    },
-                    {
-                        $unwind: {
-                            path: '$kradetails'
-                        }
-                    },
-                    {
-                        $lookup: {
                             from: 'kraweightagedetails',
-                            localField: 'kradetails.weightage_id',
+                            localField: 'midtermdetails.weightage_id',
                             foreignField: '_id',
                             as: 'kraweightagedetails'
                         }
