@@ -1620,6 +1620,7 @@ function papUpdateSupervisor(req, res) {
 
 // When reviewer updates individual pap and approves or sends it back to supervisor.
 function papUpdateReviewer(req, res) {
+    let isGrievance = req.body.grievanceStatus == 'Initiated';
     async.waterfall([
         (done) => {
             let updateQuery = {
@@ -1879,6 +1880,7 @@ function papUpdateReviewer(req, res) {
                                 done(err);
                             }
                             let data = {};
+                            data.isGrievance = isGrievance;
                             data.supervisor = papAggResult.supervisor;
                             data.supervisorofficedetails = papAggResult.supervisorofficedetails;
                             data.reviewer = reviewer;

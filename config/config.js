@@ -164,7 +164,8 @@ module.exports = {
     
     'sendEmailToSupervisorForPapSendBack': {
       from: '"Team HRIS" <hris@adnsl.net>',
-      subject: 'Performance Appraisal SentBack From Reviewer'
+      subject: 'Performance Appraisal SentBack From Reviewer',
+      subject_grievance: 'Grievance SentBack From Reviewer'
     },
     'sendEmailToEmployeeForLeaveQuota': {
       from: '"Team HRIS" <hris@adnsl.net>',
