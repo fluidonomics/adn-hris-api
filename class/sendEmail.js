@@ -841,14 +841,15 @@ let functions = {
         let mailOptions = {
             from: config.email.sendEmailToSupervisorForPapSendBack.from, // sender address
             to: data.supervisorofficedetails.officeEmail,
-            subject: config.email.sendEmailToSupervisorForPapSendBack.subject, // Subject line
+            subject: data.isGrievance ? config.email.sendEmailToSupervisorForPapSendBack.subject_grievance : config.email.sendEmailToSupervisorForPapSendBack.subject, // Subject line
             template: 'email-notify-to-supvsr-for-pap-sendback',
             context: {
                 appliedDate: moment(new Date()).format('L'),
                 link: data.action_link,
                 reviewerName: data.reviewer.fullName,
                 supervisorName: data.supervisor.fullName,
-                empName: data.employee.fullName
+                empName: data.employee.fullName,
+                processName: data.isGrievance ? 'Grievance' : 'Performance Appraisal'
             }
         };
         transporter.sendMail(mailOptions, callback);
