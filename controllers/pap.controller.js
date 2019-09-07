@@ -1620,6 +1620,7 @@ function papUpdateSupervisor(req, res) {
 
 // When reviewer updates individual pap and approves or sends it back to supervisor.
 function papUpdateReviewer(req, res) {
+    let isGrievance = req.body.grievanceStatus == 'Initiated';
     async.waterfall([
         (done) => {
             let updateQuery = {
@@ -1866,6 +1867,7 @@ function papUpdateReviewer(req, res) {
                                 done(err);
                             }
                             let data = {};
+                            data.isGrievance = isGrievance;
                             data.supervisor = papAggResult.supervisor;
                             data.supervisorofficedetails = papAggResult.supervisorofficedetails;
                             data.reviewer = reviewer;
@@ -2205,6 +2207,7 @@ function getPapByReviewer(req, res) {
 }
 
 function papSubmitToReviewer(req, res) {
+    let isGrievance = req.body.grievanceStatus == 'Initiated';
     async.waterfall([
         (done) => {
             let updateQuery = {
@@ -2343,7 +2346,10 @@ function papSubmitToReviewer(req, res) {
                     data.emp_name = f.employee.fullName;
                     data.action_link = req.body.action_link;
                     data.employee = f.employee;
-                    SendEmail.sendEmailToReviewerForPapSubmit(data);
+                    if (isGrievance)
+                        SendEmail.sendEmailToReviewerForGrievanceSubmit(data);
+                    else
+                        SendEmail.sendEmailToReviewerForPapSubmit(data);
                 });
                 done(err, papDetails);
             });
@@ -2822,12 +2828,14 @@ function sendMailForGrievance(data) {
 }
 
 function getEmployeesForGrievance(req, res) {
+    let fiscalYearId = parseInt(req.query.fiscalYearId);
     async.waterfall([
         (done) => {
             PapMasterDetails.aggregate([{
                 '$match': {
                     'grievanceStatus': 'Initiated',
-                    "status": { $ne: 'Terminated' }
+                    "status": { $ne: 'Terminated' },
+                    'fiscalYearId': fiscalYearId
                 }
             },
             {
@@ -3066,6 +3074,7 @@ function autoReleaseFeedback(req, res) {
 }
 
 function getAllPap(req, res) {
+    let fiscalYearId = parseInt(req.query.fiscalYearId);
     async.waterfall([
         (done) => {
             PapMasterDetails.aggregate([
@@ -3133,6 +3142,11 @@ function getAllPap(req, res) {
                     $unwind: {
                         'path': '$department',
                         'preserveNullAndEmptyArrays': true
+                    }
+                },
+                {
+                    $match: {
+                        'fiscalYearId': fiscalYearId
                     }
                 },
                 {

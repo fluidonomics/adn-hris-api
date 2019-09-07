@@ -141,6 +141,15 @@ module.exports = {
       from: '"Team HRIS" <hris@adnsl.net>',
       subject: 'PIP for approval'
     },
+    'sendEmailToEmployeeForApprovedPIP': {
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'PIP Approved',
+      subject_sendback:'PIP Sendback'
+    },
+    'sendEmailToSupervisorForMonthlyCommentPIP': {
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'PIP Comment Submitted'
+    },
     'sendEmailToEmployeeForPipStatus': {
       from: '"Team HRIS" <hris@adnsl.net>',
       subject: 'PIP status'
@@ -149,9 +158,15 @@ module.exports = {
       from: '"Team HRIS" <hris@adnsl.net>',
       subject: 'Performance Appraisal Submitted For Reviewer'
     },
+    'sendEmailToReviewerForGrievanceSubmit': {
+      from: '"Team HRIS" <hris@adnsl.net>',
+      subject: 'Grievance Remarks Submitted For Reviewer'
+    },
+    
     'sendEmailToSupervisorForPapSendBack': {
       from: '"Team HRIS" <hris@adnsl.net>',
-      subject: 'Performance Appraisal SentBack From Reviewer'
+      subject: 'Performance Appraisal SentBack From Reviewer',
+      subject_grievance: 'Grievance SentBack From Reviewer'
     },
     'sendEmailToEmployeeForLeaveQuota': {
       from: '"Team HRIS" <hris@adnsl.net>',
