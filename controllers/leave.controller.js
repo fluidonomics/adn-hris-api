@@ -1316,16 +1316,17 @@ function getEmployeeForQuotaProvideMaternity(req, res, done) {
                     innerDone(err, res);
                 } else {
                     let employees = res.filter(emp => {
-                        if (emp.employeeofficedetails.dateOfJoining) {
-                            var diffInYears = dateFn.differenceInCalendarYears(
-                                new Date(),
-                                emp.employeeofficedetails.dateOfJoining
-                            );
-                            if (diffInYears > 0) {
-                                return true;
-                            }
-                        }
-                        return false;
+                        // if (emp.employeeofficedetails.dateOfJoining) {
+                        //     var diffInYears = dateFn.differenceInCalendarYears(
+                        //         new Date(),
+                        //         emp.employeeofficedetails.dateOfJoining
+                        //     );
+                        //     if (diffInYears > 0) {
+                        //         return true;
+                        //     }
+                        // }
+                        // return false;
+                        return true;
                     });
                     innerDone(err, employees);
                 }
