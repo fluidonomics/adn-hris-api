@@ -1304,13 +1304,13 @@ function getEmployeeForQuotaProvideMaternity(req, res, done) {
                     'path': '$employeeofficedetails'
                 },
             },
-            {
-                $match: {
-                    'employeeofficedetails.dateOfJoining': {
-                        $ne: null
-                    }
-                }
-            }
+            // {
+            //     $match: {
+            //         'employeeofficedetails.dateOfJoining': {
+            //             $ne: null
+            //         }
+            //     }
+            // }
             ]).exec((err, res) => {
                 if (err) {
                     innerDone(err, res);
