@@ -1304,28 +1304,29 @@ function getEmployeeForQuotaProvideMaternity(req, res, done) {
                     'path': '$employeeofficedetails'
                 },
             },
-            {
-                $match: {
-                    'employeeofficedetails.dateOfJoining': {
-                        $ne: null
-                    }
-                }
-            }
+            // {
+            //     $match: {
+            //         'employeeofficedetails.dateOfJoining': {
+            //             $ne: null
+            //         }
+            //     }
+            // }
             ]).exec((err, res) => {
                 if (err) {
                     innerDone(err, res);
                 } else {
                     let employees = res.filter(emp => {
-                        if (emp.employeeofficedetails.dateOfJoining) {
-                            var diffInYears = dateFn.differenceInCalendarYears(
-                                new Date(),
-                                emp.employeeofficedetails.dateOfJoining
-                            );
-                            if (diffInYears > 0) {
-                                return true;
-                            }
-                        }
-                        return false;
+                        // if (emp.employeeofficedetails.dateOfJoining) {
+                        //     var diffInYears = dateFn.differenceInCalendarYears(
+                        //         new Date(),
+                        //         emp.employeeofficedetails.dateOfJoining
+                        //     );
+                        //     if (diffInYears > 0) {
+                        //         return true;
+                        //     }
+                        // }
+                        // return false;
+                        return true;
                     });
                     innerDone(err, employees);
                 }
