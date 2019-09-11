@@ -7,7 +7,7 @@ let mongoose                = require('mongoose'),
       let DivisionSchema = new Schema(
       {
         _id:{type:Number},
-         divisionName: {type: String,required:true,unique: true},
+         divisionName: {type: String,required:true},
          updatedBy: {type: Number, default:null},
          createdBy: {type: Number, required: true},
          isDeleted:{type:Boolean,default:false}
