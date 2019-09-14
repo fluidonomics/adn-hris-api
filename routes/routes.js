@@ -119,7 +119,10 @@ module.exports = (app) => {
 
   // Add Employee endpoint: http://localhost:3000/api/user/addEmployee
   userRoutes.post('/addEmployee', ensureAuthenticated, user.addEmployee);
-
+  // Add Bulk Employee endpoint: http://localhost:3000/api/user/addBulkEmployee
+  userRoutes.post('/addBulkEmployee', ensureAuthenticated, user.addBulkEmployee);
+  // Add Bulk Employee endpoint: http://localhost:3000/api/user/addBulkEmployee
+  userRoutes.post('/updateEmployeeSupervisors', ensureAuthenticated, user.updateEmployeeSupervisors);
   // Add Employee endpoint: http://localhost:3000/api/user/addPersonalInfo
   userRoutes.post('/addPersonalInfo', ensureAuthenticated, user.addPersonalInfo);
 
