@@ -2708,7 +2708,7 @@ function updateEmployeeSupervisors(req, res) {
         if (err) {
             console.log('error while fetching employee details for emp ' + employeeUserName)
         } else {
-            empId = empDetails._id;
+            empId = empDetails[0]._id;
             EmployeeInfo.find({ userName: BusinessHrHeadUserName }, (err1, BusinessHrHeadDetails) => {
                 if (err1) {
                     console.log('error while fetching employee details for emp ' + employeeUserName  + ' businessHr name ' + BusinessHrHeadUserName)
