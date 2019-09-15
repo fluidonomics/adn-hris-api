@@ -2691,6 +2691,8 @@ async function IterateUsersForUpdate(req, res) {
         data.body.hrSpocId = f.hrSpocId;
         data.body.supervisorId = f.supervisorId;
         data.body.groupHrHead_id = f.groupHrHead_id;
+        data.body.department_id = f.department_id;
+        
         updateEmployeeSupervisors(data, res);
     });
 }
@@ -2701,7 +2703,7 @@ function updateEmployeeSupervisors(req, res) {
     let hrSpocUserName = req.body.hrSpocId;
     let supervisorUserName = req.body.supervisorId;
     let groupHrHead_id = req.body.groupHrHead_id;
-
+    let department_id = req.body.department_id;
     let empId = 0;
     let businessHrHeadId = 0;
     let hrSpocId = 0;
@@ -2729,6 +2731,7 @@ function updateEmployeeSupervisors(req, res) {
                                     let officeDetail = new OfficeInfo();
                                     officeDetail.hrspoc_id = hrSpocId;
                                     officeDetail.groupHrHead_id = groupHrHead_id;
+                                    officeDetail.department_id = department_id;
                                     officeDetail.businessHrHead_id = businessHrHeadId;
                                     
                                     OfficeInfo.findOneAndUpdate(
