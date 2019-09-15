@@ -709,11 +709,12 @@ module.exports = (app) => {
 
 
   //= ========================
-  // Pap Routes
+  // Patcher Routes
   //= ========================
   apiRoutes.use('/patcher', patcherRoutes);
-  patcherRoutes.post('/fixFiscalYearIdOfCollections', patcher.fixFiscalYearIdOfCollections);
-  patcherRoutes.post('/fixKraWorkflowIdForMTRCollections', patcher.fixKraWorkflowIdForMTRCollections);
+  patcherRoutes.post('/fixFiscalYearIdOfCollections', patcher.kra.fixFiscalYearIdOfCollections);
+  patcherRoutes.post('/fixKraWorkflowIdForMTRCollections', patcher.kra.fixKraWorkflowIdForMTRCollections);
+  patcherRoutes.post('/fixPapOverallRating', patcher.pap.fixPapOverallRating);
 
   // Set url for API group routes, all endpoints start with /api/ eg http://localhost:3000/api/admin  || http://localhost:3000/api/auth
   app.use('/api', apiRoutes);
