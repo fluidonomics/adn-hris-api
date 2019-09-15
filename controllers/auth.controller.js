@@ -69,7 +69,7 @@ let functions = {
                 {"$project": {
                   "fullName":"$fullName",
                   "designation_id":"$designation_id",
-                  // "company_id"    :"$company_id",
+                  "company_id"    :"$company_id",
                   // "grade_id"      :"$grade_id",
                   "userName":"$userName",
                   "profileImage":"$profileImage",
@@ -119,11 +119,11 @@ let functions = {
                   "personalEmail"    :"$employeepersonaldetails.personalEmail",
                   "profileImage"     :"$profileImage",
                   "fullName"         :"$fullName",
-                  // "company_id"       :"$company_id",
+                  "company_id"       :"$company_id",
                   // "grade_id"         :"$grade_id",
                   "designation_id"   :"$designation_id",
                   "roles"            :"$roles.roleName",
-                  "userName"         :"$userName"
+                  "userName"         :"$userName",
                 }}
               ]).exec(function(err, employeeDetailsData){
                 let userInfo = setUserInfo(employeeDetailsData[0]);
