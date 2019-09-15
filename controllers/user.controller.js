@@ -2692,6 +2692,7 @@ async function IterateUsersForUpdate(req, res) {
         data.body.supervisorId = f.supervisorId;
         data.body.groupHrHead_id = f.groupHrHead_id;
         data.body.department_id = f.department_id;
+        data.body.officeEmail = f.officeEmail;
         
         updateEmployeeSupervisors(data, res);
     });
@@ -2704,6 +2705,8 @@ function updateEmployeeSupervisors(req, res) {
     let supervisorUserName = req.body.supervisorId;
     let groupHrHead_id = req.body.groupHrHead_id;
     let department_id = req.body.department_id;
+    let officeEmail = req.body.officeEmail;
+        
     let empId = 0;
     let businessHrHeadId = 0;
     let hrSpocId = 0;
@@ -2733,7 +2736,7 @@ function updateEmployeeSupervisors(req, res) {
                                     officeDetail.groupHrHead_id = groupHrHead_id;
                                     officeDetail.department_id = department_id;
                                     officeDetail.businessHrHead_id = businessHrHeadId;
-                                    
+                                    officeDetail.officeEmail = officeEmail;
                                     OfficeInfo.findOneAndUpdate(
                                         { emp_id: empId },
                                         officeDetail, { new: true }, function (errX, officeDetailsResponse) {
@@ -3053,7 +3056,8 @@ let functions = {
                     "grade_id": "$grade_id",
                     "kraWorkflow": "$kraworkflowdetails",
                     "departmentName": "$departmentDetails.departmentName",
-                    "grade": "$gradeDetails.gradeName"
+                    "grade": "$gradeDetails.gradeName",
+                    "company_id": "$company_id"
                 }
             }
         ]).exec(function (err, results) {
