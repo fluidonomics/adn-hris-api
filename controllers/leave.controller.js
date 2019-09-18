@@ -1390,6 +1390,58 @@ function getEmployeeForQuotaProvideSpecial(req, res, done) {
     });
 }
 
+async function addLeaveBalanceMigration(req, res) {
+    var q = async.queue(function (item, callback) {
+        inserLeaveBalance(item, res, callback);
+    }, 1);
+
+    // assign a callback
+    q.drain = function () {
+        console.log('All items have been processed');
+        return res.status(200).json({
+            title: 'Done'
+        });
+    };
+    req.body.forEach(f => {
+        q.push(f);
+    })
+}
+
+function inserLeaveBalance(req, res, callback) {
+    let empUserName = req.employeeUserName;
+    Employee.findOne({ userName : empUserName }, function (err, details){
+        if (err) {
+            console.log("empUserName: " + empUserName);
+            callback();
+        } else {
+            if (details != undefined) {
+                let empId = Number(details._id);
+                let leaveBalance = new LeaveBalance();
+                leaveBalance.createdAt = new Date();
+                leaveBalance.emp_id = empId;
+                leaveBalance.fiscalYearId = 3;
+                leaveBalance.leave_type = 2; //annual leave
+                leaveBalance.isDeleted = false;
+                leaveBalance.startDate = new Date('2019-07-01');
+                leaveBalance.createdBy = 1;
+                leaveBalance.carryForwardLeave = req.carry_forward_data;
+                leaveBalance.balance = Number(req.sickleave);
+                leaveBalance.save((err, resp) => {
+                    if (err) {
+                        console.log("empId" + empId + " err: " + err);
+                        callback();
+
+                    } else {
+                        callback();
+                    }
+                })
+            } else {
+                console.log("undefined empUserName: " + empUserName);
+                callback();
+            }
+        }
+    })
+}
 let functions = {
     uploadSickLeaveDocument: (req, res) => {
         async.waterfall([
@@ -4196,6 +4248,9 @@ let functions = {
                 return res.status(200).json(data);
             }
         });
+    },
+    addLeaveBalanceMigration: (req, res) => {
+        addLeaveBalanceMigration(req, res);
     },
     migrateLeaveMergeToProd: (req, res) => {
         async.waterfall([
