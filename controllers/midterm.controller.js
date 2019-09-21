@@ -631,6 +631,7 @@ function getMtrBySupervisor(req, res) {
       $project: {
         mtrMasterId: "$mtr_master_id",
         emp_details: "$emp_details",
+        companyId: "$emp_details.company_id",
         mtr_master_details: "$mtr_master_details",
         status: "$mtr_master_details.status"
       }
@@ -640,7 +641,8 @@ function getMtrBySupervisor(req, res) {
       $group: {
         _id: "$mtrMasterId",
         emp_details: { $first: "$emp_details" },
-        mtr_master_details: { $first: "$mtr_master_details" }
+        mtr_master_details: { $first: "$mtr_master_details" },
+        companyId: {$first: "$companyId"}
       }
     }
   ]).exec(function (err, data) {

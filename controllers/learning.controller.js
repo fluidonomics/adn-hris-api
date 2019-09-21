@@ -493,6 +493,7 @@ function getLearningBySupervisor(req, res) {
         learning_master_details: "$learning_master_details",
         status: "$learning_master_details.status",
         updatedAt: "$learning_master_details.updatedAt",
+        companyId: "$emp_details.company_id"
         //profileImage: "$emp_details.profileImage"
       }
     },
@@ -502,7 +503,8 @@ function getLearningBySupervisor(req, res) {
         _id: "$learningMasterId",
         emp_details: { $first: "$emp_details" },
         learning_master_details: { $first: "$learning_master_details" },
-        updatedAt: { $first: "$learning_master_details.updatedAt" }
+        updatedAt: { $first: "$learning_master_details.updatedAt" },
+        companyId: { $first: "$companyId" }
       }
     },
     { $sort : { updatedAt : -1} },

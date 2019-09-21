@@ -469,6 +469,8 @@ function getKraForApproval(req, res) {
                 "emp_name": "$employeedetails.fullName",
                 "userName": "$employeedetails.userName",
                 "profileImage": "$employeedetails.profileImage",
+                "companyId": "$employeedetails.company_id",
+
             }
         },
         {
@@ -480,6 +482,7 @@ function getKraForApproval(req, res) {
                 emp_name: { $first: "$emp_name" },
                 userName: { $first: "$userName" },
                 profileImage: { $first: "$profileImage" },
+                companyId: { $first: "$companyId" }
             }
         }
     ]).exec((err, kraDetails) => {
