@@ -642,7 +642,7 @@ function getMtrBySupervisor(req, res) {
         _id: "$mtrMasterId",
         emp_details: { $first: "$emp_details" },
         mtr_master_details: { $first: "$mtr_master_details" },
-        companyId: {$first: "$companyId"}
+        companyId: { $first: "$companyId" }
       }
     }
   ]).exec(function (err, data) {

@@ -2060,14 +2060,14 @@ function getPapByReviewer(req, res) {
             EmployeeSupervisorDetails.find({
                 primarySupervisorEmp_id: reviewerId
             }, {
-                    emp_id: true
-                }, function (err, response) {
-                    let supervisorIdArray = [];
-                    response.forEach(f => {
-                        supervisorIdArray.push(f._doc.emp_id);
-                    });
-                    done(err, supervisorIdArray);
+                emp_id: true
+            }, function (err, response) {
+                let supervisorIdArray = [];
+                response.forEach(f => {
+                    supervisorIdArray.push(f._doc.emp_id);
                 });
+                done(err, supervisorIdArray);
+            });
         },
         (papDetails, done) => {
             console.log(papDetails);
@@ -2134,6 +2134,7 @@ function getPapByReviewer(req, res) {
                         'profileImage': '$emp_details.profileImage',
                         'pap_master_id': '$pap_master_id',
                         'papmasters': '$papmasters',
+                        'company_id': '$emp_details.company_id',
                         'group_obj': {
                             'grievanceSupRemark': '$grievanceSupRemark',
                             'grievanceRevRemark': '$grievanceRevRemark',
@@ -2176,6 +2177,9 @@ function getPapByReviewer(req, res) {
                         },
                         'papmasters': {
                             '$first': '$papmasters'
+                        },
+                        'company_id': {
+                            '$first': '$company_id'
                         },
                         'kra_details': {
                             '$push': '$group_obj'
