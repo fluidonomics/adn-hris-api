@@ -2604,23 +2604,23 @@ function addLeaveQuota(req, res, done) {
     });
 }
 async function IterateUsers(req, res) {
-    var q = async.queue(function(item, callback) {
-        addBulkUsers(item, res, callback); 
-      }, 1);
-      
-      // assign a callback
-      q.drain = function() {
+    var q = async.queue(function (item, callback) {
+        addBulkUsers(item, res, callback);
+    }, 1);
+
+    // assign a callback
+    q.drain = function () {
         console.log('All items have been processed');
-      };
-      req.body.forEach(f => {
+    };
+    req.body.forEach(f => {
         let data = {};
-        data.headers = {uid: 1};
+        data.headers = { uid: 1 };
         data.body = f;
         q.push(data);
-      } )
+    })
 }
 
-function  addBulkUsers( req, res, callback) {
+function addBulkUsers(req, res, callback) {
     async.waterfall([
         function (done) {
             crypto.randomBytes(20, function (err, buf) {
@@ -2681,10 +2681,10 @@ function  addBulkUsers( req, res, callback) {
     ]);
 }
 async function IterateUsersForUpdate(req, res) {
-    
-      req.body.forEach(f => {
+
+    req.body.forEach(f => {
         let data = {};
-        data.headers = {uid: 1};
+        data.headers = { uid: 1 };
         data.body = {};
         data.body.employeeUserName = f.employeeUserName;
         data.body.BusinessHrHeadID = f.BusinessHrHeadID;
@@ -2693,7 +2693,7 @@ async function IterateUsersForUpdate(req, res) {
         data.body.groupHrHead_id = f.groupHrHead_id;
         data.body.department_id = f.department_id;
         data.body.officeEmail = f.officeEmail;
-        
+
         updateEmployeeSupervisors(data, res);
     });
 }
@@ -2706,7 +2706,7 @@ function updateEmployeeSupervisors(req, res) {
     let groupHrHead_id = req.body.groupHrHead_id;
     let department_id = req.body.department_id;
     let officeEmail = req.body.officeEmail;
-        
+
     let empId = 0;
     let businessHrHeadId = 0;
     let hrSpocId = 0;
@@ -2718,7 +2718,7 @@ function updateEmployeeSupervisors(req, res) {
             empId = empDetails[0]._id;
             EmployeeInfo.find({ userName: BusinessHrHeadUserName }, (err1, BusinessHrHeadDetails) => {
                 if (err1) {
-                    console.log('error while fetching employee details for emp ' + employeeUserName  + ' businessHr name ' + BusinessHrHeadUserName)
+                    console.log('error while fetching employee details for emp ' + employeeUserName + ' businessHr name ' + BusinessHrHeadUserName)
                 } else {
                     businessHrHeadId = BusinessHrHeadDetails[0]._id;
                     EmployeeInfo.find({ userName: hrSpocUserName }, (err1, hrSpocDetails) => {
@@ -2741,7 +2741,7 @@ function updateEmployeeSupervisors(req, res) {
                                         { emp_id: empId },
                                         officeDetail, { new: true }, function (errX, officeDetailsResponse) {
                                             if (errX) {
-                                                console.log('Error while updating OfficeInfo' + employeeUserName); 
+                                                console.log('Error while updating OfficeInfo' + employeeUserName);
 
                                             } else {
                                                 let supervisorInfoForUpdate = new SupervisorInfo();
@@ -2759,7 +2759,7 @@ function updateEmployeeSupervisors(req, res) {
 
                                                 );
                                             }
-                                            
+
                                         });
                                 }
                             })
@@ -2901,7 +2901,7 @@ let functions = {
             {
                 "$match": {
                     "kraWorkflowDetails.fiscalYearId": fiscalYearId
-                }  
+                }
             },
             {
                 "$project": {
@@ -2911,6 +2911,7 @@ let functions = {
                     "fullName": "$employeedetails.fullName",
                     "userName": "$employeedetails.userName",
                     "profileImage": "$employeedetails.profileImage",
+                    "company_id": "$employeedetails.company_id"
                 }
             }
         ]).exec(function (err, results) {
@@ -3359,32 +3360,32 @@ let functions = {
 
             empSeparation.findOneAndUpdate(
                 { _id: req.body._id },
-                empSeparationInfo, {new: true},
-                function(err, empSeparationResp) {
-    
-                if(err) {
-                    return res.status(403).json({
-                        title: "There was a problem",
-                        error: {
-                            message: err
-                        },
-                        result: {
-                            message: empSeparationResp
-                        }
-                    })
-                } else {
-    
-                    AuditTrail.auditTrailEntry(
-                        0,
-                        "empSeparationInfo",
-                        empSeparationResp,
-                        "user",
-                        "empSeparationInfo",
-                        "Updated"
-                    );
-                    return res.status(200).json(empSeparationResp);
-                }
-            })
+                empSeparationInfo, { new: true },
+                function (err, empSeparationResp) {
+
+                    if (err) {
+                        return res.status(403).json({
+                            title: "There was a problem",
+                            error: {
+                                message: err
+                            },
+                            result: {
+                                message: empSeparationResp
+                            }
+                        })
+                    } else {
+
+                        AuditTrail.auditTrailEntry(
+                            0,
+                            "empSeparationInfo",
+                            empSeparationResp,
+                            "user",
+                            "empSeparationInfo",
+                            "Updated"
+                        );
+                        return res.status(200).json(empSeparationResp);
+                    }
+                })
         } else {
 
             empSeparationInfo.save(function (err, empSeparationResp) {
