@@ -151,7 +151,8 @@ function getEmployeesForPapInitiate(req, res) {
                     supervisorName: { $first: '$supervisor_details.fullName' },
                     emp_emailId: { $first: '$employee_office_details.officeEmail' },
                     hrspoc_id: { $first: '$employee_office_details.hrspoc_id' },
-                    pap_master: { $push: '$pap_master' }
+                    pap_master: { $push: '$pap_master' },
+                    company_id: { $first: "$employee_details.company_id" }
                 }
             },
             {
@@ -171,6 +172,7 @@ function getEmployeesForPapInitiate(req, res) {
                     supervisorName: 1,
                     emp_emailId: 1,
                     hrspoc_id: 1,
+                    company_id: 1,
                     pap_master: {
                         $filter: {
                             input: "$pap_master",
