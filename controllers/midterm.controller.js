@@ -8,6 +8,7 @@ let KraWorkFlowInfo = require("../models/kra/kraWorkFlowDetails.model"),
   EmployeeDetails = require("../models/employee/employeeDetails.model");
 function EmpDetailsForMidTermInitiate(req, res) {
   let fiscalYearId = Number(req.query.fiscalYearId);
+
   KraWorkFlowInfo.aggregate([
     {
       $project: {
@@ -170,7 +171,8 @@ function EmpDetailsForMidTermInitiate(req, res) {
         emp_supervisor_name: "$supervisor_details.fullName",
         mtr_status: "$mtr_master_details.status",
         mtr_batch_id: "$mtr_master_details.batch_id",
-        mtr_master: "$mtr_master_details"
+        mtr_master: "$mtr_master_details",
+        company_id: "$employee_details.company_id"
       }
     }
   ]).exec(function (err, response) {
