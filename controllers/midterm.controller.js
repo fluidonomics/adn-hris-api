@@ -8,6 +8,7 @@ let KraWorkFlowInfo = require("../models/kra/kraWorkFlowDetails.model"),
   EmployeeDetails = require("../models/employee/employeeDetails.model");
 function EmpDetailsForMidTermInitiate(req, res) {
   let fiscalYearId = Number(req.query.fiscalYearId);
+
   KraWorkFlowInfo.aggregate([
     {
       $project: {
@@ -170,7 +171,8 @@ function EmpDetailsForMidTermInitiate(req, res) {
         emp_supervisor_name: "$supervisor_details.fullName",
         mtr_status: "$mtr_master_details.status",
         mtr_batch_id: "$mtr_master_details.batch_id",
-        mtr_master: "$mtr_master_details"
+        mtr_master: "$mtr_master_details",
+        company_id: "$employee_details.company_id"
       }
     }
   ]).exec(function (err, response) {
@@ -631,6 +633,7 @@ function getMtrBySupervisor(req, res) {
       $project: {
         mtrMasterId: "$mtr_master_id",
         emp_details: "$emp_details",
+        companyId: "$emp_details.company_id",
         mtr_master_details: "$mtr_master_details",
         status: "$mtr_master_details.status"
       }
@@ -640,7 +643,8 @@ function getMtrBySupervisor(req, res) {
       $group: {
         _id: "$mtrMasterId",
         emp_details: { $first: "$emp_details" },
-        mtr_master_details: { $first: "$mtr_master_details" }
+        mtr_master_details: { $first: "$mtr_master_details" },
+        companyId: { $first: "$companyId" }
       }
     }
   ]).exec(function (err, data) {

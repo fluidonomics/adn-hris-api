@@ -7,7 +7,7 @@ let mongoose                = require('mongoose'),
       let VerticalSchema = new Schema(
       {
         _id:{type:Number},
-         verticalName: {type: String,required:true,unique: true},
+         verticalName: {type: String,required:true},
          department_id: {type:Number,ref:'departments'},
          updatedBy: {type: Number, default:null},
          createdBy: {type: Number, required: true},

@@ -119,7 +119,10 @@ module.exports = (app) => {
 
   // Add Employee endpoint: http://localhost:3000/api/user/addEmployee
   userRoutes.post('/addEmployee', ensureAuthenticated, user.addEmployee);
-
+  // Add Bulk Employee endpoint: http://localhost:3000/api/user/addBulkEmployee
+  userRoutes.post('/addBulkEmployee', ensureAuthenticated, user.addBulkEmployee);
+  // Add Bulk Employee endpoint: http://localhost:3000/api/user/addBulkEmployee
+  userRoutes.post('/updateEmployeeSupervisors', ensureAuthenticated, user.updateEmployeeSupervisors);
   // Add Employee endpoint: http://localhost:3000/api/user/addPersonalInfo
   userRoutes.post('/addPersonalInfo', ensureAuthenticated, user.addPersonalInfo);
 
@@ -371,6 +374,7 @@ module.exports = (app) => {
   leaveRoutes.get('/getEmployeeForQuotaProvide', leave.getEmployeeForQuotaProvide);
   leaveRoutes.post('/provideLeaveQuota', leave.provideLeaveQuota);
   leaveRoutes.post('/addLeaveBalance', leave.addLeaveBalance);
+  leaveRoutes.post('/addLeaveBalanceMigration', leave.addLeaveBalanceMigration);
   leaveRoutes.post('/migrateLeaveMergeToProd', leave.migrateLeaveMergeToProd);
   leaveRoutes.get('/getAllLeaveBalances', leave.getAllLeaveBalances);
   leaveRoutes.get('/getOverviewChartData', leave.getOverviewChartData);
@@ -706,11 +710,12 @@ module.exports = (app) => {
 
 
   //= ========================
-  // Pap Routes
+  // Patcher Routes
   //= ========================
   apiRoutes.use('/patcher', patcherRoutes);
-  patcherRoutes.post('/fixFiscalYearIdOfCollections', patcher.fixFiscalYearIdOfCollections);
-  patcherRoutes.post('/fixKraWorkflowIdForMTRCollections', patcher.fixKraWorkflowIdForMTRCollections);
+  patcherRoutes.post('/fixFiscalYearIdOfCollections', patcher.kra.fixFiscalYearIdOfCollections);
+  patcherRoutes.post('/fixKraWorkflowIdForMTRCollections', patcher.kra.fixKraWorkflowIdForMTRCollections);
+  patcherRoutes.post('/fixPapOverallRating', patcher.pap.fixPapOverallRating);
 
   // Set url for API group routes, all endpoints start with /api/ eg http://localhost:3000/api/admin  || http://localhost:3000/api/auth
   app.use('/api', apiRoutes);

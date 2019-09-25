@@ -158,7 +158,9 @@ function getEligiablePipEmployee(req, res) {
             "grade_id": "$grade_id",
             "overallRating": "$papdetails.overallRating",
             "pip_status": "$pip_master_details.status",
-            "pip_batch_id": "$pip_master_details.batch_id"
+            "pip_batch_id": "$pip_master_details.batch_id",
+            "company_id": "$company_id"
+
           }
         }
       ]).exec(function (err, results) {
@@ -192,7 +194,7 @@ function getEligiablePipEmployee(req, res) {
 function InitiatePip(req, res) {
   let createdby = parseInt(req.body.createdBy);
   let timelines = parseInt(req.body.timelines);
-  let fiscalYearId =  parseInt(req.body.fiscalYearId);
+  let fiscalYearId = parseInt(req.body.fiscalYearId);
   let pipBatchDetails = new pipbatch();
   pipBatchDetails.batchName = req.body.batchName;
   pipBatchDetails.timelines = 3;
@@ -397,20 +399,20 @@ function sendEmailToSupervisor(emp_id, res, email_details) {
       "$unwind": {
         "path": "$emp_supDetails_name"
       }
-    }, 
-    { 
-        "$lookup" : {
-            "from" : "employeeofficedetails", 
-            "localField" : "emp_supDetails.primarySupervisorEmp_id", 
-            "foreignField" : "emp_id", 
-            "as" : "sup_office_details"
-        }
-    }, 
-    { 
-        "$unwind" : {
-            "path" : "$sup_office_details"
-        }
-    }, 
+    },
+    {
+      "$lookup": {
+        "from": "employeeofficedetails",
+        "localField": "emp_supDetails.primarySupervisorEmp_id",
+        "foreignField": "emp_id",
+        "as": "sup_office_details"
+      }
+    },
+    {
+      "$unwind": {
+        "path": "$sup_office_details"
+      }
+    },
     {
       "$match": {
         "_id": emp_id,
@@ -422,7 +424,7 @@ function sendEmailToSupervisor(emp_id, res, email_details) {
         "user_name": "$fullName",
         "officeEmail": "$office_details.officeEmail",
         "sup_name": "$emp_supDetails_name.fullName",
-        "supEmail" : "$sup_office_details.officeEmail"
+        "supEmail": "$sup_office_details.officeEmail"
       }
     }
   ]).exec(function (err, data) {
@@ -572,7 +574,7 @@ function insertPip(req, res) {
   pipDetails.measureOfSuccess = req.body.measureOfSuccess;
   pipDetails.employeeInitialComment = req.body.employeeInitialComment;
 
-  if(req.body._id != null) {
+  if (req.body._id != null) {
     let updateQuery = {
       supervisor_id: supervisor_id,
       employeeInitialComment: req.body.employeeInitialComment,
@@ -1064,7 +1066,7 @@ function getPipApproval(req, res) {
     status: req.body.isApproved ? "Approved" : "SendBack"
   };
   let isPipApproved = false;
-  let contain = function(element) {
+  let contain = function (element) {
     return element._id === pipDetailId;
   }
   async.waterfall(
@@ -1404,81 +1406,81 @@ function updatepipdetails(req, res) {
   let masterId = req.body.pipMasterId;
 
   async.waterfall([
-      done => {
-        let masterUpdateQuery = {
-          updatedAt: new Date(),
-          updatedBy: parseInt(req.body.updatedBy),
-          status: "Completed"
-        }
-        pipdetails.find({master_id: masterId}, (err, res) => {
-
-          if (err)
-            done(err, null);
-
-          let finalReviewLength = res.filter(pip => {
-            return (pip.finalRating == null || typeof pip.finalRating == 'undefined');
-          });
-
-          if (finalReviewLength.length <= 1 && req.body.supervisorPerformanceRating && req.body.superviserFinalReview) {
-
-            pipMaster.findByIdAndUpdate({ _id: masterId }, masterUpdateQuery, (err, res) => {
-              done(err, res);
-            });
-          } else {
-            done(null, null);
-          }
-
-        });
-      },
-      done => {
-        let updateQuery = {
-          updatedAt: new Date(),
-          updatedBy: parseInt(req.body.updatedBy),
-          supComment_month1: req.body.supComment_month1,
-          supComment_month2: req.body.supComment_month2,
-          supComment_month3: req.body.supComment_month3,
-          supComment_month4: req.body.supComment_month4,
-          supComment_month5: req.body.supComment_month5,
-          supComment_month6: req.body.supComment_month6,
-          //"timelines": parseInt(req.body.timelines),
-          finalRating: req.body.supervisorPerformanceRating === undefined ? null : req.body.supervisorPerformanceRating,
-          finalReview: req.body.superviserFinalReview
-
-        };
-
-        if(req.body.supervisorPerformanceRating && req.body.superviserFinalReview) {
-          updateQuery.status = "Completed";
-        }
-        pipdetails.findOneAndUpdate({ _id: details_id }, updateQuery, (err, result) => {
-          if (err) {
-            return res.status(403).json({
-              title: "There was a problem",
-              error: {
-                message: err
-              },
-              result: {
-                message: result
-              }
-            });
-          } else {
-            AuditTrail.auditTrailEntry(
-              0,
-              "pipdetails",
-              result,
-              "pip",
-              "updateDetails",
-              "UPDATED"
-            );
-            return res.status(200).json({
-              title: "Pip detail updated",
-              result: {
-                message: result
-              }
-            });
-          }
-        });
+    done => {
+      let masterUpdateQuery = {
+        updatedAt: new Date(),
+        updatedBy: parseInt(req.body.updatedBy),
+        status: "Completed"
       }
-    ]);
+      pipdetails.find({ master_id: masterId }, (err, res) => {
+
+        if (err)
+          done(err, null);
+
+        let finalReviewLength = res.filter(pip => {
+          return (pip.finalRating == null || typeof pip.finalRating == 'undefined');
+        });
+
+        if (finalReviewLength.length <= 1 && req.body.supervisorPerformanceRating && req.body.superviserFinalReview) {
+
+          pipMaster.findByIdAndUpdate({ _id: masterId }, masterUpdateQuery, (err, res) => {
+            done(err, res);
+          });
+        } else {
+          done(null, null);
+        }
+
+      });
+    },
+    done => {
+      let updateQuery = {
+        updatedAt: new Date(),
+        updatedBy: parseInt(req.body.updatedBy),
+        supComment_month1: req.body.supComment_month1,
+        supComment_month2: req.body.supComment_month2,
+        supComment_month3: req.body.supComment_month3,
+        supComment_month4: req.body.supComment_month4,
+        supComment_month5: req.body.supComment_month5,
+        supComment_month6: req.body.supComment_month6,
+        //"timelines": parseInt(req.body.timelines),
+        finalRating: req.body.supervisorPerformanceRating === undefined ? null : req.body.supervisorPerformanceRating,
+        finalReview: req.body.superviserFinalReview
+
+      };
+
+      if (req.body.supervisorPerformanceRating && req.body.superviserFinalReview) {
+        updateQuery.status = "Completed";
+      }
+      pipdetails.findOneAndUpdate({ _id: details_id }, updateQuery, (err, result) => {
+        if (err) {
+          return res.status(403).json({
+            title: "There was a problem",
+            error: {
+              message: err
+            },
+            result: {
+              message: result
+            }
+          });
+        } else {
+          AuditTrail.auditTrailEntry(
+            0,
+            "pipdetails",
+            result,
+            "pip",
+            "updateDetails",
+            "UPDATED"
+          );
+          return res.status(200).json({
+            title: "Pip detail updated",
+            result: {
+              message: result
+            }
+          });
+        }
+      });
+    }
+  ]);
 }
 function getPipByHr(req, res) {
   let hrId = parseInt(req.query.hrId);
@@ -1584,8 +1586,8 @@ function updatepipMaster(req, res) {
     rev_final_com: req.body.revFinalCom,
     sup_final_com: req.body.supFinalCom,
   }
-  pipMaster.findOneAndUpdate({_id:master_id}, updateQuery, (err, result) => {
-    if(err) {
+  pipMaster.findOneAndUpdate({ _id: master_id }, updateQuery, (err, result) => {
+    if (err) {
       return res.status(403).json({
 
         title: "There was a problem",
@@ -1717,19 +1719,19 @@ let functions = {
   getpipdetails: (req, res) => {
     getpipdetailspostinsertion(req, res);
   },
-  supervisorgetpip:(req, res) => {
+  supervisorgetpip: (req, res) => {
     getpipBySupervisor(req, res);
   },
-  submitpip:(req, res) => {
+  submitpip: (req, res) => {
     submitpip(req, res);
   },
-  pipByReviewer:(req, res) => {
+  pipByReviewer: (req, res) => {
     getpipByReviewer(req, res);
   },
-  pipApproval:(req, res) => {
+  pipApproval: (req, res) => {
     getPipApproval(req, res);
   },
-  getPipBatch:(req, res) => {
+  getPipBatch: (req, res) => {
     getBatch(req, res);
   },
   updateBatch: (req, res) => {
