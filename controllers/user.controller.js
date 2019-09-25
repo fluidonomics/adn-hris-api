@@ -2694,6 +2694,7 @@ async function IterateUsersForUpdate(req, res) {
         data.body.department_id = f.department_id;
         data.body.officeEmail = f.officeEmail;
 
+        console.log(f.employeeUserName);
         updateEmployeeSupervisors(data, res);
     });
 }

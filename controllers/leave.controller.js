@@ -1410,9 +1410,10 @@ async function addLeaveBalanceMigration(req, res) {
 
 function inserLeaveBalance(req, res, callback) {
     let empUserName = req.employeeUserName;
+    console.log("empUserName: " + empUserName);
     Employee.findOne({ userName : empUserName }, function (err, details){
         if (err) {
-            console.log("empUserName: " + empUserName);
+            console.log("error | empUserName: " + empUserName);
             callback();
         } else {
             if (details != undefined) {
