@@ -7,6 +7,7 @@ let async = require('async'),
     PapMasterDetails = require('../models/pap/papMaster.model'),
     EmployeeSupervisorDetails = require('../models/employee/employeeSupervisorDetails.model'),
     EmployeeDetails = require('../models/employee/employeeDetails.model'),
+    EmployeeOfficeDetails = require('../models/employee/employeeOfficeDetails.model'),
     SendEmail = require('../class/sendEmail'),
     PapDetails = require('../models/pap/papDetails.model'),
     KraMaster = require('../models/kra/kraWorkFlowDetails.model'),
@@ -380,6 +381,48 @@ function fixPapOverallRating(req, res) {
     });
 }
 
+
+// User Patches
+// xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+// xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+// #116-Resend resetPassword mail to new employees on officeEmail
+function resendEmail(req, res) {
+    async.waterfall([
+        (done) => {
+            EmployeeDetails.find({ _id: { $gte: 620 }, isAccountActive: false }, (err, employees) => {
+                employees.forEach((emp, index) => {
+                    let expiryDate = new Date(2019, 10, 28);
+                    EmployeeDetails.findOneAndUpdate({ _id: emp._id }, { resetPasswordExpires: expiryDate }, (err, doc) => {
+                        if (err) {
+                            console.log("Employee update error - " + emp.userName);
+                        } else {
+                            console.log("Employee updated - " + emp.userName);
+                        }
+                    })
+                    EmployeeOfficeDetails.findOne({ emp_id: emp._id }, (err, empOfficeDetail) => {
+                        if (err) {
+                            console.log("EmployeeOfficeDetails find error - " + emp.userName);
+                        } else {
+                            if (empOfficeDetail.officeEmail) {
+                                setTimeout(() => {
+                                    console.log("Sending Mail | Employee Office Email - " + emp.userName + " | " + empOfficeDetail.officeEmail);
+                                    SendEmail.sendEmailWelcomeUser(empOfficeDetail.officeEmail, emp);
+                                }, 2000 * index);
+                            } else {
+                                console.log("Employee Office Email Null - " + emp.userName);
+                            }
+                        }
+                    })
+                });
+            })
+
+        }
+    ], (err, result) => {
+        sendResponse(res, err, result, 'Email Sent');
+    });
+}
+
 let functions = {
     // KRA Patches
     kra: {
@@ -395,6 +438,13 @@ let functions = {
         // #114-Fix PAP Overall Rating
         fixPapOverallRating: (req, res) => {
             fixPapOverallRating(req, res);
+        }
+    },
+    // USER Patches
+    user: {
+        // #116-Resend resetPassword mail to new employees on officeEmail
+        resendEmail: (req, res) => {
+            resendEmail(req, res);
         }
     }
 }
