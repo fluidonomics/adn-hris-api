@@ -519,6 +519,7 @@ module.exports = (app) => {
   masterRoutes.post('/createCompanyFinancialYear', master.createCompanyFinancialYear);
   masterRoutes.post('/createPapRatingScale', master.createPapRatingScale);
   masterRoutes.get('/getPapRatingScale', master.getPapRatingScale);
+  masterRoutes.get('/getHrHeads', master.getHrHeads);
 
 
 
