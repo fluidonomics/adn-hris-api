@@ -423,6 +423,71 @@ function resendEmail(req, res) {
     });
 }
 
+
+
+// #116-Resend resetPassword mail to new employees on officeEmail
+function updateHrSpocOfAllEmployees(req, res) {
+    let companyHrMap = [
+        {
+            companyId: 1,
+            hrSpocUserName: "1010676"
+        },
+        {
+            companyId: 2,
+            hrSpocUserName: "1010576"
+        },
+        {
+            companyId: 3,
+            hrSpocUserName: "3010230"
+        },
+        {
+            companyId: 4,
+            hrSpocUserName: "4010127"
+        },
+        {
+            companyId: 5,
+            hrSpocUserName: "1010576"
+        },
+        {
+            companyId: 6,
+            hrSpocUserName: "1010576"
+        }
+    ]
+    async.waterfall([
+        (done) => {
+            var q = async.queue(function (company, callback) {
+                console.log("Processing items for company - " + company.companyId, "| HrSpoc -", company.hrSpocUserName);
+                EmployeeDetails.findOne({ userName: company.hrSpocUserName }, (err, hrSpoc) => {
+                    console.log("HrSpoc | Id - " + hrSpoc._id);
+                    EmployeeDetails.find({ company_id: company.companyId, isDeleted: false }, (err, employees) => {
+                        console.log("Total Employees | " + employees.length);
+                        let empIds = employees.map(e => e._id);
+                        EmployeeOfficeDetails.updateMany({ emp_id: { $in: empIds } }, { hrspoc_id: hrSpoc._id, updatedAt: new Date() }, (err, employeeUpdateDoc) => {
+                            if (err) {
+                                console.log("Error in updating employees | ", err);
+                            } else {
+                                console.log("Success in updating employees");
+                            }
+                            callback();
+                        });
+                    })
+                })
+            })
+
+            q.drain = function () {
+                console.log('All companies processed');
+                done(null);
+            };
+
+            companyHrMap.forEach(company => {
+                q.push(company);
+            });
+        }
+    ], (err, result) => {
+        sendResponse(res, err, result, 'All Employees Updated');
+    });
+}
+
 let functions = {
     // KRA Patches
     kra: {
@@ -445,6 +510,10 @@ let functions = {
         // #116-Resend resetPassword mail to new employees on officeEmail
         resendEmail: (req, res) => {
             resendEmail(req, res);
+        },
+        // #116-Mail from Harpreet | HR SPOC and HR Employees for the Group Companies
+        updateHrSpocOfAllEmployees: (req, res) => {
+            updateHrSpocOfAllEmployees(req, res);
         }
     }
 }
