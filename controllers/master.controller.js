@@ -635,16 +635,12 @@ let functions = {
 
           "userName": "$employeedetails.userName",
           "grade_id": "$employeedetails.grade_id",
-          "company_id": "$employeedetails.company_id",
           "designation_id": "$employeedetails.designation_id",
           "employmentType_id": "$employeedetails.employmentType_id",
-          "password": "$employeedetails.password",
           "fullName": "$employeedetails.fullName",
-          "updatedBy": "$employeedetails.updatedBy",
           "isAccountActive": "$employeedetails.isAccountActive",
           "isDeleted": "$employeedetails.isDeleted",
           "profileImage": "$employeedetails.profileImage"
-
         }
       }
     ]).exec((err, result) => {
