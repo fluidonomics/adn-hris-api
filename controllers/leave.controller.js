@@ -1422,12 +1422,12 @@ function inserLeaveBalance(req, res, callback) {
                 leaveBalance.createdAt = new Date();
                 leaveBalance.emp_id = empId;
                 leaveBalance.fiscalYearId = 3;
-                leaveBalance.leave_type = 2; //annual leave
+                leaveBalance.leave_type = 1; //annual leave
                 leaveBalance.isDeleted = false;
                 leaveBalance.startDate = new Date('2019-07-01');
                 leaveBalance.createdBy = 1;
                 leaveBalance.carryForwardLeave = req.carry_forward_data;
-                leaveBalance.balance = Number(req.sickleave);
+                leaveBalance.balance = Number(req.annualLeave);
                 leaveBalance.save((err, resp) => {
                     if (err) {
                         console.log("empId" + empId + " err: " + err);

@@ -718,6 +718,7 @@ module.exports = (app) => {
   patcherRoutes.post('/fixKraWorkflowIdForMTRCollections', patcher.kra.fixKraWorkflowIdForMTRCollections);
   patcherRoutes.post('/fixPapOverallRating', patcher.pap.fixPapOverallRating);
   patcherRoutes.post('/resendEmail', patcher.user.resendEmail);
+  patcherRoutes.post('/updateHrSpocOfAllEmployees', patcher.user.updateHrSpocOfAllEmployees);
 
   // Set url for API group routes, all endpoints start with /api/ eg http://localhost:3000/api/admin  || http://localhost:3000/api/auth
   app.use('/api', apiRoutes);
