@@ -519,6 +519,7 @@ module.exports = (app) => {
   masterRoutes.post('/createCompanyFinancialYear', master.createCompanyFinancialYear);
   masterRoutes.post('/createPapRatingScale', master.createPapRatingScale);
   masterRoutes.get('/getPapRatingScale', master.getPapRatingScale);
+  masterRoutes.get('/getHrHeads', master.getHrHeads);
 
 
 
@@ -716,6 +717,8 @@ module.exports = (app) => {
   patcherRoutes.post('/fixFiscalYearIdOfCollections', patcher.kra.fixFiscalYearIdOfCollections);
   patcherRoutes.post('/fixKraWorkflowIdForMTRCollections', patcher.kra.fixKraWorkflowIdForMTRCollections);
   patcherRoutes.post('/fixPapOverallRating', patcher.pap.fixPapOverallRating);
+  patcherRoutes.post('/resendEmail', patcher.user.resendEmail);
+  patcherRoutes.post('/updateHrSpocOfAllEmployees', patcher.user.updateHrSpocOfAllEmployees);
 
   // Set url for API group routes, all endpoints start with /api/ eg http://localhost:3000/api/admin  || http://localhost:3000/api/auth
   app.use('/api', apiRoutes);

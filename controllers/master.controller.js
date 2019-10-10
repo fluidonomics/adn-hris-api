@@ -22,7 +22,8 @@ let express = require('express'),
   PerformanceRating = require('../models/master/performanceRating.model'),
   FinancialYearDetail = require('../models/master/financialYearDetails.model'),
   FinancialYearCompany = require('../models/master/financialYear.model'),
-  PapRatingScale = require('../models/master/papRatingScale.model');
+  PapRatingScale = require('../models/master/papRatingScale.model'),
+  HrHeads = require('../models/master/hrheads.model');
 
 //jwt                = require('jsonwebtoken'),
 // config            = require('../config/config'),
@@ -600,9 +601,60 @@ let functions = {
       }
       return res.status(200).json({ result });
     });
+  },
+  getHrHeads: (req, res) => {
+    HrHeads.aggregate([
+      {
+        $match: {
+          company_id: parseInt(req.query.company_id)
+        }
+      },
+      {
+        $lookup: {
+          from: "employeedetails",
+          localField: "emp_id",
+          foreignField: "_id",
+          as: "employeedetails"
+        }
+      },
+      {
+        $unwind: {
+          path: "$employeedetails",
+          preserveNullAndEmptyArrays: true
+        }
+      },
+      {
+        $project: {
+          "_id": 1,
+          "updatedAt": 1,
+          "createdAt": 1,
+          "company_id": 1,
+          "emp_id": 1,
+          "type": 1,
+          "isDeleted": 1,
+
+          "userName": "$employeedetails.userName",
+          "grade_id": "$employeedetails.grade_id",
+          "designation_id": "$employeedetails.designation_id",
+          "employmentType_id": "$employeedetails.employmentType_id",
+          "fullName": "$employeedetails.fullName",
+          "isAccountActive": "$employeedetails.isAccountActive",
+          "isDeleted": "$employeedetails.isDeleted",
+          "profileImage": "$employeedetails.profileImage"
+        }
+      }
+    ]).exec((err, result) => {
+      if (err) {
+        return res.status(403).json({
+          title: 'There was an error, please try again later',
+          error: { message: err },
+          result: { message: result }
+        });
+      }
+      return res.status(200).json({ result });
+    });
   }
 };
 
 module.exports = functions;
-
 

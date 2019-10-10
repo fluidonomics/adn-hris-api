@@ -7,6 +7,7 @@ let async = require('async'),
     PapMasterDetails = require('../models/pap/papMaster.model'),
     EmployeeSupervisorDetails = require('../models/employee/employeeSupervisorDetails.model'),
     EmployeeDetails = require('../models/employee/employeeDetails.model'),
+    EmployeeOfficeDetails = require('../models/employee/employeeOfficeDetails.model'),
     SendEmail = require('../class/sendEmail'),
     PapDetails = require('../models/pap/papDetails.model'),
     KraMaster = require('../models/kra/kraWorkFlowDetails.model'),
@@ -380,6 +381,113 @@ function fixPapOverallRating(req, res) {
     });
 }
 
+
+// User Patches
+// xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+// xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+// #116-Resend resetPassword mail to new employees on officeEmail
+function resendEmail(req, res) {
+    async.waterfall([
+        (done) => {
+            EmployeeDetails.find({ _id: { $gte: 620 }, isAccountActive: false }, (err, employees) => {
+                employees.forEach((emp, index) => {
+                    let expiryDate = new Date(2019, 10, 28);
+                    EmployeeDetails.findOneAndUpdate({ _id: emp._id }, { resetPasswordExpires: expiryDate }, (err, doc) => {
+                        if (err) {
+                            console.log("Employee update error - " + emp.userName);
+                        } else {
+                            console.log("Employee updated - " + emp.userName);
+                        }
+                    })
+                    EmployeeOfficeDetails.findOne({ emp_id: emp._id }, (err, empOfficeDetail) => {
+                        if (err) {
+                            console.log("EmployeeOfficeDetails find error - " + emp.userName);
+                        } else {
+                            if (empOfficeDetail.officeEmail) {
+                                setTimeout(() => {
+                                    console.log("Sending Mail | Employee Office Email - " + emp.userName + " | " + empOfficeDetail.officeEmail);
+                                    SendEmail.sendEmailWelcomeUser(empOfficeDetail.officeEmail, emp);
+                                }, 2000 * index);
+                            } else {
+                                console.log("Employee Office Email Null - " + emp.userName);
+                            }
+                        }
+                    })
+                });
+            })
+
+        }
+    ], (err, result) => {
+        sendResponse(res, err, result, 'Email Sent');
+    });
+}
+
+
+
+// #116-Resend resetPassword mail to new employees on officeEmail
+function updateHrSpocOfAllEmployees(req, res) {
+    let companyHrMap = [
+        {
+            companyId: 1,
+            hrSpocUserName: "1010676"
+        },
+        {
+            companyId: 2,
+            hrSpocUserName: "1010576"
+        },
+        {
+            companyId: 3,
+            hrSpocUserName: "3010230"
+        },
+        {
+            companyId: 4,
+            hrSpocUserName: "4010127"
+        },
+        {
+            companyId: 5,
+            hrSpocUserName: "1010576"
+        },
+        {
+            companyId: 6,
+            hrSpocUserName: "1010576"
+        }
+    ]
+    async.waterfall([
+        (done) => {
+            var q = async.queue(function (company, callback) {
+                console.log("Processing items for company - " + company.companyId, "| HrSpoc -", company.hrSpocUserName);
+                EmployeeDetails.findOne({ userName: company.hrSpocUserName }, (err, hrSpoc) => {
+                    console.log("HrSpoc | Id - " + hrSpoc._id);
+                    EmployeeDetails.find({ company_id: company.companyId, isDeleted: false }, (err, employees) => {
+                        console.log("Total Employees | " + employees.length);
+                        let empIds = employees.map(e => e._id);
+                        EmployeeOfficeDetails.updateMany({ emp_id: { $in: empIds } }, { hrspoc_id: hrSpoc._id, updatedAt: new Date() }, (err, employeeUpdateDoc) => {
+                            if (err) {
+                                console.log("Error in updating employees | ", err);
+                            } else {
+                                console.log("Success in updating employees");
+                            }
+                            callback();
+                        });
+                    })
+                })
+            })
+
+            q.drain = function () {
+                console.log('All companies processed');
+                done(null);
+            };
+
+            companyHrMap.forEach(company => {
+                q.push(company);
+            });
+        }
+    ], (err, result) => {
+        sendResponse(res, err, result, 'All Employees Updated');
+    });
+}
+
 let functions = {
     // KRA Patches
     kra: {
@@ -395,6 +503,17 @@ let functions = {
         // #114-Fix PAP Overall Rating
         fixPapOverallRating: (req, res) => {
             fixPapOverallRating(req, res);
+        }
+    },
+    // USER Patches
+    user: {
+        // #116-Resend resetPassword mail to new employees on officeEmail
+        resendEmail: (req, res) => {
+            resendEmail(req, res);
+        },
+        // #116-Mail from Harpreet | HR SPOC and HR Employees for the Group Companies
+        updateHrSpocOfAllEmployees: (req, res) => {
+            updateHrSpocOfAllEmployees(req, res);
         }
     }
 }
