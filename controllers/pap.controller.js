@@ -11,7 +11,9 @@ let async = require('async'),
     PapDetails = require('../models/pap/papDetails.model'),
     KraMaster = require('../models/kra/kraWorkFlowDetails.model'),
     KraDetail = require('../models/kra/kraDetails.model'),
-    moment = require('moment');
+    moment = require('moment'),
+    Json2csvParser = require('json2csv').Parser,
+    fs = require('fs');
 
 require('dotenv').load();
 
@@ -3431,6 +3433,118 @@ function releaseGrievanceFeedback(req, res) {
     });
 }
 
+function getPapDailyReport(req, res) {
+    let companyId = parseInt(req.query.companyId);
+    let fiscalYearId = parseInt(req.query.fiscalYearId);
+    PapMasterDetails.aggregate([
+        {
+            "$match": {
+                "status": { $ne: 'Terminated' },
+                "fiscalYearId": fiscalYearId
+            }
+        },
+        {
+            '$lookup': {
+                'from': 'employeedetails',
+                'localField': 'emp_id',
+                'foreignField': '_id',
+                'as': 'employeedetails'
+            }
+        },
+        {
+            '$unwind': {
+                'path': '$employeedetails'
+            }
+        },
+        {
+            "$match": {
+                "employeedetails.company_id": companyId
+            }
+        },
+        // {
+        //     "$project": {
+        //         "_id": 1,
+        //         "updatedAt": 1,
+        //         "createdAt": 1,
+        //         "createdBy": 1,
+        //         "emp_id": 1,
+        //         "batch_id": 1,
+        //         "mtr_master_id": 1,
+        //         "isDeleted": 1,
+        //         "updatedBy": 1,
+        //         "isRatingCommunicated": 1,
+        //         "status": 1,
+        //         "reviewerStatus": 1,
+        //         "grievanceStatus": 1,
+        //         "grievanceRaiseEndDate": 1,
+        //         "feedbackReleaseEndDate": 1,
+        //         "isSentToSupervisor": 1,
+        //         "overallRating": 1,
+        //         "isGrievanceFeedbackSentToSupervisor": 1,
+        //         "grievanceFeedbackReleaseEndDate": 1,
+        //         "isGrievanceFeedbackReleased": 1,
+        //         "papbatches": {
+        //             "_id": 1,
+        //             "updatedAt": 1,
+        //             "createdAt": 1,
+        //             "createdBy": 1,
+        //             "isDeleted": 1,
+        //             "updatedBy": 1,
+        //             "status": 1,
+        //             "batchEndDate": 1,
+        //             "batchName": 1,
+        //             "createdBy_empDetails": "$createdBy_empDetails"
+        //         },
+        //         "papdetails": {
+        //             "_id": 1,
+        //             "updatedAt": 1,
+        //             "pap_master_id": 1,
+        //             "empId": 1,
+        //             "mtr_details_id": 1,
+        //             "createdBy": 1,
+        //             "createdAt": 1,
+        //             "isDeleted": 1,
+        //             "updatedBy": 1,
+        //             "grievanceStatus": 1,
+        //             "grievanceSupRemark": 1,
+        //             "grievanceRevRemark": 1,
+        //             "grievance_ratingScaleId": 1,
+        //             "status": 1,
+        //             "reviewerRemark": 1,
+        //             "supRemark": 1,
+        //             "sup_ratingScaleId": 1,
+        //             "empRemark": 1,
+        //             "emp_ratingScaleId": 1,
+        //             "midtermdetails": "$midtermdetails",
+        //             "pap_supervisorDetails": "$pap_supervisorDetails"
+        //         }
+        //     }
+        // }
+    ]).exec((err, result) => {
+        const fields = ['Employee_Id', 'OverallRating', 'ReviewerStatus', 'Status'];
+        const json2csvParser = new Json2csvParser({ fields });
+        let papData = result.map(pap => {
+            let obj = {
+                Employee_Id: pap.employeedetails.userName,
+                OverallRating: pap.overallRating,
+                ReviewerStatus: pap.reviewerStatus,
+                Status: pap.status,
+            }
+            return obj;
+        });
+        const csv = json2csvParser.parse(papData);
+        // console.log('test new demo',csv);
+        let fileName = 'PAP_Report_' + new Date().toDateString() + '.csv';
+
+        fs.writeFile(fileName, csv, function (err) {
+            //currently saves file to app's root directory
+            if (err) throw err;
+            console.log('file saved');
+            res.download(fileName, fileName);
+        });
+    });
+}
+
 let functions = {
     getEmployeesForPapInitiate: (req, res) => {
         getEmployeesForPapInitiate(req, res);
@@ -3503,6 +3617,9 @@ let functions = {
     },
     releaseGrievanceFeedback: (req, res) => {
         releaseGrievanceFeedback(req, res);
+    },
+    getPapDailyReport: (req, res) => {
+        getPapDailyReport(req, res);
     },
 }
 

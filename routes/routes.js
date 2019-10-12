@@ -691,6 +691,7 @@ module.exports = (app) => {
   papRoutes.get('/getEmployeesForGrievanceFeedbackInit', pap.getEmployeesForGrievanceFeedbackInit);
   papRoutes.post('/initiateGrievanceFeedback', pap.initiateGrievanceFeedback);
   papRoutes.post('/releaseGrievanceFeedback', pap.releaseGrievanceFeedback);
+  papRoutes.get('/getPapDailyReport', pap.getPapDailyReport);
 
   /*===================================
   Dashboard API's
