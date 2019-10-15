@@ -428,10 +428,10 @@ function resendEmail(req, res) {
 // #116-Resend resetPassword mail to new employees on officeEmail
 function updateHrSpocOfAllEmployees(req, res) {
     let companyHrMap = [
-        {
-            companyId: 1,
-            hrSpocUserName: "1010676"
-        },
+        // {
+        //     companyId: 1,
+        //     hrSpocUserName: "1010676"
+        // },
         {
             companyId: 2,
             hrSpocUserName: "1010576"
@@ -488,6 +488,95 @@ function updateHrSpocOfAllEmployees(req, res) {
     });
 }
 
+// #116-Update group & business hrHeads as per mail table
+function updateGroupBusinessHrHeadsAllEmployees(req, res) {
+    let companyHrMap = [
+        {
+            companyId: 1,
+            hrSpocUserName: "1010676",
+            businessHrHead_userName: "1010022",
+            groupHrHead_userName: "3010269",
+            businessHrHead_id: 11,
+            groupHrHead_id: 509
+        },
+        {
+            companyId: 2,
+            hrSpocUserName: "1010576",
+            businessHrHead_userName: "1010022",
+            groupHrHead_userName: "3010269",
+            businessHrHead_id: 11,
+            groupHrHead_id: 509
+        },
+        {
+            companyId: 3,
+            hrSpocUserName: "3010230",
+            businessHrHead_userName: "3010372",
+            groupHrHead_userName: "3010269",
+            businessHrHead_id: 510,
+            groupHrHead_id: 509
+        },
+        {
+            companyId: 4,
+            hrSpocUserName: "4010127",
+            businessHrHead_userName: "3010269",
+            groupHrHead_userName: "3010269",
+            businessHrHead_id: 509,
+            groupHrHead_id: 509
+        },
+        {
+            companyId: 5,
+            hrSpocUserName: "1010576",
+            businessHrHead_userName: "1010022",
+            groupHrHead_userName: "3010269",
+            businessHrHead_id: 11,
+            groupHrHead_id: 509
+        },
+        {
+            companyId: 6,
+            hrSpocUserName: "1010576",
+            businessHrHead_userName: "1010022",
+            groupHrHead_userName: "3010269",
+            businessHrHead_id: 11,
+            groupHrHead_id: 509
+        }
+    ]
+    async.waterfall([
+        (done) => {
+            var q = async.queue(function (company, callback) {
+                console.log("Processing items for company | " + JSON.stringify(company));
+                EmployeeDetails.find({ company_id: company.companyId, isDeleted: false }, (err, employees) => {
+                    console.log("Total Employees | " + employees.length);
+                    let empIds = employees.map(e => e._id);
+                    let updateQuery = {
+                        businessHrHead_id: company.businessHrHead_id,
+                        groupHrHead_id: company.groupHrHead_id,
+                        updatedAt: new Date()
+                    };
+                    EmployeeOfficeDetails.updateMany({ emp_id: { $in: empIds } }, updateQuery, (err, employeeUpdateDoc) => {
+                        if (err) {
+                            console.log("Error in updating employees | ", err);
+                        } else {
+                            console.log("Success in updating employees");
+                        }
+                        callback();
+                    });
+                })
+            })
+
+            q.drain = function () {
+                console.log('All companies processed');
+                done(null);
+            };
+
+            companyHrMap.forEach(company => {
+                q.push(company);
+            });
+        }
+    ], (err, result) => {
+        sendResponse(res, err, result, 'All Employees Updated');
+    });
+}
+
 let functions = {
     // KRA Patches
     kra: {
@@ -514,6 +603,10 @@ let functions = {
         // #116-Mail from Harpreet | HR SPOC and HR Employees for the Group Companies
         updateHrSpocOfAllEmployees: (req, res) => {
             updateHrSpocOfAllEmployees(req, res);
+        },
+        // #116
+        updateGroupBusinessHrHeadsAllEmployees: (req, res) => {
+            updateGroupBusinessHrHeadsAllEmployees(req, res);
         }
     }
 }
