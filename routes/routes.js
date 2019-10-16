@@ -691,6 +691,7 @@ module.exports = (app) => {
   papRoutes.get('/getEmployeesForGrievanceFeedbackInit', pap.getEmployeesForGrievanceFeedbackInit);
   papRoutes.post('/initiateGrievanceFeedback', pap.initiateGrievanceFeedback);
   papRoutes.post('/releaseGrievanceFeedback', pap.releaseGrievanceFeedback);
+  papRoutes.get('/getPapDailyReport', pap.getPapDailyReport);
 
   /*===================================
   Dashboard API's
@@ -719,6 +720,8 @@ module.exports = (app) => {
   patcherRoutes.post('/fixPapOverallRating', patcher.pap.fixPapOverallRating);
   patcherRoutes.post('/resendEmail', patcher.user.resendEmail);
   patcherRoutes.post('/updateHrSpocOfAllEmployees', patcher.user.updateHrSpocOfAllEmployees);
+  patcherRoutes.post('/updateGroupBusinessHrHeadsAllEmployees', patcher.user.updateGroupBusinessHrHeadsAllEmployees);
+  
 
   // Set url for API group routes, all endpoints start with /api/ eg http://localhost:3000/api/admin  || http://localhost:3000/api/auth
   app.use('/api', apiRoutes);
