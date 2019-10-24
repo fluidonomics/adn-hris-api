@@ -520,6 +520,8 @@ module.exports = (app) => {
   masterRoutes.post('/createPapRatingScale', master.createPapRatingScale);
   masterRoutes.get('/getPapRatingScale', master.getPapRatingScale);
   masterRoutes.get('/getHrHeads', master.getHrHeads);
+  masterRoutes.get('/getAllHrHeads', master.getAllHrHeads);
+  
 
 
 
