@@ -42,7 +42,7 @@
     "moment": "^2.22.2",
     "mongodb": "2.2.28",
     "mongoimport": "^1.0.6",
-    "mongoose": "^4.10.7",
+    "mongoose": "^5.7.5",
     "mongoose-sequence": "^4.0.1",
     "mongoose-unique-validator": "^1.0.5",
     "morgan": "1.8.2",
