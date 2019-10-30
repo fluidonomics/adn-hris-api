@@ -721,7 +721,8 @@ module.exports = (app) => {
   patcherRoutes.post('/resendEmail', patcher.user.resendEmail);
   patcherRoutes.post('/updateHrSpocOfAllEmployees', patcher.user.updateHrSpocOfAllEmployees);
   patcherRoutes.post('/updateGroupBusinessHrHeadsAllEmployees', patcher.user.updateGroupBusinessHrHeadsAllEmployees);
-  
+  patcherRoutes.post('/provideLeaveQuota', patcher.leave.provideLeaveQuota);
+
 
   // Set url for API group routes, all endpoints start with /api/ eg http://localhost:3000/api/admin  || http://localhost:3000/api/auth
   app.use('/api', apiRoutes);
