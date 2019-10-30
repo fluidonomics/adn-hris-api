@@ -12,6 +12,7 @@ let async = require('async'),
     PapDetails = require('../models/pap/papDetails.model'),
     KraMaster = require('../models/kra/kraWorkFlowDetails.model'),
     KraDetail = require('../models/kra/kraDetails.model'),
+    EmployeeLeaveBalance = require('../models/leave/EmployeeLeaveBalance.model'),
     moment = require('moment');
 
 require('dotenv').load();
@@ -577,6 +578,73 @@ function updateGroupBusinessHrHeadsAllEmployees(req, res) {
     });
 }
 
+
+// #121-Fwd: Leave Quota for Newly joined Employees
+function provideLeaveQuota(req, res) {
+    async.waterfall([
+        (done) => {
+            var q = async.queue(function (employee, callback) {
+                console.log("Processing employee | " + JSON.stringify(employee.userName));
+                EmployeeDetails.findOne({ userName: employee.userName }, (err, empDetail) => {
+                    console.log("Employee Id | " + empDetail._id, "Annual Leave |", employee.annualLeave, "Sick Leave |", employee.sickLeave);
+
+                    // Adding Annual Leave Quota
+                    let annualLeaveBalance = new EmployeeLeaveBalance();
+                    annualLeaveBalance.emp_id = empDetail._id;
+                    annualLeaveBalance.fiscalYearId = 3;
+                    annualLeaveBalance.leave_type = 1;
+                    annualLeaveBalance.isDeleted = false;
+                    annualLeaveBalance.startDate = new Date(2019, 07, 01);
+                    annualLeaveBalance.createdBy = 1;
+                    annualLeaveBalance.updatedBy = 1;
+                    annualLeaveBalance.balance = employee.annualLeave;
+                    annualLeaveBalance.save(
+                        function (err, leaveData) {
+                            if (err) {
+                                console.log("Error in annual Leave");
+                            }
+
+                            // Adding Sick Leave Quota
+                            let sickLeaveBalance = new EmployeeLeaveBalance();
+                            sickLeaveBalance.emp_id = empDetail._id;
+                            sickLeaveBalance.fiscalYearId = 3;
+                            sickLeaveBalance.leave_type = 2;
+                            sickLeaveBalance.isDeleted = false;
+                            sickLeaveBalance.startDate = new Date(2019, 07, 01);
+                            sickLeaveBalance.createdBy = 1;
+                            sickLeaveBalance.updatedBy = 1;
+                            sickLeaveBalance.balance = employee.sickLeave;
+                            sickLeaveBalance.save(
+                                function (err, leaveData) {
+                                    if (err) {
+                                        console.log("Error in sick Leave");
+                                    }
+
+                                    callback();
+                                }
+                            );
+                        }
+                    );
+
+
+
+                })
+            })
+
+            q.drain = function () {
+                console.log('All employees processed');
+                done(null);
+            };
+
+            req.body.forEach(emp => {
+                q.push(emp);
+            });
+        }
+    ], (err, result) => {
+        sendResponse(res, err, result, 'Leave Quota Provided');
+    });
+}
+
 let functions = {
     // KRA Patches
     kra: {
@@ -608,6 +676,13 @@ let functions = {
         updateGroupBusinessHrHeadsAllEmployees: (req, res) => {
             updateGroupBusinessHrHeadsAllEmployees(req, res);
         }
+    },
+    // Leave Patches
+    leave: {
+        // #121-Fwd: Leave Quota for Newly joined Employees
+        provideLeaveQuota: (req, res) => {
+            provideLeaveQuota(req, res);
+        },
     }
 }
 
