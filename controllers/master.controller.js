@@ -683,6 +683,11 @@ let functions = {
           path: "$companies",
           preserveNullAndEmptyArrays: true
         }
+      },
+      {
+        $sort: {
+          company_id: 1
+        }
       }
     ]).exec((err, result) => {
       if (err) {
