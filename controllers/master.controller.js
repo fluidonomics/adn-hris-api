@@ -653,6 +653,52 @@ let functions = {
       }
       return res.status(200).json({ result });
     });
+  },
+  getAllHrHeads: (req, res) => {
+    HrHeads.aggregate([
+      {
+        $lookup: {
+          from: "employeedetails",
+          localField: "emp_id",
+          foreignField: "_id",
+          as: "employeedetails"
+        }
+      },
+      {
+        $unwind: {
+          path: "$employeedetails",
+          preserveNullAndEmptyArrays: true
+        }
+      },
+      {
+        $lookup: {
+          from: "companies",
+          localField: "company_id",
+          foreignField: "_id",
+          as: "companies"
+        }
+      },
+      {
+        $unwind: {
+          path: "$companies",
+          preserveNullAndEmptyArrays: true
+        }
+      },
+      {
+        $sort: {
+          company_id: 1
+        }
+      }
+    ]).exec((err, result) => {
+      if (err) {
+        return res.status(403).json({
+          title: 'There was an error, please try again later',
+          error: { message: err },
+          result: { message: result }
+        });
+      }
+      return res.status(200).json({ result });
+    });
   }
 };
 
