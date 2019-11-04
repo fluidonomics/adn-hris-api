@@ -3545,6 +3545,118 @@ function getPapDailyReport(req, res) {
     });
 }
 
+function getPapEvaluationReport(req, res) {
+    let companyId = parseInt(req.query.companyId);
+    let fiscalYearId = parseInt(req.query.fiscalYearId);
+    let empId = parseInt(req.query.empId);
+    PapMasterDetails.aggregate([
+        {
+            "$match": {
+                "status": { $ne: "Terminated" },
+                "emp_id": empId,
+                "fiscalYearId": fiscalYearId
+            }
+        },
+        {
+            '$lookup': {
+                'from': 'papdetails',
+                'localField': '_id',
+                'foreignField': 'pap_master_id',
+                'as': 'papdetails'
+            }
+        },
+        {
+            '$unwind': {
+                'path': '$papdetails'
+            }
+        },
+        {
+            '$lookup': {
+                'from': 'midtermdetails',
+                'localField': 'papdetails.mtr_details_id',
+                'foreignField': '_id',
+                'as': 'midtermdetails'
+            }
+        },
+        {
+            '$unwind': {
+                'path': '$midtermdetails'
+            }
+        },
+        {
+            '$lookup': {
+                'from': 'kracategorydetails',
+                'localField': 'midtermdetails.category_id',
+                'foreignField': '_id',
+                'as': 'category'
+            }
+        },
+        {
+            '$unwind': {
+                'path': '$category'
+            }
+        },
+        {
+            '$lookup': {
+                'from': 'papratingscales',
+                'localField': 'papdetails.emp_ratingScaleId',
+                'foreignField': '_id',
+                'as': 'empRating'
+            }
+        },
+        {
+            '$unwind': {
+                'path': '$empRating',
+                "preserveNullAndEmptyArrays": true
+            }
+        },
+        {
+            '$lookup': {
+                'from': 'papratingscales',
+                'localField': 'papdetails.sup_ratingScaleId',
+                'foreignField': '_id',
+                'as': 'supRating'
+            }
+        },
+        {
+            '$unwind': {
+                'path': '$supRating',
+                "preserveNullAndEmptyArrays": true
+            }
+        },
+        {
+            '$lookup': {
+                'from': 'employeedetails',
+                'localField': 'emp_id',
+                'foreignField': '_id',
+                'as': 'employeedetails'
+            }
+        },
+        {
+            '$unwind': {
+                'path': '$employeedetails'
+            }
+        },
+        {
+            "$project": {
+                "mtr_kra": "$midtermdetails.mtr_kra",
+                "kraCategoryName": "$category.kraCategoryName",
+                "weightage": "",
+                "unitOfSuccess": "",
+                "measureOfSuccess": "",
+                "empRating": "",
+                "supRating": "",
+                "EmpComment": "",
+                "supComment": "",
+                "reviewerComment": "",
+                "finalRating": ""
+            }
+        }
+    ]).exec((err, result) => {
+        sendResponse(res, err, result, 'PAP Report');
+    });
+}
+
 let functions = {
     getEmployeesForPapInitiate: (req, res) => {
         getEmployeesForPapInitiate(req, res);
@@ -3620,6 +3732,9 @@ let functions = {
     },
     getPapDailyReport: (req, res) => {
         getPapDailyReport(req, res);
+    },
+    getPapEvaluationReport: (req, res) => {
+        getPapEvaluationReport(req, res);
     },
 }
 
