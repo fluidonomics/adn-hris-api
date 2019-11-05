@@ -3598,6 +3598,19 @@ function getPapEvaluationReport(req, res) {
         },
         {
             '$lookup': {
+                'from': 'kraweightagedetails',
+                'localField': 'midtermdetails.weightage_id',
+                'foreignField': '_id',
+                'as': 'weightage'
+            }
+        },
+        {
+            '$unwind': {
+                'path': '$weightage'
+            }
+        },
+        {
+            '$lookup': {
                 'from': 'papratingscales',
                 'localField': 'papdetails.emp_ratingScaleId',
                 'foreignField': '_id',
@@ -3641,15 +3654,16 @@ function getPapEvaluationReport(req, res) {
             "$project": {
                 "mtr_kra": "$midtermdetails.mtr_kra",
                 "kraCategoryName": "$category.kraCategoryName",
-                "weightage": "",
-                "unitOfSuccess": "",
-                "measureOfSuccess": "",
-                "empRating": "",
-                "supRating": "",
-                "EmpComment": "",
-                "supComment": "",
-                "reviewerComment": "",
-                "finalRating": ""
+                "weightage": "$weightage.kraWeightageName",
+                "unitOfSuccess": "$midtermdetails.unitOfSuccess",
+                "measureOfSuccess": "$midtermdetails.measureOfSuccess",
+                "empRating": "$empRating.ratingScale",
+                "supRating": "$supRating.ratingScale",
+                "empComment": "$papdetails.empRemark",
+                "supComment": "$papdetails.supRemark",
+                "reviewerComment": "$papdetails.reviewerRemark",
+                "finalRating": "$supRating.ratingScale",
+                "overallRating": "$overallRating"
             }
         }
     ]).exec((err, result) => {
