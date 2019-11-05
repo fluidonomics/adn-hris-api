@@ -3544,7 +3544,75 @@ function getPapDailyReport(req, res) {
         });
     });
 }
-
+function EvaluationReportData(req, res) {
+    let fiscalYearId = parseInt(req.query.fiscalYearId);
+    let empId = parseInt(req.query.empId);
+    PapDetails.aggregate([
+        {
+          '$lookup': {
+            'from': 'midtermdetails', 
+            'localField': 'mtr_details_id', 
+            'foreignField': '_id', 
+            'as': 'mtrDetails'
+          }
+        }, {
+          '$unwind': {
+            'path': '$mtrDetails'
+          }
+        }, {
+          '$lookup': {
+            'from': 'papmasters', 
+            'localField': 'pap_master_id', 
+            'foreignField': '_id', 
+            'as': 'papMasterDetails'
+          }
+        }, {
+          '$unwind': {
+            'path': '$papMasterDetails'
+          }
+        }, {
+          '$lookup': {
+            'from': 'kraweightagedetails', 
+            'localField': 'mtrDetails.weightage_id', 
+            'foreignField': '_id', 
+            'as': 'weightageDetails'
+          }
+        }, {
+          '$unwind': {
+            'path': '$weightageDetails'
+          }
+        }, {
+          '$lookup': {
+            'from': 'kracategorydetails', 
+            'localField': 'mtrDetails.category_id', 
+            'foreignField': '_id', 
+            'as': 'categoryDetails'
+          }
+        }, {
+          '$unwind': {
+            'path': '$categoryDetails'
+          }
+        }, {
+          '$project': {
+            'empId': '$empId', 
+            'KraDescription': '$mtrDetails.mtr_kra', 
+            'Category': '$categoryDetails.kraCategoryName', 
+            'Weightage': '$weightageDetails.kraWeightageName', 
+            'Metrics': 'Metrics', 
+            'YERSelfAppraisal': 'YERSelfAppraisal', 
+            'YERManagerRating': 'YERManagerRating', 
+            'MeasureOfSuccess': '$mtrDetails.measureOfSuccess', 
+            'EmloyeeComments': '$empRemark', 
+            'SupComment': '$supRemark', 
+            'ReviewerComment': '$reviewerRemark', 
+            'FinalPerfomanceRating': 'FinalPerfomanceRating', 
+            'FiscalYearId': '$papMasterDetails.fiscalYearId'
+          }
+        }
+      ]).exec(function (err, response) {
+        done(err, response);
+      });
+}
 let functions = {
     getEmployeesForPapInitiate: (req, res) => {
         getEmployeesForPapInitiate(req, res);
@@ -3621,6 +3689,9 @@ let functions = {
     getPapDailyReport: (req, res) => {
         getPapDailyReport(req, res);
     },
+    getEvaluationReportData: (req, res) => {
+        EvaluationReportData(req, res);
+    }
 }
 
 
