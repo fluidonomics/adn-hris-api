@@ -3548,12 +3548,11 @@ function getPapDailyReport(req, res) {
 function getPapEvaluationReport(req, res) {
     let companyId = parseInt(req.query.companyId);
     let fiscalYearId = parseInt(req.query.fiscalYearId);
-    let empId = parseInt(req.query.empId);
+    // let empId = parseInt(req.query.empId);
     PapMasterDetails.aggregate([
         {
             "$match": {
                 "status": { $ne: "Terminated" },
-                "emp_id": empId,
                 "fiscalYearId": fiscalYearId
             }
         },
@@ -3651,19 +3650,42 @@ function getPapEvaluationReport(req, res) {
             }
         },
         {
+            '$match': {
+                'employeedetails.company_id': companyId
+            }
+        },
+        {
             "$project": {
-                "mtr_kra": "$midtermdetails.mtr_kra",
-                "kraCategoryName": "$category.kraCategoryName",
-                "weightage": "$weightage.kraWeightageName",
-                "unitOfSuccess": "$midtermdetails.unitOfSuccess",
-                "measureOfSuccess": "$midtermdetails.measureOfSuccess",
-                "empRating": "$empRating.ratingScale",
-                "supRating": "$supRating.ratingScale",
-                "empComment": "$papdetails.empRemark",
-                "supComment": "$papdetails.supRemark",
-                "reviewerComment": "$papdetails.reviewerRemark",
-                "finalRating": "$supRating.ratingScale",
-                "overallRating": "$overallRating"
+                "_id": 1,
+                "papMaster": {
+                    "status": "$status",
+                    "reviewerStatus": "$reviewerStatus",
+                },
+                "employeedetails": "$employeedetails",
+                "papData": {
+
+                    "mtr_kra": "$midtermdetails.mtr_kra",
+                    "kraCategoryName": "$category.kraCategoryName",
+                    "weightage": "$weightage.kraWeightageName",
+                    "unitOfSuccess": "$midtermdetails.unitOfSuccess",
+                    "measureOfSuccess": "$midtermdetails.measureOfSuccess",
+                    "empRating": "$empRating.ratingScale",
+                    "supRating": "$supRating.ratingScale",
+                    "empComment": "$papdetails.empRemark",
+                    "supComment": "$papdetails.supRemark",
+                    "reviewerComment": "$papdetails.reviewerRemark",
+                    "finalRating": "$supRating.ratingScale",
+                    "overallRating": "$overallRating",
+                }
+            }
+        },
+        {
+            "$group": {
+                "_id": "$_id",
+                "papMaster": { $first: "$papMaster" },
+                "employeedetails": { $first: "$employeedetails" },
+                "papData": { $push: "$papData" },
+
             }
         }
     ]).exec((err, result) => {
