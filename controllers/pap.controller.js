@@ -3558,6 +3558,24 @@ function getPapEvaluationReport(req, res) {
         },
         {
             '$lookup': {
+                'from': 'employeedetails_view',
+                'localField': 'emp_id',
+                'foreignField': '_id',
+                'as': 'employeedetails'
+            }
+        },
+        {
+            '$unwind': {
+                'path': '$employeedetails'
+            }
+        },
+        {
+            '$match': {
+                'employeedetails.company_id': companyId
+            }
+        },
+        {
+            '$lookup': {
                 'from': 'papdetails',
                 'localField': '_id',
                 'foreignField': 'pap_master_id',
@@ -3638,20 +3656,28 @@ function getPapEvaluationReport(req, res) {
         },
         {
             '$lookup': {
-                'from': 'employeedetails',
-                'localField': 'emp_id',
+                'from': 'departments',
+                'localField': 'employeedetails.employeeofficedetails.department_id',
                 'foreignField': '_id',
-                'as': 'employeedetails'
+                'as': 'department'
             }
         },
         {
             '$unwind': {
-                'path': '$employeedetails'
+                'path': '$department'
             }
         },
         {
-            '$match': {
-                'employeedetails.company_id': companyId
+            '$lookup': {
+                'from': 'divisions',
+                'localField': 'employeedetails.employeeofficedetails.division_id',
+                'foreignField': '_id',
+                'as': 'division'
+            }
+        },
+        {
+            '$unwind': {
+                'path': '$division'
             }
         },
         {
@@ -3662,6 +3688,8 @@ function getPapEvaluationReport(req, res) {
                     "reviewerStatus": "$reviewerStatus",
                 },
                 "employeedetails": "$employeedetails",
+                "department": "$department",
+                "division": "$division",
                 "papData": {
 
                     "mtr_kra": "$midtermdetails.mtr_kra",
@@ -3684,6 +3712,8 @@ function getPapEvaluationReport(req, res) {
                 "_id": "$_id",
                 "papMaster": { $first: "$papMaster" },
                 "employeedetails": { $first: "$employeedetails" },
+                "department": { $first: "$department" },
+                "division": { $first: "$division" },
                 "papData": { $push: "$papData" },
 
             }
