@@ -521,7 +521,7 @@ module.exports = (app) => {
   masterRoutes.get('/getPapRatingScale', master.getPapRatingScale);
   masterRoutes.get('/getHrHeads', master.getHrHeads);
   masterRoutes.get('/getAllHrHeads', master.getAllHrHeads);
-  
+
 
 
 
@@ -694,6 +694,7 @@ module.exports = (app) => {
   papRoutes.post('/initiateGrievanceFeedback', pap.initiateGrievanceFeedback);
   papRoutes.post('/releaseGrievanceFeedback', pap.releaseGrievanceFeedback);
   papRoutes.get('/getPapDailyReport', pap.getPapDailyReport);
+  papRoutes.get('/getPapEvaluationReport', pap.getPapEvaluationReport);
 
   /*===================================
   Dashboard API's
