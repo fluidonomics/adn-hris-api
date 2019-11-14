@@ -3683,6 +3683,7 @@ function getPapEvaluationReport(req, res) {
         {
             "$project": {
                 "_id": 1,
+                "userName": "$employeedetails.userName",
                 "papMaster": {
                     "status": "$status",
                     "reviewerStatus": "$reviewerStatus",
@@ -3691,7 +3692,6 @@ function getPapEvaluationReport(req, res) {
                 "department": "$department",
                 "division": "$division",
                 "papData": {
-
                     "mtr_kra": "$midtermdetails.mtr_kra",
                     "kraCategoryName": "$category.kraCategoryName",
                     "weightage": "$weightage.kraWeightageName",
@@ -3710,6 +3710,7 @@ function getPapEvaluationReport(req, res) {
         {
             "$group": {
                 "_id": "$_id",
+                "userName": { $first: "$userName" },
                 "papMaster": { $first: "$papMaster" },
                 "employeedetails": { $first: "$employeedetails" },
                 "department": { $first: "$department" },
