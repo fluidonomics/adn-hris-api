@@ -3549,6 +3549,15 @@ function getPapEvaluationReport(req, res) {
     let companyId = parseInt(req.query.companyId);
     let fiscalYearId = parseInt(req.query.fiscalYearId);
     // let empId = parseInt(req.query.empId);
+    let employeefilter = {
+        'employeedetails.company_id': companyId
+    };
+    if (req.query.divisionId) {
+        employeefilter["employeedetails.employeeofficedetails.division_id"] = parseInt(req.query.divisionId);
+    }
+    if (req.query.departmentId) {
+        employeefilter["employeedetails.employeeofficedetails.department_id"] = parseInt(req.query.departmentId);
+    }
     PapMasterDetails.aggregate([
         {
             "$match": {
@@ -3570,9 +3579,7 @@ function getPapEvaluationReport(req, res) {
             }
         },
         {
-            '$match': {
-                'employeedetails.company_id': companyId
-            }
+            '$match': employeefilter
         },
         {
             '$lookup': {
@@ -3683,6 +3690,7 @@ function getPapEvaluationReport(req, res) {
         {
             "$project": {
                 "_id": 1,
+                "userName": "$employeedetails.userName",
                 "papMaster": {
                     "status": "$status",
                     "reviewerStatus": "$reviewerStatus",
@@ -3691,7 +3699,6 @@ function getPapEvaluationReport(req, res) {
                 "department": "$department",
                 "division": "$division",
                 "papData": {
-
                     "mtr_kra": "$midtermdetails.mtr_kra",
                     "kraCategoryName": "$category.kraCategoryName",
                     "weightage": "$weightage.kraWeightageName",
@@ -3710,6 +3717,7 @@ function getPapEvaluationReport(req, res) {
         {
             "$group": {
                 "_id": "$_id",
+                "userName": { $first: "$userName" },
                 "papMaster": { $first: "$papMaster" },
                 "employeedetails": { $first: "$employeedetails" },
                 "department": { $first: "$department" },
