@@ -1,0 +1,43 @@
+// Requires official MongoShell 3.6+
+use adnProdClone;
+db.getCollection("leaveappliedmasters").aggregate(
+    [
+        { 
+            "$match" : {
+                "fromDate" : {
+                    "$gte" : ISODate("2019-07-01T00:00:00.000+0000")
+                }, 
+                "toDate" : {
+                    "$lte" : ISODate("2019-10-31T00:00:00.000+0000")
+                }
+            }
+        }, 
+        { 
+            "$lookup" : {
+                "from" : "employeedetails", 
+                "localField" : "emp_id", 
+                "foreignField" : "_id", 
+                "as" : "employeedetails"
+            }
+        }, 
+        { 
+            "$unwind" : {
+                "path" : "$employeedetails", 
+                "preserveNullAndEmptyArrays" : false
+            }
+        }, 
+        { 
+            "$project" : {
+                "Employee ID" : "$employeedetails.userName", 
+                "Name" : "$employeedetails.fullName", 
+                "Leave Date (From)" : "$fromDate", 
+                "Leave Date (To)" : "$toDate", 
+                "Number of Days" : "$days", 
+                "Application Status" : "$status"
+            }
+        }
+    ], 
+    { 
+        "allowDiskUse" : false
+    }
+);
