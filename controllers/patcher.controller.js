@@ -645,6 +645,48 @@ function provideLeaveQuota(req, res) {
     });
 }
 
+// #124-Fwd: Carry forwarded leaves for 2019-20 - ADN Telecom
+function addCarryForwardBalance_124(req, res) {
+    async.waterfall([
+        (done) => {
+            var q = async.queue(function (employee, callback) {
+                console.log("Processing employee | " + JSON.stringify(employee.userName));
+                EmployeeDetails.findOne({ userName: employee.userName }, (err, empDetail) => {
+                    console.log("Employee Id | " + empDetail._id, "Balance |", employee.balance);
+
+                    let updateCondition = {
+                        emp_id: empDetail._id,
+                        fiscalYearId: 3,
+                        leave_type: 1
+                    };
+
+                    let updateDoc = {
+                        carryForwardLeave: employee.balance
+                    };
+                    EmployeeLeaveBalance.updateMany(updateCondition, updateDoc, (err, docBalance) => {
+                        if (err) {
+                            console.log("Error in Updating Balance");
+                        }
+                        console.log(docBalance);
+                        callback();
+                    });
+                });
+            });
+
+            q.drain = function () {
+                console.log('All employees processed');
+                done(null);
+            };
+
+            req.body.forEach(emp => {
+                q.push(emp);
+            });
+        }
+    ], (err, result) => {
+        sendResponse(res, err, result, 'Leave Balance Provided');
+    });
+}
+
 let functions = {
     // KRA Patches
     kra: {
@@ -683,6 +725,9 @@ let functions = {
         provideLeaveQuota: (req, res) => {
             provideLeaveQuota(req, res);
         },
+        addCarryForwardBalance_124: (req, res) => {
+            addCarryForwardBalance_124(req, res);
+        }
     }
 }
 
