@@ -52,6 +52,23 @@ let pdfDocuments = multer({
     }
 }).single('seakleavedocument');
 
+let externalpdfDocuments = multer({
+    storage: documentStorage,
+    limits: {
+        fileSize: config.aws.fileSize, // 5MB filesize limit
+    },
+    fileFilter: (req, file, cb) => {
+        let filetypes = /pdf|jpe?g|png|docx/;
+        let mimetype = filetypes.test(file.mimetype);
+        let extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+        if (mimetype && extname) {
+            return cb(null, req);
+        }
+        cb('File upload only supports the following filetypes - jpg|jpeg|png|pdf|docx');
+    }
+}).single('externalDocument');
+
+
 let profileTemp = multer({
     storage: imageTempStorage,
     limits: {
@@ -69,4 +86,4 @@ let profileTemp = multer({
     }
 }).single('profile')
 
-module.exports = { pdfDocuments, profileTemp }
+module.exports = { pdfDocuments, profileTemp,externalpdfDocuments }

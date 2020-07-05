@@ -139,7 +139,7 @@ let functions = {
     updateEmployeeExternalDocumentInfo:(req,res )=> {
         async.waterfall([
           function(done) {
-            uploadClass.pdfDocuments(req, res, (err) => {
+            uploadClass.externalpdfDocuments(req, res, (err) => {
                 if (err) {
                   return res.status(403).json({
                     title: 'Error',
