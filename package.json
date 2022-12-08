@@ -30,7 +30,7 @@
     "core-js": "^2.5.5",
     "debug": "^2.5.1",
     "dotenv": "^5.0.1",
-    "express": "^4.15.3",
+    "express": "^4.17.3",
     "find-remove": "^1.0.1",
     "fs-extra": "^3.0.1",
     "gm": "latest",
