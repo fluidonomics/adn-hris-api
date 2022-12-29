@@ -20,7 +20,7 @@
   "author": "Sumit Mahajan",
   "private": false,
   "dependencies": {
-    "api-query-params": "^4.5.1",
+    "api-query-params": "^4.16.0",
     "async": "^2.4.1",
     "await-each": "^1.1.0",
     "aws-sdk": "^2.247.1",
