@@ -54,7 +54,7 @@
     "nodemailer-sendgrid-transport": "^0.2.0",
     "nodemon": "^1.18.3",
     "passport": "^0.3.2",
-    "passport-jwt": "^2.2.1",
+    "passport-jwt": "^4.0.1",
     "pug": "^2.0.0-rc.1",
     "serve-favicon": "^2.5.0",
     "socket.io": "^2.1.1",
